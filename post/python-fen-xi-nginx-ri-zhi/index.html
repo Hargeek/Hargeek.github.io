@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Python分析Nginx日志 | 山山仙人博客</title>
+<meta name="description" content="stay hungry,stay foolish.">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1622128723910">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1622128723910" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      stay hungry,stay foolish.
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Python分析Nginx日志</h2>
+            <div class="post-date">2019-12-30</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E8%83%8C%E6%99%AF%E4%BB%8B%E7%BB%8D">1、背景介绍</a></li>
+<li><a href="#2-%E6%80%9D%E8%B7%AF%E6%BC%94%E8%BF%9B">2、思路演进</a>
+<ul>
+<li><a href="#21-%E7%AC%AC%E4%B8%80%E6%AD%A5%E8%AF%BB%E5%8F%96%E6%97%A5%E5%BF%97">2.1、第一步读取日志</a></li>
+<li><a href="#22-%E7%AC%AC%E4%BA%8C%E6%AD%A5%E8%A7%A3%E6%9E%90%E6%97%A5%E5%BF%97">2.2、第二步解析日志</a></li>
+<li><a href="#23-%E7%AC%AC%E4%B8%89%E6%AD%A5%E5%88%86%E6%9E%90%E6%97%A5%E5%BF%97">2.3、第三步分析日志</a></li>
+<li><a href="#24-%E7%AC%AC%E5%9B%9B%E6%AD%A5%E7%94%9F%E6%88%90%E6%8A%A5%E5%91%8A">2.4、第四步生成报告</a></li>
+<li><a href="#25-%E7%AC%AC%E4%BA%94%E6%AD%A5%E6%97%A5%E5%BF%97%E9%87%87%E9%9B%86">2.5、第五步日志采集</a></li>
+<li><a href="#26-%E7%BB%93%E6%9E%9C%E5%B1%95%E7%A4%BA">2.6、结果展示</a></li>
+<li><a href="#27-%E5%8F%AF%E6%89%A9%E5%B1%95%E6%96%B9%E5%90%91">2.7、可扩展方向</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>大佬请自觉路过~ ~ ~🤒🤒🤒</p>
+</blockquote>
+<h2 id="1-背景介绍">1、背景介绍</h2>
+<p>本文以我的博客站点其中一段时间的访问日志为例进行分析</p>
+<ul>
+<li>
+<p>用到的知识点<br>
+基本数据类型列表，基本数据类型字典，<code>re</code>模块正则匹配，<code>pandas</code>模块数据处理，<code>xlwt</code>模块<code>excel</code>写入等</p>
+</li>
+<li>
+<p>最终实现的功能<br>
+分析得到日志中访问<code>ip</code>的<code>top20</code>，访问地址的<code>top20</code>，访问客户端<code>ua</code>的排名，并且生成<code>excel</code>报表</p>
+</li>
+</ul>
+<h2 id="2-思路演进">2、思路演进</h2>
+<h3 id="21-第一步读取日志">2.1、第一步读取日志</h3>
+<p>对<code>nginx</code>进行日志分析，首先拿到需要分析的<code>nginx</code>日志文件，日志文件的内容具有固定的定义方法，每一行的日志中每一个特殊的字段都代表着具体的含义，例如：</p>
+<pre><code>95.143.192.110 - - [15/Dec/2019:10:22:00 +0800] &quot;GET /post/pou-xi-he-jie-jue-python-zhong-wang-luo-nian-bao-de-zheng-que-zi-shi/ HTTP/1.1&quot; 304 0 &quot;https://www.ssgeek.com/&quot; &quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36&quot;
+</code></pre>
+<p>上面的日志内容的字段信息依次代表着：访问者来源<code>ip</code>、访问时间、<code>http</code>请求方法、请求地址、<code>http</code>状态码、本次请求的字节大小、<code>refer</code>信息、客户端<code>ua</code>标识</p>
+<p>因此，首先提炼出一行内容，对这行内容进行分组统计并记录每个字段的具体信息，然后把对这一行的分析手段去对整个日志文件进行分析，为了匹配日志中的每个字段，需要用到<code>re</code>模块进行正则匹配，代码如下：</p>
+<pre><code>import re
+
+
+obj = re.compile(r'(?P&lt;ip&gt;.*?)- - \[(?P&lt;time&gt;.*?)\] &quot;(?P&lt;request&gt;.*?)&quot; (?P&lt;status&gt;.*?) (?P&lt;bytes&gt;.*?) &quot;(?P&lt;referer&gt;.*?)&quot; &quot;(?P&lt;ua&gt;.*?)&quot;')
+
+def load_log(path):
+    with open(path, mode=&quot;r&quot;, encoding=&quot;utf-8&quot;) as f:
+        for line in f:
+            line = line.strip()
+            parse(line)
+
+def parse(line):
+    # 解析单行nginx日志
+    try:
+        result = obj.match(line)
+        print(result.group(&quot;ip&quot;))
+    except:
+        pass
+
+
+if __name__ == '__main__':
+    load_log(&quot;nginx_access.log&quot;)
+</code></pre>
+<p>通过<code>re</code>模块依次分组匹配为：<code>ip</code>、<code>time</code>、<code>request</code>、<code>status</code>、<code>bytes</code>、<code>referer</code>、<code>ua</code><br>
+上面的内容最终打印出来了所有的访问者来源<code>ip</code></p>
+<p>进一步加强，输出所有字段，直接打印<code>print(result.groupdict())</code>即可，输出结果是多个字典，如下所示：</p>
+<pre><code>{'ip': '46.229.168.150 ', 'time': '24/Dec/2019:13:21:39 +0800', 'request': 'GET /post/zabbix-web-qie-huan-wei-nginx-ji-https HTTP/1.1', 'status': '301', 'bytes': '178', 'referer': '-', 'ua': 'Mozilla/5.0 (compatible; SemrushBot/6~bl; +http://www.semrush.com/bot.html)'}
+</code></pre>
+<h3 id="22-第二步解析日志">2.2、第二步解析日志</h3>
+<p>精准分析单行日志，并且加入一些格式化输出和过滤的手段</p>
+<p><code>load_log()</code>函数：<br>
+在<code>load_log()</code>函数中，为了避免有错误的日志（类似于“脏数据”），因此定义了两个空列表<code>lst</code>和<code>error_lst</code>用来记录匹配的结果，列表中的每一个元素表示匹配的一行日志，最后打印了总行数，匹配到的行数，不能匹配到的行数（错误日志行数）</p>
+<p><code>parse()</code>函数：<br>
+在<code>parse()</code>函数中，传入参数<code>line</code>，一次对每行中分组匹配到的每一个字段进行处理，处理完成后赋值到列表元素，其中客户端ua标识仅仅列出了一些常见的，如果想要匹配的更为精确，可以参考<a href="http://tools.jb51.net/table/useragent">常用浏览器(PC/移动)user-agent参考对照表</a>，把匹配规则写的更精确即可</p>
+<pre><code>import re
+import datetime
+
+obj = re.compile(
+    r'(?P&lt;ip&gt;.*?)- - \[(?P&lt;time&gt;.*?)\] &quot;(?P&lt;request&gt;.*?)&quot; (?P&lt;status&gt;.*?) (?P&lt;bytes&gt;.*?) &quot;(?P&lt;referer&gt;.*?)&quot; &quot;(?P&lt;ua&gt;.*?)&quot;')
+
+
+def load_log(path):
+    lst = []
+    error_lst = []
+    i = 0
+    with open(path, mode=&quot;r&quot;, encoding=&quot;utf-8&quot;) as f:
+        for line in f:
+            line = line.strip()
+            dic = parse(line)
+            if dic:  # 正确的数据添加到lst列表中
+                lst.append(dic)
+            else:
+                error_lst.append(line)  # 脏数据添加到error_lst列表中
+            i += 1
+    print(i)
+    print(len(error_lst))
+    print(len(lst))
+
+def parse(line):
+    # 解析单行nginx日志
+    dic = {}
+    try:
+        result = obj.match(line)
+        # ip处理
+        ip = result.group(&quot;ip&quot;)
+        if ip.strip() == '-' or ip.strip() == &quot;&quot;:  # 如果是匹配到没有ip就把这条数据丢弃
+            return False
+        dic['ip'] = ip.split(&quot;,&quot;)[0]  # 如果有两个ip，取第一个ip
+
+        # 状态码处理
+        status = result.group(&quot;status&quot;)  # 状态码
+        dic['status'] = status
+
+        # 时间处理
+        time = result.group(&quot;time&quot;)  # 21/Dec/2019:21:45:31 +0800
+        time = time.replace(&quot; +0800&quot;, &quot;&quot;)  # 替换+0800为空
+        t = datetime.datetime.strptime(time, &quot;%d/%b/%Y:%H:%M:%S&quot;)  # 将时间格式化成友好的格式
+        dic['time'] = t
+
+        # request处理
+        request = result.group(
+            &quot;request&quot;)  # GET /post/pou-xi-he-jie-jue-python-zhong-wang-luo-nian-bao-de-zheng-que-zi-shi/ HTTP/1.1
+        a = request.split()[1].split(&quot;?&quot;)[0]  # 往往url后面会有一些参数，url和参数之间用?分隔，取出不带参数的url
+        dic['request'] = a
+
+        # user_agent处理
+        ua = result.group(&quot;ua&quot;)
+        if &quot;Windows NT&quot; in ua:
+            u = &quot;windows&quot;
+        elif &quot;iPad&quot; in ua:
+            u = &quot;ipad&quot;
+        elif &quot;Android&quot; in ua:
+            u = &quot;android&quot;
+        elif &quot;Macintosh&quot; in ua:
+            u = &quot;mac&quot;
+        elif &quot;iPhone&quot; in ua:
+            u = &quot;iphone&quot;
+        else:
+            u = &quot;其他设备&quot;
+        dic['ua'] = u
+
+        # refer处理
+        referer = result.group(&quot;referer&quot;)
+        dic['referer'] = referer
+
+        return dic
+
+    except:
+        return False
+
+
+if __name__ == '__main__':
+    load_log(&quot;nginx_access.log&quot;)
+</code></pre>
+<p>执行代码，查看打印的结果，控制台输出：</p>
+<pre><code>9692
+542
+9150
+</code></pre>
+<p>依次表示日志文件中的总行数、匹配错误（没有匹配到的）的行数、匹配正确的行数</p>
+<h3 id="23-第三步分析日志">2.3、第三步分析日志</h3>
+<p>利用<code>pandas</code>模块进行日志的分析<br>
+<code>analyse()</code>函数：<br>
+将解析过滤得到的<code>lst</code>列表作为参数传入，列表中的数据格式形如<code>[{ip:xxx, api:xxx, status:xxxx, ua:xxx}]</code></p>
+<p><code>df = pd.DataFrame(lst)</code>将解析得到的列表转换成为类似表格的类型，控制台的输出<code>df</code>如下，处理后为每个数据加上了序号，第一行相当于表头，表头就是前面得到的字典中的<code>key</code></p>
+<pre><code>                    ip status  ...       ua                  referer
+0      95.143.192.110     200  ...      mac                        -
+1      95.143.192.110     304  ...      mac                        -
+2      95.143.192.110     304  ...      mac                        -
+3      95.143.192.110     304  ...      mac  https://www.ssgeek.com/
+4      203.208.60.122     200  ...  android                        -
+...                ...    ...  ...      ...                      ...
+9145      46.4.60.249     404  ...     其他设备                        -
+9146      46.4.60.249     404  ...     其他设备                        -
+9147      46.4.60.249     404  ...     其他设备                        -
+9148      46.4.60.249     404  ...     其他设备                        -
+9149  154.223.188.124     404  ...  windows                        -
+</code></pre>
+<p><code>pd.value_counts(df['ip'])</code>取出<code>ip</code>并统计数<code>ip</code>的次数；得到的结果第一列是<code>ip</code>，第二列是次数，<code>pandas</code>默认将第一列认为是行索引，因此需要将数据整体右移，通过<code>reset_index()</code>重新定义一个索引即可，效果形如：</p>
+<pre><code>                 index   ip
+0      89.163.242.228   316
+1     207.180.220.114   312
+2         78.46.90.53   302
+3        144.76.38.10   301
+4        78.46.61.245   301
+...                ...  ...
+1080    203.208.60.85     1
+1081      66.249.72.8     1
+1082     141.8.132.13     1
+1083    207.46.13.119     1
+1084     203.208.60.7     1
+</code></pre>
+<p>这个时候发现索引有了，但是表头也跟着右移了，不对应了，需要重新设置一个表头<code>reset_index().rename(columns={&quot;index&quot;: &quot;ip&quot;, &quot;ip&quot;: &quot;count&quot;})</code>，效果形如</p>
+<pre><code>                    ip  count
+0      89.163.242.228     316
+1     207.180.220.114     312
+2         78.46.90.53     302
+3        78.46.61.245     301
+4        144.76.38.10     301
+...                ...    ...
+1080     47.103.17.71       1
+1081    42.156.254.92       1
+1082  220.243.136.156       1
+1083   180.163.220.61       1
+1084   106.14.215.243       1
+</code></pre>
+<p>往往分析日志只需要得到访问次数的前几名，例如前<code>20</code>名，<code>pandas</code>同样给出了很方便的<code>iloc</code>通过切片实现这个需求，<code>iloc[:20, :]</code>：取出前<code>20</code>行，取出所有列，最终的处理代码为</p>
+<pre><code>    ip_count = pd.value_counts(df['ip']).reset_index().rename(columns={&quot;index&quot;: &quot;ip&quot;, &quot;ip&quot;: &quot;count&quot;}).iloc[:20, :]
+    print(ip_count)
+</code></pre>
+<p>得到的数据结果为</p>
+<pre><code>                  ip  count
+0    89.163.242.228     316
+1   207.180.220.114     312
+2       78.46.90.53     302
+3      144.76.38.10     301
+4      78.46.61.245     301
+5     144.76.29.148     301
+6    204.12.208.154     301
+7     148.251.92.39     301
+8         5.9.70.72     286
+9     223.71.139.28     218
+10     95.216.19.59     209
+11    221.13.12.147     131
+12     117.15.90.21     130
+13  175.184.166.181     129
+14   148.251.49.107     128
+15    171.37.204.72     127
+16   124.95.168.140     118
+17    171.34.178.76      98
+18   60.216.138.190      97
+19    141.8.142.158      87
+</code></pre>
+<p>同样，可以把<code>request</code>、<code>ua</code>等进行相同的操作</p>
+<h3 id="24-第四步生成报告">2.4、第四步生成报告</h3>
+<p>利用<code>xlwt</code>模块将pandas分析得到的数据写入到<code>excel</code>表格中，写入前需要将pandas处理后的数据转化成普通的数据</p>
+<pre><code>    ip_count_values = ip_count.values
+    request_count_values = request_count.values
+    ua_count_values = ua_count.values
+</code></pre>
+<p>这个数据类型是：数组对象<code>numpy.ndarray</code>，形如：</p>
+<pre><code>[['89.163.242.228 ' 316]
+ ['207.180.220.114 ' 312]
+ ['78.46.90.53 ' 302]
+ ['204.12.208.154 ' 301]
+ ['144.76.29.148 ' 301]
+ ['144.76.38.10 ' 301]
+ ['78.46.61.245 ' 301]
+ ['148.251.92.39 ' 301]
+ ['5.9.70.72 ' 286]
+ ['223.71.139.28 ' 218]
+ ['95.216.19.59 ' 209]
+ ['221.13.12.147 ' 131]
+ ['117.15.90.21 ' 130]
+ ['175.184.166.181 ' 129]
+ ['148.251.49.107 ' 128]
+ ['171.37.204.72 ' 127]
+ ['124.95.168.140 ' 118]
+ ['171.34.178.76 ' 98]
+ ['60.216.138.190 ' 97]
+ ['141.8.142.158 ' 87]]
+</code></pre>
+<p>通过<code>xlwt</code>模块写入<code>sheet</code>页，每个<code>sheet</code>页中写入对应处理的数据</p>
+<pre><code># 写入excel
+wb = xlwt.Workbook()  # 打开一个excel文档
+sheet = wb.add_sheet(&quot;ip访问top20&quot;)  # 新建一个sheet页
+# 写入头信息
+row = 0
+sheet.write(row, 0, &quot;ip&quot;)  # 写入行，列，内容
+sheet.write(row, 1, &quot;count&quot;)  # 写入行，列，内容
+row += 1  # 行号加一
+for item in ip_count_values:
+    sheet.write(row, 0, item[0])
+    sheet.write(row, 1, item[1])
+    row += 1
+</code></pre>
+<h3 id="25-第五步日志采集">2.5、第五步日志采集</h3>
+<p>日志分析完了，回过头来需要的是采集到日志文件，并且定时的去进行分析，可以利用<code>time</code>模块得到时间并且判断，实现定时的分析，例如，每月3号的凌晨1点进行日志分析</p>
+<pre><code>import time
+
+if __name__ == '__main__':
+    while 1:
+        stime = datetime.datetime.now().strftime(&quot;%d:%H:%M:%S&quot;)
+        if stime == &quot;03:01:00:00&quot;:
+            lst, error_lst = load_log(&quot;nginx_access.log&quot;)
+            analyse(lst)
+        time.sleep(1)
+</code></pre>
+<p>当然也可以通过服务器级别的定时任务功能定时的调用脚本分析</p>
+<h3 id="26-结果展示">2.6、结果展示</h3>
+<p>按照前面的演进过程，最终的代码如下：</p>
+<pre><code>import re
+import datetime
+import pandas as pd
+import xlwt
+
+obj = re.compile(
+    r'(?P&lt;ip&gt;.*?)- - \[(?P&lt;time&gt;.*?)\] &quot;(?P&lt;request&gt;.*?)&quot; (?P&lt;status&gt;.*?) (?P&lt;bytes&gt;.*?) &quot;(?P&lt;referer&gt;.*?)&quot; &quot;(?P&lt;ua&gt;.*?)&quot;')
+
+
+def load_log(path):
+    lst = []
+    error_lst = []
+    i = 0
+    with open(path, mode=&quot;r&quot;, encoding=&quot;utf-8&quot;) as f:
+        for line in f:
+            line = line.strip()
+            dic = parse(line)
+            if dic:  # 正确的数据添加到lst列表中
+                lst.append(dic)
+            else:
+                error_lst.append(line)  # 脏数据添加到error_lst列表中
+            i += 1
+
+    return lst, error_lst
+
+def parse(line):
+    # 解析单行nginx日志
+    dic = {}
+    try:
+        result = obj.match(line)
+        # ip处理
+        ip = result.group(&quot;ip&quot;)
+        if ip.strip() == '-' or ip.strip() == &quot;&quot;:  # 如果是匹配到没有ip就把这条数据丢弃
+            return False
+        dic['ip'] = ip.split(&quot;,&quot;)[0]  # 如果有两个ip，取第一个ip
+
+        # 状态码处理
+        status = result.group(&quot;status&quot;)  # 状态码
+        dic['status'] = status
+
+        # 时间处理
+        time = result.group(&quot;time&quot;)  # 21/Dec/2019:21:45:31 +0800
+        time = time.replace(&quot; +0800&quot;, &quot;&quot;)  # 替换+0800为空
+        t = datetime.datetime.strptime(time, &quot;%d/%b/%Y:%H:%M:%S&quot;)  # 将时间格式化成友好的格式
+        dic['time'] = t
+
+        # request处理
+        request = result.group(
+            &quot;request&quot;)  # GET /post/pou-xi-he-jie-jue-python-zhong-wang-luo-nian-bao-de-zheng-que-zi-shi/ HTTP/1.1
+        a = request.split()[1].split(&quot;?&quot;)[0]  # 往往url后面会有一些参数，url和参数之间用?分隔，取出不带参数的url
+        dic['request'] = a
+
+        # user_agent处理
+        ua = result.group(&quot;ua&quot;)
+        if &quot;Windows NT&quot; in ua:
+            u = &quot;windows&quot;
+        elif &quot;iPad&quot; in ua:
+            u = &quot;ipad&quot;
+        elif &quot;Android&quot; in ua:
+            u = &quot;android&quot;
+        elif &quot;Macintosh&quot; in ua:
+            u = &quot;mac&quot;
+        elif &quot;iPhone&quot; in ua:
+            u = &quot;iphone&quot;
+        else:
+            u = &quot;其他设备&quot;
+        dic['ua'] = u
+
+        # refer处理
+        referer = result.group(&quot;referer&quot;)
+        dic['referer'] = referer
+
+        return dic
+
+    except:
+        return False
+
+
+def analyse(lst): # [{ip:xxx, api:xxx, status:xxxx, ua:xxx}]
+    df = pd.DataFrame(lst)  # 转换成表格
+    # print(df)
+    # print(df['ip'])  # 只取出ip这一列
+    ip_count = pd.value_counts(df['ip']).reset_index().rename(columns={&quot;index&quot;: &quot;ip&quot;, &quot;ip&quot;: &quot;count&quot;}).iloc[:20, :]
+    request_count = pd.value_counts(df['request']).reset_index().rename(columns={&quot;index&quot;: &quot;request&quot;, &quot;request&quot;: &quot;count&quot;}).iloc[:20, :]
+    ua_count = pd.value_counts(df['ua']).reset_index().rename(columns={&quot;index&quot;: &quot;ua&quot;, &quot;ua&quot;: &quot;count&quot;}).iloc[:, :]
+
+    # 从pandas转化成我们普通的数据
+    ip_count_values = ip_count.values
+    request_count_values = request_count.values
+    ua_count_values = ua_count.values
+    # print(type(ip_count_values))
+
+    # 写入excel
+    wb = xlwt.Workbook()  # 打开一个excel文档
+    sheet = wb.add_sheet(&quot;ip访问top20&quot;)  # 新建一个sheet页
+    # 写入头信息
+    row = 0
+    sheet.write(row, 0, &quot;ip&quot;)  # 写入行，列，内容
+    sheet.write(row, 1, &quot;count&quot;)  # 写入行，列，内容
+    row += 1  # 行号加一
+    for item in ip_count_values:
+        sheet.write(row, 0, item[0])
+        sheet.write(row, 1, item[1])
+        row += 1
+
+    sheet = wb.add_sheet(&quot;request访问top20&quot;)  # 新建一个sheet页
+    # 写入头信息
+    row = 0
+    sheet.write(row, 0, &quot;request&quot;)  # 写入行，列，内容
+    sheet.write(row, 1, &quot;count&quot;)  # 写入行，列，内容
+    row += 1  # 行号加一
+    for item in request_count_values:
+        sheet.write(row, 0, item[0])
+        sheet.write(row, 1, item[1])
+        row += 1
+
+    sheet = wb.add_sheet(&quot;ua访问top&quot;)  # 新建一个sheet页
+    # 写入头信息
+    row = 0
+    sheet.write(row, 0, &quot;ua&quot;)  # 写入行，列，内容
+    sheet.write(row, 1, &quot;count&quot;)  # 写入行，列，内容
+    row += 1  # 行号加一
+    for item in ua_count_values:
+        sheet.write(row, 0, item[0])
+        sheet.write(row, 1, item[1])
+        row += 1
+
+    wb.save(&quot;abc.xls&quot;)
+
+if __name__ == '__main__':
+    lst, error_lst = load_log(&quot;nginx_access.log&quot;)
+    analyse(lst)
+</code></pre>
+<p>生成的<code>excel</code>报表内容如下</p>
+<ul>
+<li>
+<p><code>ip</code>排名<br>
+<img src="https://image.ssgeek.com/20191230-01.png" alt=""></p>
+</li>
+<li>
+<p>访问地址排名<br>
+<img src="https://image.ssgeek.com/20191230-02.png" alt=""></p>
+</li>
+<li>
+<p>客户端<code>ua</code>排名<br>
+<img src="https://image.ssgeek.com/20191230-03.png" alt=""></p>
+</li>
+</ul>
+<h3 id="27-可扩展方向">2.7、可扩展方向</h3>
+<p>本文进行日志的分析算是入门之作，可以进一步扩展的方向比如：分析报表的定时消息邮件等推送，分析报表的图形化展示等等</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/nginx" class="tag">
+                    nginx
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/vhKLQmmvn" class="tag">
+                    python
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/li-yong-goaccess-shi-shi-fen-xi-web-fu-wu-ri-zhi">
+                  <h3 class="post-title">
+                    利用GoAccess实时分析web服务日志
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

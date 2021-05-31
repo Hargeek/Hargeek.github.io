@@ -1,0 +1,4021 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://www.ssgeek.com</id>
+    <title>山山仙人博客</title>
+    <updated>2021-05-27T15:19:20.271Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://www.ssgeek.com"/>
+    <link rel="self" href="https://www.ssgeek.com/atom.xml"/>
+    <subtitle>stay hungry,stay foolish.</subtitle>
+    <logo>https://www.ssgeek.com/images/avatar.png</logo>
+    <icon>https://www.ssgeek.com/favicon.ico</icon>
+    <rights>All rights reserved 2021, 山山仙人博客</rights>
+    <entry>
+        <title type="html"><![CDATA[Django自定义实现分页器]]></title>
+        <id>https://www.ssgeek.com/post/django-zi-ding-yi-shi-xian-fen-ye-qi</id>
+        <link href="https://www.ssgeek.com/post/django-zi-ding-yi-shi-xian-fen-ye-qi">
+        </link>
+        <updated>2021-05-27T16:16:50.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%88%86%E6%9E%90%E5%92%8C%E6%8E%A8%E5%AF%BC">1、分析和推导</a>
+<ul>
+<li><a href="#11-%E5%BD%93%E5%89%8D%E9%A1%B5">1.1 当前页</a></li>
+<li><a href="#12-%E8%B5%B7%E5%A7%8B%E4%BD%8D%E7%BD%AE%E5%92%8C%E7%BB%88%E6%AD%A2%E4%BD%8D%E7%BD%AE">1.2 起始位置和终止位置</a></li>
+<li><a href="#13-%E6%B7%BB%E5%8A%A0%E6%8C%89%E9%92%AE%E4%BC%A0%E9%80%92%E9%A1%B5%E7%A0%81%E6%95%B0">1.3 添加按钮传递页码数</a></li>
+</ul>
+</li>
+<li><a href="#2-%E6%96%B9%E6%B3%95%E7%9A%84%E5%B0%81%E8%A3%85">2、方法的封装</a>
+<ul>
+<li><a href="#21-%E5%88%86%E9%A1%B5%E5%99%A8%E7%B1%BB">2.1 分页器类</a></li>
+<li><a href="#22-%E8%A7%86%E5%9B%BE%E5%87%BD%E6%95%B0">2.2 视图函数</a></li>
+<li><a href="#23-%E6%A8%A1%E6%9D%BF%E9%A1%B5%E9%9D%A2">2.3 模板页面</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>前面的文章中分别介绍了<a href="https://www.ssgeek.com/post/drf-fen-ye-qi/"><code>drf</code>框架中分页器的使用</a>及<a href="https://www.ssgeek.com/post/django-fen-ye-qi-de-yong-fa/"><code>Django</code>框架中分页器的用法</a>，其重点在于视图函数和模板页面如何利用自带的分页器的相关参数进行数据传递和页面渲染</p>
+<p>本文继续介绍分页器，即自定义分页器如何实现，其实也就是如何使用自定义的方式计算出和上面类似自带的分页器的相关参数值</p>
+</blockquote>
+<h2 id="1-分析和推导">1、分析和推导</h2>
+<p>分页中的关键信息：当前页、每页展示多少条、起始位置、终止位置</p>
+<h3 id="11-当前页">1.1 当前页</h3>
+<p>思路：浏览器携带页码发送<code>get</code>请求，获取当前页信息。后端从<code>get</code>请求中获取响应的页码数，查询对应数据并返回</p>
+<pre><code class="language-python"># 想访问哪一页
+current_page = request.GET.get('page', 1)  # 如果获取不到当前页码 就展示第一页
+# 数据类型转换，将获取的字符串页码转换成int
+try:
+  current_page = int(current_page)
+except Exception:
+    current_page = 1
+</code></pre>
+<h3 id="12-起始位置和终止位置">1.2 起始位置和终止位置</h3>
+<p>每页条数、起始位置、终止位置的推导</p>
+<pre><code class="language-shell">per_page_num = 10
+current_page                start_page                  end_page
+    1                           0                           10
+    2                           10                          20
+    3                           20                          30
+    4                           30                          40
+
+
+per_page_num = 5
+current_page                start_page                  end_page
+    1                           0                           5
+    2                           5                           10
+    3                           10                          15
+    4                           15                          20
+</code></pre>
+<p>由此得出三者之间的关系</p>
+<pre><code class="language-python">start_page = (current_page - 1) * per_page_num
+end_page = current_page * per_page_num
+</code></pre>
+<p>最终基于页码查询出当前页的数据</p>
+<pre><code class="language-python"># 每页展示多少条
+per_page_num = 10
+# 起始位置
+start_page = (current_page - 1) * per_page_num
+# 终止位置
+end_page = current_page * per_page_num
+book_queryset = book_list[start_page:end_page]
+</code></pre>
+<h3 id="13-添加按钮传递页码数">1.3 添加按钮传递页码数</h3>
+<p>总的页码数需要传递到页面，总页数与总数和每页数有关系，例如</p>
+<pre><code class="language-shell">总数据100 每页展示10 需要10页
+总数据101 每页展示10 需要11页
+总数据99  每页展示10 需要10页
+</code></pre>
+<p>如何动态计算到底需要多少页呢？这里可以利用<code>divmod</code>方法来计算总数与每页个数的商和余数，余数不为<code>0</code>时，把页数加<code>1</code></p>
+<pre><code class="language-python"># 分页
+book_list = models.Book.objects.all()
+# 计算出到底需要多少页
+all_count = book_list.count()
+page_count, more = divmod(all_count, per_page_num)  # 计算总数%每页个数的商和余数，余数不为0时，把页数+1
+if more:  # 有余数则总页数加一
+    page_count += 1
+</code></pre>
+<p>关于页码布局，在制作页码个数的时候一般情况下都是奇数个页码，这更符合对称美的标准</p>
+<p>最后，在后端把页码计算逻辑写出来动态的传给前端</p>
+<pre><code class="language-python"># 在后端把页码计算逻辑写出来传给前端
+page_html = ''
+x = current_page
+if current_page &lt; 6:  # 控制页码数量，当小于6时，不显示负数页码
+    current_page = 6
+for i in range(current_page - 5, current_page + 6):  # 显示11个页码，被选中的在最中间
+    if x == i:  # 高亮显示被选中的那一个页码
+        page_html += '&lt;li class=&quot;active&quot;&gt;&lt;a href=&quot;?page=%s&quot;&gt;%s&lt;/a&gt;&lt;/li&gt;' % (i, i)
+    else:
+        page_html += '&lt;li&gt;&lt;a href=&quot;?page=%s&quot;&gt;%s&lt;/a&gt;&lt;/li&gt;' % (i, i)
+
+book_queryset = book_list[start_page:end_page]
+return render(request, 'ab_pl.html', locals())
+</code></pre>
+<p>前端模板页面接收</p>
+<pre><code class="language-html">&lt;ul class=&quot;pagination&quot;&gt;
+    &lt;li&gt;
+      &lt;a href=&quot;#&quot; aria-label=&quot;Previous&quot;&gt;
+        &lt;span aria-hidden=&quot;true&quot;&gt;&amp;laquo;&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/li&gt;
+    { page_html|safe }
+    &lt;li&gt;
+      &lt;a href=&quot;#&quot; aria-label=&quot;Next&quot;&gt;
+        &lt;span aria-hidden=&quot;true&quot;&gt;&amp;raquo;&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/li&gt;
+&lt;/ul&gt;
+</code></pre>
+<p>到这里，就实现了后端动态的根据已有的数据并动态的将页码数传递到了前端页面渲染生成对应的页码按钮</p>
+<h2 id="2-方法的封装">2、方法的封装</h2>
+<p>上面是自定义分页器开发流程的基本推导思路，最后将自定义分页器进行封装</p>
+<h3 id="21-分页器类">2.1 分页器类</h3>
+<p><code>mypage.py</code></p>
+<pre><code class="language-python">class Pagination(object):
+    def __init__(self, current_page, all_count, per_page_num=2, pager_count=11):
+        &quot;&quot;&quot;
+        封装分页相关数据
+        :param current_page: 当前页
+        :param all_count:    数据库中的数据总条数
+        :param per_page_num: 每页显示的数据条数
+        :param pager_count:  最多显示的页码个数
+        &quot;&quot;&quot;
+        try:
+            current_page = int(current_page)
+        except Exception as e:
+            current_page = 1
+        if current_page &lt; 1:
+            current_page = 1
+        self.current_page = current_page
+        self.all_count = all_count
+        self.per_page_num = per_page_num
+
+        # 总页码
+        all_pager, tmp = divmod(all_count, per_page_num)
+        if tmp:
+            all_pager += 1
+        self.all_pager = all_pager
+
+        self.pager_count = pager_count
+        self.pager_count_half = int((pager_count - 1) / 2)
+
+    @property
+    def start(self):
+        return (self.current_page - 1) * self.per_page_num
+
+    @property
+    def end(self):
+        return self.current_page * self.per_page_num
+
+    def page_html(self):
+        # 如果总页码 &lt; 11个：
+        if self.all_pager &lt;= self.pager_count:
+            pager_start = 1
+            pager_end = self.all_pager + 1
+        # 总页码  &gt; 11
+        else:
+            # 当前页如果&lt;=页面上最多显示11/2个页码
+            if self.current_page &lt;= self.pager_count_half:
+                pager_start = 1
+                pager_end = self.pager_count + 1
+            # 当前页大于5
+            else:
+                # 页码翻到最后
+                if (self.current_page + self.pager_count_half) &gt; self.all_pager:
+                    pager_end = self.all_pager + 1
+                    pager_start = self.all_pager - self.pager_count + 1
+                else:
+                    pager_start = self.current_page - self.pager_count_half
+                    pager_end = self.current_page + self.pager_count_half + 1
+        page_html_list = []
+        # 添加前面的nav和ul标签
+        page_html_list.append('''
+                    &lt;nav aria-label='Page navigation&gt;'
+                    &lt;ul class='pagination'&gt;
+                ''')
+        first_page = '&lt;li&gt;&lt;a href=&quot;?page=%s&quot;&gt;首页&lt;/a&gt;&lt;/li&gt;' % (1)
+        page_html_list.append(first_page)
+
+        if self.current_page &lt;= 1:
+            prev_page = '&lt;li class=&quot;disabled&quot;&gt;&lt;a href=&quot;#&quot;&gt;上一页&lt;/a&gt;&lt;/li&gt;'
+        else:
+            prev_page = '&lt;li&gt;&lt;a href=&quot;?page=%s&quot;&gt;上一页&lt;/a&gt;&lt;/li&gt;' % (self.current_page - 1,)
+
+        page_html_list.append(prev_page)
+
+        for i in range(pager_start, pager_end):
+            if i == self.current_page:
+                temp = '&lt;li class=&quot;active&quot;&gt;&lt;a href=&quot;?page=%s&quot;&gt;%s&lt;/a&gt;&lt;/li&gt;' % (i, i,)
+            else:
+                temp = '&lt;li&gt;&lt;a href=&quot;?page=%s&quot;&gt;%s&lt;/a&gt;&lt;/li&gt;' % (i, i,)
+            page_html_list.append(temp)
+
+        if self.current_page &gt;= self.all_pager:
+            next_page = '&lt;li class=&quot;disabled&quot;&gt;&lt;a href=&quot;#&quot;&gt;下一页&lt;/a&gt;&lt;/li&gt;'
+        else:
+            next_page = '&lt;li&gt;&lt;a href=&quot;?page=%s&quot;&gt;下一页&lt;/a&gt;&lt;/li&gt;' % (self.current_page + 1,)
+        page_html_list.append(next_page)
+
+        last_page = '&lt;li&gt;&lt;a href=&quot;?page=%s&quot;&gt;尾页&lt;/a&gt;&lt;/li&gt;' % (self.all_pager,)
+        page_html_list.append(last_page)
+        # 尾部添加标签
+        page_html_list.append('''
+                                           &lt;/nav&gt;
+                                           &lt;/ul&gt;
+                                       ''')
+        return ''.join(page_html_list)
+</code></pre>
+<h3 id="22-视图函数">2.2 视图函数</h3>
+<p>视图函数中引用</p>
+<pre><code class="language-python">from utils.mypage import Pagination
+
+def get_books(request):
+    book_queryset = models.Book.objects.all()
+    current_page = request.GET.get(&quot;page&quot;, 1)
+    all_count = book_queryset.count()
+    # 1 传值生成对象
+    page_obj = Pagination(current_page=current_page, all_count=all_count, per_page_num=10)
+    # 2 直接对总数据进行切片操作
+    page_queryset = book_list[page_obj.start:page_obj.end]
+    # 3 将page_queryset传递到页面
+    return render(request, 'booklist.html', locals())
+</code></pre>
+<h3 id="23-模板页面">2.3 模板页面</h3>
+<p>模板页面中渲染</p>
+<pre><code class="language-html">&lt;div class=&quot;container&quot;&gt;
+    &lt;div class=&quot;row&quot;&gt;
+        &lt;div class=&quot;col-md-8 col-md-offset-2&quot;&gt;
+            {% for book in page_queryset %}
+            &lt;p&gt;{ book.title }&lt;/p&gt;
+            {% endfor %}
+          	{#利用自定义分页器直接显示分页器样式#}
+            { page_obj.page_html|safe }
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Django分页器的用法]]></title>
+        <id>https://www.ssgeek.com/post/django-fen-ye-qi-de-yong-fa</id>
+        <link href="https://www.ssgeek.com/post/django-fen-ye-qi-de-yong-fa">
+        </link>
+        <updated>2021-05-25T16:17:03.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%87%86%E5%A4%87%E5%9F%BA%E7%A1%80%E6%95%B0%E6%8D%AE">1、准备基础数据</a></li>
+<li><a href="#2-%E4%B8%80%E6%AC%A1%E6%80%A7%E5%B1%95%E7%A4%BA%E6%95%B0%E6%8D%AE">2、一次性展示数据</a></li>
+<li><a href="#3-%E5%BC%95%E5%85%A5%E5%88%86%E9%A1%B5%E5%99%A8">3、引入分页器</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p><code>Django</code>是一个大而全的框架。需要明确的是，传参进行分页获取分页后的数据，一般都是通过向服务器发送<code>get</code>请求的方式实现的，在向后端服务发送查看数据的同时可以携带一个或多个参数并发送<code>get</code>请求来实现分页查看功能</p>
+<p>前面总结过<a href="https://www.ssgeek.com/post/drf-fen-ye-qi/"><code>drf</code>框架中分页器的使用</a>，本文主要介绍在利用<code>Django</code>开发<code>MVT</code>模型项目时分页器的使用</p>
+</blockquote>
+<h2 id="1-准备基础数据">1、准备基础数据</h2>
+<p>设计表模型</p>
+<p>为了体现分页的效果，需要先创建一个表并准备较多数据，模型如下</p>
+<pre><code class="language-python">from django.db import models
+
+# Create your models here.
+
+class Book(models.Model):
+    title = models.CharField(max_length=32)
+    price = models.DecimalField(max_digits=9, decimal_places=2)  # 9999999.99
+</code></pre>
+<p>执行数据库迁移后，设计一个视图函数，通过触发视图函数往此表中批量插入数据</p>
+<p><code>Django</code>中利用<code>orm</code>实现批量插入一般有两种方式：单条插入或者利用<code>bulk_create</code>批量插入</p>
+<p>最终翻译转换成<code>sql</code>语句也就类似于多条<code>insert</code>语句和一条<code>insert</code>的区别</p>
+<pre><code class="language-python">def create_book(request):
+
+    # 批量插入方式一
+    for i in range(100):
+        Book.objects.create(title=&quot;book&quot;+str(i),price=i*i)
+		# 批量插入方式二
+    book_list = []
+    for i in range(100):
+        book = Book(title=&quot;book&quot;+str(i),price=i*i)
+        book_list.append(book)
+    Book.objects.bulk_create(book_list)
+    
+    return HttpResponse(&quot;添加成功&quot;)
+</code></pre>
+<h2 id="2-一次性展示数据">2、一次性展示数据</h2>
+<p>接下来通过模板语法一次性将数据展示到前端页面</p>
+<p>视图函数如下</p>
+<pre><code class="language-python">def get_books(request):
+    book_list = Book.objects.all()
+    return render(request, &quot;index.html&quot;, {&quot;book_list&quot;: book_list})
+</code></pre>
+<p>模板页面<code>index.html</code>如下</p>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;ul&gt;
+    {% for book in book_list %}
+    &lt;li&gt;{ book.title } : { book.price }&lt;/li&gt;
+    {% endfor %}
+&lt;/ul&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>这时一次性访问即展示了所有的<code>book</code></p>
+<h2 id="3-引入分页器">3、引入分页器</h2>
+<p>引入分页器后，可以对全局分页对象和单页对象进行相关操作，相关语法</p>
+<pre><code class="language-python"># 引入分页器
+from django.core.paginator import Paginator
+
+		...
+    # 全局分页器对象
+    paginator = Paginator([1,2,3,4,5,6,7,8,9,10],3)
+    print(paginator.count) # 10  数据总数
+    print(paginator.num_pages)  # 4  总页数
+    print(paginator.page_range) # range(1, 5)  页码的列表
+
+    # 单页对象
+    page = paginator.page(2)
+    print(page.has_next())  # 是否有下一页
+    print(page.next_page_number())  # 写一页的页码
+    print(page.has_previous())  # 是否有上一页
+    print(page.previous_page_number())  # 上一页的页码
+    # 取出单页对象的值
+    print(page.object_list) # [4, 5, 6]
+    for i in page:
+       print(i)
+</code></pre>
+<p>在这里的例子中具体使用分页器及模板语法，例如每页取出<code>8</code>条，获取用户给出的页码条件数，返回相应页的数据，默认不给出任何条件时返回第一页的数据</p>
+<pre><code class="language-python">from django.core.paginator import Paginator
+   # 取出当前用户页码
+   current_num = int(request.GET.get(&quot;page&quot;, 1))
+   book_list = Book.objects.all()
+   paginator = Paginator(book_list, 8)
+   page = paginator.page(current_num)
+  
+   return render(request,&quot;index.html&quot;,{&quot;page&quot;:page})
+</code></pre>
+<p>最后，可以利用<code>bootstrap</code>组件在页面模板中添加翻页的按钮，在当前页时按钮加深，没有上一页时禁止点击</p>
+<pre><code class="language-html">...
+&lt;body&gt;
+
+&lt;ul&gt;
+    {% for book in page %}
+    &lt;li&gt;{ book.title } : { book.price }&lt;/li&gt;
+    {% endfor %}
+&lt;/ul&gt;
+&lt;nav aria-label=&quot;Page navigation&quot;&gt;
+  &lt;ul class=&quot;pagination&quot;&gt;
+    {% if page.has_previous %}
+    &lt;li&gt;
+      &lt;a href=&quot;/?page={ page.previous_page_number }&quot; aria-label=&quot;Previous&quot;&gt;
+        &lt;span aria-hidden=&quot;true&quot;&gt;上一页&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/li&gt;
+    {% else %}
+    &lt;li class=&quot;disabled&quot;&gt;
+      &lt;a href=&quot;#&quot; aria-label=&quot;Previous&quot;&gt;
+        &lt;span aria-hidden=&quot;true&quot;&gt;上一页&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/li&gt;
+    {% endif %}
+      {% for num in page_range %}
+      {% if num == current_num %}
+          &lt;li class=&quot;active&quot;&gt;&lt;a href=&quot;/?page={ num }&quot;&gt;{ num }&lt;/a&gt;&lt;/li&gt;
+      {% else %}
+          &lt;li&gt;&lt;a href=&quot;/?page={ num }&quot;&gt;{ num }&lt;/a&gt;&lt;/li&gt;
+      {% endif %}
+      {% endfor %}
+    &lt;li&gt;
+      &lt;a href=&quot;#&quot; aria-label=&quot;Next&quot;&gt;
+        &lt;span aria-hidden=&quot;true&quot;&gt;下一页&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+&lt;/body&gt;
+...
+</code></pre>
+<p>在视图函数中：处理相关异常；传递相关参数；当页码较多时只显示部分页码，例如最多时总共<code>10</code>个页码，当前页码始终在中间显示；单独处理出现边界情况，负数页码的情况及最大页码用完的情况</p>
+<pre><code class="language-python">from django.core.paginator import Paginator
+		...
+    # 取出当前用户页码
+    current_num = int(request.GET.get(&quot;page&quot;, 1))
+    book_list = Book.objects.all()
+    paginator = Paginator(book_list, 8)
+    page = paginator.page(current_num)
+
+    # 大于11页时
+    if paginator.num_pages &gt; 11:
+        # 当前页码的后5页数超过最大页码时，显示最后10项
+        if current_num + 5 &gt; paginator.num_pages:
+            page_range = range(paginator.num_pages - 10, paginator.num_pages + 1)
+        # 当前页码的前5页数为负数时，显示开始的10项
+        elif current_num - 5 &lt; 1:
+            page_range = range(1, 12)
+        else:
+            # 显示左5页到右5页的页码
+            page_range = range(current_num - 5, current_num + 5 + 1)
+    # 小于11页时显示所有页码
+    else:
+        page_range = paginator.page_range
+
+    return render(request, &quot;index.html&quot;, {&quot;page&quot;: page, &quot;paginator&quot;: paginator, &quot;current_num&quot;: current_num, &quot;page_range&quot;: page_range})
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[非LVM的xfs文件系统扩容]]></title>
+        <id>https://www.ssgeek.com/post/fei-lvm-de-xfs-wen-jian-xi-tong-kuo-rong</id>
+        <link href="https://www.ssgeek.com/post/fei-lvm-de-xfs-wen-jian-xi-tong-kuo-rong">
+        </link>
+        <updated>2021-05-20T16:15:24.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-lvm%E7%9A%84%E7%94%B1%E6%9D%A5">1、LVM的由来</a></li>
+<li><a href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E7%94%A8lvm">2、为什么不用LVM</a></li>
+<li><a href="#3-%E6%89%A9%E5%AE%B9%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B">3、扩容操作流程</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-lvm的由来">1、LVM的由来</h2>
+<p><code>LVM</code>（Logical Volume Manager），即逻辑卷管理，它是<code>Linux</code>环境下对磁盘分区进行管理的一种机制</p>
+<p>一般来说，物理磁盘或分区之间是分隔的，数据无法跨盘或分区，而各磁盘或分区的大小固定，重新调整比较麻烦。<code>LVM</code>的出现就是将这些底层的物理磁盘或分区整合起来，抽象成容量资源池，以划分成逻辑卷的方式供上层使用，其最主要的功能即是可以在无需关机、无需重新格式化的情况下弹性调整逻辑卷的大小（准确地说，原来的部分无需格式化，只格式化新增的部分）</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210521-01.png" alt=""></figure>
+<p>由此可见，<code>LVM</code>给磁盘管理带来了很大的便利性</p>
+<h2 id="2-为什么不用lvm">2、为什么不用LVM</h2>
+<p>现如今，在虚拟化、公有云盛行的时代，有了更强大的底层平台支持，就不需要再基于每一块硬盘去操作维护<code>LVM</code>了，因为有了虚拟化、公有云、分布式存储等等多种可对底层存储硬盘操作的方式，例如公有云服务器如果想扩容，只需要在用户控制台界面上直接扩容云硬盘即可。虚拟化平台也是一样，只需要在虚拟机配置界面增加硬盘大小即可。至于底层由多少块硬盘、总共有多大的存储池，一般是不需要关心的</p>
+<p>因此，如果基于私有云自建虚拟化平台、或是公有云平台创建的服务器再去做<code>LVM</code>，就没有必要了</p>
+<p>另外一方面，存储扩容方便时，对挂载的硬盘做逻辑分区也是没有必要的了</p>
+<p>我们只需要</p>
+<pre><code class="language-shell">添加硬盘——&gt;格式化文件系统——&gt;挂载到服务器挂载点
+
+or
+
+扩容硬盘——&gt;扩容服务器磁盘
+</code></pre>
+<h2 id="3-扩容操作流程">3、扩容操作流程</h2>
+<p>本文记录的是<code>CentOS 7</code>非<code>LVM</code>的<code>xfs</code>文件系统下对硬盘扩容的操作流程，底层虚拟化平台是<code>VMware ESXi</code>，具体操作如下</p>
+<p>查看当前磁盘大小，<code>/dev/sdb</code>的存储总量是<code>20G</code>，是直接挂载的一块数据盘</p>
+<pre><code class="language-shell"># df -h
+Filesystem               Size  Used Avail Use% Mounted on
+...
+/dev/sdb                  20G   33M   20G   1% /mnt
+</code></pre>
+<p>首先停掉对挂载点<code>/mnt</code>有读写的服务或程序，卸载磁盘</p>
+<pre><code class="language-shell"># umount /mnt
+</code></pre>
+<p>关机扩容，扩容后再重新开机（新加磁盘时可以热添加新磁盘，这里是扩容操作，由于已有数据为了降低风险关机后进行操作）</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210521-02.png" alt=""></figure>
+<p>开机后，可以对磁盘设备进行一下文件系统的修复</p>
+<pre><code class="language-shell"># xfs_repair /dev/sdb 
+Phase 1 - find and verify superblock...
+Phase 2 - using internal log
+        - zero log...
+        - scan filesystem freespace and inode maps...
+        - found root inode chunk
+Phase 3 - for each AG...
+        - scan and clear agi unlinked lists...
+        - process known inodes and perform inode discovery...
+        - agno = 0
+        - agno = 1
+        - agno = 2
+        - agno = 3
+        - process newly discovered inodes...
+Phase 4 - check for duplicate blocks...
+        - setting up duplicate extent list...
+        - check for inodes claiming duplicate blocks...
+        - agno = 0
+        - agno = 2
+        - agno = 3
+        - agno = 1
+Phase 5 - rebuild AG headers and trees...
+        - reset superblock...
+Phase 6 - check inode connectivity...
+        - resetting contents of realtime bitmap and summary inodes
+        - traversing filesystem ...
+        - traversal finished ...
+        - moving disconnected inodes to lost+found ...
+Phase 7 - verify and correct link counts...
+done
+</code></pre>
+<p>扩容磁盘，<code>xfs_growfs</code>针对<code>xfs</code>文件系统，<code>resize2fs</code>针对<code>ext2</code>、<code>ext3</code>、<code>ext4</code> 文件系统</p>
+<pre><code class="language-shell"># xfs_growfs /dev/sdb 
+meta-data=/dev/sdb               isize=512    agcount=4, agsize=1310720 blks
+         =                       sectsz=512   attr=2, projid32bit=1
+         =                       crc=1        finobt=0 spinodes=0
+data     =                       bsize=4096   blocks=5242880, imaxpct=25
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0 ftype=1
+log      =internal               bsize=4096   blocks=2560, version=2
+         =                       sectsz=512   sunit=0 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+data blocks changed from 5242880 to 13107200
+</code></pre>
+<p>重新挂载</p>
+<pre><code class="language-shell"># mount /dev/sdb /mnt/
+</code></pre>
+<p>检查</p>
+<pre><code class="language-shell"># lsblk /dev/sdb
+NAME MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
+sdb    8:16   0  50G  0 disk /mnt
+# df -h|grep /mnt    
+/dev/sdb                  50G   33M   50G   1% /mnt
+</code></pre>
+<p>查看目录下原有的数据，没有问题，至此扩容完成</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[k8s生产实践之获取客户端真实IP]]></title>
+        <id>https://www.ssgeek.com/post/k8s-sheng-chan-shi-jian-zhi-huo-qu-ke-hu-duan-zhen-shi-ip</id>
+        <link href="https://www.ssgeek.com/post/k8s-sheng-chan-shi-jian-zhi-huo-qu-ke-hu-duan-zhen-shi-ip">
+        </link>
+        <updated>2021-05-18T18:26:21.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">1、概述</a></li>
+<li><a href="#2-%E7%8E%AF%E5%A2%83%E4%BB%8B%E7%BB%8D">2、环境介绍</a></li>
+<li><a href="#3-%E7%9B%B8%E5%85%B3%E8%AF%B4%E6%98%8E">3、相关说明</a></li>
+<li><a href="#4-%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87">4、环境准备</a></li>
+<li><a href="#5-%E8%B4%9F%E8%BD%BD%E9%85%8D%E7%BD%AE">5、负载配置</a></li>
+<li><a href="#6-ingress-controller-%E9%85%8D%E7%BD%AE">6、Ingress Controller 配置</a></li>
+<li><a href="#7-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E9%AA%8C%E8%AF%81">7、服务端验证</a></li>
+<li><a href="#8-%E5%B0%8F%E7%BB%93">8、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210519-06.png" alt=""></figure>
+<h2 id="1-概述">1、概述</h2>
+<p>通常<code>web</code>应用获取用户客户端的真实<code>ip</code>一个很常见的需求，例如将用户真实<code>ip</code>取到之后对用户做白名单访问限制、将用户<code>ip</code>记录到数据库日志中对用户的操作做审计等等</p>
+<p>在<code>vm</code>时代是一个比较容易解决的问题，但当一切云原生化（容器化）之后变得稍微复杂了些</p>
+<p><code>k8s</code>中运行的应用通过<code>Service</code>抽象来互相查找、通信和与外部世界沟通，在<code>k8s</code>中是<code>kube-proxy</code>组件实现了<code>Service</code>的通信与负载均衡，流量在传递的过程中经过了源地址转换<code>SNAT</code>，因此在默认的情况下，常常是拿不到用户真实的<code>ip</code>的</p>
+<p>这个问题在<code>k8s</code>官方文档(https://kubernetes.io/zh/docs/tutorials/services/source-ip/)中基于<code>Cluster IP</code>、<code>NodePort</code>、<code>LoadBalancer</code>三种不同的<code>Service</code>类型进行了一定的说明，这里不再剖析</p>
+<h2 id="2-环境介绍">2、环境介绍</h2>
+<p>本篇仅介绍<strong>私有云</strong>+<strong>外部硬件负载</strong>+<strong><code>k8s</code>集群</strong>的真实场景下如何进行配置</p>
+<p>相关环境及设备说明如下</p>
+<table>
+<thead>
+<tr>
+<th>组件名</th>
+<th>型号或版本</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>硬件负载设备</td>
+<td>SANGFOR(深信服) AD 6.5R1</td>
+</tr>
+<tr>
+<td>k8s Ingress 控制器</td>
+<td>NGINX Ingress Controller 0.25.0</td>
+</tr>
+<tr>
+<td>k8s 集群</td>
+<td>Kubernetes 1.17.0</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-相关说明">3、相关说明</h2>
+<p>真实生产场景下，一般提供给用户的都是七层<code>https</code>服务</p>
+<p>首先域名解析在外部负载设备绑定的公网<code>ip</code>上，负载周边可能还会有一些安全设备例如<code>WAF</code>等，这里不多介绍</p>
+<p>流量经过负载后进入到<code>k8s</code>集群中，其中<code>Ingress Controller</code>以<code>DaemonSet</code>方式部署并使用<code>hostNetwork</code>模式接收并处理到达宿主机的<code>80</code>、<code>443</code>端口流量</p>
+<p>关于<code>https</code>证书的配置，一般有以下两种可选方式：</p>
+<ul>
+<li>
+<p>配置在负载设备（负载类型如果只考虑七层负载），由负载负责将数据包封包解包，并转发到后端，如果用户通过<code>https</code>形式访问，流量经过的流程是：用户端——&gt;负载<code>80</code>端口——&gt;负载<code>443</code>端口——&gt;服务端(<code>k8s node</code>)的<code>80</code>端口</p>
+</li>
+<li>
+<p>配置在后端，例如<code>Ingress</code>资源上，如果用户通过<code>https</code>形式访问，流量经过的流程是：用户端——&gt;负载<code>80</code>端口——&gt;服务端(<code>k8s node</code>)的<code>80</code>端口——&gt;服务端(<code>k8s node</code>)的<code>443</code>端口</p>
+</li>
+</ul>
+<p>但是为了获取用户的真实<code>ip</code>，只能选择方式一，因为如果证书配置在后端服务，流量经过负载时是加密的，负载一般在没有证书的情况下，是无法对数据包进行解包操作透传用户<code>ip</code>的</p>
+<p>以上在公有云环境下，例如腾讯云<code>CLB</code>、阿里云新的应用型负载<code>ALB</code>或传统型负载<code>CLB</code>均有涉及，可能<strong>不尽详细</strong></p>
+<h2 id="4-环境准备">4、环境准备</h2>
+<p>首先需要准备一个后端获取用户请求，显示打印或输出的应用，可以自己手撸一个简单应用，当然为了操作简单也可以选择<code>nginx</code>容器在应用日志中查看，更好的方式是选择<code>whoami</code>、<code>echoserver</code>这类镜像</p>
+<p>其中<code>whoami</code>可以在控制台访问服务时打印用户请求等相关信息，<code>echoserver</code>可以在浏览器呈现用户请求等相关信息</p>
+<p>这里为了模拟和真实应用一样的场景，选择更为直观的<code>echoserver</code>，其源镜像地址为<code>gcr.io/google-containers/echoserver</code></p>
+<p>如果网络不佳，可以从我的地址获取<code>ssgeek/echoserver</code></p>
+<p>首先基于<code>k8s</code>部署该应用，创建<code>deploy</code>、<code>svc</code>、<code>ing</code>，定义如下</p>
+<pre><code class="language-yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echoserver
+  labels:
+    app: echoserver
+spec:
+  selector:
+    matchLabels:
+      app: echoserver
+  template:
+    metadata:
+      labels:
+        app: echoserver
+    spec:
+      containers:
+      - name: echoserver
+        image: ssgeek/echoserver:latest
+        ports:
+        - containerPort: 8080
+        env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: echoserver
+  labels:
+    app: echoserver
+spec:
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http
+  selector:
+    app: echoserver
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: echoserver
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+  - host: echo.ssgeek.com
+    http:
+      paths:
+      - backend:
+          serviceName: echoserver
+          servicePort: 80
+        path: /
+</code></pre>
+<h2 id="5-负载配置">5、负载配置</h2>
+<p>这里简单分析及列出关键配置</p>
+<ul>
+<li>插入请求头以透传ip</li>
+</ul>
+<p>部署好后端服务后，开始配置外部（深信服）负载，除了导入<code>https</code>证书外，还需要在转发的请求头中插入<code>X-Forwarded-For</code>头部，确保用户<code>ip</code>在经过负载时作为请求头的一部分传递到后端服务器</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210519-01.png" alt=""></figure>
+<ul>
+<li>负载设备到后端请求头部改写</li>
+</ul>
+<p>由于负载设备到后端的<code>80</code>端口，因此后端只接收<code>http</code>请求，也就是请求经过负载处理<code>https</code>及证书相关动作</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210519-02.png" alt=""></figure>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20210519-03.png" alt=""></figure>
+<p>未添加请求头部改写时，对请求抓包的现象对比如下（分别为无<code>https</code>配置时和有<code>https</code>配置但未改写请求头部时）</p>
+<figure data-type="image" tabindex="5"><img src="https://image.ssgeek.com/20210519-04.png" alt=""></figure>
+<h2 id="6-ingress-controller-配置">6、Ingress Controller 配置</h2>
+<p>修改<code>Nginx Ingress Controller</code>配置，添加如下内容</p>
+<p>参考：https://kubernetes.github.io/ingress-nginx/user-guide/</p>
+<pre><code class="language-yaml">data:
+  use-forwarded-headers: &quot;true&quot;
+  compute-full-forwarded-for: &quot;true&quot;
+  forwarded-for-header: &quot;X-Forwarded-For&quot;
+</code></pre>
+<ul>
+<li>
+<p>use-forwarded-headers</p>
+<p>如果为<code>true</code>，会将传入的<code>X-Forwarded-*</code>头传递给<code>upstreams</code></p>
+<p>如果为<code>false</code>，会忽略传入的<code>X-Forwarded-*</code>头，用看到的请求信息填充它们。如果直接暴露在互联网上，或者它在基于<code>L3/packet-based load balancer</code>后面，并且不改变数据包中的源<code>IP</code>时使用此选项</p>
+</li>
+<li>
+<p>forwarded-for-header</p>
+<p>设置标头字段以标识客户端的原始<code>IP</code>地址。 默认: X-Forwarded-For</p>
+</li>
+<li>
+<p>compute-full-forwarded-for</p>
+<p>将远程地址附加到 <code>X-Forwarded-For</code>标头，而不是替换它。 启用此选项后，<code>upstreams</code>应用程序将根据其自己的受信任代理列表提取客户端<code>IP</code></p>
+</li>
+</ul>
+<h2 id="7-服务端验证">7、服务端验证</h2>
+<p>服务端请求暴露及应用获取<code>ip</code>效果如下</p>
+<figure data-type="image" tabindex="6"><img src="https://image.ssgeek.com/20210519-05.png" alt=""></figure>
+<p>正常情况可拿到以下几类<code>ip</code></p>
+<ul>
+<li>pod ip</li>
+</ul>
+<p><code>k8s pod</code>自身的<code>ip</code></p>
+<ul>
+<li>node ip</li>
+</ul>
+<p><code>k8s pod</code>所在<code>node</code>的<code>ip</code></p>
+<ul>
+<li>负载 ip</li>
+</ul>
+<p>位于请求头<code>X-Forwarded-For</code>字段中</p>
+<ul>
+<li>用户真实 ip</li>
+</ul>
+<p>位于请求头<code>X-Forwarded-For</code>字段、<code>x-original-forwarded-for</code>字段、<code>x-real-ip</code>字段中</p>
+<p>关于<code>x-forwarded-for</code>、<code>x-original-forwarded-for</code>、<code>x-real-ip</code>的说明：</p>
+<p><code>X-Forwarded-For</code>用于记录从客户端地址到最后一个代理服务器的所有地址</p>
+<p><code>X-Real-IP</code>用于记录请求的客户端地址</p>
+<p><code>X-Original-Forwarded-For</code>字面意思是原始转发 IP，这是<code>Ingress</code>的功能，<code>Ingress</code>将用户的真实<code>IP</code>记录到了这个字段</p>
+<p>对应用来说，以<code>java</code>应用为例，获取用户<code>ip</code>的代码如下</p>
+<pre><code class="language-java">/**
+ * 获取操作用户ip
+ * @return
+ */
+private String getIp() {
+
+    HttpServletRequest request;
+    try {
+        request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+    } catch (NullPointerException e) {
+        return &quot;127.0.0.1&quot;;
+    }
+
+    //取客户端ip
+    String ipAddress = request.getHeader(&quot;x-forwarded-for&quot;);
+    if (ipAddress == null || ipAddress.length() == 0
+            || &quot;unknown&quot;.equalsIgnoreCase(ipAddress)) {
+        ipAddress = request.getHeader(&quot;Proxy-Client-IP&quot;);
+    }
+    if (ipAddress == null || ipAddress.length() == 0
+            || &quot;unknown&quot;.equalsIgnoreCase(ipAddress)) {
+        ipAddress = request.getHeader(&quot;WL-Proxy-Client-IP&quot;);
+    }
+    if (ipAddress == null || ipAddress.length() == 0
+            || &quot;unknown&quot;.equalsIgnoreCase(ipAddress)) {
+        ipAddress = request.getRemoteAddr();
+        if (ipAddress.equals(&quot;127.0.0.1&quot;)) {
+            // 根据网卡取本机配置的IP
+            InetAddress inet = null;
+            try {
+                inet = InetAddress.getLocalHost();
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+            ipAddress = inet.getHostAddress();
+        }
+    }
+    // 对于通过多个代理的情况，第一个IP为客户端真实IP,多个IP按照','分割
+    if (ipAddress != null &amp;&amp; ipAddress.length() &gt; 15) { // &quot;***.***.***.***&quot;.length()
+        // = 15
+        if (ipAddress.indexOf(&quot;,&quot;) &gt; 0) {
+            ipAddress = ipAddress.substring(0, ipAddress.indexOf(&quot;,&quot;));
+        }
+    }
+    return ipAddress;
+}
+</code></pre>
+<h2 id="8-小结">8、小结</h2>
+<p>本文记录了私有云和有外部负载的真实场景下，<code>k8s</code>集群中的应用获取用户<code>ip</code>的相关实现逻辑及关键处理，希望能帮助到大家</p>
+<p>See you ~</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[使用Jenkins Operator在k8s中部署Jenkins]]></title>
+        <id>https://www.ssgeek.com/post/shi-yong-jenkins-operator-zai-k8s-zhong-bu-shu-jenkins</id>
+        <link href="https://www.ssgeek.com/post/shi-yong-jenkins-operator-zai-k8s-zhong-bu-shu-jenkins">
+        </link>
+        <updated>2021-05-16T16:07:05.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-jenkins-operator%E4%BB%8B%E7%BB%8D">1、Jenkins Operator介绍</a></li>
+<li><a href="#2-jenkins-operator%E7%9A%84%E6%9E%B6%E6%9E%84%E5%92%8C%E8%AE%BE%E8%AE%A1">2、Jenkins Operator的架构和设计</a></li>
+<li><a href="#3-%E4%BD%BF%E7%94%A8operator%E9%83%A8%E7%BD%B2jenkins">3、使用Operator部署Jenkins</a>
+<ul>
+<li><a href="#31-%E5%89%8D%E6%8F%90%E6%9D%A1%E4%BB%B6">3.1 前提条件</a></li>
+<li><a href="#32-%E8%8E%B7%E5%8F%96%E5%B9%B6%E5%88%9B%E5%BB%BAcrd">3.2 获取并创建CRD</a></li>
+<li><a href="#33-%E9%83%A8%E7%BD%B2jenkins-operator">3.3 部署Jenkins Operator</a></li>
+<li><a href="#34-%E9%83%A8%E7%BD%B2jenkins">3.4 部署Jenkins</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210517-01.png" alt=""></figure>
+<h2 id="1-jenkins-operator介绍">1、Jenkins Operator介绍</h2>
+<p><a href="https://www.redhat.com/zh/topics/containers/what-is-a-kubernetes-operator">Kubernetes Operator</a>是一种特定于应用的控制器，可扩展<code>Kubernetes API</code>的功能，来代表<code>Kubernetes</code>用户创建、配置和管理复杂应用的实例</p>
+<p>这里对<code>Operator</code>的相关介绍就不多赘述了，主要还是回到<code>Jenkins Operator</code>这个话题</p>
+<p>基于<code>k8s</code>上<code>Jenkins</code>的常规安装是使用<code>yaml</code>资源清单，更为方便一点的是<code>helm chart</code>，但是常常我们在安装后还需要做很多的动作。例如插件问题，这尽管可以通过<code>Configuration as Code</code>的方式来解决，根据个人实际经验来看，还是存在一定几率会因主镜像版本、环境等存在诸多不可预知的问题。当然不同的部署方式都各有利弊，大家根据实际情况选择即可。</p>
+<p>直到官方支持<code>Jenkins</code>可以在<code>k8s</code>中通过<code>Operator</code>方式部署，在<code>4</code>月中旬，<a href="https://www.jenkins.io/blog/2021/04/15/jenkins-operator-sub-project/">Jenkins blog</a>说道：<strong>Jenkins Operator 正式成为了 Jenkins 的子项目</strong>，填补了<code>Jenkins</code>与<code>Kubernetes</code>间的缝隙。也就是说，最初由（个人）三方团队编写的<code>Jenkins Operator</code>被<code>Jenkins</code>官方认可了</p>
+<p>参考官方说明，<code>Jenkins Operator</code>可以帮我们解决以下问题：</p>
+<ul>
+<li>
+<p>安装指定版本的插件</p>
+<p>即使最新版本插件不兼容或具备安全漏洞，还是为了插件稳定性而使用（因为常常会出现我们通过一键升级插件导致很多问题而去手动安装旧版本插件的情况）</p>
+</li>
+<li>
+<p>更好的自定义配置</p>
+<p>包含在安装指定版本插件时指定插件配置等声明式配置</p>
+</li>
+<li>
+<p>开箱即用的安全配置</p>
+</li>
+<li>
+<p>可灵活调整的<code>debug</code>错误调试</p>
+</li>
+<li>
+<p>备份和还原作业历史记录</p>
+<p>......</p>
+</li>
+</ul>
+<h2 id="2-jenkins-operator的架构和设计">2、Jenkins Operator的架构和设计</h2>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210517-02.png" alt=""></figure>
+<p>参考<a href="https://jenkinsci.github.io/kubernetes-operator/docs/how-it-works/architecture-and-design/">Jenkins Operator Architecture and design</a></p>
+<p><code>Jenkins Operator</code>的设计包含以下概念</p>
+<ul>
+<li>监视清单的任何更改，并根据已部署的自定义资源清单维护所需的状态</li>
+<li>实现主<code>reconciliation</code>循环，由两个较小的<code>reconciliation</code>循环：<code>base</code>和<code>user</code></li>
+</ul>
+<p><code>Base reconciliation</code> 循环负责监听<code>Jenkins</code>基础配置：</p>
+<ul>
+<li>确认清单-监听清单中发生的任何更改</li>
+<li>确保<code>Jenkins Pod</code>状态，创建和验证<code>Jenkins Server Pod</code>的状态</li>
+<li>确认<code>Jenkins</code>的配置，包括安全加固、初始化配置等</li>
+<li>确认<code>Jenkins API token</code>，生成<code>token</code>并初始化<code>Jenkins Client</code></li>
+</ul>
+<p><code>User reconciliation</code>循环负责协调用户提供的配置：</p>
+<ul>
+<li>确保恢复任务，创建恢复任务，并确保恢复已成功执行</li>
+<li>确保<code>Seed Jobs</code>，创建<code>Seed Jobs</code>并确保所有这些工作都已成功执行</li>
+<li>确保用户配置，执行用户提供的配置，如<code>groovy</code>脚本，配置为代码或插件</li>
+<li>确保备份任务，创建备份任务并确保备份成功</li>
+</ul>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210517-03.png" alt=""></figure>
+<p><strong><code>Operator</code>状态</strong><br>
+<code>Operator</code>状态保存在自定义资源状态部分中，该部分用于存储<code>Operator</code>管理的任何配置事件或<code>Job</code>状态</p>
+<p>即使操作者或<code>Jenkins</code>重新启动，它也能帮助保持或恢复所需的状态</p>
+<h2 id="3-使用operator部署jenkins">3、使用Operator部署Jenkins</h2>
+<h3 id="31-前提条件">3.1 前提条件</h3>
+<p>参考<a href="https://jenkinsci.github.io/kubernetes-operator/docs/"><code>Jenkins Operator</code>官方文档</a>，需要有一个<code>1.11+</code>版本的<code>Kubernetes</code>集群，这里我的环境如下</p>
+<pre><code class="language-yaml"># kubectl version -o yaml
+clientVersion:
+  buildDate: &quot;2020-12-08T17:59:43Z&quot;
+  compiler: gc
+  gitCommit: af46c47ce925f4c4ad5cc8d1fca46c7b77d13b38
+  gitTreeState: clean
+  gitVersion: v1.20.0
+  goVersion: go1.15.5
+  major: &quot;1&quot;
+  minor: &quot;20&quot;
+  platform: darwin/amd64
+serverVersion:
+  buildDate: &quot;2021-01-13T13:20:00Z&quot;
+  compiler: gc
+  gitCommit: faecb196815e248d3ecfb03c680a4507229c2a56
+  gitTreeState: clean
+  gitVersion: v1.20.2
+  goVersion: go1.15.5
+  major: &quot;1&quot;
+  minor: &quot;20&quot;
+  platform: linux/amd64
+</code></pre>
+<h3 id="32-获取并创建crd">3.2 获取并创建CRD</h3>
+<p>获取<code>yaml</code>并创建<code>crd</code>，当然也可以通过直接<code>apply</code>远程地址，这里先将其保存到本地</p>
+<pre><code class="language-shell"># wget -c https://raw.githubusercontent.com/jenkinsci/kubernetes-operator/master/deploy/crds/jenkins_v1alpha2_jenkins_crd.yaml
+# kubectl apply -f jenkins_v1alpha2_jenkins_crd.yaml
+Warning: apiextensions.k8s.io/v1beta1 CustomResourceDefinition is deprecated in v1.16+, unavailable in v1.22+; use apiextensions.k8s.io/v1 CustomResourceDefinition
+customresourcedefinition.apiextensions.k8s.io/jenkins.jenkins.io created
+customresourcedefinition.apiextensions.k8s.io/jenkinsimages.jenkins.io created
+</code></pre>
+<h3 id="33-部署jenkins-operator">3.3 部署Jenkins Operator</h3>
+<p>有以下两种方式部署<code>Jenkins Operator</code></p>
+<ul>
+<li>
+<p>使用<code>yaml</code>一键安装，默认将安装在<code>default</code>命名空间下</p>
+<pre><code class="language-shell"># kubectl apply -f https://raw.githubusercontent.com/jenkinsci/kubernetes-operator/master/deploy/all-in-one-v1alpha2.yaml
+# kubectl get pods -w
+</code></pre>
+</li>
+<li>
+<p>使用<code>helm</code>并自定义安装，依赖<code>helm</code>在<code>v3</code>以上版本</p>
+</li>
+</ul>
+<p>创建<code>ns</code></p>
+<pre><code class="language-shell"># kubectl create ns jenkins
+</code></pre>
+<p>添加<code>helm</code>仓库并获取<code>chart</code></p>
+<pre><code class="language-shell"># helm repo add jenkins https://raw.githubusercontent.com/jenkinsci/kubernetes-operator/master/chart
+&quot;jenkins&quot; has been added to your repositories
+# helm pull jenkins/jenkins-operator
+# tar xf jenkins-operator-0.4.3.tgz &amp;&amp; cd jenkins-operator 
+</code></pre>
+<p>修改<code>value yaml</code>部分内容，可以定义关于<code>jenkins</code>实例、<code>operator deployment</code>、<code>backup</code>备份相关、<code>Configuration</code>配置相关字段</p>
+<ul>
+<li>指定ns</li>
+<li>指定插件</li>
+<li>默认情况只持久化了备份卷，这里将数据卷也做持久化，<code>sc</code>使用<code>csi-rbd-sc</code></li>
+<li>默认开启<code>configurationAsCode</code>，并通过<code>configmap</code>和<code>secret</code>注入</li>
+</ul>
+<pre><code class="language-yaml">jenkins:
+...
+  namespace: jenkins
+...
+  basePlugins:
+    - name: kubernetes
+      version: &quot;1.28.6&quot;
+    - name: workflow-job
+      version: &quot;2.40&quot;
+    - name: workflow-aggregator
+      version: &quot;2.6&quot;
+    - name: git
+      version: &quot;4.5.0&quot;
+    - name: job-dsl
+      version: &quot;1.77&quot;
+    - name: configuration-as-code
+      version: &quot;1.46&quot;
+    - name: kubernetes-credentials-provider
+      version: &quot;0.15&quot;
+  plugins:
+    - name: simple-theme-plugin
+      version: &quot;0.6&quot;
+#  plugins: []
+...
+  # volumes used by Jenkins
+  # By default, we are only using backup
+  volumes:
+    - name: backup # PVC volume where backups will be stored
+      persistentVolumeClaim:
+        claimName: jenkins-backup
+
+  # volumeMounts are mounts for Jenkins pod
+  volumeMounts: []
+...
+  backup:
+    # enabled is enable/disable switch for backup feature
+    # By default the feature is enabled
+    enabled: true
+
+    # image used by backup feature
+    # By default using prebuilt backup PVC image by VirtusLab
+    image: virtuslab/jenkins-operator-backup-pvc:v0.1.0
+
+    # containerName is backup container name
+    containerName: backup
+
+    # interval defines how often make backup in seconds
+    interval: 30
+
+    # makeBackupBeforePodDeletion when enabled will make backup before pod deletion
+    makeBackupBeforePodDeletion: true
+
+    # backupCommand is backup container command
+    backupCommand:
+      - /home/user/bin/backup.sh
+
+    # restoreCommand is backup restore command
+    restoreCommand:
+      - /home/user/bin/restore.sh
+
+    getLatestAction:
+      - /home/user/bin/get-latest.sh
+
+    # pvc is Persistent Volume Claim Kubernetes resource
+    pvc:
+      # enabled is enable/disable switch for PVC
+      enabled: true
+
+      # size is size of PVC
+      size: 5Gi
+
+      # className is storageClassName for PVC
+      # See https://kubernetes.io/docs/concepts/storage/persistent-volumes/#class-1 for more details
+      className: &quot;csi-rbd-sc&quot;
+
+    # env contains container environment variables
+    # PVC backup provider handles these variables:
+    # BACKUP_DIR - path for storing backup files (default: &quot;/backup&quot;)
+    # JENKINS_HOME - path to jenkins home (default: &quot;/jenkins-home&quot;)
+    # BACKUP_COUNT - define how much recent backups will be kept
+    env:
+      - name: BACKUP_DIR
+        value: /backup
+      - name: JENKINS_HOME
+        value: /jenkins-home
+      - name: BACKUP_COUNT
+        value: &quot;3&quot; # keep only the 3 most recent backups
+
+    # volumeMounts holds the mount points for volumes
+    volumeMounts:
+      - name: jenkins-home
+        mountPath: /jenkins-home # Jenkins home volume
+      - mountPath: /backup # backup volume
+        name: backup
+...
+  configuration:
+    configurationAsCode: {}
+    #    - configMapName: jenkins-casc
+    #      content: {}
+    groovyScripts: {}
+    #    - configMapName: jenkins-gs
+    #      content: {}
+
+    # secretRefName of existing secret (previously created)
+    secretRefName: &quot;&quot;
+
+    # secretData creates new secret if secretRefName is empty and fills with data provided in secretData
+    secretData: {}
+</code></pre>
+<p>执行安装</p>
+<pre><code class="language-shell"># helm install jenkins jenkins-operator -n jenkins --values ./jenkins-operator/values.yaml
+NAME: jenkins
+LAST DEPLOYED: Sun May 16 19:42:32 2021
+NAMESPACE: jenkins
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+1. Watch Jenkins instance being created:
+$ kubectl --namespace jenkins get pods -w
+
+2. Get Jenkins credentials:
+$ kubectl --namespace jenkins get secret jenkins-operator-credentials-jenkins -o 'jsonpath={.data.user}' | base64 -d
+$ kubectl --namespace jenkins get secret jenkins-operator-credentials-jenkins -o 'jsonpath={.data.password}' | base64 -d
+
+3. Connect to Jenkins (actual Kubernetes cluster):
+$ kubectl --namespace jenkins port-forward jenkins-jenkins 8080:8080
+
+Now open the browser and enter http://localhost:8080
+
+</code></pre>
+<p>检查创建的<code>operator</code></p>
+<pre><code class="language-shell"># kubectl get pods -n jenkins
+NAME                                       READY   STATUS    RESTARTS   AGE
+jenkins-jenkins                            1/2     Running   0          44s
+jenkins-jenkins-operator-996887c4b-wftz2   1/1     Running   0          1m29s
+# kubectl -n jenkins get jenkins        
+NAME      AGE
+jenkins   70s
+</code></pre>
+<h3 id="34-部署jenkins">3.4 部署Jenkins</h3>
+<p>一旦上面的<code>Jenkins Operator</code>部署后启动并正常运行，就自动会部署一个<code>Jenkins</code>实例<code>Pod</code>了</p>
+<p>实际上可以看到，通过<code>Jenkins Operator</code>部署的<code>Jenkins</code>的控制器不是场景<code>k8s</code>自带的三大控制器，而是由<code>operator</code>自己管控</p>
+<p>观察<code>operator</code>的日志如下</p>
+<pre><code class="language-shell"># kubectl -n jenkins logs -f jenkins-jenkins-operator-996887c4b-wftz2
+2021-05-16T11:59:05.017Z        INFO    controller-jenkins      jenkins/jenkins_controller.go:432       Setting default Jenkins API settings    {&quot;cr&quot;: &quot;jenkins&quot;}
+2021-05-16T11:59:05.073Z        INFO    controller-jenkins      jenkins/handler.go:88   *v1alpha2.Jenkins/jenkins has been updated      {&quot;cr&quot;: &quot;jenkins&quot;}
+2021-05-16T11:59:06.568Z        INFO    controller-jenkins      base/pod.go:159 Creating a new Jenkins Master Pod jenkins/jenkins-jenkins       {&quot;cr&quot;: &quot;jenkins&quot;}
+</code></pre>
+<p>观察<code>jenkins pod</code>中<code>jenkins master</code>的日志如下，正在下载插件（此步骤稍慢）</p>
+<pre><code class="language-shell"># kubectl -n jenkins logs -f jenkins-jenkins -c jenkins-master
+...
+ &gt; bootstrap4-api depends on font-awesome-api:5.15.2-2,jquery3-api:3.5.1-3,popper-api:1.16.1-2
+Downloading plugin: font-awesome-api from https://updates.jenkins.io/dynamic-2.263//latest/font-awesome-api.hpi
+Downloading plugin: jquery3-api from https://updates.jenkins.io/dynamic-2.263//latest/jquery3-api.hpi
+Downloading plugin: popper-api from https://updates.jenkins.io/dynamic-2.263//latest/popper-api.hpi
+</code></pre>
+<p>如果在有限时间（健康检查时间）内没有下载成功，这通常是由于网络原因引起的，<code>Operator</code>会中断该<code>Pod</code>并重新创建</p>
+<pre><code class="language-shell"># kubectl -n jenkins logs -f jenkins-jenkins-operator-996887c4b-wftz2
+2021-05-16T12:09:42.854Z        INFO    controller-jenkins      base/reconcile.go:370   Container 'jenkins-master' is terminated, status '{Name:jenkins-master State:{Waiting:nil Running:nil Terminated:&amp;ContainerStateTerminated{ExitCode:137,Signal:0,Reason:Error,Message:,StartedAt:2021-05-16 12:05:54 +0000 UTC,FinishedAt:2021-05-16 12:09:42 +0000 UTC,ContainerID:docker://342349d9e4045cd312345937797a2d9f048f3623fc1ce6bf1c2b77ff4f04d8da,}} LastTerminationState:{Waiting:nil Running:nil Terminated:nil} Ready:false RestartCount:0 Image:jenkins/jenkins:2.263.2-lts-alpine ImageID:docker-pullable://jenkins/jenkins@sha256:496142509b7d3e3f22f5cdc81b1d1322db61ec929d34dfd66b9ec3257bca13e5 ContainerID:docker://342349d9e4045cd312345937797a2d9f048f3623fc1ce6bf1c2b77ff4f04d8da Started:0xc0005aa2c6}' {&quot;cr&quot;: &quot;jenkins&quot;}
+</code></pre>
+<p>可行的一个解决办法是将<code>value.yaml</code>中的健康检查时间微调或者临时去掉健康检查，并<code>helm</code>更新让其正常启动并持久化后再次恢复，或者新创建一个<code>Jenkins</code>控制器将其覆盖</p>
+<pre><code class="language-shell"># helm -n jenkins upgrade jenkins jenkins-operator --values ./jenkins-operator/values.yaml 
+</code></pre>
+<p>最终直到看见这样的日志，就表示<code>Jenkins</code>启动成功了</p>
+<pre><code class="language-shell">2021-05-16 13:26:14.221+0000 [id=28]    INFO    o.s.c.s.AbstractApplicationContext#obtainFreshBeanFactory: Bean factory for application context [org.springframework.web.context.support.StaticWebApplicationContext@295b7e33]: org.springframework.beans.factory.support.DefaultListableBeanFactory@52880f75
+2021-05-16 13:26:14.223+0000 [id=28]    INFO    o.s.b.f.s.DefaultListableBeanFactory#preInstantiateSingletons: Pre-instantiating singletons in org.springframework.beans.factory.support.DefaultListableBeanFactory@52880f75: defining beans [filter,legacy]; root of factory hierarchy
+2021-05-16 13:26:14.489+0000 [id=29]    INFO    jenkins.InitReactorRunner$1#onAttained: Completed initialization
+2021-05-16 13:26:14.767+0000 [id=20]    INFO    hudson.WebAppMain$3#run: Jenkins is fully up and running
+</code></pre>
+<p>到这里，通过<code>Jenkins Operator</code>部署<code>Jenkins</code>就完成了（尽管看上去也没多少比<code>helm</code>或传统方式部署的优势），其实<code>Jenkins Operator</code>还有更为好用的的其他功能，后续再介绍。</p>
+<p>See you ~</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[利用docker-py操作docker]]></title>
+        <id>https://www.ssgeek.com/post/li-yong-docker-py-cao-zuo-docker</id>
+        <link href="https://www.ssgeek.com/post/li-yong-docker-py-cao-zuo-docker">
+        </link>
+        <updated>2021-05-11T16:21:16.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-docker-py%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84">1、docker-py项目结构</a></li>
+<li><a href="#2-docker-py-api%E7%A4%BA%E4%BE%8B">2、docker-py API示例</a></li>
+<li><a href="#3-dockerclient%E7%9A%84%E5%AE%9E%E7%8E%B0">3、DockerClient的实现</a></li>
+<li><a href="#4-docker-version%E5%91%BD%E4%BB%A4%E8%B7%9F%E8%B8%AA">4、docker-version命令跟踪</a></li>
+<li><a href="#5-unixhttpadapter%E7%9A%84%E5%AE%9E%E7%8E%B0">5、UnixHTTPAdapter的实现</a></li>
+<li><a href="#6-docker-ps%E5%91%BD%E4%BB%A4%E8%B7%9F%E8%B8%AA">6、docker-ps命令跟踪</a></li>
+<li><a href="#7-docker-logs%E5%91%BD%E4%BB%A4%E8%B7%9F%E8%B8%AA">7、docker-logs命令跟踪</a></li>
+<li><a href="#8-docker-exec-%E5%91%BD%E4%BB%A4%E8%B7%9F%E8%B8%AA">8、docker-exec 命令跟踪</a></li>
+<li><a href="#9-%E4%BD%BF%E7%94%A8curl%E8%AE%BF%E9%97%AEdocker-api">9、使用curl访问docker-api</a></li>
+<li><a href="#10-%E5%B0%8F%E7%BB%93">10、小结</a></li>
+<li><a href="#11-%E5%B0%8F%E6%8A%80%E5%B7%A7">11、小技巧</a></li>
+<li><a href="#%E5%8F%82%E8%80%83%E9%93%BE%E6%8E%A5">参考链接</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<p>docker-py是Docker SDK for Python。docker-py主要利用了requests，使用http/socket协议连接本地的docker engine进行操作。对 <strong>docker</strong> 感兴趣，苦于工作中只用到 <strong>http</strong> 协议的同学，都建议阅读一下本文。话不多数，一起了解docker-py的实现，本文分下面几个部分:</p>
+<ul>
+<li>docker-py项目结构</li>
+<li>docker-py API示例</li>
+<li>DockerClient的实现</li>
+<li>docker-version命令跟踪</li>
+<li>UnixHTTPAdapter的实现</li>
+<li>docker-ps命令跟踪</li>
+<li>docker-logs命令跟踪</li>
+<li>docker-exec 命令跟踪</li>
+<li>使用curl访问docker-api</li>
+<li>小结</li>
+<li>小技巧</li>
+</ul>
+<h2 id="1-docker-py项目结构">1、docker-py项目结构</h2>
+<p>本次代码阅读，使用的版本是 <code>4.2.0</code>， 项目目录结构大概如下:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">文件</th>
+<th style="text-align:left">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">client.py</td>
+<td style="text-align:left">docker客户端的API</td>
+</tr>
+<tr>
+<td style="text-align:left">api</td>
+<td style="text-align:left">api相关目录</td>
+</tr>
+<tr>
+<td style="text-align:left">api/client.py</td>
+<td style="text-align:left">api的主要实现</td>
+</tr>
+<tr>
+<td style="text-align:left">api/container.py</td>
+<td style="text-align:left">container相关的api和client-mixin</td>
+</tr>
+<tr>
+<td style="text-align:left">api/daemon.py</td>
+<td style="text-align:left">daemon相关的api和client-mixin</td>
+</tr>
+<tr>
+<td style="text-align:left">models</td>
+<td style="text-align:left">下为各种对象模型，主要是单体及集合</td>
+</tr>
+<tr>
+<td style="text-align:left">models/resource.py</td>
+<td style="text-align:left">模型基类</td>
+</tr>
+<tr>
+<td style="text-align:left">models/containers.py</td>
+<td style="text-align:left">Container和ContainerCollection模型</td>
+</tr>
+<tr>
+<td style="text-align:left">transport</td>
+<td style="text-align:left">为客户端和服务端的交互协议</td>
+</tr>
+<tr>
+<td style="text-align:left">transport/unixconn.py</td>
+<td style="text-align:left">mac下主要使用了unix-sock实现</td>
+</tr>
+</tbody>
+</table>
+<p>还有一些目录和类，因为不在这次介绍中，所以就没有罗列。</p>
+<h2 id="2-docker-py-api示例">2、docker-py API示例</h2>
+<p><code>docker-py</code> API上手非常简单:</p>
+<pre><code class="language-python">import docker
+client = docker.from_env()
+
+result = client.version()
+print(result)
+# {'Platform': {'Name': 'Docker Engine - Community'},...}
+
+client.containers.list()
+# [&lt;Container '45e6d2de7c54'&gt;, &lt;Container 'db18e4f20eaa'&gt;, ...]
+
+client.images.pull('nginx:1.10-alpine')
+# &lt;Image: 'nginx:1.10-alpine'&gt;
+
+client.images.list()
+[&lt;Image 'ubuntu'&gt;, &lt;Image 'nginx:1.10-alpine'&gt;, ...]
+</code></pre>
+<p>上面示例展示了:</p>
+<ul>
+<li>使用环境变量，创建client连接本地<code>docker-engine</code>服务</li>
+<li>获取版本号，等同 <code>docker version</code></li>
+<li>获取正在运行的容器列表，等同 <code>docker container list</code>(别名是 <code>docker ps</code>)</li>
+<li>拉取 <strong>nginx:1.10-alpin</strong> 镜像，等同 <code>docker image pull nginx:1.10-alpine</code>(别名是<code>docker pull nginx:1.10-alpine</code>)</li>
+<li>获取镜像列表, 等同 <code>docker image list</code></li>
+</ul>
+<p>我们可以看到，docker-py的操作和docker的标准命令基本一致。</p>
+<h2 id="3-dockerclient的实现">3、DockerClient的实现</h2>
+<p>DockerClient的构造函数和工厂方法展示docker-client对象包装了APIClient对象：</p>
+<pre><code class="language-python"># client.py
+
+class DockerClient(object):
+    def __init__(self, *args, **kwargs):
+        self.api = APIClient(*args, **kwargs)
+    
+    @classmethod
+    def from_env(cls, **kwargs):
+        timeout = kwargs.pop('timeout', DEFAULT_TIMEOUT_SECONDS)
+        max_pool_size = kwargs.pop('max_pool_size', DEFAULT_MAX_POOL_SIZE)
+        version = kwargs.pop('version', None)
+        use_ssh_client = kwargs.pop('use_ssh_client', False)
+        return cls(
+            timeout=timeout,
+            max_pool_size=max_pool_size,
+            version=version,
+            use_ssh_client=use_ssh_client,
+            **kwargs_from_env(**kwargs)
+        )
+</code></pre>
+<p>DockerClient的API分2中，一种是属性方法，比如常用的 <strong>containers</strong>，<strong>images</strong>，<strong>networks</strong> 和 <strong>volumes</strong> 等子命令，因为要将返回值包装成对应模型对象:</p>
+<pre><code class="language-python">@property
+def containers(self):
+    &quot;&quot;&quot;
+    An object for managing containers on the server. See the
+    :doc:`containers documentation &lt;containers&gt;` for full details.
+    &quot;&quot;&quot;
+    return ContainerCollection(client=self)
+
+@property
+def images(self):
+    return ImageCollection(client=self)
+
+@property
+def networks(self):
+    return NetworkCollection(client=self)
+
+@property
+def volumes(self):
+    return VolumeCollection(client=self)
+    
+    ...
+</code></pre>
+<p>另一种是不需要模型包装，可以直接使用APIClient返回结果的 <strong>info</strong>, <strong>version</strong> 等方法:</p>
+<pre><code class="language-python"># Top-level methods
+def info(self, *args, **kwargs):
+        return self.api.info(*args, **kwargs)
+    info.__doc__ = APIClient.info.__doc__
+
+def version(self, *args, **kwargs):
+        return self.api.version(*args, **kwargs)
+    version.__doc__ = APIClient.version.__doc__
+    
+    ...
+</code></pre>
+<p>DockerClient类工厂方法的全局引用:</p>
+<pre><code class="language-python">from_env = DockerClient.from_env
+</code></pre>
+<h2 id="4-docker-version命令跟踪">4、docker-version命令跟踪</h2>
+<p>我们先从简单的 <code>docker version</code> 命令跟踪查看APIClient如何工作的。APIClient的构造函数:</p>
+<pre><code class="language-python"># api/client.py
+
+import requests
+
+class APIClient(
+        requests.Session,
+        BuildApiMixin,
+        ConfigApiMixin,
+        ContainerApiMixin,
+        DaemonApiMixin,
+        ExecApiMixin,
+        ImageApiMixin,
+        NetworkApiMixin,
+        PluginApiMixin,
+        SecretApiMixin,
+        ServiceApiMixin,
+        SwarmApiMixin,
+        VolumeApiMixin):
+        
+    def __init__(self, base_url=None, version=None,
+             timeout=DEFAULT_TIMEOUT_SECONDS, tls=False,
+             user_agent=DEFAULT_USER_AGENT, num_pools=None,
+             credstore_env=None, use_ssh_client=False,
+             max_pool_size=DEFAULT_MAX_POOL_SIZE):
+        super(APIClient, self).__init__()
+        
+        base_url = utils.parse_host(
+            base_url, IS_WINDOWS_PLATFORM, tls=bool(tls)
+        )
+        
+        if base_url.startswith('http+unix://'):
+            self._custom_adapter = UnixHTTPAdapter(
+                base_url, timeout, pool_connections=num_pools,
+                max_pool_size=max_pool_size
+            )
+            self.mount('http+docker://', self._custom_adapter)
+            self._unmount('http://', 'https://')
+            # host part of URL should be unused, but is resolved by requests
+            # module in proxy_bypass_macosx_sysconf()
+            self.base_url = 'http+docker://localhost'
+</code></pre>
+<p>上面代码可见:</p>
+<ul>
+<li>APIClient继承自 <strong>requests.Session</strong></li>
+<li>APIClient使用Mixin方式组合了多个API，比如ContainerApiMixin提供container的api操作;NetWorkApiMixin提供network的api操作</li>
+<li>使用mount方法加载不同协议的适配器adapter，unix系的docker是unix-socket;windows则是npipe</li>
+</ul>
+<blockquote>
+<p>关于requests的使用，可以参看之前的博文 requests 源码阅读</p>
+</blockquote>
+<p>默认的服务URL实现:</p>
+<pre><code class="language-python">DEFAULT_UNIX_SOCKET = &quot;http+unix:///var/run/docker.sock&quot;
+DEFAULT_NPIPE = 'npipe:////./pipe/docker_engine'
+
+def parse_host(addr, is_win32=False, tls=False):
+    path = ''
+    port = None
+    host = None
+
+    # Sensible defaults
+    if not addr and is_win32:
+        return DEFAULT_NPIPE
+    if not addr or addr.strip() == 'unix://':
+        return DEFAULT_UNIX_SOCKET
+</code></pre>
+<p><code>version</code> 请求在 <strong>DaemonApiMixin</strong> 中实现:</p>
+<pre><code class="language-python">class DaemonApiMixin(object):
+
+
+    def version(self, api_version=True):
+        url = self._url(&quot;/version&quot;, versioned_api=api_version)
+        return self._result(self._get(url), json=True)
+</code></pre>
+<p>底层的请求和响应在主类APIClient中提供:</p>
+<pre><code class="language-python">class APIClient
+    
+    def _url(self, pathfmt, *args, **kwargs):
+        ...
+        return '{0}{1}'.format(self.base_url, pathfmt.format(*args))
+
+    @update_headers
+    def _get(self, url, **kwargs):
+        return self.get(url, **self._set_request_timeout(kwargs))
+            
+    def _result(self, response, json=False, binary=False):
+        assert not (json and binary)
+        self._raise_for_status(response)
+    
+        if json:
+            return response.json()
+        if binary:
+            return response.content
+        return response.text
+</code></pre>
+<p>get和result，response都是requests提供。get发送请求，response.json将请求格式化成json后返回。</p>
+<h2 id="5-unixhttpadapter的实现">5、UnixHTTPAdapter的实现</h2>
+<p><code>/var/run/docker.sock</code>是Docker守护程序侦听的UNIX套接字,其连接使用UnixHTTPAdapter处理:</p>
+<pre><code class="language-python"># transport/unixconn.py
+
+import requests.adapters
+
+RecentlyUsedContainer = urllib3._collections.RecentlyUsedContainer
+
+class UnixHTTPAdapter(BaseHTTPAdapter):
+    def __init__(self, socket_url, timeout=60,
+                 pool_connections=constants.DEFAULT_NUM_POOLS,
+                 max_pool_size=constants.DEFAULT_MAX_POOL_SIZE):
+        socket_path = socket_url.replace('http+unix://', '')
+        if not socket_path.startswith('/'):
+            socket_path = '/' + socket_path
+        self.socket_path = socket_path
+        self.timeout = timeout
+        self.max_pool_size = max_pool_size
+        self.pools = RecentlyUsedContainer(
+            pool_connections, dispose_func=lambda p: p.close()
+        )
+        super(UnixHTTPAdapter, self).__init__()
+    
+    def get_connection(self, url, proxies=None):
+        with self.pools.lock:
+            pool = self.pools.get(url)
+            if pool:
+                return pool
+
+            pool = UnixHTTPConnectionPool(
+                url, self.socket_path, self.timeout,
+                maxsize=self.max_pool_size
+            )
+            self.pools[url] = pool
+
+        return pool
+</code></pre>
+<p>UnixHTTPAdapter主要使用urllib3提供的链接池管理UnixHTTPConnection连接:</p>
+<pre><code class="language-python">class UnixHTTPConnection(httplib.HTTPConnection, object):
+
+    def __init__(self, base_url, unix_socket, timeout=60):
+        super(UnixHTTPConnection, self).__init__(
+            'localhost', timeout=timeout
+        )
+        self.base_url = base_url
+        self.unix_socket = unix_socket
+        self.timeout = timeout
+        self.disable_buffering = False
+
+    def connect(self):
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sock.settimeout(self.timeout)
+        sock.connect(self.unix_socket)
+        self.sock = sock
+
+    def putheader(self, header, *values):
+        super(UnixHTTPConnection, self).putheader(header, *values)
+        if header == 'Connection' and 'Upgrade' in values:
+            self.disable_buffering = True
+
+    def response_class(self, sock, *args, **kwargs):
+        if self.disable_buffering:
+            kwargs['disable_buffering'] = True
+
+        return UnixHTTPResponse(sock, *args, **kwargs)
+
+
+class UnixHTTPConnectionPool(urllib3.connectionpool.HTTPConnectionPool):
+    def __init__(self, base_url, socket_path, timeout=60, maxsize=10):
+        super(UnixHTTPConnectionPool, self).__init__(
+            'localhost', timeout=timeout, maxsize=maxsize
+        )
+        self.base_url = base_url
+        self.socket_path = socket_path
+        self.timeout = timeout
+
+    def _new_conn(self):
+        return UnixHTTPConnection(
+            self.base_url, self.socket_path, self.timeout
+        )
+</code></pre>
+<p>connect展示了socket类型是 <code>socket.AF_UNIX</code>, 这一部分的实现都非常基础 。</p>
+<blockquote>
+<p>关于socket，可以参看之前的博文 python http 源码阅读</p>
+</blockquote>
+<h2 id="6-docker-ps命令跟踪">6、docker-ps命令跟踪</h2>
+<p>接着我们跟踪稍微复杂点的命令 <code>client.containers.list()</code>， 也就是 <code>docker ps</code>。前面介绍了，<strong>container</strong> 会组装结果为数据模型，下面是模型的父类:</p>
+<pre><code class="language-python">class Model(object):
+    &quot;&quot;&quot;
+    A base class for representing a single object on the server.
+    &quot;&quot;&quot;
+    id_attribute = 'Id'
+
+    def __init__(self, attrs=None, client=None, collection=None):
+        self.client = client
+        # 集合
+        self.collection = collection
+
+        self.attrs = attrs
+</code></pre>
+<p>Model是单个模型抽象，Collection则是模型集合的抽象，使用集合的prepare_model构建各种对象:</p>
+<pre><code class="language-python">class Collection(object):
+    &quot;&quot;&quot;
+    A base class for representing all objects of a particular type on the
+    server.
+    &quot;&quot;&quot;
+
+    model = None
+
+    def __init__(self, client=None):
+        self.client = client
+    
+    ...
+    
+    def prepare_model(self, attrs):
+        &quot;&quot;&quot;
+        Create a model from a set of attributes.
+        &quot;&quot;&quot;
+        if isinstance(attrs, Model):
+            attrs.client = self.client
+            # 双向引用
+            attrs.collection = self
+            return attrs
+        elif isinstance(attrs, dict):
+            return self.model(attrs=attrs, client=self.client, collection=self)
+        else:
+            raise Exception(&quot;Can't create %s from %s&quot; %
+                            (self.model.__name__, attrs))
+</code></pre>
+<p>Container和ContainerCollection的实现</p>
+<pre><code class="language-python">class Container(Model):
+    pass
+    
+class ContainerCollection(Collection):
+    model = Container
+    
+    def get(self, container_id):
+        resp = self.client.api.inspect_container(container_id)
+        return self.prepare_model(resp)
+        
+    def list(self, all=False, before=None, filters=None, limit=-1, since=None,
+             sparse=False, ignore_removed=False):
+        resp = self.client.api.containers(all=all, before=before,
+                                          filters=filters, limit=limit,
+                                          since=since)
+        containers = []
+        for r in resp:
+            containers.append(self.get(r['Id']))
+        return containers
+</code></pre>
+<p>其中list函数主要有下面几个步骤</p>
+<ul>
+<li>使用api的containers接口得到resp，就是container-id列表</li>
+<li>逐个循环使用api的inspect_container请求container的详细信息</li>
+<li>将结果封装成Container对象</li>
+<li>返回容器Container对象列表</li>
+</ul>
+<p>api.containers和api.inspect_container在ContainerApiMixin中提供, 非常简单清晰:</p>
+<pre><code class="language-python">class ContainerApiMixin(object):
+
+    def containers(self, quiet=False, all=False, trunc=False, latest=False,
+                   since=None, before=None, limit=-1, size=False,
+                   filters=None):
+        params = {
+            'limit': 1 if latest else limit,
+            'all': 1 if all else 0,
+            'size': 1 if size else 0,
+            'trunc_cmd': 1 if trunc else 0,
+            'since': since,
+            'before': before
+        }
+        if filters:
+            params['filters'] = utils.convert_filters(filters)
+        u = self._url(&quot;/containers/json&quot;)
+        res = self._result(self._get(u, params=params), True)
+
+        if quiet:
+            return [{'Id': x['Id']} for x in res]
+        if trunc:
+            for x in res:
+                x['Id'] = x['Id'][:12]
+        return res
+    
+    @utils.check_resource('container')
+    def inspect_container(self, container):
+        return self._result(
+            self._get(self._url(&quot;/containers/{0}/json&quot;, container)), True
+        )
+</code></pre>
+<h2 id="7-docker-logs命令跟踪">7、docker-logs命令跟踪</h2>
+<p>前面的命令都是request-response的模式，我们再看看不一样的，基于流的docker-logs命令。我们先启动一个容器:</p>
+<pre><code class="language-python">docker run -d bfirsh/reticulate-splines
+</code></pre>
+<p>查看容器列表</p>
+<pre><code class="language-python"># docker ps
+CONTAINER ID   IMAGE                       COMMAND                  CREATED          STATUS          PORTS             NAMES
+61709b0ed4b8   bfirsh/reticulate-splines   &quot;/usr/local/bin/run.…&quot;   22 seconds ago   Up 21 seconds                     festive_pare
+</code></pre>
+<p>实时跟踪容器运行日志:</p>
+<pre><code class="language-python"># docker logs -f 6170
+Reticulating spline 1...
+Reticulating spline 2...
+....
+</code></pre>
+<p>可以看到<strong>reticulate-splines</strong>容器就是不停的打印行数数据。可以用下面的代码实现 <code>docker logs</code> 相同的功能:</p>
+<pre><code class="language-python">logs = client.containers.get('61709b0ed4b8').logs(stream=True)
+ try:
+  while True:
+   line = next(logs).decode(&quot;utf-8&quot;)
+   print(line)
+ except StopIteration:
+  print(f'log stream ended for {container_name}')   
+</code></pre>
+<p>代码执行结果和前面的类似:</p>
+<pre><code class="language-python"># python sample.py
+...
+Reticulating spline 14...
+
+Reticulating spline 15...
+...
+</code></pre>
+<p>logs的实现中返回一个CancellableStream，而不是一个result，利用这个stream，就可以持续的读取输出:</p>
+<pre><code class="language-python"># models/Container
+
+def logs(self, **kwargs):
+    return self.client.api.logs(self.id, **kwargs)
+    
+# api/continer
+def logs(self, container, stdout=True, stderr=True, stream=False,
+             timestamps=False, tail='all', since=None, follow=None,
+             until=None):
+    ...
+    
+    url = self._url(&quot;/containers/{0}/logs&quot;, container)
+        res = self._get(url, params=params, stream=stream)
+        output = self._get_result(container, stream, res)
+
+        if stream:
+            return CancellableStream(output, res)
+        else:
+            return output
+</code></pre>
+<p>比较特别的是下面对于stream的处理:</p>
+<pre><code class="language-python"># api/client
+
+def _multiplexed_response_stream_helper(self, response):
+    &quot;&quot;&quot;A generator of multiplexed data blocks coming from a response
+    stream.&quot;&quot;&quot;
+
+    # Disable timeout on the underlying socket to prevent
+    # Read timed out(s) for long running processes
+    socket = self._get_raw_response_socket(response)
+    self._disable_socket_timeout(socket)
+
+    while True:
+        header = response.raw.read(STREAM_HEADER_SIZE_BYTES)
+        if not header:
+            break
+        _, length = struct.unpack('&gt;BxxxL', header)
+        if not length:
+            continue
+        data = response.raw.read(length)
+        if not data:
+            break
+        yield data
+
+def _disable_socket_timeout(self, socket):
+    sockets = [socket, getattr(socket, '_sock', None)]
+
+    for s in sockets:
+        if not hasattr(s, 'settimeout'):
+            continue
+
+        timeout = -1
+
+        if hasattr(s, 'gettimeout'):
+            timeout = s.gettimeout()
+
+        # Don't change the timeout if it is already disabled.
+        if timeout is None or timeout == 0.0:
+            continue
+
+        s.settimeout(None)
+</code></pre>
+<p>上面代码展示了:</p>
+<ul>
+<li>流的读取方式是每次读取STREAM_HEADER_SIZE_BYTES长度的数据作为协议头</li>
+<li>协议头结构体格式解压后得到后面的数据包长度</li>
+<li>继续读取指定长度的数据包</li>
+<li>重复执行上面的数据读取过程</li>
+<li>流式读取的时候还需要关闭socket的超时机制，确保流一直保持，知道手动(ctl+c)关闭</li>
+</ul>
+<p>而 <strong>attach</strong> 则是采用了websocket的实现, 因为我们一般推荐使用exec命令，所以这里简单了解即可:</p>
+<pre><code class="language-python">def _attach_websocket(self, container, params=None):
+    url = self._url(&quot;/containers/{0}/attach/ws&quot;, container)
+    req = requests.Request(&quot;POST&quot;, url, params=self._attach_params(params))
+    full_url = req.prepare().url
+    full_url = full_url.replace(&quot;http://&quot;, &quot;ws://&quot;, 1)
+    full_url = full_url.replace(&quot;https://&quot;, &quot;wss://&quot;, 1)
+    return self._create_websocket_connection(full_url)
+
+def _create_websocket_connection(self, url):
+    return websocket.create_connection(url)
+</code></pre>
+<h2 id="8-docker-exec-命令跟踪">8、docker-exec 命令跟踪</h2>
+<p>docker-exec是我们的重头戏，因为除了可以直接获取docker是输出外，还可以和docker进行交互。先简单回顾一下exec的使用:</p>
+<pre><code class="language-python"># docker exec -it 2075 ping www.weibo.cn
+PING www.weibo.cn (123.125.22.241): 56 data bytes
+64 bytes from 123.125.22.241: seq=0 ttl=37 time=6.797 ms
+64 bytes from 123.125.22.241: seq=1 ttl=37 time=39.279 ms
+64 bytes from 123.125.22.241: seq=2 ttl=37 time=29.635 ms
+64 bytes from 123.125.22.241: seq=3 ttl=37 time=27.737 ms
+</code></pre>
+<p>上面示例可以用下面代码完全模拟:</p>
+<pre><code class="language-python">result = client.containers.get(&quot;2075&quot;).exec_run(&quot;ping www.weibo.cn&quot;, tty=True, stream=True)
+try:
+ while True:
+  line = next(result[1]).decode(&quot;utf-8&quot;)
+  print(line)
+except StopIteration:
+ print(f'exec stream ended for {container_name}')
+</code></pre>
+<p>使用tty伪装终端和容器进行交互，就是我们最常用的方式了:</p>
+<pre><code class="language-python"># docker exec -it 2075 sh
+/ # ls -la
+total 64
+drwxr-xr-x    1 root     root          4096 Mar 24 13:16 .
+drwxr-xr-x    1 root     root          4096 Mar 24 13:16 ..
+-rwxr-xr-x    1 root     root             0 Mar 24 13:16 .dockerenv
+drwxr-xr-x    2 root     root          4096 Mar  3  2017 bin
+drwxr-xr-x    5 root     root           340 Mar 24 13:16 dev
+drwxr-xr-x    1 root     root          4096 Mar 24 13:16 etc
+drwxr-xr-x    2 root     root          4096 Mar  3  2017 home
+drwxr-xr-x    1 root     root          4096 Mar  3  2017 lib
+lrwxrwxrwx    1 root     root            12 Mar  3  2017 linuxrc -&gt; /bin/busybox
+drwxr-xr-x    5 root     root          4096 Mar  3  2017 media
+drwxr-xr-x    2 root     root          4096 Mar  3  2017 mnt
+dr-xr-xr-x  156 root     root             0 Mar 24 13:16 proc
+drwx------    1 root     root          4096 Mar 25 08:17 root
+drwxr-xr-x    2 root     root          4096 Mar  3  2017 run
+drwxr-xr-x    2 root     root          4096 Mar  3  2017 sbin
+drwxr-xr-x    2 root     root          4096 Mar  3  2017 srv
+dr-xr-xr-x   13 root     root             0 Mar 24 13:16 sys
+drwxrwxrwt    1 root     root          4096 Mar  3  2017 tmp
+drwxr-xr-x    1 root     root          4096 Mar  3  2017 usr
+drwxr-xr-x    1 root     root          4096 Mar  3  2017 var
+/ # exit
+</code></pre>
+<p>同样这个过程也可以使用docker-py实现:</p>
+<pre><code class="language-python">_, socket = client.containers.get(&quot;2075&quot;).exec_run(&quot;sh&quot;, stdin=True, socket=True)
+print(socket)
+socket._sock.sendall(b&quot;ls -la\n&quot;)
+try:
+ unknown_byte=socket._sock.recv(docker.constants.STREAM_HEADER_SIZE_BYTES)
+ print(unknown_byte)
+
+ buffer_size = 4096 # 4 KiB
+ data = b''
+ while True:
+  part = socket._sock.recv(buffer_size)
+  data += part
+  if len(part) &lt; buffer_size:
+   # either 0 or end of data
+   break
+ print(data.decode(&quot;utf8&quot;))
+
+except Exception: 
+ pass
+socket._sock.send(b&quot;exit\n&quot;)
+</code></pre>
+<p>示例演示的过程是:</p>
+<ul>
+<li>获取一个已经存在的容器<strong>2075</strong></li>
+<li>对容器执行exec命令，注意需要开启stdin和socket</li>
+<li>向容器发送 <code>ls -lah</code> 展示目录列表</li>
+<li>读区socket上的结果。(这里我们偷懒，没有解析头，直接硬取，这样不够健壮)</li>
+<li>继续发送 <code>exit</code> 退出容器</li>
+</ul>
+<p>程序的输出和上面使用命令方式完全一致，就不在张贴了。进入核心的exec_run函数的实现:</p>
+<pre><code class="language-python"># model/containers
+
+def exec_run(self, cmd, stdout=True, stderr=True, stdin=False, tty=False,
+                 privileged=False, user='', detach=False, stream=False,
+                 socket=False, environment=None, workdir=None, demux=False):
+    resp = self.client.api.exec_create(
+            self.id, cmd, stdout=stdout, stderr=stderr, stdin=stdin, tty=tty,
+            privileged=privileged, user=user, environment=environment,
+            workdir=workdir,
+        )
+    exec_output = self.client.api.exec_start(
+        resp['Id'], detach=detach, tty=tty, stream=stream, socket=socket,
+        demux=demux
+    )
+    if socket or stream:
+        return ExecResult(None, exec_output)
+</code></pre>
+<p>主要使用API的exec_create和exec_start两个函数, 先看第一个exec_create函数:</p>
+<pre><code class="language-python"># api/exec_api
+
+def exec_create(self, container, cmd, stdout=True, stderr=True,
+                    stdin=False, tty=False, privileged=False, user='',
+                    environment=None, workdir=None, detach_keys=None):
+
+    if isinstance(cmd, six.string_types):
+        cmd = utils.split_command(cmd)
+
+    if isinstance(environment, dict):
+        environment = utils.utils.format_environment(environment)
+
+    data = {
+        'Container': container,
+        'User': user,
+        'Privileged': privileged,
+        'Tty': tty,
+        'AttachStdin': stdin,
+        'AttachStdout': stdout,
+        'AttachStderr': stderr,
+        'Cmd': cmd,
+        'Env': environment,
+    }
+
+    if detach_keys:
+        data['detachKeys'] = detach_keys
+    elif 'detachKeys' in self._general_configs:
+        data['detachKeys'] = self._general_configs['detachKeys']
+
+    url = self._url('/containers/{0}/exec', container)
+    res = self._post_json(url, data=data)
+    return self._result(res, True)
+</code></pre>
+<p>exec_create相对还是比较简单，就是post-json数据到 <code>/containers/{0}/exec</code> 接口。然后是exec_start函数:</p>
+<pre><code class="language-python">def exec_start(self, exec_id, detach=False, tty=False, stream=False,
+               socket=False, demux=False):
+
+    # we want opened socket if socket == True
+
+    data = {
+        'Tty': tty,
+        'Detach': detach
+    }
+
+    headers = {} if detach else {
+        'Connection': 'Upgrade',
+        'Upgrade': 'tcp'
+    }
+
+    res = self._post_json(
+        self._url('/exec/{0}/start', exec_id),
+        headers=headers,
+        data=data,
+        stream=True
+    )
+    if detach:
+        return self._result(res)
+    if socket:
+        return self._get_raw_response_socket(res)
+    return self._read_from_socket(res, stream, tty=tty, demux=demux)
+</code></pre>
+<p>exec_start是post-json到 <code>/exec/{0}/start</code> 接口，注意这个接口看起来不是到容器，而是到exec。然后如果socket参数是true则返回socket，可以进行写入；否则仅仅读取数据。</p>
+<h2 id="9-使用curl访问docker-api">9、使用curl访问docker-api</h2>
+<p>docker-engine的REST-api也可以直接使用 <strong>curl</strong> 访问:</p>
+<pre><code class="language-shell">$ curl --unix-socket /var/run/docker.sock -H &quot;Content-Type: application/json&quot; \
+  -d '{&quot;Image&quot;: &quot;alpine&quot;, &quot;Cmd&quot;: [&quot;echo&quot;, &quot;hello world&quot;]}' \
+  -X POST http://localhost/v1.41/containers/create
+{&quot;Id&quot;:&quot;1c6594faf5&quot;,&quot;Warnings&quot;:null}
+
+$ curl --unix-socket /var/run/docker.sock -X POST http://localhost/v1.41/containers/1c6594faf5/start
+
+$ curl --unix-socket /var/run/docker.sock -X POST http://localhost/v1.41/containers/1c6594faf5/wait
+{&quot;StatusCode&quot;:0}
+
+$ curl --unix-socket /var/run/docker.sock &quot;http://localhost/v1.41/containers/1c6594faf5/logs?stdout=1&quot;
+hello world
+</code></pre>
+<p>可以通过修改<code>/etc/docker/daemon.json</code>更改为http服务方式的api</p>
+<pre><code class="language-python">{
+  &quot;debug&quot;: true,
+  &quot;hosts&quot;: [&quot;tcp://192.168.59.3:2376&quot;]
+}
+</code></pre>
+<p>然后 curl 命令可以直接访问docker的api</p>
+<pre><code class="language-python">curl http://127.0.0.1:2375/info
+curl http://127.0.0.1:2375/version
+curl http://127.0.0.1:2375/images/json
+curl http://127.0.0.1:2375/images/alpine/json
+curl http://127.0.0.1:2375/containers/json
+curl http://127.0.0.1:2375/containers/25c5805a06b6/json
+</code></pre>
+<h2 id="10-小结">10、小结</h2>
+<p>利用docker-py可以完全操作docker，这得益docker提供的REST-api操作。同时也发现requests的设计很强大，不仅仅可以用来做http请求，还可以用来做socket请求。学习docker-py后，相信大家对docker的理解一定有那么一点点加深，也希望下面这张图可以帮助你记忆:</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210512-01.png" alt=""></figure>
+<h2 id="11-小技巧">11、小技巧</h2>
+<p>使用 <code>check_resource</code> 装饰器，对函数的参数进行预先处理:</p>
+<pre><code class="language-python">def check_resource(resource_name):
+    def decorator(f):
+        @functools.wraps(f)
+        def wrapped(self, resource_id=None, *args, **kwargs):
+            if resource_id is None and kwargs.get(resource_name):
+                resource_id = kwargs.pop(resource_name)
+            if isinstance(resource_id, dict):
+                resource_id = resource_id.get('Id', resource_id.get('ID'))
+            if not resource_id:
+                raise errors.NullResource(
+                    'Resource ID was not provided'
+                )
+            return f(self, resource_id, *args, **kwargs)
+        return wrapped
+    return decorator
+</code></pre>
+<p>代码版本比较工具:</p>
+<pre><code class="language-python">from distutils.version import StrictVersion
+
+
+def compare_version(v1, v2):
+    &quot;&quot;&quot;Compare docker versions
+
+    &gt;&gt;&gt; v1 = '1.9'
+    &gt;&gt;&gt; v2 = '1.10'
+    &gt;&gt;&gt; compare_version(v1, v2)
+    1
+    &gt;&gt;&gt; compare_version(v2, v1)
+    -1
+    &gt;&gt;&gt; compare_version(v2, v2)
+    0
+    &quot;&quot;&quot;
+    s1 = StrictVersion(v1)
+    s2 = StrictVersion(v2)
+    if s1 == s2:
+        return 0
+    elif s1 &gt; s2:
+        return -1
+    else:
+        return 1
+
+
+def version_lt(v1, v2):
+    return compare_version(v1, v2) &gt; 0
+
+
+def version_gte(v1, v2):
+    return not version_lt(v1, v2)
+</code></pre>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li>https://docs.docker.com/engine/api/sdk/examples/</li>
+<li>https://docker-py.readthedocs.io/en/stable/</li>
+</ul>
+<p>转载自：https://mp.weixin.qq.com/s/kF03uUxWiDkeClZY9o5E8Q</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[我的生产力工具推荐-IDE插件篇]]></title>
+        <id>https://www.ssgeek.com/post/wo-de-sheng-chan-li-gong-ju-tui-jian-ide-cha-jian-pian</id>
+        <link href="https://www.ssgeek.com/post/wo-de-sheng-chan-li-gong-ju-tui-jian-ide-cha-jian-pian">
+        </link>
+        <updated>2021-05-10T12:05:02.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">1、概述</a></li>
+<li><a href="#2-jenkins%E6%8F%92%E4%BB%B6">2、Jenkins插件</a>
+<ul>
+<li><a href="#21-%E6%8F%92%E4%BB%B6%E5%AE%89%E8%A3%85">2.1 插件安装</a></li>
+<li><a href="#22-%E6%8F%92%E4%BB%B6%E9%85%8D%E7%BD%AE">2.2 插件配置</a></li>
+<li><a href="#23-%E6%8F%92%E4%BB%B6%E4%BD%BF%E7%94%A8">2.3 插件使用</a></li>
+</ul>
+</li>
+<li><a href="#3-kubernetes%E6%8F%92%E4%BB%B6">3、Kubernetes插件</a>
+<ul>
+<li><a href="#31-%E6%8F%92%E4%BB%B6%E5%AE%89%E8%A3%85">3.1 插件安装</a></li>
+<li><a href="#32-%E6%8F%92%E4%BB%B6%E9%85%8D%E7%BD%AE">3.2 插件配置</a></li>
+<li><a href="#33-%E6%8F%92%E4%BB%B6%E4%BD%BF%E7%94%A8">3.3 插件使用</a></li>
+</ul>
+</li>
+<li><a href="#4-%E5%B0%8F%E7%BB%93">4、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210510-01.png" alt=""></figure>
+<h2 id="1-概述">1、概述</h2>
+<p>前面分享过一篇文章 <a href="https://www.ssgeek.com/post/wo-de-sheng-chan-li-gong-ju-tui-jian-zhong-duan-01-pian/">我的生产力工具推荐-终端01篇</a>，今天来聊聊<code>IDE</code>工具</p>
+<p><code>IDE</code>一般指集成开发环境(Integrated Development Environment)</p>
+<p>基于日常工作使用和正在学习的技术栈，我常用的<code>IDE</code>主要是<code>JetBrains</code>家族的<code>DataGrip</code>、<code>PyCharm</code>、<code>GoLand</code></p>
+<p>不得不说，这些<code>IDE</code>足够强大。借助于其完备的插件库，甚至可以完美的将日常工作 “全部” 集成到<code>IDE</code>中</p>
+<p>本文要推荐的两款插件，是我日常工作中经常会使用到的</p>
+<p>在我的环境中，由于开发的应用是部署在<code>k8s</code>集群环境中，而应用部署到<code>k8s</code>的<code>CI</code>流程是通过<code>Jenkins</code>实现的</p>
+<p>借助于这两个插件，可以完美的将开发测试环境的编码(code)—&gt;部署(dev)—&gt;调试(debug)整个流程打通，进一步提高生产力</p>
+<h2 id="2-jenkins插件">2、Jenkins插件</h2>
+<h3 id="21-插件安装">2.1 插件安装</h3>
+<p>在上面列举的任意一个<code>IDE</code>中依次打开<code>Preferences</code>—&gt;<code>Plugins</code>，<br>
+搜索插件并安装，插件名称为<code>Jenkins Control</code>，安装后可能需要重启<code>IDE</code>以生效</p>
+<h3 id="22-插件配置">2.2 插件配置</h3>
+<p>打开<code>Preferences</code>，全局搜索<code>Jenkins</code>，或者直接打开<code>Tools</code>下的<code>Jenkins Plugin</code>，打开插件的配置界面</p>
+<p>配置界面主要是配置<code>Jenkins</code>服务端的相关连接信息，如下图所示</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210510-02.png" alt=""></figure>
+<p>用户名密码填写用户的用户名或密码，如果检查没有权限或其他报错，建议密码使用用户的<code>token</code>，可以通过「用户」——&gt; 「设置」——&gt; 「API Token」——&gt; 「添加新Token」来获得一个<code>api token</code>。<br>
+当然也可以通过<code>Crumb</code>操作连接<code>Jenkins</code>，关于<code>Crumb</code>在我前面的文章 <a href="https://www.ssgeek.com/post/jenkins-apipipeline-shen-du-shi-jian-zhi-input-de-zi-dong-hua/">Jenkins API+Pipeline深度实践之input的自动化</a>中有提及</p>
+<p>其他配置看字面意思即可，这里不再赘述</p>
+<h3 id="23-插件使用">2.3 插件使用</h3>
+<p>配置完成后，就可以在<code>IDE</code>工具的右侧工具栏看到一个<code>Jenkins</code>图标，点击展开，就可以看到所有的<code>Jenkins Job</code>列表，也可以选择按<code>Jenkins</code>上的视图进行分类</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210510-03.png" alt=""></figure>
+<p>找到需要操作的<code>Job</code>并右键，选择<code>Build on Jenkins</code>就可以触发构建，点击后会弹出在<code>Jenkins</code>流水线线中定义好的构建参数供选择和确认</p>
+<p>展开每个<code>Job</code>，也可以查看每个<code>Job</code>的历史构建及参数</p>
+<p>此插件也支持直接在<code>IDE</code>查看构建控制台的日志输出，包括历史日志及正在运行的<code>Job</code>构建日志，这样在触发构建后，就可以很方便的在<code>IDE</code>中查看到<code>CI</code>流程的每个步骤详细输出，和在<code>Jenkins</code>的控制台上看是一样的</p>
+<h2 id="3-kubernetes插件">3、Kubernetes插件</h2>
+<h3 id="31-插件安装">3.1 插件安装</h3>
+<p>同样的，在上面列举的任意一个<code>IDE</code>中依次打开<code>Preferences</code>—&gt;<code>Plugins</code>，<br>
+搜索插件并安装，插件名称为<code>Kubernetes</code>，安装后可能需要重启<code>IDE</code>以生效</p>
+<h3 id="32-插件配置">3.2 插件配置</h3>
+<p>打开<code>Preferences</code>，全局搜索<code>Kubernetes</code>，或者直接打开<code>Build, Execution, Deployment</code>下的<code>Kubernetes</code>，打开插件的配置界面</p>
+<p>这里配置主要是指定连接<code>k8s</code>集群的<code>kubeconfig</code>文件的位置、默认进入<code>Pod</code>的<code>bash</code>解释器，以及对<code>Pod</code>日志查看相关的全局设置</p>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20210510-04.png" alt=""></figure>
+<h3 id="33-插件使用">3.3 插件使用</h3>
+<p>配置完成后，打开插件窗口可以通过默认的快捷键<code>command</code>+<code>8</code>打开<code>Service</code>窗口或者在设置选择中找到<code>Service</code>下的<code>Kubernetes</code>为这个插件单独指定<code>Keymap</code>快捷键</p>
+<figure data-type="image" tabindex="5"><img src="https://image.ssgeek.com/20210510-05.png" alt=""></figure>
+<p>除了找到对应部署的应用<code>Pod</code>进行相关的调试外，在这个插件的窗口内还可以对集群中的大多数资源进行操作，就像通过<code>kubernetes dashboard</code>一样，前提是本地的<code>kubeconfig</code>文件要有权限，当然如果<code>kubeconfig</code>文件中关联了多个集群，插件也是支持多集群的</p>
+<h2 id="4-小结">4、小结</h2>
+<p>到这里，这篇文章简要提到的两个<code>IDE</code>插件的相关安装、配置、使用就介绍完了。关于以上两个插件的具体使用就不再记录了。此外，还可以在<code>IDE</code>中使用<code>Git</code>插件操作项目的版本控制，也可以直接使用终端进行更多操作等等</p>
+<p>借助于<code>IDE</code>及上述插件等，可以很方便的让我们对应用的生命周期进行干预，再加上一个强大的<code>Web Browser</code>，基本就不需要其他工具了</p>
+<p>See you ~</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[浅谈Python鸭子类型]]></title>
+        <id>https://www.ssgeek.com/post/qian-tan-python-ya-zi-lei-xing</id>
+        <link href="https://www.ssgeek.com/post/qian-tan-python-ya-zi-lei-xing">
+        </link>
+        <updated>2021-04-29T17:46:02.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E9%B8%AD%E5%AD%90%E7%B1%BB%E5%9E%8B">1、什么是“鸭子类型”</a></li>
+<li><a href="#2-%E9%B8%AD%E5%AD%90%E7%B1%BB%E5%9E%8B%E4%BB%8E%E4%BD%95%E8%80%8C%E6%9D%A5">2、“鸭子类型”从何而来</a>
+<ul>
+<li><a href="#21-%E5%A4%9A%E6%80%81">2.1 多态</a></li>
+<li><a href="#22-%E5%A4%9A%E6%80%81%E7%9A%84%E4%BD%BF%E7%94%A8">2.2 多态的使用</a></li>
+<li><a href="#23-%E9%B8%AD%E5%AD%90%E7%B1%BB%E5%9E%8B%E4%BA%A7%E7%94%9F">2.3 鸭子类型产生</a></li>
+</ul>
+</li>
+<li><a href="#3-%E5%B0%8F%E7%BB%93">3、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210430-01.png" alt=""></figure>
+<h2 id="1-什么是鸭子类型">1、什么是“鸭子类型”</h2>
+<p><code>Python</code>崇尚“鸭子类型”</p>
+<p>对于<code>鸭子模型</code>常见的说法是：“当看到一只鸟走起来像鸭子、游泳起来像鸭子、叫起来也像鸭子，那么这只鸟就可以被称为鸭子。”</p>
+<p><strong>鸭子类型</strong>（英语：<strong>duck typing</strong>）在程序设计中是动态类型的一种风格。在这种风格中，一个对象有效的语义，不是由继承自特定的类或实现特定的接口，而是由“当前方法和属性的集合”决定</p>
+<p>在鸭子类型中，关注点在于对象的行为能做什么；而不是关注对象所属的类型。例如，在不使用鸭子类型的语言中，我们可以编写一个函数，它接受一个类型为&quot;鸭子&quot;的对象，并调用它的&quot;走&quot;和&quot;叫&quot;方法。在使用鸭子类型的语言中，这样的一个函数可以接受一个任意类型的对象，并调用它的&quot;走&quot;和&quot;叫&quot;方法。如果这些需要被调用的方法不存在，那么将引发一个运行时错误。任何拥有这样的正确的&quot;走&quot;和&quot;叫&quot;方法的对象都可被函数接受的这种行为引出了以上表述，这种决定类型的方式因此得名</p>
+<p>鸭子类型通常得益于&quot;不&quot;测试方法和函数中参数的类型，而是依赖文档、清晰的代码和测试来确保正确使用</p>
+<p>在常规类型中，我们能否在一个特定场景中使用某个对象取决于这个对象的类型，而在鸭子类型中，则取决于这个对象是否具有某种属性或者方法——即只要具备特定的属性或方法，能通过鸭子测试，就可以使用。</p>
+<blockquote>
+<p>内容参考自维基百科：https://zh.wikipedia.org/wiki/%E9%B8%AD%E5%AD%90%E7%B1%BB%E5%9E%8B</p>
+</blockquote>
+<h2 id="2-鸭子类型从何而来">2、“鸭子类型”从何而来</h2>
+<h3 id="21-多态">2.1 多态</h3>
+<p>先来看看“多态”</p>
+<p>大学时学习过<code>C</code>、<code>Java</code>基础这一类强类型语言，面向对象编程的三大特性之一有个概念叫做“多态”</p>
+<p>简单来说，定义时的类型和运行时的类型不一样就是多态</p>
+<p>更通俗的来说，多态是指一类事物有多种形态。比如动物有多种形态，人、狗、猫等等</p>
+<p>放到二进制的世界，例如文件，文件有多种形态：文本文件、可执行文件</p>
+<p>总而言之，多态即某类的再分类，再分的每一类就是父类的多种形态的一种</p>
+<p>例如下面代码示例：</p>
+<ul>
+<li>
+<p>程序在运行到<code>list</code>这一步是只把<code>Cat</code>，<code>Dog</code>，<code>Duck</code>当成变量</p>
+</li>
+<li>
+<p>只有在最后实例化调用类方法的时候才会明白是一个类，这就表示多态</p>
+</li>
+</ul>
+<pre><code class="language-python">class Cat(object):
+    def info(self):
+        print(&quot;我是一只猫&quot;)
+
+
+class Dog(object):
+    def info(self):
+        print(&quot;我是一只狗&quot;)
+
+
+class Duck(object):
+    def info(self):
+        print(&quot;我是一只鸭&quot;)
+
+list=[Cat,Dog,Duck]
+for animal in list:
+    animal().info()
+</code></pre>
+<h3 id="22-多态的使用">2.2 多态的使用</h3>
+<p>再来一个偏实际的应用示例代码</p>
+<pre><code class="language-python">from abc import ABCMeta,abstractmethod #(抽象方法)
+
+class Payment(metaclass=ABCMeta):   # metaclass 元类  metaclass = ABCMeta表示Payment类是一个规范类
+    def __init__(self,name,money):
+        self.money=money
+        self.name=name
+
+    @abstractmethod      # @abstractmethod表示下面一行中的pay方法是一个必须在子类中实现的方法
+    def pay(self,*args,**kwargs):
+        pass
+
+class AliPay(Payment):
+
+    def pay(self):
+        # 支付宝提供了一个网络上的联系渠道
+        print('%s通过支付宝消费了%s元'%(self.name,self.money))
+
+class WeChatPay(Payment):
+
+    def pay(self):
+        # 微信提供了一个网络上的联系渠道
+        print('%s通过微信消费了%s元'%(self.name,self.money))
+
+
+class Order(object):
+
+    def account(self,pay_obj):
+        pay_obj.pay()
+
+pay_obj = WeChatPay(&quot;wang&quot;,100)
+pay_obj2 = AliPay(&quot;zhang&quot;,200)
+
+order = Order()
+order.account(pay_obj)
+order.account(pay_obj2)
+</code></pre>
+<p>从上述代码可见，在调用<code>order</code>对象的<code>account()</code>方法时，程序并不关心为该方法传入的参数对象<code>pay_obj</code>是谁，只要求此参数对象<code>pay_obj</code>包含<code>pay()</code>方法即可，而调用者传入的参数对象类型<code>pay_obj</code>是子类对象还是其他类对象，对<code>Python</code>来说无所谓</p>
+<p>多态性就是相同的消息（函数方法触发）使得不同的类做出不同的响应，这就是典型的类编程中多态性的应用实例</p>
+<h3 id="23-鸭子类型产生">2.3 鸭子类型产生</h3>
+<p>在上面的例子中<code>order.account(pay_obj)</code>中<code>pay_obj</code>不需要类型声明，而<code>java</code>在使用时要定义好类型</p>
+<p>（<code>order.account(Payment pay_obj)</code>），所以你传入别的类型对象一定报错</p>
+<p>但是<code>python</code>因为是动态语言所以传入的对象只要拥有调用的方法即可视为<code>Payment</code>类型对象，这就是所谓的鸭子类型</p>
+<pre><code class="language-python">class Duck():
+    def walk(self):
+        print('I walk like a duck')
+    def swim(self):
+        print('i swim like a duck')
+
+class Person():
+    def walk(self):
+    　　print('this one walk like a duck') 
+    def swim(self):
+    　　print('this man swim like a duck')
+</code></pre>
+<p>可以很明显的看出，<code>Person</code>类拥有跟<code>Duck</code>类一样的方法，当有一个函数调用<code>Duck</code>类，并利用到了两个方法<code>walk()</code>和<code>swim()</code>。我们传入<code>Person</code>类也一样可以运行，函数并不会检查对象的类型是不是<code>Duck</code>，只要他拥有<code>walk()</code>和<code>swim()</code>方法，就可以正确的被调用</p>
+<h2 id="3-小结">3、小结</h2>
+<ul>
+<li>在鸭子类型中，关注的不是对象的类型本身，而是它是如何使用的</li>
+</ul>
+<p>例如，在不使用鸭子类型的语言中，我们可以编写一个函数，它接受一个类型为&quot;鸭子&quot;的对象，并调用它的&quot;走&quot;和&quot;叫&quot;方法</p>
+<ul>
+<li>在使用鸭子类型的语言中，这样的一个函数可以接受一个任意类型的对象，并调用它的&quot;走&quot;和&quot;叫&quot;方法</li>
+</ul>
+<p>如果这些需要被调用的方法不存在，那么将引发一个运行时错误</p>
+<p>任何拥有这样的正确的&quot;走&quot;和&quot;叫&quot;方法的对象都可被函数接受的这种行为引出了以上表述，这种决定类型的方式因此得名</p>
+<ul>
+<li>
+<p>鹅不是鸭子，但是鹅一旦拥有鸭子的一些方法，就可以被当成鸭子类型了</p>
+</li>
+<li>
+<p>鸭子类型的好处就在于能够避免一些类的重写，无需大量复制相同的代码</p>
+</li>
+<li>
+<p>鸭子类型使用的前提是需要良好的文档支持，不然会让代码变得很混乱，如果没有良好的文档及说明，有可能会导致你的“鸭子”不是我的“鹅”了</p>
+</li>
+</ul>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Dockerfile语法概要]]></title>
+        <id>https://www.ssgeek.com/post/dockerfile-yu-fa-gai-yao</id>
+        <link href="https://www.ssgeek.com/post/dockerfile-yu-fa-gai-yao">
+        </link>
+        <updated>2021-04-20T16:52:40.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E9%97%B2%E8%81%8A%E7%AF%87">1、闲聊篇</a></li>
+<li><a href="#2-%E6%8C%87%E4%BB%A4%E7%AF%87">2、指令篇</a>
+<ul>
+<li><a href="#21-from">2.1 FROM</a></li>
+<li><a href="#22-label">2.2 LABEL</a></li>
+<li><a href="#23-env">2.3 ENV</a></li>
+<li><a href="#24-copy%E5%92%8Cadd">2.4 COPY和ADD</a></li>
+<li><a href="#25-arg">2.5 ARG</a></li>
+<li><a href="#26-run">2.6 RUN</a></li>
+<li><a href="#27-workdir">2.7 WORKDIR</a></li>
+<li><a href="#28-expose">2.8 EXPOSE</a></li>
+<li><a href="#29-cmd%E5%92%8Centrypoint">2.9 CMD和ENTRYPOINT</a></li>
+<li><a href="#210-healthcheck">2.10 HEALTHCHECK</a></li>
+<li><a href="#211-onbuild">2.11 ONBUILD</a></li>
+</ul>
+</li>
+<li><a href="#3-%E9%95%9C%E5%83%8F%E6%9E%84%E5%BB%BA%E7%AF%87">3、镜像构建篇</a>
+<ul>
+<li><a href="#31-%E6%9E%84%E5%BB%BA%E4%B8%8A%E4%B8%8B%E6%96%87">3.1 构建上下文</a></li>
+<li><a href="#32-%E5%BF%BD%E7%95%A5%E6%9E%84%E5%BB%BA">3.2 忽略构建</a></li>
+<li><a href="#33-%E5%A4%9A%E9%98%B6%E6%AE%B5%E6%9E%84%E5%BB%BA">3.3 多阶段构建</a></li>
+</ul>
+</li>
+<li><a href="#4-%E5%B0%8F%E7%BB%93">4、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210421-01.png" alt=""></figure>
+<h2 id="1-闲聊篇">1、闲聊篇</h2>
+<p>看到文章标题，有一定云原生相关技术经验的读者可能会说，都<code>2021</code>年了，怎么还在写<code>Docker</code>相关的文章？</p>
+<p>的确如此，现如今容器引擎<code>Docker</code>的替代品有很多。加上用了<code>k8s</code>之后，大家对<code>Docker</code>的关注或许没有那么多了，很多场景下为了方便也没有自己做镜像的强烈需求，乃<code>拿来主义</code>~</p>
+<p><code>k8s</code>也在新版本中说 “不再支持” <code>Docker</code>，详情可以参考<a href="https://kubernetes.io/blog/2020/12/02/dont-panic-kubernetes-and-docker/">Don't Panic: Kubernetes and Docker</a></p>
+<p>这个话题也的确被不少标题党炒作了一番，实际上<code>k8s</code>仅仅是放弃其对<code>dockershim</code>组件的支持，更推荐的<code>k8s</code>运行时是兼容<code>CRI</code>的<code>containerd</code>之类的底层运行时</p>
+<p>因此，<code>Docker</code>作为我从大学开始接触云原生相关领域的第一个开源工具，同时也作为容器技术和云原生领域中家喻户晓的名词。除去其经营线路外，不得不说，作为<code>Docker</code>技术本身还是值得肯定的，因此我觉得还是有必要再提一下的</p>
+<p>根据个人经验和官方文档阅读，之前整理写过<a href="https://www.ssgeek.com/post/jenkinspipeline-yu-fa-gai-yao/">Jenkins Pipeline语法概要</a>，现在来写一篇用于制作<code>Docker</code>镜像的<code>Dockerfile</code>语法概要，部分内容翻译自官方文档<a href="https://docs.docker.com/engine/reference/builder/">Dockerfile reference</a></p>
+<h2 id="2-指令篇">2、指令篇</h2>
+<p><code>Dockerfile</code>可以认为是一个脚本，包含如何构建<code>Docker</code>镜像的说明。实际上，这些指令是一组在<code>Docker</code>环境中自动执行的命令，以构建特定的<code>Docker</code>镜像</p>
+<h3 id="21-from">2.1 FROM</h3>
+<p><code>Docker</code>镜像有着分层的概念，因此制作任何一个<code>Docker</code>镜像都需要有一个基础镜像，<code>FROM</code>用于指定基础镜像，语法为</p>
+<pre><code class="language-shell">FROM &lt;image&gt;:&lt;tag&gt;
+</code></pre>
+<p>其中基础镜像的<code>tag</code>可以不指定，即默认使用<code>latest</code>，在制作时尽量要使用官方的镜像作为基础镜像，如果想制定一个小型轻量的镜像，基础镜像可以选择<code>Alpine</code></p>
+<p>另外需要提到的是，这里说了任何镜像都需要有一个基础镜像，那么问题来了，就好比是先有鸡还是先有蛋的问题，基础镜像的“祖宗”是什么呢？能不能在构建时不以任何镜像为基础呢？答案是肯定的，可以选用<code>scratch</code>，具体我就不展开了，可以参考：<a href="https://docs.docker.com/develop/develop-images/baseimages/">baseimages</a></p>
+<pre><code class="language-shell">FROM scratch
+</code></pre>
+<h3 id="22-label">2.2 LABEL</h3>
+<p><code>LABEL</code>一般用来添加镜像的 “元数据” ，没有实际作用。常用于声明镜像作者，<code>licensce</code>等信息，写法为<code>&lt;key&gt;=&lt;value&gt;</code>，语法为</p>
+<pre><code class="language-shell">LABEL &quot;com.example.vendor&quot;=&quot;ACME Incorporated&quot;
+LABEL com.example.label-with-value=&quot;foo&quot;
+LABEL version=&quot;1.0&quot;
+LABEL description=&quot;This text illustrates \
+that label-values can span multiple lines.&quot;
+</code></pre>
+<p>在镜像构建后并成功运行容器，可以通过<code>inspect</code>查看</p>
+<pre><code class="language-shell"># docker image inspect --format='' myimage
+{
+  &quot;com.example.vendor&quot;: &quot;ACME Incorporated&quot;,
+  &quot;com.example.label-with-value&quot;: &quot;foo&quot;,
+  &quot;version&quot;: &quot;1.0&quot;,
+  &quot;description&quot;: &quot;This text illustrates that label-values can span multiple lines.&quot;
+}
+</code></pre>
+<p>如果要声明作者，语法为</p>
+<pre><code class="language-shell">LABEL maintainer=&quot;SvenDowideit@home.org.au&quot;
+</code></pre>
+<p>之前直接通过指令<code>MAINTAINER</code>指定，这种写法已经废弃掉了</p>
+<h3 id="23-env">2.3 ENV</h3>
+<p><code>ENV</code>用来设置环境变量，一旦环境变量设置，就可以在<code>Dockerfile</code>后面的内容及容器运行后的应用中获取使用这个环境变量，<code>ENV</code>的写法也是<code>&lt;key&gt;=&lt;value&gt;</code>，语法为</p>
+<pre><code class="language-shell">ENV MY_NAME=&quot;John Doe&quot;
+ENV MY_DOG=Rex\ The\ Dog
+ENV MY_CAT=fluffy
+</code></pre>
+<h3 id="24-copy和add">2.4 COPY和ADD</h3>
+<p><code>COPY</code>和<code>ADD</code>都是用于在构建时往镜像中复制文件或目录的，并且两者都支持在复制时修改文件或目录的属主和属组，语法为</p>
+<pre><code class="language-shell">ADD [--chown=&lt;user&gt;:&lt;group&gt;] &lt;src&gt;... &lt;dest&gt;
+ADD [--chown=&lt;user&gt;:&lt;group&gt;] [&quot;&lt;src&gt;&quot;,... &quot;&lt;dest&gt;&quot;]
+COPY [--chown=&lt;user&gt;:&lt;group&gt;] &lt;src&gt;... &lt;dest&gt;
+COPY [--chown=&lt;user&gt;:&lt;group&gt;] [&quot;&lt;src&gt;&quot;,... &quot;&lt;dest&gt;&quot;]
+</code></pre>
+<p>两者的使用差不多，但<code>ADD</code>功能更丰富</p>
+<ul>
+<li>
+<p>支持URL</p>
+<p>例如源路径是文件的<code>URL</code>链接，构建时自动进行下载，下载后放到目标路径下，文件权限为<code>600</code></p>
+</li>
+<li>
+<p>压缩包自动解压</p>
+<p>例如<code>tar</code>、<code>gzip</code>、<code>bzip2</code>、<code>xz</code>格式的压缩包，<code>ADD</code>指令将会自动解压缩这个压缩文件到目标路径去</p>
+</li>
+</ul>
+<h3 id="25-arg">2.5 ARG</h3>
+<p><code>ARG</code>设置的是构建时的参数，也可以理解为构建时的环境变量，与<code>ENV</code>的不同是只在构建时生效，生成的镜像中是不存在的</p>
+<p>可以在<code>ARG</code>中同时声明参数名和参数值</p>
+<p>也可以只声明参数名，在构建时通过<code>–build-arg</code>&lt;参数名&gt;=&lt;值&gt;的形式来赋值，赋值的前提是在<code>Dockerfile</code>中进行了声明，否则会出现警告</p>
+<p>语法为</p>
+<pre><code class="language-shell">ARG &lt;name&gt;[=&lt;default value&gt;]
+</code></pre>
+<h3 id="26-run">2.6 RUN</h3>
+<p><code>RUN</code>指令表示在当前的镜像层之上的新层中执行命令并将结果提交，用户<code>Dockerfile</code>的下一步操作，语法为</p>
+<pre><code class="language-shell">RUN /bin/bash -c 'source $HOME/.bashrc; \
+RUN mkdir /test
+</code></pre>
+<p>在<code>RUN</code>命令中也可以使用<code>exec</code>格式来避免<code>shell</code>字符串损坏，语法为</p>
+<pre><code class="language-shell">RUN [&quot;/bin/bash&quot;, &quot;-c&quot;, &quot;echo hello&quot;]
+</code></pre>
+<p><code>RUN</code>作为<code>Dockerfile</code>中最为常用的指令，在使用时有以下建议：</p>
+<ul>
+<li>
+<p>在<code>RUN</code>指令执行过程中，产生的中间镜像会被当做缓存在下一次构建时使用，如果不想使用缓存，使其失效，可以在<code>build</code>时添加<code>--no-cache</code></p>
+</li>
+<li>
+<p>尽量把所有的<code>RUN</code>指令写到一起，如果是多条<code>shell</code>命令，可以不用每条命令都添加<code>RUN</code>，更好的做法是通过<code>\</code>换行，通过<code>&amp;&amp;</code>连接多个指令，这样对构建生成的镜像的大小优化是很有帮助的，语法为</p>
+<pre><code class="language-shell">RUN set -x &amp;&amp; \
+    yum install -y epel-release \
+    make \
+    gcc \
+    gcc-c++
+</code></pre>
+</li>
+</ul>
+<h3 id="27-workdir">2.7 WORKDIR</h3>
+<p><code>WORKDIR</code>指令为<code>Dockerfile</code>中的任何<code>RUN</code>、<code>CMD</code>、<code>ENTRYPOINT</code>、<code>COPY</code>和<code>ADD</code>指令设置工作目录。如果工作目录不存在，即使它没有在后续的<code>Dockerfile</code>指令中使用，它也会被创建</p>
+<p><code>WORKDIR</code>指令可以在<code>Dockerfile</code>中使用多次。如果提供了一个相对路径，它将相对于前一个<code>WORKDIR</code>指令的路径，语法为</p>
+<pre><code class="language-shell">WORKDIR /a
+WORKDIR b
+WORKDIR c
+RUN pwd
+</code></pre>
+<p>这个<code>Dockerfile</code>中的最后一个<code>pwd</code>命令的输出是<code>/a/b/c</code></p>
+<p><code>WORKDIR</code>指令也可以解析之前使用<code>ENV</code>设置的环境变量，只能使用在<code>Dockerfile</code>中显式设置的环境变量，语法为</p>
+<pre><code class="language-shell">ENV DIRPATH=/path
+WORKDIR $DIRPATH/$DIRNAME
+RUN pwd
+</code></pre>
+<p>这里的最终路径是<code>/path/$DIRNAME</code></p>
+<h3 id="28-expose">2.8 EXPOSE</h3>
+<p><code>EXPOSE</code>指令声明了容器在运行时监听指定的网络端口，可以指定端口是监听<code>TCP</code>还是<code>UDP</code>，默认为<code>TCP</code></p>
+<p><code>EXPOSE</code>指令实际上并不发布端口，即端口限制，它的作用仅仅是作为构建映像的人和运行容器的人之间的一种文档，关于要发布哪些端口。当运行容器时，要实际发布端口，使用<code>docker</code>运行中的-<code>p</code>参数来发布和映射一个或多个端口，或者直接使用<code>-P</code>来自动随机映射<code>EXPOSE</code>声明的端口</p>
+<p>语法为</p>
+<pre><code class="language-shell">EXPOSE &lt;port&gt; [&lt;port&gt;/&lt;protocol&gt;...]
+</code></pre>
+<h3 id="29-cmd和entrypoint">2.9 CMD和ENTRYPOINT</h3>
+<blockquote>
+<p>这个话题稍微复杂，实际上用的场景也不会有这么多</p>
+</blockquote>
+<ul>
+<li>CMD</li>
+</ul>
+<p><code>CMD</code>和<code>ENTRYPOINT</code>都是指定容器将如何运行</p>
+<p><code>CMD</code>的主要目的是为执行容器提供默认值。这些默认值可以包括可执行文件，也可以省略可执行文件，在这种情况下，必须指定一个<code>ENTRYPOINT</code>指令</p>
+<p><code>CMD</code>指令有三种形式</p>
+<pre><code class="language-shell">CMD [&quot;executable&quot;,&quot;param1&quot;,&quot;param2&quot;] # 首选的exec格式
+CMD [&quot;param1&quot;,&quot;param2&quot;] # 只传递参数，作为ENTRYPOINT的默认参数
+CMD command param1 param2 (shell form)  # shell的形式
+</code></pre>
+<p>在<code>Dockerfile</code>中只能有一条<code>CMD</code>指令，如果指定了多条，只有最后一条会生效</p>
+<ul>
+<li>ENTRYPOINT</li>
+</ul>
+<p><code>ENTRYPOINT</code>有两种形式</p>
+<pre><code class="language-shell">ENTRYPOINT [&quot;executable&quot;, &quot;param1&quot;, &quot;param2&quot;]  # exec格式
+ENTRYPOINT command param1 param2  # shell形式
+</code></pre>
+<p>如果指定了<code>ENTRYPOINT</code>，则<code>CMD</code>将只是提供参数，传递给<code>ENTRYPOINT</code></p>
+<p><code>docker run &lt;image&gt;</code>的命令行参数将被附加在<code>exec</code>类型的<code>ENTRYPOINT</code>的所有元素之后，并将覆盖使用<code>CMD</code>指定的所有元素。这允许参数被传递给<code>ENTRYPOINT</code></p>
+<p>例如，<code>docker run &lt;image&gt; -d</code>将传递<code>-d</code>参数给<code>ENTRYPOINT</code></p>
+<p>也可以使用<code>docker run --entrypoint</code>覆盖<code>ENTRYPOINT</code>指令</p>
+<ul>
+<li>CMD和ENTRYPOINT组合出现</li>
+</ul>
+<p>官方有一段关于<code>CMD</code>和<code>ENTRYPOINT</code>组合出现时的结果</p>
+<p>https://docs.docker.com/engine/reference/builder/#understand-how-cmd-and-entrypoint-interact</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:left">没有 ENTRYPOINT</th>
+<th style="text-align:left">ENTRYPOINT exec_entry p1_entry</th>
+<th style="text-align:left">ENTRYPOINT [“exec_entry”, “p1_entry”]</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>没有 CMD</strong></td>
+<td style="text-align:left">报错</td>
+<td style="text-align:left">/bin/sh -c exec_entry p1_entry</td>
+<td style="text-align:left">exec_entry p1_entry</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>CMD [“exec_cmd”, “p1_cmd”]</strong></td>
+<td style="text-align:left">exec_cmd p1_cmd</td>
+<td style="text-align:left">/bin/sh -c exec_entry p1_entry</td>
+<td style="text-align:left">exec_entry p1_entry exec_cmd p1_cmd</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>CMD [“p1_cmd”, “p2_cmd”]</strong></td>
+<td style="text-align:left">p1_cmd p2_cmd</td>
+<td style="text-align:left">/bin/sh -c exec_entry p1_entry</td>
+<td style="text-align:left">exec_entry p1_entry p1_cmd p2_cmd</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>CMD exec_cmd p1_cmd</strong></td>
+<td style="text-align:left">/bin/sh -c exec_cmd p1_cmd</td>
+<td style="text-align:left">/bin/sh -c exec_entry p1_entry</td>
+<td style="text-align:left">exec_entry p1_entry /bin/sh -c exec_cmd p1_cmd</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>在k8s中的场景</li>
+</ul>
+<p><code>k8s</code>中可以通过资源清单的<code>command</code>、<code>args</code>也可以为<code>Pod</code>指定一些运行参数，四者组合出现时的最终结果如下</p>
+<p>https://kubernetes.io/zh/docs/tasks/inject-data-application/define-command-argument-container/#notes</p>
+<p>如果要覆盖默认的<code>Entrypoint</code>与<code>Cmd</code>，需要遵循如下规则：</p>
+<ul>
+<li>如果在容器配置中没有设置 <code>command</code> 或者 <code>args</code>，那么将使用<code>Docker</code>镜像自带的命令及其参数</li>
+<li>如果在容器配置中只设置了 <code>command</code> 但是没有设置 <code>args</code>，那么容器启动时只会执行该命令， <code>Docker</code>镜像中自带的命令及其参数会被忽略</li>
+<li>如果在容器配置中只设置了 <code>args</code>，那么<code>Docker</code>镜像中自带的命令会使用该新参数作为其执行时的参数</li>
+<li>如果在容器配置中同时设置了 <code>command</code> 与 <code>args</code>，那么<code>Docker</code>镜像中自带的命令及其参数会被忽略。 容器启动时只会执行配置中设置的命令，并使用配置中设置的参数作为命令的参数</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>镜像 Entrypoint</th>
+<th>镜像 Cmd</th>
+<th>容器 command</th>
+<th>容器 args</th>
+<th>命令执行</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[/ep-1]</code></td>
+<td><code>[foo bar]</code></td>
+<td><not set></td>
+<td><not set></td>
+<td><code>[ep-1 foo bar]</code></td>
+</tr>
+<tr>
+<td><code>[/ep-1]</code></td>
+<td><code>[foo bar]</code></td>
+<td><code>[/ep-2]</code></td>
+<td><not set></td>
+<td><code>[ep-2]</code></td>
+</tr>
+<tr>
+<td><code>[/ep-1]</code></td>
+<td><code>[foo bar]</code></td>
+<td><not set></td>
+<td><code>[zoo boo]</code></td>
+<td><code>[ep-1 zoo boo]</code></td>
+</tr>
+<tr>
+<td><code>[/ep-1]</code></td>
+<td><code>[foo bar]</code></td>
+<td><code>[/ep-2]</code></td>
+<td><code>[zoo boo]</code></td>
+<td><code>[ep-2 zoo boo]</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="210-healthcheck">2.10 HEALTHCHECK</h3>
+<p><code>HEALTHCHECK</code>用于检查容器的健康状态，<code>Docker</code>可通过健康状态来决定是否对容器进行重新调度</p>
+<p>语法为</p>
+<pre><code class="language-shell">HEALTHCHECK [选项] CMD &lt;命令&gt;
+</code></pre>
+<p>可选项为</p>
+<pre><code class="language-shell">–interval=&lt;间隔&gt; ：两次健康检查的间隔，默认为30秒
+–timeout=&lt;时长&gt; ：执行健康检查命令的超时时间，如果超时，则本次健康检查就被视为失败，默认30秒
+–retries=&lt;次数&gt; ：当连续失败指定的次数后，将容器状态置为unhealthy ，默认3次
+</code></pre>
+<p>对一些可能造成假死情况的服务建议提供健康检查，以便及时重新调度恢复服务</p>
+<p>如果基础镜像有健康检查指令，想要屏蔽掉其健康检查，可以使用<code>HEALTHCHECK NONE</code></p>
+<p>实际上有了<code>k8s</code>更为丰富的健康检查探针之后，<code>Docker</code>自带的健康检查就不用了</p>
+<h3 id="211-onbuild">2.11 ONBUILD</h3>
+<p>当我们在一个<code>Dockerfile</code>文件中加上<code>ONBUILD</code>指令，该指令对利用该<code>Dockerfile</code>构建的镜像不会产生实质性影响</p>
+<p>但是当我们编写一个新的<code>Dockerfile</code>文件来基于上面通过包含<code>ONBUILD</code>构建的基础镜像构建一个新镜像时，这时构造基础镜像的<code>Dockerfile</code>文件中的<code>ONBUILD</code>指令就生效了，在构建新镜像的过程中，首先会执行<code>ONBUILD</code>指令指定的指令，然后才会执行其它指令</p>
+<p>要注意的是<code>ONBUILD</code>仅仅能 ‘子代遗传’ ，并不能 ‘隔代遗传’ ，即传递到 ‘孙子镜像’</p>
+<h2 id="3-镜像构建篇">3、镜像构建篇</h2>
+<h3 id="31-构建上下文">3.1 构建上下文</h3>
+<p>构建上下文<code>build context</code>，“上下文” 意为和现在这个工作相关的周围环境。在<code>docker</code>镜像的构建过程中有构建上下文<code>build context</code>这一概念，通俗的来说就是指执行<code>docker build</code>时当前的工作目录，不管构建时有没有用到当前目录下的某些文件及目录，默认情况下这个上下文中的文件及目录都会作为构建上下文内容发送给<code>Docker Daemon</code></p>
+<p>当<code>docker build</code>开始执行时，控制台会输出<code>Sending build context to Docker daemon xxxMB</code>，这就表示将当前工作目录下的文件及目录都作为了构建上下文</p>
+<p>前面提到可以在<code>RUN</code>指令中添加<code>--no-cache</code>不使用缓存，同样也可以在执行<code>docker build</code>命令时添加该指令以在镜像构建时不使用缓存</p>
+<h3 id="32-忽略构建">3.2 忽略构建</h3>
+<p>和<code>git</code>忽略文件<code>.gitignore</code>一样的道理，在<code>docker</code>构建镜像时也有<code>.dockerignore</code>，可以用来排除当前工作目录下不需要加入到构建上下文<code>build context</code>中的文件</p>
+<p>例如，在构建<code>npm</code>前端的镜像时项目时，在 <code>Dockerfile</code> 的同一个文件夹中创建一个 <code>.dockerignore</code> 文件，带有以下内容，这样在构建时就可以避免将本地模块以及调试日志被拷贝进入到<code>Docker</code>镜像中</p>
+<pre><code class="language-shell">node_modules
+npm-debug.log
+</code></pre>
+<h3 id="33-多阶段构建">3.3 多阶段构建</h3>
+<p>多阶段构建的应用场景及优势就是为了降低复杂性并减少依赖，避免镜像包含不必要的软件包</p>
+<p>例如，应用程序的镜像中一般不需要安装开发调试软件包。如果需要从源码编译构建应用，最好的方式就是使用多阶段构建</p>
+<p>简单来说，多阶段构建就是允许一个<code>Dockerfile</code>中出现多条<code>FROM</code>指令，只有最后一条<code>FROM</code>指令中指定的基础镜像作为本次构建镜像的基础镜像，其它的阶段都可以认为是只为中间步骤</p>
+<p>每一条<code>FROM</code>指令都表示着多阶段构建过程中的一个构建阶段，后面的构建阶段可以拷贝利用前面构建阶段的产物</p>
+<p>这里我列举一个编译构建<code>npm</code>项目，利用多阶段构建最终把静态资源制作成<code>nginx</code>镜像的<code>Dockerfile</code></p>
+<pre><code class="language-shell">#### Stage 1: npm build
+FROM node:12.4.0-alpine as build
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm install
+
+# Copy the main application
+COPY . ./
+
+# Arguments
+
+# Build the application
+RUN npm run build
+
+#### Stage 2: Serve the application from Nginx 
+FROM nginx:latest
+
+COPY --from=build /app/build /var/www
+
+# Copy our custom nginx config
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Expose port 3000 to the Docker host, so we can access it 
+# from the outside.
+EXPOSE 80
+
+ENTRYPOINT [&quot;nginx&quot;,&quot;-g&quot;,&quot;daemon off;&quot;]
+</code></pre>
+<h2 id="4-小结">4、小结</h2>
+<p>本文总结以及整理了常用的<code>Dockerfile</code>指令以及在构建镜像时的一些经验，当然也还有一些指令没有提及，更多内容可以参考官方文档</p>
+<p>See you ~</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[drf的接口文档生成与管理]]></title>
+        <id>https://www.ssgeek.com/post/drf-de-jie-kou-wen-dang-sheng-cheng-yu-guan-li</id>
+        <link href="https://www.ssgeek.com/post/drf-de-jie-kou-wen-dang-sheng-cheng-yu-guan-li">
+        </link>
+        <updated>2021-04-12T12:33:58.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3%E7%AE%80%E8%BF%B0">1、接口文档简述</a></li>
+<li><a href="#2-core-api%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3">2、Core API生成接口文档</a>
+<ul>
+<li><a href="#21-%E5%AE%89%E8%A3%85core-api%E5%BA%93">2.1 安装Core API库</a></li>
+<li><a href="#22-%E8%AE%BE%E7%BD%AE%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3%E8%AE%BF%E9%97%AE%E8%B7%AF%E5%BE%84">2.2 设置接口文档访问路径</a></li>
+<li><a href="#23-%E6%96%87%E6%A1%A3%E6%8F%8F%E8%BF%B0%E8%AF%B4%E6%98%8E%E7%9A%84%E5%AE%9A%E4%B9%89%E4%BD%8D%E7%BD%AE">2.3 文档描述说明的定义位置</a></li>
+<li><a href="#24-%E8%AE%BF%E9%97%AE%E6%9F%A5%E7%9C%8B">2.4 访问查看</a></li>
+<li><a href="#25-%E8%A1%A5%E5%85%85%E8%AF%B4%E6%98%8E">2.5 补充说明</a></li>
+</ul>
+</li>
+<li><a href="#3-swagger%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3">3、Swagger生成接口文档</a>
+<ul>
+<li><a href="#31-swagger%E4%BB%8B%E7%BB%8D">3.1 Swagger介绍</a></li>
+<li><a href="#32-%E5%AE%89%E8%A3%85django-rest-swagger%E5%BA%93">3.2 安装django-rest-swagger库</a></li>
+<li><a href="#33-%E9%85%8D%E7%BD%AEapp%E5%8F%8Aswagger">3.3 配置app及swagger</a></li>
+<li><a href="#34-%E9%85%8D%E7%BD%AE%E7%9B%B8%E5%85%B3%E8%B7%AF%E7%94%B1">3.4 配置相关路由</a></li>
+<li><a href="#35-%E8%AE%BF%E9%97%AE%E6%9F%A5%E7%9C%8B">3.5 访问查看</a></li>
+<li><a href="#36-%E8%AF%B4%E6%98%8E">3.6 说明</a></li>
+</ul>
+</li>
+<li><a href="#4-drf-yasgswagger%E5%8D%87%E7%BA%A7%E7%89%88">4、drf-yasg(Swagger升级版)</a>
+<ul>
+<li><a href="#41-drf-yasg%E4%BB%8B%E7%BB%8D">4.1 drf-yasg介绍</a></li>
+<li><a href="#42-%E5%AE%89%E8%A3%85drf-yasg%E5%BA%93">4.2 安装drf-yasg库</a></li>
+<li><a href="#43-%E9%85%8D%E7%BD%AEapp">4.3 配置app</a></li>
+<li><a href="#44-%E9%85%8D%E7%BD%AE%E8%B7%AF%E7%94%B1url">4.4 配置路由url</a></li>
+<li><a href="#45-%E8%AE%BF%E9%97%AE%E6%9F%A5%E7%9C%8B">4.5 访问查看</a></li>
+<li><a href="#46-%E6%9B%B4%E5%A4%9A%E9%85%8D%E7%BD%AE%E5%8F%8A%E8%AF%B4%E6%98%8E">4.6 更多配置及说明</a>
+<ul>
+<li><a href="#461-get_schema_view%E7%9A%84%E9%85%8D%E7%BD%AE">4.6.1 get_schema_view的配置</a></li>
+<li><a href="#462-schemaview-%E7%9A%84%E9%85%8D%E7%BD%AE">4.6.2 SchemaView 的配置</a></li>
+<li><a href="#463-%E7%BC%93%E5%AD%98%E7%9A%84%E9%85%8D%E7%BD%AE">4.6.3 缓存的配置</a></li>
+<li><a href="#464-%E6%A0%A1%E9%AA%8C%E6%96%87%E6%A1%A3%E6%9C%89%E6%95%88%E6%80%A7">4.6.4 校验文档有效性</a></li>
+<li><a href="#465-%E4%BB%A3%E7%A0%81%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90">4.6.5 代码自动生成</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210412-05.png" alt=""></figure>
+<h2 id="1-接口文档简述">1、接口文档简述</h2>
+<p>在项目开发中，例如<code>web</code>项目的前后端分离开发，需要由前后端相关人员共同定义接口，编写接口文档。之后大家都根据这个接口文档进行开发，到项目结束前都要一直维护。一个好的接口文档能够帮助我们快速上手这类项目、便于阅读已有代码、对接接口自动化测试等等</p>
+<p>往往一个清晰的API接口文档编写起来比较费时费力，于是有很多接口文档管理工具供我们使用：<code>YApi</code>、<code>ShowDoc</code>、<code>DocWay</code>，以及可直接利用接口测试生成接口文档的工具<code>Postman</code>、<code>Apipost</code>......</p>
+<p>上面列出的工具或多或少都需要花费一定时间去手动维护，在<code>drf</code>后端项目中可以利用其自带的<code>Core API</code>、第三方库<code>Swagger</code>以及更好的<code>drf-yasg</code>自动生成接口文档</p>
+<h2 id="2-core-api生成接口文档">2、Core API生成接口文档</h2>
+<p>参考<a href="http://core-api.github.io/python-client/">Core API官网</a>以及<a href="https://www.django-rest-framework.org/coreapi/from-documenting-your-api/">drf官网</a>，最终生成的接口文档是以网页的方式呈现的，自动接口文档能生成的是继承自<code>APIView</code>及其子类的视图，具体实现流程如下</p>
+<h3 id="21-安装core-api库">2.1 安装Core API库</h3>
+<pre><code class="language-shell">pip3 install coreapi
+pip3 freeze &gt; requirements.txt
+</code></pre>
+<h3 id="22-设置接口文档访问路径">2.2 设置接口文档访问路径</h3>
+<p>在配置文件<code>settings.py</code>中配置接口文档</p>
+<pre><code class="language-python">REST_FRAMEWORK = {
+    ...
+    # core api接口文档
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.AutoSchema',
+}
+</code></pre>
+<p>在总路由中添加接口文档路径</p>
+<p>文档路由对应的视图配置为<code>rest_framework.documentation.include_docs_urls</code></p>
+<p>配置<code>url</code>主路由，其中参数<code>title</code>为接口文档网站的标题</p>
+<pre><code class="language-python">from rest_framework.documentation import include_docs_urls
+
+urlpatterns = [
+    ...
+    path('docs/', include_docs_urls(title='API document')),
+]
+</code></pre>
+<h3 id="23-文档描述说明的定义位置">2.3 文档描述说明的定义位置</h3>
+<ul>
+<li>单一方法的视图，可直接使用类视图的文档字符串</li>
+</ul>
+<pre><code class="language-python">class HostListView(generics.ListAPIView):
+    &quot;&quot;&quot;
+    返回所有主机信息.
+    &quot;&quot;&quot;
+</code></pre>
+<ul>
+<li>包含多个方法的视图，在类视图的文档字符串中，分开方法定义</li>
+</ul>
+<pre><code class="language-python">class HostListCreateView(generics.ListCreateAPIView):
+    &quot;&quot;&quot;
+    get:
+    返回所有主机信息.
+
+    post:
+    新建主机.
+    &quot;&quot;&quot;
+</code></pre>
+<ul>
+<li>对于视图集<code>ViewSet</code>，仍在类视图的文档字符串中分开定义，但是应使用<code>action</code>对应的名称进行区分</li>
+</ul>
+<pre><code class="language-python">class HostInfoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
+    &quot;&quot;&quot;
+    list:
+    返回主机列表数据
+
+    retrieve:
+    返回主机详情数据
+
+    latest:
+    返回最新的主机数据
+
+    read:
+    修改主机的访问记录
+    &quot;&quot;&quot;
+</code></pre>
+<h3 id="24-访问查看">2.4 访问查看</h3>
+<p>按照上述规范优化好后端接口的视图后，重启项目，访问接口文档</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210412-01.png" alt=""></figure>
+<h3 id="25-补充说明">2.5 补充说明</h3>
+<p>1、上面访问到的接口文档，可以按照右边的指引通过安装<code>coreapi-cli</code>，通过命令行操作访问接口文档</p>
+<p>2、对于视图集<code>ViewSet</code>中的<code>retrieve</code>名称，在接口文档中叫做<code>read</code></p>
+<p>3、接口文档中参数<code>Description</code>需要在模型类或序列化器类的字段中以<code>help_text</code>选项定义，例如</p>
+<p>在模型类中定义</p>
+<pre><code class="language-python">class EnvironmentView(models.Model):
+    ...
+    name = models.CharField(max_length=32, verbose_name='环境名称', help_text='环境名称')
+    ...
+</code></pre>
+<p>在序列化器中定义</p>
+<pre><code class="language-python">class EnvironmentModelSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Environment
+        fields = &quot;__all__&quot;
+        extra_kwargs = {
+            'name': {
+                'required': True,
+                'help_text': '环境名称'
+            }
+          ...
+        }
+</code></pre>
+<h2 id="3-swagger生成接口文档">3、Swagger生成接口文档</h2>
+<h3 id="31-swagger介绍">3.1 Swagger介绍</h3>
+<p><a href="https://swagger.io/">Swagger</a>是一个规范和完整的框架，用于生成、描述、调用和可视化<code>RESTful</code>风格的<code>Web</code>服务。总体目标是使客户端和文件系统源代码作为服务器以同样的速度来更新。</p>
+<p>当接口有变动时，对应的接口文档也会自动更新</p>
+<p><code>Swagger</code>优势</p>
+<ul>
+<li><code>Swagger</code>可生成一个具有互动性的<code>API</code>控制台，可快速学习和尝试<code>API</code></li>
+<li><code>Swagger</code>可生成客户端<code>SDK</code>代码，用于不同平台上<code>Java</code>、<code>Python</code>...的实现</li>
+<li><code>Swagger</code>文件可在许多不同的平台上从代码注释中自动生成</li>
+<li><code>Swagger</code>有一个强大的社区，里面有许多强悍的贡献者</li>
+</ul>
+<p>要提到的是，作为一个工具人，常用的<code>httpbin</code>模拟请求工具也是基于<code>swagger</code>的</p>
+<p>下面记录在<code>drf</code>中通过<code>swagger</code>生成接口文档的具体实现流程，参考<a href="https://django-rest-swagger.readthedocs.io/">drf swagger文档</a></p>
+<h3 id="32-安装django-rest-swagger库">3.2 安装django-rest-swagger库</h3>
+<pre><code class="language-shell">pip3 install django-rest-swagger
+pip3 freeze &gt; requirements.txt
+</code></pre>
+<h3 id="33-配置app及swagger">3.3 配置app及swagger</h3>
+<p>在配置文件<code>settings.py</code>中进行配置</p>
+<p>配置<code>app</code></p>
+<pre><code class="language-python">INSTALLED_APPS = [
+    ...
+    'rest_framework',
+    'rest_framework_swagger'
+]
+</code></pre>
+<p>配置<code>swagger</code></p>
+<pre><code class="language-python"># swagger 配置项
+SWAGGER_SETTINGS = {
+    # 基础样式
+    'SECURITY_DEFINITIONS': {
+        &quot;basic&quot;: {
+            'type': 'basic'
+        }
+    },
+    # 如果需要登录才能够查看接口文档, 登录的链接使用 restframework 自带的.
+    'LOGIN_URL': 'rest_framework:login',
+    'LOGOUT_URL': 'rest_framework:logout',
+    # 控制API列表的显示方式 None 所有操作均已折叠 list 列出所有操作 full 扩展所有操作
+    'DOC_EXPANSION': None,
+    # 是否显示请求标头
+    'SHOW_REQUEST_HEADERS': True,
+    # 切换使用Django Auth作为身份验证机制 将其设置为True将会在Swagger UI上显示一个登录/注销按钮，并将csrf_tokens发布到API
+    'USE_SESSION_AUTH': True,
+    # 接口文档中方法列表以首字母升序排列
+    'APIS_SORTER': 'alpha',
+    # 如果支持json提交, 则接口文档中包含json输入框
+    'JSON_EDITOR': True,
+    # 方法列表字母排序
+    'OPERATIONS_SORTER': 'alpha',
+    # 在线模式验证器的URL 修改为指向本地安装，或设置None为禁用
+    'VALIDATOR_URL': None,
+}
+</code></pre>
+<h3 id="34-配置相关路由">3.4 配置相关路由</h3>
+<p>由于上面开启了访问<code>swagger</code>需要登录，因此需要在路由中开启<code>drf</code>默认的登录入口，修改主路由</p>
+<pre><code class="language-python">from rest_framework.schemas import get_schema_view
+from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPIRenderer
+schema_view = get_schema_view(title='Users API', renderer_classes=[OpenAPIRenderer, SwaggerUIRenderer])
+
+urlpatterns = [
+    # drf认证
+    path(r'api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    # swagger接口文档
+    path('docs/', schema_view, name='docs'),
+    ...
+]
+</code></pre>
+<h3 id="35-访问查看">3.5 访问查看</h3>
+<p>完成后重启项目，如果在此之前有进行数据库同步并创建了用户，那么就可以直接访问接口文档的<code>url</code>，并跳转到<code>drf</code>的认证界面进行登录</p>
+<p><code>swagger</code>界面给人以清爽简约的感觉，通过展开接口还可以对接口（传参）进行测试</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210412-02.png" alt=""></figure>
+<h3 id="36-说明">3.6 说明</h3>
+<p><code>Django REST Swagger</code>从<code>19</code>年开始就已弃用不再维护了，作者在官方网站上说明了更推荐使用<code>drf-yasg</code></p>
+<p>可以阅读https://github.com/marcgibbons/django-rest-swagger查看更多相关说明</p>
+<h2 id="4-drf-yasgswagger升级版">4、drf-yasg(Swagger升级版)</h2>
+<h3 id="41-drf-yasg介绍">4.1 drf-yasg介绍</h3>
+<p>参考<a href="https://drf-yasg.readthedocs.io/">drf-yasg官网</a>，<code>drf-yasg</code>是基于<code>Swagger</code>和<code>OpenAPI 2.0</code>规范的<code>API</code>文档自动化生成工具，能够生成比原生<code>swagger</code>更为友好的<code>API</code>文档界面</p>
+<p>目前的兼容性如下</p>
+<ul>
+<li><strong>Django Rest Framework</strong>: 3.10, 3.11, 3.12</li>
+<li><strong>Django</strong>: 2.2, 3.0, 3.1</li>
+<li><strong>Python</strong>: 3.6, 3.7, 3.8, 3.9</li>
+</ul>
+<h3 id="42-安装drf-yasg库">4.2 安装drf-yasg库</h3>
+<p><strong>在操作下面的步骤前请将第3节<code>swagger</code>相关内容全部注释或还原</strong></p>
+<pre><code class="language-shell">pip3 install drf-yasg
+pip3 freeze &gt; requirements.txt
+</code></pre>
+<h3 id="43-配置app">4.3 配置app</h3>
+<pre><code class="language-python">INSTALLED_APPS = [
+    ...
+    'rest_framework',
+    'drf_yasg'
+]
+</code></pre>
+<h3 id="44-配置路由url">4.4 配置路由url</h3>
+<pre><code class="language-python">from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+...
+
+schema_view = get_schema_view(
+    # 具体定义详见 [Swagger/OpenAPI 规范](https://swagger.io/specification/#infoObject)
+    openapi.Info(
+        title=&quot;Snippets API&quot;,
+        default_version='v1',
+        description=&quot;Test description&quot;,
+        terms_of_service=&quot;https://www.google.com/policies/terms/&quot;,
+        contact=openapi.Contact(email=&quot;contact@snippets.local&quot;),
+        license=openapi.License(name=&quot;BSD License&quot;),
+    ),
+    # public 表示文档完全公开, 无需针对用户鉴权
+    public=True,
+    # 可以传递 drf 的 BasePermission
+    permission_classes=(permissions.AllowAny,),
+)
+
+urlpatterns = [
+    # drf_yasg
+    re_path(r'^swagger(?P&lt;format&gt;\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-spec'),
+    re_path(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    re_path(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    ...
+]
+</code></pre>
+<p><code>drf-yasg</code>会暴露<code>4</code>种默认路径<code>endpoint</code>, 分别为:</p>
+<ul>
+<li><code>/swagger.json</code>, JSON 格式的 API 定义</li>
+<li><code>/swagger.yaml</code>, YAML 格式的 API 定义</li>
+<li><code>/swagger/</code>, 基于原生 swagger-ui 样式的前端页面</li>
+<li><code>/redoc/</code>, 基于 ReDoc 样式的前端页面</li>
+</ul>
+<h3 id="45-访问查看">4.5 访问查看</h3>
+<p>完成后重启项目进行访问</p>
+<p>swagger</p>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20210412-03.png" alt=""></figure>
+<p>redoc</p>
+<figure data-type="image" tabindex="5"><img src="https://image.ssgeek.com/20210412-04.png" alt=""></figure>
+<h3 id="46-更多配置及说明">4.6 更多配置及说明</h3>
+<h4 id="461-get_schema_view的配置">4.6.1 get_schema_view的配置</h4>
+<p>函数 <strong>get_schema_view</strong> 的作用是返回自动生成 API 文档的视图类, 该函数接受以下参数:</p>
+<ul>
+<li><strong>info</strong>: <code>Swagger API Info</code>对象, 具体定义详见 <a href="https://swagger.io/specification/#infoObject">Swagger/OpenAPI 规范</a>, 如果缺省, <code>drf-yasg</code>默认会用 <code>DEFAULT_INFO</code> 进行填充</li>
+<li><strong>url</strong>: 项目API的基础地址, 如果缺省, 则根据视图所在的位置进行推导</li>
+<li><strong>patterns</strong>: 自定义的<code>urlpatterns</code>, 该参数直接透传至<code>SchemaGenerator</code></li>
+<li><strong>urlconf</strong>: 描述从哪个文件获取路由配置, 缺省值是<code>urls</code>, 该参数直接透传至<code>SchemaGenerator</code></li>
+<li><strong>public</strong>: 描述API文档是否公开, 如果未 <code>False</code>, 则仅返回当前用户具有权限的接口<code>endpoints</code>的<code>API</code>文档</li>
+<li><strong>validators</strong>: 用于校验自动生成的<code>Schema</code>的校验器, 目前仅支持 <code>ssv</code> 和 <code>flex</code></li>
+<li><strong>generator_class</strong>: 自定义<code>OpenAPI schema</code>生成器类, 该类应该继承自 <code>OpenAPISchemaGenerator</code></li>
+<li><strong>authentication_classes</strong>: 用于<code>schema view</code>进行登录认证的类</li>
+<li><strong>permission_classes</strong>: 用于<code>schema view</code>进行权限校验的类</li>
+</ul>
+<h4 id="462-schemaview-的配置">4.6.2 SchemaView 的配置</h4>
+<p>通过函数<code>get_schema_view</code>可以获取对应的<code>SchemaView</code>, 调用该类的<code>with_ui</code>或 <code>without_ui</code>方法可生成对应的<code>视图函数</code>, 将其添加进<code>urlpatterns</code>即可访问到自动生成的 API 文档</p>
+<ul>
+<li><strong>SchemaView.with_ui(renderer, cache_timeout, cache_kwargs)</strong>: 返回使用指定<code>UI</code>渲染器的视图函数, 可选的<code>UI</code>渲染器有: <code>swagger</code>, <code>redoc</code>。</li>
+<li><strong>SchemaView.without_ui(cache_timeout, cache_kwargs)</strong>: 返回无<code>UI</code>的视图函数, 该函数可以返回<code>json/yaml</code>格式的<code>swagger</code>文档</li>
+</ul>
+<p>以上两个函数均支持通过 <code>cache_timeout</code> 或 <code>cache_kwargs</code> 配置缓存参数</p>
+<h4 id="463-缓存的配置">4.6.3 缓存的配置</h4>
+<p>由于<code>schema</code>通常在服务运行期间不会发生改变, 因此 <code>drf-yasg</code>使用<code>django</code>内置的 <code>cache_page</code> 实现开箱即用的缓存功能, 只需要配置对应的参数即可启用, 对应参数解释如下:</p>
+<ul>
+<li><strong>cache_timeout</strong>: 用于指定缓存的生存时间</li>
+<li><strong>cache_kwargs</strong>: 用于传递 <strong>cache_page</strong> 允许接受的非位置参数, 如 <code>cache</code>(指定 cache backend), <code>key_prefix</code>(缓存<code>key</code>的前缀) 等等, 详见<code>django</code>官方文档</li>
+</ul>
+<blockquote>
+<p>需要注意的是, 由于 <strong>drf-yasg</strong> 支持针对不同用户返回不一样的 API 文档(通过<strong>public</strong>、<strong>authentication_classes</strong>、<strong>permission_classes</strong>等参数配置), 因此对于不同用户(通过HTTP 请求头中的 <strong>Cookie</strong> 和 <strong>Authorization</strong> 进行区分), 会在内存中分别进行缓存。</p>
+</blockquote>
+<h4 id="464-校验文档有效性">4.6.4 校验文档有效性</h4>
+<p>为保证自动生成文档的有效性, 可以通过在<code>get_schema_view</code>中设置 <code>validators</code> 参数开启校验自动化生成文档是否符合<code>OpenAPI2.0</code>规范的功能</p>
+<h4 id="465-代码自动生成">4.6.5 代码自动生成</h4>
+<p>使用<code>Swagger/OpenAPI</code>规范生成文档的好处之一, 就是能通过<code>API</code>文档自动生成<strong>不同语言</strong>的 SDK，该功能由<a href="https://github.com/swagger-api/swagger-codegen">swagger-codegen</a>提供</p>
+<p>see you ~</p>
+<blockquote>
+<p>参考：</p>
+<p>http://blog.shabbywu.cn/posts/2020/04/15/python-auto-doc-for-drf.html</p>
+</blockquote>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[我的生产力工具推荐-终端01篇]]></title>
+        <id>https://www.ssgeek.com/post/wo-de-sheng-chan-li-gong-ju-tui-jian-zhong-duan-01-pian</id>
+        <link href="https://www.ssgeek.com/post/wo-de-sheng-chan-li-gong-ju-tui-jian-zhong-duan-01-pian">
+        </link>
+        <updated>2021-04-06T17:03:38.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%85%B3%E4%BA%8E%E7%94%B5%E8%84%91">1、关于电脑</a></li>
+<li><a href="#2-%E7%BB%88%E7%AB%AF%E4%BB%8B%E7%BB%8D">2、终端介绍</a></li>
+<li><a href="#3-%E7%BB%88%E7%AB%AF%E5%B7%A5%E5%85%B7%E6%8E%A8%E8%8D%90">3、终端工具推荐</a>
+<ul>
+<li><a href="#31-fzf-%E6%A8%A1%E7%B3%8A%E6%9F%A5%E6%89%BE">3.1 fzf-模糊查找</a></li>
+<li><a href="#32-autojump-%E5%BF%AB%E9%80%9F%E8%B7%B3%E8%BD%AC">3.2 autojump-快速跳转</a></li>
+<li><a href="#33-tmate-%E7%BB%88%E7%AB%AF%E8%BF%9C%E7%A8%8B">3.3 tmate-终端远程</a></li>
+<li><a href="#34-hadolint-%E5%AF%B9dockerfile%E8%AF%AD%E6%B3%95%E6%A3%80%E6%9F%A5">3.4 hadolint-对Dockerfile语法检查</a></li>
+<li><a href="#35-speedtest-%E6%B5%8B%E7%BD%91%E9%80%9F">3.5 speedtest-测网速</a></li>
+<li><a href="#36-glances-%E5%AE%9E%E6%97%B6%E7%9B%91%E6%8E%A7">3.6 glances-实时监控</a></li>
+<li><a href="#37-lrzsz-%E7%BB%88%E7%AB%AF%E4%B8%8A%E4%BC%A0%E4%B8%8B%E8%BD%BD">3.7 lrzsz-终端上传下载</a></li>
+<li><a href="#38-neovim-%E5%A2%9E%E5%BC%BA%E7%89%88vim">3.8 neovim-增强版vim</a></li>
+</ul>
+</li>
+<li><a href="#4-%E5%B0%8F%E7%BB%93">4、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210407-01.png" alt=""></figure>
+<blockquote>
+<p>俗话说工欲善其事，必先利其器。从本文开始，在分享技术文章的同时，打算加入一个新的主题，关于我的办公（个人）电脑（生产力工具）的相关配置分享</p>
+<p>希望能帮到大家~</p>
+</blockquote>
+<h2 id="1-关于电脑">1、关于电脑</h2>
+<p>如果你和我从事一样的职业（<code>such as a developers or about Linux</code>），如果电脑是你的另一半，而且还在使用<code>Windows</code>的话，强烈建议尝试使用类<code>Unix</code>系统，主要有以下三个途径（来自我的亲测经历）</p>
+<p>a、给自己的电脑安装<code>Deepin</code>、<code>Ubuntu</code>等桌面版<code>Linux</code>操作系统，缺点是安装操作系统后，相关应用的软件包很少很难找</p>
+<p>b、攒<code>cuán</code>一台配置稍好点的主机，安装黑苹果，缺点是驱动问题很难解决。就算安装好了，一旦系统升级或因为某些原因导致诸多驱动不可用</p>
+<p>c、攒<code>zǎn</code>钱换一台<code>Mac</code>，时至今日，<code>Mac</code>的价格其实也不贵，得益于其强大的操作系统、生态周边以及应用商店，从我个人使用来看，带给我的 “快乐” 比<code>Windows</code>不要太多</p>
+<p>大四实习的那一年里，终于攒钱换上了梦寐以求的<code>MBP</code>，作为人生的第二台电脑，得到的那一刻无比兴奋，可能这就是一个对电子产品无比热爱的男孩的快乐吧~</p>
+<p>我的电脑型号是<code>MacBook Pro (15-inch, 2018)（A1990）</code></p>
+<p>除此外还淘有一台<code>Mac mini (Late 2012)</code></p>
+<p>电脑细节我就不多做介绍了，回归正题，还是讲讲如何优化电脑各种配置</p>
+<h2 id="2-终端介绍">2、终端介绍</h2>
+<p>作为一个长期使用终端（依赖患者）的 “工具” 人，拥有一个强大的终端工具是很有必要的，和<code>linux</code>操作系统的软件包管理工具<code>yum</code>、<code>deb</code>、<code>apt</code>一样，在<code>Mac</code>上用的最为普遍的是<code>Homebrew</code>，其次还有<code>python</code>的包管理工具<code>pip</code>，除了自带的终端外，终端软件可以选择<code>iTerm2</code>、<code>SecureCRT</code>、<code>Royal TSX</code>、<code>Termius</code>等等，我用的较多的终端软件是<code>iTerm2</code>和<code>SecureCRT</code>，关于包管理工具<code>Homebrew</code>及<code>pip</code>的安装使用和终端软件<code>iTerm2</code>的使用配置技巧这里也就不多介绍了，网络上有很多很多文章供参考</p>
+<h2 id="3-终端工具推荐">3、终端工具推荐</h2>
+<p>到这里才是本文的正题，用上了方便的<code>Homebrew</code>以及配置酷炫的<code>iTerm2</code>后，可以借助以下增强工具来提高生产力，部分终端工具同样可以安装在服务器<code>Linux</code>操作系统上</p>
+<h3 id="31-fzf-模糊查找">3.1 fzf-模糊查找</h3>
+<p><code>fzf</code>可以用来查找任何列表内容、文件、历史命令、本机绑定的<code>host</code>、进程、<code>Git</code>分支、进程等。所有的命令行工具可以生成列表输出的都可以再通过管道<code>pipe</code>到<code>fzf</code>上进行搜索和查找</p>
+<p>安装命令</p>
+<pre><code class="language-shell">brew install fzf
+</code></pre>
+<p>安装完后还需要安装键盘映射和模糊提示</p>
+<pre><code class="language-shell">$(brew --prefix)/opt/fzf/install
+</code></pre>
+<p>两大用法：<code>ctrl + t</code>查找目录下的条目、<code>ctrl +r</code>优化历史记录选择</p>
+<p>目前我使用最多的是利用其进行历史记录的模糊查找，比传统的<code>ctrl+r</code>显示效果更好，效果如下</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210407-02.gif" alt=""></figure>
+<h3 id="32-autojump-快速跳转">3.2 autojump-快速跳转</h3>
+<p><code>autojump</code>提供了一种快速进行文件目录导航的方式。其效果就是实现目录间快速跳转，想去哪个目录直接<code>j</code>+ 目录名(甚至不用输全)，不用频繁的<code>cd</code>了</p>
+<p>安装命令</p>
+<pre><code class="language-shell">brew install autojump
+</code></pre>
+<p>修改 <code>~/.zshrc</code> 文件，添加到<code>plugins</code>配置列表并在尾部追加如下内容，配置完后<code>source</code>生效</p>
+<pre><code class="language-shell">plugins=(
+  git
+  autojump
+)
+
+...
+
+[ -f /usr/local/etc/profile.d/autojump.sh ] &amp;&amp; . /usr/local/etc/profile.d/autojump.sh
+</code></pre>
+<p>用法很简单，想要跳转到哪个目录下直接使用<strong>j + 目录名跳转</strong>，甚至可以模糊输入，前提是有通过<code>cd</code>进入过这个目录，例如从任何目录跳转进入到<code>git-workspace</code>目录下</p>
+<pre><code class="language-shell">j git-workspace
+或者模糊跳转
+j git
+</code></pre>
+<h3 id="33-tmate-终端远程">3.3 tmate-终端远程</h3>
+<p>这个工具可以认为是终端版本<code>teamviewer</code>，在有网络的情况下远程终端连接并监视或操作</p>
+<p>安装命令</p>
+<pre><code class="language-shell">brew install tmate
+</code></pre>
+<p>使用方法，例如要从<code>A</code>机器远程到<code>B</code>机器，在<code>B</code>机器上安装并运行<code>tmate</code>启动</p>
+<pre><code class="language-shell"># tmate
+Tip: if you wish to use tmate only for remote access, run: tmate -F                  [0/0]
+To see the following messages again, run in a tmate session: tmate show-messages
+Press &lt;q&gt; or &lt;ctrl-c&gt; to continue
+---------------------------------------------------------------------
+Connecting to ssh.tmate.io...
+Note: clear your terminal before sharing readonly access
+web session read only: https://tmate.io/t/ro-xmVWpRRN6GGJrR4zWLMKrSt7T
+ssh session read only: ssh ro-xmVWpRRN6GGJrR4zWLMKrSt7T@sfo2.tmate.io
+web session: https://tmate.io/t/3PwVRseDmXpG74X43EQG9hBYq
+ssh session: ssh 3PwVRseDmXpG74X43EQG9hBYq@sfo2.tmate.io
+
+[tmate] ssh session: ssh 3PwVRseDmXpG74X43EQG9hBYq@sfo2.tmate.io
+</code></pre>
+<p>然后在<code>A</code>上就可以通过上面四种方式连接到<code>B</code>机器：<code>web</code>会话和<code>ssh</code>会话，分为只读和读写两种</p>
+<p>具体原理可以查看官方文档</p>
+<h3 id="34-hadolint-对dockerfile语法检查">3.4 hadolint-对Dockerfile语法检查</h3>
+<p><code>Hadolint</code>可以帮助进行<code>Dockerfile</code>语法检查，实现的是<code>Dockerfile linter</code>，其实现依据来自于<code>Docker</code>官网推荐的<code>Dockerfile</code>最佳实践</p>
+<p>安装命令</p>
+<pre><code class="language-shell">brew install hadolint
+</code></pre>
+<p>使用</p>
+<pre><code class="language-shell">hadolint node.Dockerfile
+node.Dockerfile:21 DL3007 Using latest is prone to errors if the image will ever update. Pin the version explicitly to a release tag
+# 提示说镜像的tag使用latest不是最佳的，因为一旦镜像升级，下次再拉取的latest镜像可能就不是当前的版本了，应该明确具体的版本号
+</code></pre>
+<h3 id="35-speedtest-测网速">3.5 speedtest-测网速</h3>
+<p><code>speedtest</code>是一个测网速的工具，其也有图形化工具</p>
+<p>安装命令</p>
+<pre><code class="language-shell">brew tap teamookla/speedtest
+brew update
+brew install speedtest --force
+</code></pre>
+<p>使用</p>
+<pre><code class="language-shell"># speedtest
+
+   Speedtest by Ookla
+
+     Server: Beijing Unicom - Beijing (id = 5145)
+        ISP: China Unicom Beijing
+    Latency:     3.57 ms   (0.88 ms jitter)
+   Download:    93.43 Mbps (data used: 44.5 MB)
+     Upload:    93.37 Mbps (data used: 42.2 MB)
+Packet Loss:     0.0%
+ Result URL: https://www.speedtest.net/result/c/aa6513eb-a9b3-466b-8edd-92f73c59267f
+</code></pre>
+<p>此外还有一个用<code>python</code>脚本实现的，项目地址https://github.com/sivel/speedtest-cli，作用同样是测试网速，将此脚本下载并放到本地的<code>bin</code>目录下添加执行权限即可使用</p>
+<pre><code class="language-shell"># speedtest-cli
+Retrieving speedtest.net configuration...
+Testing from China Unicom Beijing (114.246.34.169)...
+Retrieving speedtest.net server list...
+Selecting best server based on ping...
+Hosted by Beijing Broadband Network (Beijing) [1.72 km]: 4.659 ms
+Testing download speed................................................................................
+Download: 93.27 Mbit/s
+Testing upload speed................................................................................................
+Upload: 93.64 Mbit/s
+</code></pre>
+<h3 id="36-glances-实时监控">3.6 glances-实时监控</h3>
+<p>类似于<code>mac</code>自带的活动监视器，以客户端/服务器端模式运行，远程监控可以通过终端、<code>Web</code>接口或<code>API</code>（XML-RPC和RESTful）来实现。除此之外，数据还可以导出至文件或外部数据库中。</p>
+<p>采用<code>Python</code>开发，并使用了外部库来从目标系统收集数据。该工具基于开源架构实现，开发者可以根据自己的需求来增加新的插件或导出模块，可以监控的信息如下</p>
+<ul>
+<li>CPU 使用率</li>
+<li>内存使用情况</li>
+<li>内核统计信息和运行队列信息</li>
+<li>磁盘 I/O 速度、传输和读/写比率</li>
+<li>文件系统中的可用空间</li>
+<li>磁盘适配器</li>
+<li>网络 I/O 速度、传输和读/写比率</li>
+<li>页面空间和页面速度</li>
+<li>消耗资源最多的进程</li>
+<li>计算机信息和系统资源</li>
+</ul>
+<p>安装命令</p>
+<pre><code class="language-shell">brew install glances
+</code></pre>
+<p>效果如下</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210407-03.png" alt=""></figure>
+<h3 id="37-lrzsz-终端上传下载">3.7 lrzsz-终端上传下载</h3>
+<p><code>lrzsz</code>是一款在<code>linux</code>里可代替<code>ftp</code>上传和下载的程序，可以直接在终端进行文件上传下载，其传输协议是<code>ZModem协议</code></p>
+<p>安装命令</p>
+<pre><code class="language-shell">brew install lrzsz
+</code></pre>
+<p>在<code>iTerm2</code>上配置和使用<code>lrzsz</code>可以参考我之前的文章<a href="https://www.ssgeek.com/post/mac-xia-iterm2-pei-zhi-lrzsz-gong-neng/">Mac下iTerm2配置lrzsz功能</a></p>
+<h3 id="38-neovim-增强版vim">3.8 neovim-增强版vim</h3>
+<p><code>neovim</code>是一个增强版本的<code>vim</code>编辑器，其特性有异步任务和<code>socket</code>、内建<code>terminal</code>、<code>26</code>位真彩色支持、浮动窗口等</p>
+<p>安装命令</p>
+<pre><code class="language-shell">brew install neovim
+</code></pre>
+<p>在<code>iTerm2</code>上配置和使用可以参考<a href="http://www.eryajf.net/4733.html">Mac电脑iterm中配置neovim入门与实践</a></p>
+<h2 id="4-小结">4、小结</h2>
+<p>以上工具都极大提高了我日常工作和学习的效率，由于篇幅和时间关系，只列出了我对这些工具的常用用法，详细内容可以参考工具开源地址</p>
+<p>本文只推荐了一部分，后面有机会再继续 ~</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[SkyWalking链路追踪系统-告警篇]]></title>
+        <id>https://www.ssgeek.com/post/skywalking-lian-lu-zhui-zong-xi-tong-gao-jing-pian</id>
+        <link href="https://www.ssgeek.com/post/skywalking-lian-lu-zhui-zong-xi-tong-gao-jing-pian">
+        </link>
+        <updated>2021-03-31T00:27:35.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">1、概述</a></li>
+<li><a href="#2-%E5%91%8A%E8%AD%A6%E8%A7%84%E5%88%99">2、告警规则</a>
+<ul>
+<li><a href="#21-%E9%BB%98%E8%AE%A4%E5%91%8A%E8%AD%A6%E8%A7%84%E5%88%99">2.1 默认告警规则</a></li>
+<li><a href="#22-%E5%91%8A%E8%AD%A6%E8%A7%84%E5%88%99%E8%AF%A6%E8%A7%A3">2.2 告警规则详解</a></li>
+</ul>
+</li>
+<li><a href="#3-%E8%87%AA%E5%AE%9A%E4%B9%89%E5%91%8A%E8%AD%A6%E8%A7%84%E5%88%99">3、自定义告警规则</a></li>
+<li><a href="#4-%E6%B5%8B%E8%AF%95%E5%91%8A%E8%AD%A6">4、测试告警</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-概述">1、概述</h2>
+<p><code>Skywalking</code>发送告警的基本原理是每隔一段时间轮询<code>skywalking-oap</code>收集到的链路追踪的数据，再根据所配置的告警规则（如服务响应时间、服务响应时间百分比）等，如果达到阈值则发送响应的告警信息。 发送告警信息是以线程池异步的方式调用<code>webhook</code>接口完成的，具体的<code>webhook</code>接口可以由使用者自行定义，从而可以在指定的<code>webhook</code>接口中自行编写各种告警方式，比如钉钉告警、邮件告警等等。告警的信息也可以在<code>RocketBot</code>即<code>ui</code>中查看到。</p>
+<p>目前对应我前面文章中部署的<code>8.4.0</code>版本支持的告警接口如下：</p>
+<ul>
+<li>普通webhook</li>
+<li>gRPCHook</li>
+<li>Slack Chat Hook</li>
+<li>WeChat Hook（微信告警）</li>
+<li>Dingtalk Hook（钉钉告警）</li>
+<li>Feishu Hook（飞书告警）</li>
+</ul>
+<h2 id="2-告警规则">2、告警规则</h2>
+<h3 id="21-默认告警规则">2.1 默认告警规则</h3>
+<p>在<code>Skywalking</code>中，告警规则称为<code>rule</code>，默认安装的<code>Skywalking</code> <code>oap server</code>组件中包含了告警规则的配置文件，位于安装目录下<code>conﬁg</code>文件夹下<code>alarm-settings.yml</code>文件中，在容器中运行的也是一样的</p>
+<pre><code class="language-shell"># kubectl -n monitoring exec -it skywalking-oap-57d7f454f5-w4k4j -- bash
+bash-5.0# pwd
+/skywalking       
+bash-5.0# cat config/alarm-settings.yml
+</code></pre>
+<p>以下是默认的告警规则配置文件内容</p>
+<pre><code class="language-yaml">rules:
+  # Rule unique name, must be ended with `_rule`.
+  service_resp_time_rule:
+    metrics-name: service_resp_time
+    op: &quot;&gt;&quot;
+    threshold: 1000
+    period: 10
+    count: 3
+    silence-period: 5
+    message: Response time of service {name} is more than 1000ms in 3 minutes of last 10 minutes.
+  service_sla_rule:
+    # Metrics value need to be long, double or int
+    metrics-name: service_sla
+    op: &quot;&lt;&quot;
+    threshold: 8000
+    # The length of time to evaluate the metrics
+    period: 10
+    # How many times after the metrics match the condition, will trigger alarm
+    count: 2
+    # How many times of checks, the alarm keeps silence after alarm triggered, default as same as period.
+    silence-period: 3
+    message: Successful rate of service {name} is lower than 80% in 2 minutes of last 10 minutes
+  service_resp_time_percentile_rule:
+    # Metrics value need to be long, double or int
+    metrics-name: service_percentile
+    op: &quot;&gt;&quot;
+    threshold: 1000,1000,1000,1000,1000
+    period: 10
+    count: 3
+    silence-period: 5
+    message: Percentile response time of service {name} alarm in 3 minutes of last 10 minutes, due to more than one condition of p50 &gt; 1000, p75 &gt; 1000, p90 &gt; 1000, p95 &gt; 1000, p99 &gt; 1000
+  service_instance_resp_time_rule:
+    metrics-name: service_instance_resp_time
+    op: &quot;&gt;&quot;
+    threshold: 1000
+    period: 10
+    count: 2
+    silence-period: 5
+    message: Response time of service instance {name} is more than 1000ms in 2 minutes of last 10 minutes
+  database_access_resp_time_rule:
+    metrics-name: database_access_resp_time
+    threshold: 1000
+    op: &quot;&gt;&quot;
+    period: 10
+    count: 2
+    message: Response time of database access {name} is more than 1000ms in 2 minutes of last 10 minutes
+  endpoint_relation_resp_time_rule:
+    metrics-name: endpoint_relation_resp_time
+    threshold: 1000
+    op: &quot;&gt;&quot;
+    period: 10
+    count: 2
+    message: Response time of endpoint relation {name} is more than 1000ms in 2 minutes of last 10 minutes
+#  Active endpoint related metrics alarm will cost more memory than service and service instance metrics alarm.
+#  Because the number of endpoint is much more than service and instance.
+#
+#  endpoint_avg_rule:
+#    metrics-name: endpoint_avg
+#    op: &quot;&gt;&quot;
+#    threshold: 1000
+#    period: 10
+#    count: 2
+#    silence-period: 5
+#    message: Response time of endpoint {name} is more than 1000ms in 2 minutes of last 10 minutes
+
+webhooks:
+#  - http://127.0.0.1/notify/
+#  - http://127.0.0.1/go-wechat/
+</code></pre>
+<h3 id="22-告警规则详解">2.2 告警规则详解</h3>
+<p>下面取默认的告警规则中的一条进行分析</p>
+<pre><code class="language-yaml">rules:
+  # Rule unique name, must be ended with `_rule`.
+  service_resp_time_rule:
+    metrics-name: service_resp_time
+    op: &quot;&gt;&quot;
+    threshold: 1000
+    period: 10
+    count: 3
+    silence-period: 5
+    message: Response time of service {name} is more than 1000ms in 3 minutes of last 10 minutes.
+</code></pre>
+<p>首先提示声明了告警规则名称应该具有唯一性，且必须以 <code>_rule</code> 结尾，这里是<code>service_resp_time_rule</code>（服务响应时间）</p>
+<ul>
+<li>
+<p>metrics-name：告警指标，指标度量值为<code>long</code>、<code>double</code>或<code>int</code>类型</p>
+</li>
+<li>
+<p>op：度量值和阈值的比较方式，这里是大于</p>
+</li>
+<li>
+<p>threshold：阈值，这里是<code>1000</code>，毫秒为单位</p>
+</li>
+<li>
+<p>period：评估度量标准的时间长度，也就是告警检查周期，分钟为单位</p>
+</li>
+<li>
+<p>count：累计达到多少次告警值后触发告警</p>
+</li>
+<li>
+<p>silence-period：忽略相同告警信息的周期，默认与告警检查周期一致。简单来说，就是在触发告警时开始计时<code>N</code>，在<code>N</code>+<code>period</code>时间内保持沉默<code>silence</code>不会再次触发告警，这和<code>alertmanager</code>的告警抑制类似</p>
+</li>
+<li>
+<p>message：告警消息主体，通过变量在发送消息时进行自动替换</p>
+</li>
+</ul>
+<p>除此之外，还有以下可选（高级）规则配置：</p>
+<ul>
+<li>
+<p>排除或包含服务配置，默认匹配此指标中的所有服务</p>
+<pre><code class="language-yaml">...
+  service_percent_rule:
+    metrics-name: service_percent
+    include-names:
+      - service_a
+      - service_b
+    exclude-names:
+      - service_c
+...
+</code></pre>
+</li>
+<li>
+<p>多种值情况的指标阈值，例如P50、P75、P90、P95、P99的阈值，主要表示样本的分布及其数量，例如<code>P50</code>表示取值周期内有<code>50%</code>的响应都大于<code>1000ms</code>，这和<a href="https://prometheus.io/docs/practices/histograms/#quantiles"><code>prometheus</code>聚合指标<code>quantile</code></a>是一样的，如果同时写表示都满足时触发</p>
+<p>例如下面的规则表示在过去<code>10</code>分钟内，由于p50 &gt; 1000、p75 &gt; 1000、p90 &gt; 1000、p95 &gt; 1000、p99 &gt; 1000多个条件，服务累计<code>3</code>次的响应时间百分比都大于<code>1000ms</code>，触发告警</p>
+<pre><code class="language-yaml">...
+  service_resp_time_percentile_rule:
+    # Metrics value need to be long, double or int
+    metrics-name: service_percentile
+    op: &quot;&gt;&quot;
+    threshold: 1000,1000,1000,1000,1000
+    period: 10
+    count: 3
+    silence-period: 5
+    message: Percentile response time of service {name} alarm in 3 minutes of last 10 minutes, due to more than one condition of p50 &gt; 1000, p75 &gt; 1000, p90 &gt; 1000, p95 &gt; 1000, p99 &gt; 1000
+</code></pre>
+</li>
+<li>
+<p>复合规则<a href="https://github.com/apache/skywalking/blob/master/docs/en/setup/backend/backend-alarm.md#composite-rules">composite-rules</a>，针对相同实体级别而言的规则，例如服务级别的警报规则，同时满足指定的多个规则时触发</p>
+<pre><code class="language-yaml">rules:
+  endpoint_percent_rule:
+    # Metrics value need to be long, double or int
+    metrics-name: endpoint_percent
+...
+    # Specify if the rule can send notification or just as an condition of composite rule 仅作为复合规则的条件
+    only-as-condition: false
+  service_percent_rule:
+    metrics-name: service_percent
+...
+    only-as-condition: false
+  service_resp_time_percentile_rule:
+    # Metrics value need to be long, double or int
+    metrics-name: service_percentile
+...
+    only-as-condition: false
+  meter_service_status_code_rule:
+    metrics-name: meter_status_code
+...
+    only-as-condition: false
+composite-rules:
+  comp_rule:
+    # Must satisfied percent rule and resp time rule 
+    expression: service_percent_rule &amp;&amp; service_resp_time_percentile_rule
+    message: Service {name} successful rate is less than 80% and P50 of response time is over 1000ms # 服务成功率小于80%，响应时间大于1000ms
+</code></pre>
+</li>
+</ul>
+<p>到这里，就能分析出上面列出的所有默认告警规则的含义，依次为：</p>
+<pre><code class="language-shell">1 最近3分钟内服务平均响应时间超过1秒
+2 最近2分钟内服务成功率低于80％
+3 最近3分钟的服务响应时间百分比超过1秒
+4 最近2分钟内服务实例的平均响应时间超过1秒
+5 最近2分钟内数据库访问的平均响应时间超过1秒
+6 最近2分钟内端点平均响应时间超过1秒
+7 过去2分钟内端点关系的平均响应时间超过1秒
+  这条规则默认没有打开，并且提示：由于端点的数量远远多于服务和实例，活动端点相关度量告警将比服务和服务实例度量告警消耗更多内存
+</code></pre>
+<h2 id="3-自定义告警规则">3、自定义告警规则</h2>
+<p><code>Skywalking</code>的配置大部分内容是通过应用的<code>application.yml</code>及系统的环境变量设置的，同时也支持下面系统的动态配置来源</p>
+<ul>
+<li>gRPC服务</li>
+<li>Zookeeper</li>
+<li>Etcd</li>
+<li>Consul</li>
+<li>Apollo</li>
+<li>Nacos</li>
+<li>k8s configmap</li>
+</ul>
+<p>参考<a href="https://github.com/apache/skywalking/blob/master/docs/en/setup/backend/dynamic-config.md"><code>Skywalking</code>动态配置说明</a>，如果开启了动态配置，可以通过键<code>alarm.default.alarm-settings</code>覆盖掉默认配置文件<code>alarm-settings.yml</code></p>
+<p>本文记录的是基于<code>k8s</code>和<code>helm</code>部署的<code>Skywalking</code>，因此可以通过<code>k8s-configmap</code>进行自定义配置的注入，最终在<code>Skywalking</code>配置文件中的实现如下，此文件中有很多变量，通过分析<code>chart</code>，发现已经写好逻辑会根据是否启用动态配置来自动注入所有变量，所以就无需在<code>value.yaml</code>中声明了</p>
+<pre><code class="language-yaml">cluster:
+  selector: ${SW_CLUSTER:standalone}
+...
+  kubernetes:
+    namespace: ${SW_CLUSTER_K8S_NAMESPACE:default}
+    labelSelector: ${SW_CLUSTER_K8S_LABEL:app=collector,release=skywalking}
+    uidEnvName: ${SW_CLUSTER_K8S_UID:SKYWALKING_COLLECTOR_UID}
+...
+configuration:
+  selector: ${SW_CONFIGURATION:k8s-configmap}
+...
+  k8s-configmap:
+      # Sync period in seconds. Defaults to 60 seconds.
+      period: ${SW_CONFIG_CONFIGMAP_PERIOD:60}
+      # Which namespace is confiigmap deployed in.
+      namespace: ${SW_CLUSTER_K8S_NAMESPACE:default}
+      # Labelselector is used to locate specific configmap
+      labelSelector: ${SW_CLUSTER_K8S_LABEL:app=collector,release=skywalking}
+</code></pre>
+<p>在自定义配置告警规则的同时加入<a href="https://github.com/apache/skywalking/blob/master/docs/en/setup/backend/backend-alarm.md"><code>webhook</code>后端报警</a>相关配置，<code>configmap</code>文件写法可以参考官方<a href="https://github.com/apache/skywalking/blob/master/oap-server/server-configuration/configuration-k8s-configmap/src/test/resources/skywalking-dynamic-configmap.example.yaml">helm configmap示例</a></p>
+<p>我这里只把默认的报警规则提示信息改成了中文报警信息，具体每条规则的参数没有变化，同时还加入了钉钉<code>webhook</code>配置，具体流程如下</p>
+<p>修改<code>chart</code>包的<code>value.yaml</code>，开启动态配置</p>
+<pre><code class="language-yaml">...
+oap:
+  name: oap
+  dynamicConfigEnabled: true # 开启动态配置功能
+...
+</code></pre>
+<p>修改<code>chart</code>包中<code>template</code>的<code>oap-configmap.yaml</code>，配置自定义的<code>rule</code>和钉钉<code>webhook</code></p>
+<pre><code class="language-yaml">...
+data:
+  alarm.default.alarm-settings: |-
+    rules:
+      # Rule unique name, must be ended with `_rule`.
+      service_resp_time_rule:
+        metrics-name: service_resp_time
+        op: &quot;&gt;&quot;
+        threshold: 1000
+        period: 10
+        count: 3
+        silence-period: 5
+        message: 最近3分钟内服务 {name} 的平均响应时间超过1秒
+      service_sla_rule:
+        # Metrics value need to be long, double or int
+        metrics-name: service_sla
+        op: &quot;&lt;&quot;
+        threshold: 8000
+        # The length of time to evaluate the metrics
+        period: 10
+        # How many times after the metrics match the condition, will trigger alarm
+        count: 2
+        # How many times of checks, the alarm keeps silence after alarm triggered, default as same as period.
+        silence-period: 3
+        message: 最近2分钟内服务 {name} 的成功率低于80％
+      service_resp_time_percentile_rule:
+        # Metrics value need to be long, double or int
+        metrics-name: service_percentile
+        op: &quot;&gt;&quot;
+        threshold: 1000,1000,1000,1000,1000
+        period: 10
+        count: 3
+        silence-period: 5
+        message: 最近3分钟的服务 {name} 的响应时间百分比超过1秒
+      service_instance_resp_time_rule:
+        metrics-name: service_instance_resp_time
+        op: &quot;&gt;&quot;
+        threshold: 1000
+        period: 10
+        count: 2
+        silence-period: 5
+        message: 最近2分钟内服务实例 {name} 的平均响应时间超过1秒
+      database_access_resp_time_rule:
+        metrics-name: database_access_resp_time
+        threshold: 1000
+        op: &quot;&gt;&quot;
+        period: 10
+        count: 2
+        # message: Response time of database access {name} is more than 1000ms in 2 minutes of last 10 minutes
+        message: 最近2分钟内数据库访问 {name} 的平均响应时间超过1秒
+      endpoint_relation_resp_time_rule:
+        metrics-name: endpoint_relation_resp_time
+        threshold: 1000
+        op: &quot;&gt;&quot;
+        period: 10
+        count: 2
+        message: 最近2分钟内端点 {name} 的平均响应时间超过1秒
+    dingtalkHooks:
+      textTemplate: |-
+        {
+          &quot;msgtype&quot;: &quot;text&quot;,
+          &quot;text&quot;: {
+            &quot;content&quot;: &quot;SkyWalking 链路追踪告警: \n %s.&quot;
+          }
+        }
+      webhooks:
+        - url: https://oapi.dingtalk.com/robot/send?access_token=&lt;钉钉机器人token&gt;
+          secret: &lt;钉钉机器人加签&gt;
+</code></pre>
+<p>修改完成后，执行<code>helm</code>进行更新</p>
+<pre><code class="language-shell"># ls                                                                                
+skywalking
+# helm -n monitoring upgrade skywalking skywalking --values ./skywalking/values.yaml
+# helm -n monitoring list                                                           
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+skywalking      monitoring      3               2021-03-22 13:35:36.779541 +0800 CST    deployed        skywalking-4.0.0
+# helm -n monitoring history skywalking                                             
+REVISION        UPDATED                         STATUS          CHART                   APP VERSION     DESCRIPTION                                                                              
+1               Sun Mar 21 17:45:34 2021        superseded      skywalking-4.0.0                        Install complete                                                                         
+2               Mon Mar 22 13:35:36 2021        deployed        skywalking-4.0.0                        Upgrade complete 
+</code></pre>
+<p>观察pod状态，直到正常</p>
+<pre><code class="language-shell"># kubectl -n monitoring get pods                               
+NAME                              READY   STATUS      RESTARTS   AGE
+elasticsearch-logging-0           1/1     Running     0          19h
+elasticsearch-logging-1           1/1     Running     0          19h
+elasticsearch-logging-2           1/1     Running     0          19h
+skywalking-es-init-ktdcn          0/1     Completed   0          19h
+skywalking-oap-7bbb775965-49895   1/1     Running     0          15s
+skywalking-oap-7bbb775965-s89dz   1/1     Running     0          43s
+skywalking-ui-698cdb4dbc-mjl2m    1/1     Running     0          19h
+</code></pre>
+<h2 id="4-测试告警">4、测试告警</h2>
+<p>为了测试告警功能，拉上业务研发在项目中简单写了个<code>url</code>地址，请求时会超时<code>5s</code>返回</p>
+<img src="https://image.ssgeek.com/20210331-04.png" style="zoom:67%;" />
+<p>然后利用浏览器或<code>postman</code>请求应用的<code>/api/timeout</code>进行测试</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210331-05.png" alt=""></figure>
+<p>查看<code>Skywalking</code>的<code>ui</code>界面，链路追踪</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210331-02.png" alt=""></figure>
+<p>告警界面</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210331-01.png" alt=""></figure>
+<p>到钉钉中查看报警消息</p>
+<img src="https://image.ssgeek.com/20210331-03.png" style="zoom:67%;" />
+<p>到这里，在<code>Skywalking</code>中配置报警就完成了 ~</p>
+<p>附：在一次<code>Skywalking</code>线上分享会上记录的关于使用<code>Skywalking</code>定位问题的思路：</p>
+<ul>
+<li>纵览全局，<code>Skywalking</code>拓扑图</li>
+<li>监控告警，<code>metric</code>/<code>tracing</code>确定问题存在故障（根据<code>metric</code>做告警，根据<code>tracing</code>统计作比较）</li>
+<li>确定故障在哪，<code>tracing</code>调用关系，确定故障出现在哪个<code>service</code>或者<code>endpoint</code></li>
+<li><code>profile</code>手段（<code>skywalking</code>新能力）或者常见传统性能定位方法，定位单节点问题所在（比如<code>CPU</code>、内存、<code>io</code>、网络 ——&gt; 动态追踪采样 ——&gt; 火焰图）基本可以解决99.9%的问题</li>
+</ul>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[在k8s中解决pod资源的正确识别]]></title>
+        <id>https://www.ssgeek.com/post/zai-k8s-zhong-jie-jue-pod-zi-yuan-de-zheng-que-shi-bie</id>
+        <link href="https://www.ssgeek.com/post/zai-k8s-zhong-jie-jue-pod-zi-yuan-de-zheng-que-shi-bie">
+        </link>
+        <updated>2021-03-28T16:51:27.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%AE%B9%E5%99%A8%E8%B5%84%E6%BA%90%E9%99%90%E5%88%B6%E6%A6%82%E8%BF%B0">1、容器资源限制概述</a></li>
+<li><a href="#2-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF">2、问题背景</a></li>
+<li><a href="#3-%E5%BC%95%E5%85%A5lxcfs">3、引入lxcfs</a>
+<ul>
+<li><a href="#31-%E5%9C%A8k8s%E4%B8%AD%E9%83%A8%E7%BD%B2lxcfs">3.1 在k8s中部署lxcfs</a></li>
+<li><a href="#32-%E5%BC%80%E5%90%AF%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E6%B3%A8%E5%85%A5">3.2 开启命名空间注入</a></li>
+<li><a href="#33-%E8%BF%98%E5%8E%9F">3.3 还原</a></li>
+</ul>
+</li>
+<li><a href="#4-%E6%B5%8B%E8%AF%95">4、测试</a></li>
+<li><a href="#5-%E5%B0%8F%E7%BB%93">5、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210329-01.png" alt=""></figure>
+<h2 id="1-容器资源限制概述">1、容器资源限制概述</h2>
+<p>在使用<code>docker</code>作为容器引擎的时候，可以通过添加<code>--memory</code>、<code>--cpus</code>及更多参数来限制容器可用的<code>cpu</code>和内存，具体参数可以参考<a href="https://docs.docker.com/config/containers/resource_constraints/">docker资源限制</a>，<code>docker</code>对容器进行限制的原理实际上是利用<code>Linux</code>内核的<code>cgroups</code>实现的，<code>cgroups</code>可以限制、记录、隔离进程组所使用的物理资源（包括：<code>CPU</code>、<code>memory</code>、<code>IO</code> 等），为容器实现虚拟化提供了基本保证，是构建<code>Docker</code>等一系列虚拟化管理工具的基石</p>
+<p>关于<code>cgroups</code>资源限制实现可以参考<a href="https://www.infoq.cn/article/docker-kernel-knowledge-cgroups-resource-isolation/">Docker背后的内核知识-cgroups资源限制</a></p>
+<h2 id="2-问题背景">2、问题背景</h2>
+<p>对于某些容器中运行的服务，通常会自动对当前环境的可用资源数量进行检测，接着根据这些数据来合理分配相应资源</p>
+<p>例如<code>nginx</code>容器，<code>nginx</code>通过在配置文件中指定<a href="http://nginx.org/en/docs/ngx_core_module.html#worker_processes"><code>nginx worker_processes</code></a>选项，默认这个选项参数的值为<code>1</code>，表示<code>nginx</code>仅启动1个<code>worker</code>进程</p>
+<p>如果需要在大并发环境下优化<code>nginx</code>性能，可以将这个值手动设置成对应环境的<code>cpu</code>核数，或者直接配置成<code>auto</code>让其自动设置，两种设置方法中前者需要将配置文件进行挂载并手动变更配置，后者更为灵活但在容器环境下会有一定问题，因为不管是通过<code>docker</code>直接运行的容器还是通过<code>k8s</code>运行的最小化单元<code>Pod</code>中的容器，识别到的<code>cpu</code>和内存都是所在<code>node</code>节点机器的资源信息，因此对<code>nginx</code>来说并不能直接通过<code>auto</code>参数对<code>cpu</code>进行正确的自动识别，例如我这里的一台<code>node</code>节点及节点上的<code>pod</code>资源信息</p>
+<pre><code class="language-shell"># kubectl describe nodes k8s-node-07|grep -A 5 &quot;Capacity&quot;
+Capacity:
+  cpu:                16
+  ephemeral-storage:  74408452Ki
+  hugepages-2Mi:      0
+  memory:             16430184Ki
+  pods:               110
+# docker info|grep -A 6 &quot;Kernel&quot;
+Kernel Version: 4.4.247-1.el7.elrepo.x86_64
+Operating System: CentOS Linux 7 (Core)
+OSType: linux
+Architecture: x86_64
+CPUs: 16
+Total Memory: 15.67GiB
+Name: k8s-node-07
+# kubectl exec -it test-pod-5dff4b89fd-bsh6b -- bash
+root@test-pod-5dff4b89fd-bsh6b:/# free -m
+              total        used        free      shared  buff/cache   available
+Mem:          16045        7915        2354        1002        5775        6222
+Swap:             0           0           0
+root@test-pod-5dff4b89fd-bsh6b:/# head -2 /proc/meminfo
+MemTotal:       16430184 kB
+MemFree:         2374064 kB
+</code></pre>
+<p>如果在<code>k8s</code>中通过<code>resources</code>限制了<code>Pod</code>的<code>cpu</code>和内存，例如</p>
+<pre><code class="language-yaml">        resources:
+          limits:
+            cpu: &quot;1&quot;
+            memory: 2Gi
+          requests:
+            cpu: 200m
+            memory: 512Mi
+</code></pre>
+<p>可以在创建出来的<code>pod</code>所在节点机器上通过<code>docker</code>命令查看具体的资源信息</p>
+<pre><code class="language-shell"># docker inspect b1f4bfb53a2c|grep -i cgroup
+            &quot;Cgroup&quot;: &quot;&quot;,
+            &quot;CgroupParent&quot;: &quot;/kubepods/burstable/podc4a25564-225b-4562-afee-fab8cc5d694f&quot;,
+            &quot;DeviceCgroupRules&quot;: null,
+# cat /sys/fs/cgroup/cpu/kubepods/burstable/podc4a25564-225b-4562-afee-fab8cc5d694f/cpu.cfs_quota_us
+100000
+# cat /sys/fs/cgroup/cpu/kubepods/burstable/podc4a25564-225b-4562-afee-fab8cc5d694f/cpu.cfs_period_us
+100000
+</code></pre>
+<p>通过查找相关资料得知，对<code>nginx</code>来说，获取<code>CPU</code>核心数是通过系统调用<code>sysconf(_SC_NPROCESSORS_ONLN)</code>来获取的，实际上是通过读取文件<code>/sys/devices/system/cpu/online</code>来获取的，而默认情况下<code>pod</code>中的这个文件信息和宿主机是一样的，因此<code>nginx</code>的<code>worker_processes</code>参数如果设置成<code>auto</code>，那么最终启动的worker进程数将会是<code>16</code>个，而<code>nginx</code>所在的<code>Pod</code>本身的<code>cpu</code>限制配置较小时，导致每个<code>worker</code>分配的时间片比较少，这会带来明显的响应慢的问题</p>
+<pre><code class="language-shell"># kubectl exec -it test-pod-5dff4b89fd-bsh6b -- cat /sys/devices/system/cpu/online
+0-15
+</code></pre>
+<h2 id="3-引入lxcfs">3、引入lxcfs</h2>
+<p><a href="https://github.com/lxc/lxcfs"><code>lxcfs</code></a>是一个的小型<code>FUSE</code>文件系统，旨在使<code>Linux</code>容器更像一个虚拟机，能够帮助容器正确的识别自身资源，处理对以下文件的信息</p>
+<pre><code class="language-shell">/proc/cpuinfo
+/proc/diskstats
+/proc/meminfo
+/proc/stat
+/proc/swaps
+/proc/uptime
+/sys/devices/system/cpu/online
+</code></pre>
+<p>当容器启动时，容器中的<code>/proc/xxx</code>会被挂载成<code>host</code>上<code>lxcfs</code>的目录。例如当容器内的应用如果需要读取<code>/proc/meminfo</code>的信息时，请求就会被导向<code>lxcfs</code>，而<code>lxcfs</code>又会通过<code>cgroup</code>的信息来返回正确的值最终使得容器内的应用正确识别</p>
+<h3 id="31-在k8s中部署lxcfs">3.1 在k8s中部署lxcfs</h3>
+<p>基于<code>k8s</code>部署的<code>lxcfs</code>文件系统的项目地址：https://github.com/denverdino/lxcfs-admission-webhook</p>
+<p>其最终利用的原理是基于<code>k8s</code>的<a href="https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#admission-webhooks">动态准入控制AdmissionWebhook</a></p>
+<p>我这里的<code>k8s</code>集群版本如下</p>
+<pre><code class="language-shell"># kubectl version -o yaml
+clientVersion:
+  buildDate: &quot;2020-12-08T17:59:43Z&quot;
+  compiler: gc
+  gitCommit: af46c47ce925f4c4ad5cc8d1fca46c7b77d13b38
+  gitTreeState: clean
+  gitVersion: v1.20.0
+  goVersion: go1.15.5
+  major: &quot;1&quot;
+  minor: &quot;20&quot;
+  platform: darwin/amd64
+serverVersion:
+  buildDate: &quot;2019-06-19T16:32:14Z&quot;
+  compiler: gc
+  gitCommit: e8462b5b5dc2584fdcd18e6bcfe9f1e4d970a529
+  gitTreeState: clean
+  gitVersion: v1.15.0
+  goVersion: go1.12.5
+  major: &quot;1&quot;
+  minor: &quot;15&quot;
+  platform: linux/amd64
+</code></pre>
+<p>首先获取资源清单并通过脚本一键部署</p>
+<pre><code class="language-shell"># git clone https://github.com/denverdino/lxcfs-admission-webhook.git
+# cd lxcfs-admission-webhook
+# ls deployment 
+deployment.yaml                lxcfs-daemonset.yaml           mutatingwebhook.yaml           uninstall.sh                   web.yaml                       webhook-patch-ca-bundle.sh
+install.sh                     mutatingwebhook-ca-bundle.yaml service.yaml                   validatingwebhook.yaml         webhook-create-signed-cert.sh
+# kubectl apply -f deployment/lxcfs-daemonset.yaml                    
+daemonset.apps/lxcfs created
+# ./deployment/install.sh  
+creating certs in tmpdir /var/folders/8n/11ndbfq95jv79gds8wqj2scc0000gn/T/tmp.c6OKXi4L 
+Generating RSA private key, 2048 bit long modulus
+.......................................+++
+...............+++
+e is 65537 (0x10001)
+certificatesigningrequest.certificates.k8s.io/lxcfs-admission-webhook-svc.default created
+NAME                                  AGE   REQUESTOR   CONDITION
+lxcfs-admission-webhook-svc.default   0s    admin       Pending
+certificatesigningrequest.certificates.k8s.io/lxcfs-admission-webhook-svc.default approved
+W0327 16:35:14.764281    8953 helpers.go:553] --dry-run is deprecated and can be replaced with --dry-run=client.
+secret/lxcfs-admission-webhook-certs created
+NAME                            TYPE     DATA   AGE
+lxcfs-admission-webhook-certs   Opaque   2      0s
+deployment.apps/lxcfs-admission-webhook-deployment created
+service/lxcfs-admission-webhook-svc created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/mutating-lxcfs-admission-webhook-cfg created
+</code></pre>
+<p>查看部署结果，会运行一个名为<code>lxcfs-admission-webhook-deployment</code>的<code>pod</code>，以及在所有节点上以<code>ds</code>的方式运行一个<code>lxcfs</code>的<code>pod</code></p>
+<pre><code class="language-shell">kubectl get pods -o wide|grep lxcfs
+lxcfs-admission-webhook-deployment-6896958c4c-56k54   1/1     Running   0          80s     172.20.7.51    172.16.1.111   &lt;none&gt;           &lt;none&gt;
+lxcfs-67cgk                                           1/1     Running   0          94s     172.20.0.25    172.16.1.100   &lt;none&gt;           &lt;none&gt;
+lxcfs-c4lkx                                           1/1     Running   0          93s     172.20.1.25    172.16.1.101   &lt;none&gt;           &lt;none&gt;
+...
+</code></pre>
+<h3 id="32-开启命名空间注入">3.2 开启命名空间注入</h3>
+<pre><code class="language-shell"># kubectl label namespace default lxcfs-admission-webhook=enabled
+</code></pre>
+<p>为指定的命名空间开启<code>lxcfs</code>注入，开启后该命名空间下所有新创建的<code>Pod</code>都将被注入<code>lxcfs</code></p>
+<h3 id="33-还原">3.3 还原</h3>
+<p>如果是要还原安装的环境，执行目录中的卸载脚本即可</p>
+<pre><code class="language-shell"># ./deployment/uninstall.sh 
+mutatingwebhookconfiguration.admissionregistration.k8s.io &quot;mutating-lxcfs-admission-webhook-cfg&quot; deleted
+service &quot;lxcfs-admission-webhook-svc&quot; deleted
+deployment.apps &quot;lxcfs-admission-webhook-deployment&quot; deleted
+secret &quot;lxcfs-admission-webhook-certs&quot; deleted
+# kubectl delete -f deployment/lxcfs-daemonset.yaml        
+daemonset.apps &quot;lxcfs&quot; deleted
+</code></pre>
+<h2 id="4-测试">4、测试</h2>
+<p>克隆下来的代码中提供了一个用于测试的<code>httpd pod</code>的<code>yaml</code>，可以直接部署</p>
+<pre><code class="language-shell"># kubectl apply -f deployment/web.yaml 
+deployment.apps/web created
+# kubectl get pods -l app=web
+NAME                   READY   STATUS    RESTARTS   AGE
+web-5ff5cd75f8-74pr6   1/1     Running   0          27s
+web-5ff5cd75f8-bcm2x   1/1     Running   0          27s
+</code></pre>
+<p>进入容器查看资源</p>
+<pre><code class="language-shell">kubectl exec -it web-5ff5cd75f8-74pr6 -- bash
+root@web-5ff5cd75f8-74pr6:/usr/local/apache2# free -m
+             total       used       free     shared    buffers     cached
+Mem:           256         15        240          0          0          0
+-/+ buffers/cache:         14        241
+Swap:            0          0          0
+root@web-5ff5cd75f8-74pr6:/usr/local/apache2# cat /proc/cpuinfo| grep &quot;processor&quot;| wc -l
+1
+</code></pre>
+<p>实际上通过<code>lxcfs</code>+动态准入控制，在创建新的<code>pod</code>时自动挂载了主机的相关文件，可以通过下面的方式查看</p>
+<pre><code class="language-shell"># kubectl describe pods web-5ff5cd75f8-74pr6
+...
+    Mounts:
+      /proc/cpuinfo from lxcfs-proc-cpuinfo (rw)
+      /proc/diskstats from lxcfs-proc-diskstats (rw)
+      /proc/loadavg from lxcfs-proc-loadavg (rw)
+      /proc/meminfo from lxcfs-proc-meminfo (rw)
+      /proc/stat from lxcfs-proc-stat (rw)
+      /proc/swaps from lxcfs-proc-swaps (rw)
+      /proc/uptime from lxcfs-proc-uptime (rw)
+      /sys/devices/system/cpu/online from lxcfs-sys-devices-system-cpu-online (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-jtj98 (ro)
+...
+</code></pre>
+<h2 id="5-小结">5、小结</h2>
+<p>容器中的<code>pod</code>已经能正确的读取到<code>cpu</code>及内存的限制值了，如果是自身应用要读取所在环境的资源配置，如果出现问题，一定要从底层弄清楚是如何获取到的环境资源</p>
+<p>通过上面的测试可以看到<code>lxcfs</code>也自动挂载了<code>nginx</code>需要的<code>/sys/devices/system/cpu/online</code>文件到<code>pod</code>中了，因此<code>nginx</code>容器中<code>worker process</code>自动设置的问题经过测试验证也已得到了解决</p>
+<blockquote>
+<p>参考：</p>
+<p>https://github.com/denverdino/lxcfs-admission-webhook</p>
+</blockquote>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[SkyWalking链路追踪系统-接入篇]]></title>
+        <id>https://www.ssgeek.com/post/skywalking-lian-lu-zhui-zong-xi-tong-jie-ru-pian</id>
+        <link href="https://www.ssgeek.com/post/skywalking-lian-lu-zhui-zong-xi-tong-jie-ru-pian">
+        </link>
+        <updated>2021-03-25T16:10:14.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E4%BB%8B%E7%BB%8D">1、介绍</a>
+<ul>
+<li><a href="#11-%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84">1.1 整体架构</a></li>
+<li><a href="#12-%E4%B8%BB%E8%A6%81%E6%A6%82%E5%BF%B5">1.2 主要概念</a></li>
+</ul>
+</li>
+<li><a href="#2-%E5%87%86%E5%A4%87agent%E5%8C%85">2、准备agent包</a></li>
+<li><a href="#3-%E6%89%93%E5%8C%85%E5%88%B6%E4%BD%9C%E9%95%9C%E5%83%8F">3、打包制作镜像</a></li>
+<li><a href="#4-%E6%B3%A8%E5%85%A5%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F">4、注入环境变量</a></li>
+<li><a href="#5-%E9%83%A8%E7%BD%B2%E5%90%AF%E5%8A%A8%E5%B9%B6%E6%9F%A5%E7%9C%8Bui">5、部署启动并查看ui</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-介绍">1、介绍</h2>
+<p>在前面的文章中讲到<a href="https://www.ssgeek.com/post/skywalking-lian-lu-zhui-zong-xi-tong-bu-shu-pian/">SkyWalking链路追踪系统-部署篇</a>，接下来在正式接入<code>Skywalking</code>探针<code>agent</code>之前，先来接着了解一下<code>Skywalking</code>的整体架构和主要概念(内容主要汇总自官方文档或网络)</p>
+<h3 id="11-整体架构">1.1 整体架构</h3>
+<p>以下是来自<code>Skywalking</code>官方<code>Github</code>库上的一张架构图</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210319-01.jpeg" alt=""></figure>
+<p>整体架构包含如下三个组成部分：</p>
+<ol>
+<li>探针(<code>agent</code>)负责进行数据的收集，包含了<code>Tracing</code>和<code>Metrics</code>的数据，<code>agent</code>会被安装到服务所在的服务器上，以方便数据的获取。</li>
+<li>可观测性分析平台<code>OAP</code>(Observability Analysis Platform)，接收探针发送的数据，并在内存中使用分析引擎（<code>Analysis Core</code>)进行数据的整合运算，然后将数据存储到对应的存储介质上，比如 <code>Elasticsearch</code>、<code>MySQL</code>数据库、<code>H2</code>数据库等。同时<code>OAP</code>还使用查询引擎(<code>Query Core</code>)提供<code>HTTP</code>查询接口。</li>
+<li><code>Skywalking</code>提供单独的<code>UI</code>进行数据的查看，此时<code>UI</code>会调用<code>OAP</code>提供的接口，获取对应的数据然后进行展示。</li>
+</ol>
+<p><code>Skywalking</code>提供<code>Tracing</code>和<code>Metrics</code>数据的获取和聚合：</p>
+<p><code>Metric</code>的特点是，它是可累加的：他们具有原子性，每个都是一个逻辑计量单元，或者一个时间 段内的柱状图。 例如：队列的当前深度可以被定义为一个计量单元，在写入或读取时被更新统 计； 输入<code>HTTP</code>请求的数量可以被定义为一个计数器，用于简单累加； 请求的执行时间可以被定 义为一个柱状图，在指定时间片上更新和统计汇总。</p>
+<p><code>Tracing</code>的最大特点就是，它在单次请求的范围内，处理信息。 任何的数据、元数据信息都被绑定 到系统中的单个事务上。 例如：一次调用远程服务的<code>RPC</code>执行过程；一次实际的<code>SQL</code>查询语句； 一次<code>HTTP</code>请求的业务性<code>ID</code>。</p>
+<p>总结，<code>Metric</code>主要用来进行数据的统计，比如<code>HTTP</code>请求数的计算。<code>Tracing</code>主要包含了某一次请求的链路数据。</p>
+<p>详细的内容可以查看<code>Skywalking</code>开发者吴晟翻译的文章，<a href="http://blog.oneapm.com/apm-tech/811.html">Metrics , tracing 和 logging 的关系</a></p>
+<h3 id="12-主要概念">1.2 主要概念</h3>
+<p><code>Skywalking</code>主要概念包含：</p>
+<ul>
+<li>服务(Service) ：用户服务就是<code>Skywalking</code>的服务<code>Service</code>，用户服务其实就是一个独立的应用<code>Application</code>，在<code>6.0</code>版本之后的<code>Skywalking</code>将应用更名为服务<code>Service</code></li>
+<li>端点(Endpoint) ：用户服务对外提供的<code>HTTP</code>接口例如<code>/usr/list</code>就是一个端点，端点就是对外提供的接口</li>
+<li>实例(Instance)：相同服务部署的节点就是实例，实例指同一服务可以部署多个，例如多台虚拟机或多个容器</li>
+</ul>
+<h2 id="2-准备agent包">2、准备agent包</h2>
+<p><code>Skywalking</code>目前支持很多语言的链路追踪，本文以常见的<code>java</code>应用为例进行记录</p>
+<p>下载官方和<code>server</code>版本相同的发行版本包，并获取<code>agent</code></p>
+<p>我这里对应前面安装的服务端下载地址：https://www.apache.org/dyn/closer.cgi/skywalking/8.4.0/apache-skywalking-apm-8.4.0.tar.gz</p>
+<p>下载后解压提取<code>agent</code>目录，结构如下</p>
+<pre><code class="language-shell">+-- agent
+    +-- activations
+         apm-toolkit-log4j-1.x-activation.jar
+         apm-toolkit-log4j-2.x-activation.jar
+         apm-toolkit-logback-1.x-activation.jar
+         ...
+    +-- config   # 配置文件目录
+         agent.config  
+    +-- plugins  # 主要插件目录
+         apm-dubbo-plugin.jar
+         apm-feign-default-http-9.x.jar
+         apm-httpClient-4.x-plugin.jar
+         .....
+    +-- optional-plugins  # 可选插件目录
+         apm-gson-2.x-plugin.jar
+         .....
+    +-- bootstrap-plugins
+         jdk-http-plugin.jar
+         .....
+    +-- logs     # 默认日志目录
+    skywalking-agent.jar
+</code></pre>
+<p>整个<code>agent</code>目录大概是<code>30MB</code>左右，很多插件都是可选的，在启动时启用了插件的话，具有更为强大的功能。部分插件在使用上会影响整体的性能或者由于其他原因放置于可选插件包中，不会直接加载，如果需要使用，将可选插件中的<code>jar</code>包拷贝到<code>plugins</code>目录下</p>
+<p>最终基于容器环境配置<code>skywalking agent</code>的方式一种是创建<code>ConfigMap</code>，然后通过 <code>ConfigMap</code> 挂载到容器里进行覆盖；另一种是在默认配置里引用各种变量，在容器启动时通过环境变量注入</p>
+<p>因此这里修改<code>agent</code>的配置文件<code>config/agent.config</code>，打开其中某些配置项的注释，但不进行具体配置修改，通过环境变量进行注入以使用</p>
+<pre><code class="language-shell"># grep -Ev '^$|#' agent/config/agent.config 
+agent.namespace=${SW_AGENT_NAMESPACE:default-namespace}
+agent.service_name=${SW_AGENT_NAME:Your_ApplicationName}
+agent.is_cache_enhanced_class = ${SW_AGENT_CACHE_CLASS:false}
+collector.backend_service=${SW_AGENT_COLLECTOR_BACKEND_SERVICES:127.0.0.1:11800}
+logging.file_name=${SW_LOGGING_FILE_NAME:skywalking-api.log}
+logging.level=${SW_LOGGING_LEVEL:INFO}
+logging.max_file_size=${SW_LOGGING_MAX_FILE_SIZE:314572800}
+logging.max_history_files=${SW_LOGGING_MAX_HISTORY_FILES:-1}
+plugin.mount=${SW_MOUNT_FOLDERS:plugins,activations}
+plugin.mysql.trace_sql_parameters=${SW_MYSQL_TRACE_SQL_PARAMETERS:false}
+</code></pre>
+<p>对应配置说明：</p>
+<ul>
+<li><code>agent.namespace</code>：命名空间，可通过此参数实现隔离</li>
+<li><code>agent.service_name</code>：在链路追踪 <code>UI</code> 中展示的应用名，如果是微服务架构，可以和注册中心中的应用名一致</li>
+<li><code>agent.is_cache_enhanced_class</code>：如果为<code>true</code>，则<code>SkyWalking</code>代理会将所有检测到的类文件缓存到内存或磁盘文件中（由类缓存模式决定）</li>
+<li><code>collector.backend_service</code>：后端<code>Collector</code>收集器的地址</li>
+<li><code>logging.file_name</code>：日志文件名</li>
+<li><code>logging.level</code>：日志等级</li>
+<li><code>logging.max_file_size</code>：日志文件大小控制</li>
+<li><code>logging.max_history_files</code>：历史日志文件个数控制</li>
+<li><code>plugin.mount</code>：挂载插件的文件夹名</li>
+<li><code>plugin.mysql.trace_sql_parameters</code>：收集<code>sql</code>的参数</li>
+</ul>
+<p>除了上面的参数外，还有一个常用参数<code>agent.ignore_suffix</code>，表示对请求追踪进行忽略，多个路径用逗号分隔，在实际的生产环境中某些请求是不需要被追踪的，例如心跳检查<code>/health</code>，监控指标<code>/metrics</code>等等，我们需要将对应的插件<code>jar</code>包<code>apm-trace-ignore-plugin-8.4.0.jar</code>拷贝到<code>plugins</code>目录下并进行对应的配置，配置文件内容部分如下</p>
+<pre><code class="language-shell"># If the operation name of the first span is included in this set, this segment should be ignored. Multiple values should be separated by `,`.
+# agent.ignore_suffix=${SW_AGENT_IGNORE_SUFFIX:.jpg,.jpeg,.js,.css,.png,.bmp,.gif,.ico,.mp3,.mp4,.html,.svg}
+</code></pre>
+<p>更多的配置项可以参考<a href="https://github.com/apache/skywalking/tree/master/docs/en/setup/service-agent/java-agent">官方配置说明</a></p>
+<h2 id="3-打包制作镜像">3、打包制作镜像</h2>
+<p>官方给出了在<code>java</code>应用的不同运行环境中<a href="https://github.com/apache/skywalking/tree/master/docs/en/setup/service-agent/java-agent#install-javaagent-faqs">java agent配置示例</a>：</p>
+<ul>
+<li>
+<p>Tomcat</p>
+<ul>
+<li>
+<p>Linux环境</p>
+<p>修改<code>tomcat/bin/catalina.sh</code></p>
+<pre><code class="language-shell">CATALINA_OPTS=&quot;$CATALINA_OPTS -javaagent:/path/to/skywalking-agent/skywalking-agent.jar&quot;; export CATALINA_OPTS
+</code></pre>
+</li>
+<li>
+<p>Windows环境</p>
+<p>修改<code>tomcat/bin/catalina.bat</code></p>
+<pre><code class="language-shell">set &quot;CATALINA_OPTS=-javaagent:/path/to/skywalking-agent/skywalking-agent.jar&quot;
+</code></pre>
+</li>
+</ul>
+</li>
+<li>
+<p>Jar包运行</p>
+<p>在启动参数中添加<code>-javaagent</code></p>
+<pre><code class="language-shell">java -javaagent:/path/to/skywalking-agent/skywalking-agent.jar -jar yourApp.jar
+</code></pre>
+</li>
+<li>
+<p>Jetty</p>
+<p>修改<code>jetty.sh</code>，在启动参数中添加<code>-javaagent</code></p>
+<pre><code class="language-shell">export JAVA_OPTIONS=&quot;${JAVA_OPTIONS} -javaagent:/path/to/skywalking-agent/skywalking-agent.jar&quot;
+</code></pre>
+</li>
+</ul>
+<p>本文以<code>spring boot</code>应用<code>jar</code>包运行的方式为例，首先修改基础<code>java</code>镜像的<code>Dockerfile</code>，将<code>agent</code>包打入镜像</p>
+<p>（一个小<code>Tips</code>：踩了很多坑，最终自己做<code>oracle jdk</code>的镜像，而不是用中央仓库的<code>openjdk</code>，基础镜像基于<code>centos</code>，为了减小镜像体积这里可以再进行优化）</p>
+<p>修改<code>Dockerfile</code></p>
+<pre><code class="language-shell">FROM centos:7.6.1810
+LABEL maintainer ssgeek@ssgeek.com
+
+ENV LANG &quot;en_US.UTF-8&quot;
+ENV JDK_VERSION 1.8.0_191
+ENV SW_VERSION 8.4.0
+
+ADD jdk-8u191-linux-x64.tar.gz /usr/local
+ADD agent /skywalking/agent
+
+ENV JAVA_HOME /usr/local/jdk1.8.0_191
+ENV CLASSPATH $JAVA_HOME/lib;$JAVA_HOME/jre/lib
+ENV PATH $PATH:$JAVA_HOME/bin
+
+RUN set -x &amp;&amp; \
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+</code></pre>
+<p>打包镜像并上传到仓库</p>
+<pre><code class="language-shell"># docker build -t hub.ssgeek.com/basic_image/jdk_8u191:skywalking_v1.0
+# docker push hub.ssgeek.com/basic_image/jdk_8u191:skywalking_v1.0
+</code></pre>
+<p>修改业务应用的<code>Dockerfile</code>，引用加入了<code>agent</code>包的基础镜像并修改启动参数</p>
+<pre><code class="language-shell">FROM hub.ssgeek.com/basic_image/jdk_8u191:skywalking_v1.0
+LABEL maintainer ssgeek@ssgeek.com
+
+RUN mkdir /app
+WORKDIR /app
+COPY target/*.jar /app/app.jar
+EXPOSE 8080
+CMD java -Djava.security.egd=file:/dev/./urandom -javaagent:/skywalking/agent/skywalking-agent.jar -jar ${JAVA_OPTS} /app/app.jar
+</code></pre>
+<h2 id="4-注入环境变量">4、注入环境变量</h2>
+<p>这里的<code>java</code>应用运行在<code>k8s</code>容器化环境中，因此对配置变量的注入可以通过在部署清单的<code>yaml</code>中以环境变量的形式注入，这样配置更为轻量和灵活</p>
+<p>其中部分参数的环境变量取值，通过在<code>Pod</code>中使用环境变量把自己的信息呈现给<code>Pod</code>中运行的容器，可以参考</p>
+<p><a href="https://kubernetes.io/zh/docs/tasks/inject-data-application/environment-variable-expose-pod-information/">通过环境变量将 Pod 信息呈现给容器</a></p>
+<pre><code class="language-yaml">...
+    spec:
+      imagePullSecrets:
+      - name: registry-pull-secret
+      containers:
+      - name: java
+        image: hub.ssgeek.com/java/xxx:tag
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: JAVA_OPTS
+          value: 'JVM参数'
+        - name: SW_AGENT_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        - name: SW_AGENT_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: SW_AGENT_CACHE_CLASS
+          value: 'true'
+        - name: SW_MYSQL_TRACE_SQL_PARAMETERS
+          value: 'true'
+        - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
+          value: 'skywalking-oap.monitoring.svc:11800'
+        ports:
+        - containerPort: 8080
+          name: AppName
+          protocol: TCP
+</code></pre>
+<p>网络上有文章的操作方式大多都是添加一个<code>initContainer</code>将<code>agent</code>拷贝到应用<code>Pod</code>中，我个人认为会浪费系统资源且每次启动都需要执行，这必然会增加应用的启动时间，还不如修改基础<code>java</code>镜像，一劳永逸。</p>
+<h2 id="5-部署启动并查看ui">5、部署启动并查看ui</h2>
+<p>按照上面的操作对<code>Pod</code>应用注入了<code>Skywalking agent</code>相关配置，如果应用启动后会有如下的日志提示，表示<code>agent</code>注入启动成功了</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210326-01.png" alt=""></figure>
+<p>当应用启动完成，正常接收流量后，服务端就可以采集并展示相关数据了，这里我展示一个微服务项目测试环境接入<code>Skywalking</code>后的仪表盘页面</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210326-02.png" alt=""></figure>
+<p>拓扑图</p>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20210326-03.png" alt=""></figure>
+<p>see you ~</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Jenkins API+Pipeline深度实践之input的自动化]]></title>
+        <id>https://www.ssgeek.com/post/jenkins-apipipeline-shen-du-shi-jian-zhi-input-de-zi-dong-hua</id>
+        <link href="https://www.ssgeek.com/post/jenkins-apipipeline-shen-du-shi-jian-zhi-input-de-zi-dong-hua">
+        </link>
+        <updated>2021-03-23T16:10:22.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-pipeline-input%E6%A6%82%E8%BF%B0">1、pipeline input概述</a></li>
+<li><a href="#2-%E8%83%8C%E6%99%AF%E6%A6%82%E8%BF%B0">2、背景概述</a></li>
+<li><a href="#3-%E6%8E%A8%E7%90%86%E5%8F%8A%E6%B5%8B%E8%AF%95">3、推理及测试</a>
+<ul>
+<li><a href="#31-%E9%80%9A%E8%BF%87crumb%E5%AE%89%E5%85%A8%E6%93%8D%E4%BD%9Cjenkins">3.1 通过Crumb安全操作Jenkins</a></li>
+<li><a href="#32-%E9%80%9A%E8%BF%87token%E5%AE%89%E5%85%A8%E6%93%8D%E4%BD%9Cjenkins">3.2 通过Token安全操作Jenkins</a></li>
+<li><a href="#33-api%E6%93%8D%E4%BD%9C">3.3 API操作</a></li>
+<li><a href="#34-input%E7%9A%84%E6%94%B9%E9%80%A0">3.4 input的改造</a></li>
+</ul>
+</li>
+<li><a href="#4-%E8%87%AA%E5%8A%A8%E5%8C%96input%E7%9A%84%E6%9C%80%E7%BB%88%E5%AE%9E%E7%8E%B0">4、自动化input的最终实现</a></li>
+<li><a href="#5-%E5%B0%8F%E7%BB%93">5、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210324-02.jpg" alt=""></figure>
+<blockquote>
+<p>本文分享的小<code>Tips</code>是在我前面的文章<a href="https://www.ssgeek.com/post/devops-jian-she-zhi-ji-yu-ding-ding-oa-shen-pi-liu-de-zi-dong-hua-shang-xian/">DevOps建设之基于钉钉OA审批流的自动化上线</a>中提到的，当通过<code>API</code>自动触发<code>Jenkins Pipeline</code>流水线执行时，如果原来的流水线中定义了在构建正式开始后还需要接收用户<code>input</code>的步骤，想要自动绕过或自动执行<code>input</code>的方法</p>
+</blockquote>
+<h2 id="1-pipeline-input概述">1、pipeline input概述</h2>
+<p>首先回过头再来看看<code>pipeline input</code>的语法及功能，参考我之前总结的<a href="https://www.ssgeek.com/post/jenkinspipeline-yu-fa-gai-yao/#310-input"><code>pipeline input</code>语法</a></p>
+<p><code>input</code>指令<code>stage</code>允许使用<code>input step</code>提示输入。在<code>stage</code>将暂停任何后<code>options</code>已被应用，并在进入前<code>agent</code>块为<code>stage</code>或评估<code>when</code>的条件<code>stage</code>。如果<code>input</code>批准，<code>stage</code>则将继续。作为<code>input</code>提交的一部分提供的任何参数将在其余的环境中可用<code>stage</code>。</p>
+<p><strong>可选项</strong></p>
+<ul>
+<li>message<br>
+必需的，这将在用户提交时显示给用户<code>input</code></li>
+<li>id<br>
+可选标识符<code>input</code>，默认为<code>stage</code>名称</li>
+<li>ok<br>
+<code>input</code>表单上“确定”按钮的可选文本</li>
+<li>submitter<br>
+可选的逗号分隔列表，这些列表允许用户提交此用户或外部组名<code>input</code>。默认为允许任何用户。</li>
+<li>submitterParameter<br>
+环境变量的可选名称，用该<code>submitter</code>名称设置（如果存在）</li>
+<li>parameters<br>
+提示提交者提供的可选参数列表。请参阅<a href="https://www.jenkins.io/doc/book/pipeline/syntax/#parameters">Pipeline parameters</a>以获取更多信息</li>
+</ul>
+<h2 id="2-背景概述">2、背景概述</h2>
+<p>基于上面的语法描述，我这里线上发布流水线中<code>input</code>的功能仅仅是需要用户进行确认，所以没有传递任何参数，通过这种简单的<code>input</code>控制及<code>timeout</code>超时机制，实现了用户选择参数并点击开始构建后需要在60秒内二次确认的功能，流水线的部分内容如下</p>
+<pre><code class="language-groovy">stage('Deploy to prod'){
+    when {
+        environment name: 'PerformType', value: 'Deploy'
+    }
+    steps{
+        timeout(time:60, unit:'SECONDS') {
+        input &quot;确认要部署到线上环境吗？&quot;              
+            script{
+                try {
+                    ...
+                }
+                catch (exc) {
+                    ...
+                    throw(exc)
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<p>到这里问题就产生了，<code>input</code>的过程是在流水线运行过程中动态出现的，如果是想要在钉钉<code>OA</code>审批通过后自动通过调用<code>jenkins api</code>并传入参数让整个流水线自动执行，并且自动进行<code>input</code>的确认操作或者绕过<code>input</code>，应该怎么做呢？</p>
+<h2 id="3-推理及测试">3、推理及测试</h2>
+<p>刚开始没有任何思路，唯一想到的办法就是把<code>input</code>的过程从<code>pipeline</code>中去除掉，这样就没有任何烦恼了</p>
+<p>但是为了保留原有<code>pipeline</code>设计的完整性，显然这种做法不够友好，只是避开了这个难点，是不可取的</p>
+<p>通过查找发现这方面的资料很少，最终有用的资料如下</p>
+<ul>
+<li><a href="https://www.jenkins.io/doc/pipeline/steps/pipeline-input-step/">input官方说明</a></li>
+</ul>
+<p><code>input</code>语法中可选字段包含<code>id</code>，每个<code>input</code>步骤都有一个唯一的<code>ID</code>。在生成的<code>URL</code>中可以使用它来继续或中止</p>
+<p>例如，可以使用特定的<code>ID</code>来机械地响应来自某些外部过程/工具的输入</p>
+<ul>
+<li>https://www.thinbug.com/q/48799442</li>
+</ul>
+<p>这篇文章中讲到了如何通过<code>Jenkins REST API</code>恢复暂停的管道？作为参考起到了一定帮助</p>
+<p>为了完成整个自动化<code>input</code>的过程，具体的演进流程如下</p>
+<h3 id="31-通过crumb安全操作jenkins">3.1 通过Crumb安全操作Jenkins</h3>
+<p><code>Crumb</code>指的是<code>Jenkins</code>的<code>CSRF token</code>，<code>Jenkins</code>服务器为了阻止不安全的跨域请求，默认开启了<code>CSRF</code>保护，参考<a href="https://www.jenkins.io/doc/book/using/remote-access-api/"><code>Jenkins</code>远程<code>API</code>访问</a></p>
+<p><a href="https://www.jenkins.io/doc/book/managing/security/#cross-site-request-forgery"><code>Jenkins</code>的<code>CSRF</code>配置</a>可以在「系统管理」——&gt; 「全局安全配置」——&gt; 「CSRF Protection」相关配置中关闭此保护，跨站请求伪造这是一个很常见的安全问题，为了安全起见建议不关闭。如果关闭，这里的内容可以略过。</p>
+<p>当<code>Jenkins</code>开启<code>CSRF</code>保护后，可以通过固定的接口获得一个安全的<code>Crumb</code>以便于通过<code>API</code>操作<code>Jenkins</code>，以<code>curl</code>请求为例，请求的可选方式一般是两种，如下</p>
+<pre><code class="language-shell">方法一：
+curl -u &lt;username&gt;:&lt;password&gt; 'https://jenkins.ssgeek.com/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,&quot;:&quot;,//crumb)'
+Jenkins-Crumb:dc78dfb9615fb56bbf2001fb99c64dbd3331c5e14c8d4edd54722e7ca790529e%
+
+方法二：
+curl -u &lt;username&gt;:&lt;password&gt; 'https://jenkins.ssgeek.com/crumbIssuer/api/json'
+{&quot;_class&quot;:&quot;hudson.security.csrf.DefaultCrumbIssuer&quot;,&quot;crumb&quot;:&quot;52d605f43328f15303c2e68eb492b9656e229ce124c2f5f2e39b6f552f54e4ac&quot;,&quot;crumbRequestField&quot;:&quot;Jenkins-Crumb&quot;}%
+</code></pre>
+<p>以上两种方式都可以获取一个<code>Crumb</code>，然后就能带着它去请求<code>Jenkins</code>的<code>API</code>了</p>
+<pre><code class="language-shell">curl -u &lt;username&gt;:&lt;password&gt; -X POST -H &quot;Jenkins-Crumb:b220147dbdf3cfebbeba4c29048c2e33&quot; -d &lt;data&gt; 'https://jenkins.ssgeek.com/&lt;jenkins api url&gt;'
+</code></pre>
+<h3 id="32-通过token安全操作jenkins">3.2 通过Token安全操作Jenkins</h3>
+<p>在官方文档的描述中有这样一句话：API tokens are preferred instead of crumbs for CSRF protection.</p>
+<p>意为在开启了<code>CSRF</code>的情况下，首选的是通过<code>API token</code>操作而不是<code>crumb</code>，这里的<code>API token</code>指的就是<code>Jenkins</code>中用户的<code>API token</code></p>
+<p>可以通过「用户」——&gt; 「设置」——&gt; 「API Token」——&gt; 「添加新Token」来获得一个<code>api token</code>，有了这个<code>Token</code>之后，以<code>curl</code>请求为例操作<code>Jenkins</code>的<code>API</code>方式如下</p>
+<pre><code class="language-shell">curl -u user_id:user_api_token -X POST -d &lt;data&gt; 'https://jenkins.ssgeek.com/&lt;jenkins api url&gt;'
+</code></pre>
+<h3 id="33-api操作">3.3 API操作</h3>
+<p>参考上面的文档资料<a href="https://www.thinbug.com/q/48799442">使用Jenkins REST API恢复暂停的管道</a></p>
+<p>对于<code>input</code>有这样的<code>api</code>接口地址可以使用，用于将输入发送到等待的输入步骤。<code>url</code>格式如下</p>
+<pre><code class="language-shell">http://&lt;JenkinsURL&gt;/&lt;JobURL&gt;/&lt;Build＃&gt;/input/&lt;InputID&gt;/submit
+</code></pre>
+<p>需要满足的条件</p>
+<ul>
+<li>
+<p>如果<code>Jenkins</code>启用了<code>CSRF</code>保护，则您需要使用<code>Crumb</code>或<code>API Token</code></p>
+</li>
+<li>
+<p>请求通过<code>POST</code>方式发送</p>
+</li>
+<li>
+<p>需要提供参数名为<code>proceed</code>的值，并且以<code>OK</code>作为参数值</p>
+</li>
+<li>
+<p>为了提供数据，需要带有<code>json</code>格式的参数，这些参数就是在<code>input</code>阶段需要接收的参数，格式为</p>
+<pre><code class="language-json">{
+    &quot;parameter&quot;:[
+        {
+            &quot;name&quot;:&quot;param1&quot;,
+            &quot;value&quot;:&quot;valueOfParam1&quot;
+        },
+        {
+            &quot;name&quot;:&quot;param2&quot;,
+            &quot;value&quot;:&quot;valueOfParam2&quot;
+        }
+    ]
+}
+</code></pre>
+<p>如果没有发送有效的<code>json</code>参数，则流水线也将继续进行，只是不会获得任何参数（这也可能导致流水线最终执行失败），如果成功则返回<code>302</code>状态码并重定向到用户界面</p>
+</li>
+<li>
+<p>必须填写<code>input id</code>，因此要从外部连接到的<code>input</code>步骤配置唯一的<code>id</code></p>
+</li>
+<li>
+<p>也可以使用下面的url，如果流水线成功，则返回状态码为<code>200</code>且响应为空</p>
+<pre><code class="language-shell">http://&lt;Jenkins URL&gt;/job/&lt;YOUR_PROJECT&gt;/&lt;BUILD_NUMBER&gt;/wfapi/inputSubmit
+</code></pre>
+</li>
+</ul>
+<p>其他可用的<code>api</code>接口地址以及作用</p>
+<ul>
+<li>用于中止流水线</li>
+</ul>
+<pre><code class="language-shell">http://&lt;Jenkins URL&gt;/job/&lt;YOUR_PROJECT&gt;/&lt;BUILD_NUMBER&gt;/input/&lt;INPUT_ID&gt;/abort
+</code></pre>
+<ul>
+<li>不传入任何参数并继续进行流水线</li>
+</ul>
+<pre><code class="language-shell">http://&lt;Jenkins URL&gt;/job/&lt;YOUR_PROJECT&gt;/&lt;BUILD_NUMBER&gt;/input/&lt;INPUT_ID&gt;/proceedEmpty
+</code></pre>
+<p>对于本文中我的需求，只需要在<code>input</code>执行时自动确认且无需传入任何参数即可，因此使用的接口地址为上面的最后一种（其余接口地址未测试）</p>
+<h3 id="34-input的改造">3.4 input的改造</h3>
+<p>为了实现在<code>input</code>执行时自动确认，需要对流水线的<code>input</code>部分进行改造，加入一个固定的<code>id</code>即可</p>
+<p>由于定义的<code>id</code>都是固定的，因此可以利用脚本对所有的流水线涉及到这种<code>input</code>的部分批量更新，这里就不列出具体方法了</p>
+<p>最终我的流水线调整如下</p>
+<pre><code class="language-groovy">stage('Deploy to prod'){
+    when {
+        beforeInput true
+        environment name: 'PerformType', value: 'Deploy'
+    }
+    options {
+        timeout(time:60, unit:'SECONDS')
+    }
+    input {
+        message &quot;确认要部署到线上环境吗？&quot;
+        id &quot;CustomId&quot;
+    }
+    steps{
+        script{
+            try {
+                ...
+            }
+            catch (exc) {
+                ...
+                throw(exc)
+            }
+        }
+    }
+}
+</code></pre>
+<h2 id="4-自动化input的最终实现">4、自动化input的最终实现</h2>
+<p>经过上面的推理和测试，解决了通过<code>API</code>自动执行<code>input</code>进行流水线确认的问题</p>
+<p>这里还剩下最后一个问题，通过测试发现，想要自动执行<code>input</code>过程，其接口对应的<code>url</code>地址并不是一直存在的，而是在流水线执行开始后到达<code>input</code>的时候才会出现，出现时通过浏览器访问查看如下</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210324-01.png" alt=""></figure>
+<p>而其余时间发送请求都会返回<code>404</code>状态码，此时是无法接收<code>post</code>请求的，因此想要自动化执行<code>input</code>并不只是简单的向接口发送<code>POST</code>请求了</p>
+<p><strong>我这里的解决思路</strong>：</p>
+<p>在发送流水线开始执行的请求后，立即通过代码循环请求并判断接口地址返回的状态码是否是<code>200</code></p>
+<p>如果不是，那么表示流水线还没执行到这里；如果是，就可以完美的向这个地址发送自动执行的请求了</p>
+<p>以<code>python</code>语言调用<code>Jenkins api</code>为例，用到了<code>python-jenkins</code>这个包，在触发构建时使用<code>build_job</code>这个方法，这个方法返回值刚好是<code>job</code>任务的<code>build number</code>，这恰好是接口地址组成中需要的一部分</p>
+<p>好了，上最终的部分代码</p>
+<pre><code class="language-python">def auto_job_input(self, server_url, job_name, build_number):
+    &quot;&quot;&quot;
+    根据input阶段生成的url http状态码，判断当前job流水线运行的stage否进行到了input步骤
+    自动执行input or 继续判断
+    :param job_name:
+    :param build_number:
+    :return:
+    &quot;&quot;&quot;
+    # https://jenkins.ssgeek.com/job/input-demo/64/input
+    get_url = server_url + &quot;/job/&quot; + job_name + &quot;/&quot; + str(build_number) + &quot;/input&quot;
+    # https://jenkins.ssgeek.com/job/input-demo/64/input/CustomId/proceedEmpty
+    post_url = get_url + &quot;/CustomId/proceedEmpty&quot;
+    s = requests.Session()
+    res_code_get = s.get(url=get_url, auth=('user_id', 'user_token')).status_code
+    while res_code_get != 200:
+        res_code_get = s.get(url=get_url, auth=('user_id', 'user_token')).status_code
+    res_code_post = s.post(url=post_url, auth=('user_id', 'user_token'), data=None).status_code
+    return res_code_post
+</code></pre>
+<p>关键部分代码量很少，利用<code>request</code>并且携带认证参数进行请求，如果有大佬有更好的方案欢迎与我交流</p>
+<h2 id="5-小结">5、小结</h2>
+<p>到这里，通过一步步推理演进，在流水线中<code>input</code>的自动化执行就完美实现了，最终既实现了调用<code>api</code>触发自动构建并执行<code>input</code>进行自动确认，同时也保留了原流水线的<code>input</code>设计，对原有流水线只需要做很小的调整。</p>
+]]></content>
+    </entry>
+</feed>
