@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://www.ssgeek.com</id>
     <title>山山仙人博客</title>
-    <updated>2021-05-27T15:19:20.271Z</updated>
+    <updated>2021-05-31T15:40:19.483Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://www.ssgeek.com"/>
     <link rel="self" href="https://www.ssgeek.com/atom.xml"/>
@@ -10,6 +10,304 @@
     <logo>https://www.ssgeek.com/images/avatar.png</logo>
     <icon>https://www.ssgeek.com/favicon.ico</icon>
     <rights>All rights reserved 2021, 山山仙人博客</rights>
+    <entry>
+        <title type="html"><![CDATA[Git目录为什么这么大]]></title>
+        <id>https://www.ssgeek.com/post/git-mu-lu-wei-shi-me-zhe-me-da</id>
+        <link href="https://www.ssgeek.com/post/git-mu-lu-wei-shi-me-zhe-me-da">
+        </link>
+        <updated>2021-05-31T16:39:35.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E4%BB%8B%E7%BB%8D">1、介绍</a></li>
+<li><a href="#2-git%E5%AD%98%E5%82%A8%E5%8E%9F%E7%90%86">2、Git存储原理</a>
+<ul>
+<li><a href="#21-%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84">2.1 目录结构</a></li>
+<li><a href="#22-%E6%8F%90%E4%BA%A4%E5%86%85%E5%AE%B9">2.2 提交内容</a></li>
+<li><a href="#23-%E5%A6%82%E4%BD%95%E5%BD%BB%E5%BA%95%E5%88%A0%E9%99%A4%E4%B8%80%E4%B8%AA%E6%96%87%E4%BB%B6">2.3 如何彻底删除一个文件</a></li>
+</ul>
+</li>
+<li><a href="#3-%E8%A7%A3%E6%9E%90object%E5%AD%98%E5%82%A8%E6%96%B9%E5%BC%8F">3、解析Object存储方式</a></li>
+<li><a href="#4-%E5%A4%84%E7%90%86%E5%A4%A7%E6%96%87%E4%BB%B6">4、处理大文件</a>
+<ul>
+<li><a href="#41-%E5%A4%A7%E6%96%87%E4%BB%B6%E7%9A%84%E4%BA%A7%E7%94%9F">4.1 大文件的产生</a></li>
+<li><a href="#42-%E5%AF%BB%E6%89%BE%E5%A4%A7%E6%96%87%E4%BB%B6%E7%9A%84id">4.2 寻找大文件的ID</a></li>
+<li><a href="#43-%E5%88%A0%E9%99%A4%E5%A4%A7%E6%96%87%E4%BB%B6">4.3 删除大文件</a></li>
+<li><a href="#44-%E6%8C%89%E7%85%A7pack%E6%96%87%E4%BB%B6%E7%9B%B4%E6%8E%A5%E6%93%8D%E4%BD%9C">4.4 按照pack文件直接操作</a></li>
+</ul>
+</li>
+<li><a href="#5-%E5%A4%A7%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E7%9A%84%E6%AD%A3%E7%A1%AE%E6%96%B9%E5%BC%8F">5、大文件存储的正确方式</a></li>
+<li><a href="#6-%E5%85%B6%E4%BB%96%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88">6、其他解决方案</a></li>
+<li><a href="#7-%E5%B0%8F%E7%BB%93">7、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210601-02.png" alt=""></figure>
+<h2 id="1-介绍">1、介绍</h2>
+<p><code>Git</code>作为一个分布式的版本控制工具，在每天高频次的使用中难免遇到一些问题</p>
+<p>本文围绕<code>git</code>的目录过大，从<code>git</code>进行版本控制底层存储出发，简要分析<code>Git</code>目录过大的原因，以及如何处理</p>
+<h2 id="2-git存储原理">2、Git存储原理</h2>
+<h3 id="21-目录结构">2.1 目录结构</h3>
+<p>使用版本控制的人都会知道，不管是<code>svn</code>还是更为流行的<code>git</code>，整个工程目录下，除了项目代码外，与版本控制相关的就是<code>.svn</code>或<code>.git</code>目录</p>
+<p>以<code>git</code>为例，<code>.git</code>下的目录结构如下</p>
+<pre><code class="language-shell">tree -L 1 .git
+.git
+├── COMMIT_EDITMSG
+├── FETCH_HEAD
+├── HEAD
+├── ORIG_HEAD
+├── config
+├── description
+├── hooks
+├── index
+├── info
+├── logs
+├── objects
+├── packed-refs
+├── refs
+└── sourcetreeconfig
+</code></pre>
+<p>其中一些目录的说明</p>
+<ul>
+<li>
+<p>HEAD：表示当前本地签出的分支</p>
+</li>
+<li>
+<p>hooks：<code>git</code>钩子目录，关于钩子的使用可以参考我之前的文章 <a href="https://www.ssgeek.com/post/li-yong-git-gou-zi-shi-xian-dai-ma-fa-bu/">利用Git钩子实现代码发布</a></p>
+</li>
+<li>
+<p>index： 存储缓冲区<code>GitExtensions</code>中的<code>stage</code>的内容</p>
+</li>
+<li>
+<p>objects：存储对象的目录，<code>git</code>中对象分为<code>commit</code>对象，<code>tree</code>对象(多叉树)，<code>blob</code>对象</p>
+</li>
+<li>
+<p>refs：存储指向<code>branch</code>的最近一次<code>commit</code>对象的指针，也就是<code>commit</code>对象的<code>sha-1</code>值，其中<code>heads</code>存储<code>branch</code>对应的<code>commit</code>，<code>tags</code>存储<code>tag</code>对应的<code>commit</code></p>
+</li>
+<li>
+<p>config：仓库配置，比如远程的<code>url</code>，邮箱和用户名等</p>
+</li>
+</ul>
+<h3 id="22-提交内容">2.2 提交内容</h3>
+<p><code>git</code>的一次提交包含<code>4</code>个部分：</p>
+<ul>
+<li>
+<p>工作目录快照名称（一个哈希值）</p>
+</li>
+<li>
+<p>一条评论/注释</p>
+</li>
+<li>
+<p>提交者信息</p>
+</li>
+<li>
+<p>父提交的哈希值</p>
+</li>
+</ul>
+<p>每一个提交<code>Commit</code>相当于一个<code>Patch</code>应用在之前的项目上，借此一个项目可以回到任何一次提交时的文件状态</p>
+<p>于是在<code>Git</code>中删除一个文件时，<code>Git</code>只是记录了该删除操作，该记录作为一个<code>Patch</code>存储在 <code>.git</code> 中。 删除前的文件仍然在<code>Git</code>仓库中保存着。直接删除文件并提交起不到给<code>Git</code>仓库瘦身的效果</p>
+<p>在<code>Git</code>仓库彻底删除一个文件只有一种办法：重写<code>Rewrite</code>涉及该文件的所有提交。借助 <code>git filter-branch</code> 便可以重写历史提交，当然这也是<code>Git</code>中最危险的操作</p>
+<h3 id="23-如何彻底删除一个文件">2.3 如何彻底删除一个文件</h3>
+<p>以一个文件的提交为例，这个文件可能会关联很多次提交，只有将每一次与该文件有关的的提交记录进行重写，才能真正实现删除这个文件，具体做法如下</p>
+<pre><code class="language-shell"># git filter-branch -f --prune-empty --index-filter 'git rm -rf --cached --ignore-unmatch api/app/test.py' --tag-name-filter cat -- --all
+Rewrite 2771f50d45a0293668a30af77983d87886441640 (264/982)rm 'api/app/test.py'
+Rewrite 1a98ecb3f39e1f200e31754714eec18bc92848ce (265/982)rm 'api/app/test.py'
+Rewrite d4e61cfb1d88187b0561d283e663b81b738df2c7 (270/982)rm 'api/app/test.py'
+Rewrite 4ba0df06b26cf86fd39c2cda6b012c521cbc4dc1 (271/982)rm 'api/app/test.py'
+Rewrite 242ae98060c77863f5e826ba7e1ec47
+</code></pre>
+<p>这里要删除的文件位置是<code>api/app/test.py</code></p>
+<p><code>--index-filter</code> 参数用来指定一条<code>Bash</code>命令，<code>--all</code> 参数告诉<code>Git</code>我们需要重写所有分支（或引用）</p>
+<p><code>Git</code>会检出<code>checkout</code>所有的提交， 执行该命令，然后重新提交。我们在提交前移除了 <code>test.py</code> 文件， 这个文件便从<code>Git</code>的所有记录中完全消失了</p>
+<h2 id="3-解析object存储方式">3、解析Object存储方式</h2>
+<p>为了一步步熟悉<code>Object</code>存储的方式，这里在本地创建一个空的<code>git</code>仓库，且<code>objects</code>目录中还没有任何内容，创建一个文件并提交</p>
+<pre><code class="language-shell"># mkdir git-test &amp;&amp; cd git-test &amp;&amp; mkdir src
+# git init .
+Initialized empty Git repository in /Users/ssgeek/Git-workspace/git-test/.git/
+# echo &quot;test project&quot; &gt; README.md
+# echo &quot;hello world&quot; &gt; src/demo1.txt
+# git add .
+# git commit -sm &quot;first commit&quot;
+[master (root-commit) ca1114d] first commit
+ 2 files changed, 2 insertions(+)
+ create mode 100644 README.md
+ create mode 100644 src/demo1.txt
+</code></pre>
+<p>从输出可以看到，上面的命令创建了一个<code>commit</code>对象，该<code>commit</code>包含两个文件</p>
+<p>查看<code>.git/objects</code>目录，可以看到该目录下增加了<code>4</code>个子目录 32，3b， 4c， ca，d2，每个子目录下有一个以一长串字母数字命名的文件</p>
+<pre><code class="language-shell"># tree .git/objects
+.git/objects
+├── 32
+│   └── 73e239f79eacf09654a5ecc18498bda0d2e7eb
+├── 3b
+│   └── 18e512dba79e4c8300dd08aeb37f8e728b8dad
+├── 4c
+│   └── 3ced11d9e650d74fa5e518b26b311f06d7069c
+├── ca
+│   └── 1114de8da76527ec73cdf52100eb7ba58e1878
+├── d2
+│   └── df53f517e6e2c85ff2b0c6b0970428889f265f
+├── info
+└── pack
+</code></pre>
+<p>前面提到<code>object</code>目录下存放的是<code>Git</code>为对象生成一个文件，并根据文件信息生成一个<code>SHA-1</code>哈希值作为文件内容的校验和，创建以该校验和前两个字符为名称的子目录，并以 (校验和) 剩下<code>38</code>个字符为文件命名 ，将该文件保存至子目录下</p>
+<p>可以通过 <code>git cat-file</code>命令查看<code>Git Object</code>中存储的内容及对象类型，命令参数为<code>Git Object</code>的<code>SHA-1</code>哈希值，即目录名+文件名。一般不用输入整个<code>Hash</code>，输入前几位即可</p>
+<p>当前分支的对象引用保存在<code>HEAD</code>文件中，可以查看该文件得到当前<code>HEAD</code>对应的<code>branch</code>，并通过<code>branch</code>查到对应的<code>commit</code>对象</p>
+<pre><code class="language-shell"># cat .git/HEAD
+ref: refs/heads/master
+# cat .git/refs/heads/master
+ca1114de8da76527ec73cdf52100eb7ba58e1878
+</code></pre>
+<p>使用<code>-t</code>参数查看文件类型，使用<code>-p</code>参数可以查看文件内容</p>
+<pre><code class="language-shell"># git cat-file -t ca1114
+commit
+# git cat-file -p ca1114
+tree d2df53f517e6e2c85ff2b0c6b0970428889f265f
+author ssgeek &lt;ssgeek@ssgeek.com&gt; 1622445604 +0800
+committer ssgeek &lt;ssgeek@ssgeek.com&gt; 1622445604 +0800
+
+first commit
+
+Signed-off-by: ssgeek &lt;ssgeek@ssgeek.com&gt;
+</code></pre>
+<p>这是一个<code>commit</code>对象，<code>commit</code>对象中保存了<code>commit</code>的作者，<code>commit</code>的描述信息，签名信息以及该<code>commit</code>中包含哪些<code>tree</code>对象和<code>blob</code>对象，继续看该<code>tree</code>对象中的内容</p>
+<pre><code class="language-shell"># git cat-file -p d2df53
+100644 blob 4c3ced11d9e650d74fa5e518b26b311f06d7069c	README.md
+040000 tree 3273e239f79eacf09654a5ecc18498bda0d2e7eb	src
+# git cat-file -p 4c3ced
+test project
+# git cat-file -p 3273e2
+100644 blob 3b18e512dba79e4c8300dd08aeb37f8e728b8dad	demo1.txt
+# git cat-file -p 3b18e5
+hello world
+</code></pre>
+<p>因此可以得知，git中存储了三种类型的对象，<code>commit</code>，<code>tree</code>和<code>blob</code>，三者分别对应<code>git commit</code>，此<code>commit</code>中的目录和文件，这些对象之间的关系如下图</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210601-01.png" alt=""></figure>
+<h2 id="4-处理大文件">4、处理大文件</h2>
+<h3 id="41-大文件的产生">4.1 大文件的产生</h3>
+<p>由上面的详细分析流程可以看出，<code>git</code>会为每一个提交到版本控制的文件进行追踪，那么大文件究竟如何产生呢？</p>
+<p>在上面的<code>object</code>目录下还存在着<code>pack</code>和<code>info</code>文件夹。<code>Git</code>往磁盘保存对象时默认使用的格式叫松散对象<code>loose object</code>格式，当你对同一个文件修改哪怕一行，<code>git</code>都会使用全新的文件存储这个修改了的文件，放在了<code>objects</code>中。<code>Git</code>时不时地将这些对象打包至一个叫<code>packfile</code>的二进制文件以节省空间并提高效率，当版本库中有太多的松散对象，或者你手动执行 <code>git gc</code> 命令，或者你向远程服务器执行推送时，<code>Git</code>都会这样做</p>
+<p>因此，往往在向<code>git</code>中提交了大文件，会造成<code>pack</code>文件过大，到这里“元凶”终于出现了</p>
+<h3 id="42-寻找大文件的id">4.2 寻找大文件的ID</h3>
+<p>以我的博客代码为例操作</p>
+<p>首先查找出大文件</p>
+<pre><code class="language-shell"># git rev-list --objects --all | grep &quot;$(git verify-pack -v .git/objects/pack/*.idx | sort -k 3 -n | tail -5 | awk '{print$1}')&quot;
+
+385321b5a0be589af4436ddc6dd0d08a687f8d80 pdf/test/1.gif
+21224e779a19dfe7f716eb031d7c69ad65fb684c pdf/test/2.gif
+b615ba62e75bdb1c1faca8c43a82c5ef810d7e20 pdf/test/3.gif
+cd5762af542f724ca44656f02936940cf6de6525 zip/1.zip
+089977cb9de0105969d57bb070f6df0240b9da63 pdf/test/search_index.json
+</code></pre>
+<blockquote>
+<p>参数说明：</p>
+<p>rev-list 命令用来列出Git仓库中的提交，我们用它来列出所有提交中涉及的文件名及其ID。 该命令可以指定只显示某个引用（或分支）的上下游的提交<br>
+--objects 列出该提交涉及的所有文件ID<br>
+--all 所有分支的提交，相当于指定了位于/refs下的所有引用<br>
+verify-pack 命令用于显示已打包的内容，我们用它来找到那些大文件<br>
+-v（verbose）参数是打印详细信息</p>
+</blockquote>
+<h3 id="43-删除大文件">4.3 删除大文件</h3>
+<pre><code class="language-shell"># git filter-branch --force --prune-empty --index-filter 'git rm -rf --cached --ignore-unmatch YOU-FILE-NAME' --tag-name-filter cat -- --all
+</code></pre>
+<blockquote>
+<p>参数说明：</p>
+<p>filter-branch 命令可以用来重写Git仓库中的提交<br>
+--index-filter 参数用来指定一条Bash命令，然后Git会检出（checkout）所有的提交， 执行该命令，然后重新提交<br>
+–all 参数表示我们需要重写所有分支（或引用）<br>
+YOU-FILE-NAME 你查找出来的大文件名字</p>
+</blockquote>
+<p>也可以将上面查找出的大文件输出重定向输入到某个文件，这样更便于操作</p>
+<pre><code class="language-shell"># 定向到文件
+# git rev-list --objects --all | grep &quot;$(git verify-pack -v .git/objects/pack/*.idx | sort -k 3 -n | tail -5 | awk '{print$1}')&quot; &gt;&gt; large-files.txt
+# 得到文件路径并批量删除
+# cat large-files.txt| awk '{print $2}' | tr '\n' ' ' &gt;&gt; large-files-inline.txt
+# git filter-branch -f --prune-empty --index-filter &quot;git rm -rf --cached --ignore-unmatch `cat large-files-inline.txt`&quot; --tag-name-filter cat -- --all
+# 或者直接删除目录下的所有文件
+# git filter-branch --force --index-filter 'git rm -rf --cached --ignore-unmatch  gitbook/**' --prune-empty --tag-name-filter cat -- --all
+</code></pre>
+<p>强制推送</p>
+<pre><code class="language-shell"># git push --force --all
+</code></pre>
+<p>本地的<code>repo</code>里面仍然保留了这些<code>objects</code>, 等待<code>GC</code>垃圾回收，因此需要彻底清除并收回空间</p>
+<pre><code class="language-shell"># rm -rf .git/refs/original/
+# git reflog expire --expire=now --all
+# git gc --prune=now
+Enumerating objects: 40395, done.
+Counting objects: 100% (40395/40395), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (5546/5546), done.
+Writing objects: 100% (40395/40395), done.
+Total 40395 (delta 19454), reused 35405 (delta 16700), pack-reused 0
+Removing duplicate objects: 100% (256/256), done.
+</code></pre>
+<h3 id="44-按照pack文件直接操作">4.4 按照pack文件直接操作</h3>
+<p>除了上面的方式，也可以通过直接找到大的<code>pack</code>文件，基于这些文件进行快速操作</p>
+<pre><code class="language-shell"># 找到pack文件，重建索引
+git filter-branch --index-filter 'git rm -r --cached --ignore-unmatch .git/objects/pack/xxxxx.pack' --prune-empty
+# 删除和重建的索引
+# git for-each-ref --format='delete %(refname)' refs/original | git update-ref --stdin
+# 设置reflog过期
+git reflog expire --expire=now --all
+# 清理垃圾
+git gc --aggressive --prune=now
+</code></pre>
+<h2 id="5-大文件存储的正确方式">5、大文件存储的正确方式</h2>
+<p>大文件一般是不建议直接存储到<code>git</code>仓库中的，<code>git</code>仓库是代码仓库，存放的应该是<code>n</code>个代码文件（其实也可以认为是文本文件）</p>
+<p>如果是作为仓库管理员，应该有意识的将<code>git</code>仓库设置一个允许的文件大小限制</p>
+<p>如果是非变化性的大文件，可以存储到专用的文件服务器、对象存储等</p>
+<p>如果非要在版本库中存储大文件，更好的方式是通过<code>git-lfs</code>，及时使用 <code>lfs</code> 来追踪、记录和管理大文件。这样大文件既不会污染我们的 <code>.git</code> 目录，也可以让我们更方便的使用，这里不多做原理展开，</p>
+<p>简单来说操作方法如下</p>
+<pre><code class="language-shell"># 1.开启lfs功能
+# git lfs install
+# 2.追踪所有后缀名为“.psd”的文件
+# git lfs track &quot;*.iso&quot;
+# 3.追踪单个文件
+git lfs track &quot;logo.png&quot;
+# 4.提交存储信息文件
+# git add .gitattributes
+# 5.提交并推送到GitHub仓库
+# git add .
+# git commit -m &quot;Add some files&quot;
+# git push origin master
+</code></pre>
+<p>关于<code>git-lfs</code>的使用及原理说明可以参考国内的<code>gitee</code>官方帮助说明文档<a href="https://gitee.com/help/articles/4235#article-header9">Git LFS 操作指南</a></p>
+<h2 id="6-其他解决方案">6、其他解决方案</h2>
+<p>除了上面的操作，还可以利用更为好用的开源效率工具<code>bfg</code>进行清理，参考<a href="https://rtyley.github.io/bfg-repo-cleaner/"><code>bfg</code>文档</a>，配置好<code>java</code>环境后，操作如下</p>
+<pre><code class="language-shell"># 下载封装好的jar包
+$ wget https://repo1.maven.org/maven2/com/madgag/bfg/1.13.0/bfg-1.13.0.jar
+
+# 克隆的时候需要--mirror参数
+$ git clone --mirror git://example.com/big-repo.git
+
+# 运行BFG来清理存储库
+$ java -jar bfg.jar --strip-blobs-bigger-than 100M big-repo.git
+
+# 去除脏数据
+$ cd big-repo.git
+$ git reflog expire --expire=now --all
+$ git gc --prune=now --aggressive
+
+# 推送上去
+# 此推将更新远程服务器上的所有refs分支
+$ git push
+</code></pre>
+<p>其他用法</p>
+<pre><code class="language-shell"># 删除所有的名为'id_dsa'或'id_rsa'的文件
+$ java -jar bfg.jar --delete-files id_{dsa,rsa}  my-repo.git
+# 删除所有大于50M的文件
+$ java -jar bfg.jar --strip-blobs-bigger-than 50M  my-repo.git
+# 删除文件夹下所有的文件
+$ java -jar bfg.jar --delete-folders doc  my-repo.git
+</code></pre>
+<h2 id="7-小结">7、小结</h2>
+<p>本文分析了<code>git</code>底层版本控制的存储实现，分析了版本控制系统中大文件的产生，并通过一定手段进行解决。</p>
+<p>要提到的是，上面的操作难免也会出现风险，如果是作为一个规范的代码仓库，应该在前期就做好规划，避免大文件提交到仓库，规范每一次的提交记录，做好<code>code review</code>及仓库管理</p>
+<p>See you ~</p>
+<p>参考文档：https://harttle.land/2016/03/22/purge-large-files-in-gitrepo.html#header-6</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Django自定义实现分页器]]></title>
         <id>https://www.ssgeek.com/post/django-zi-ding-yi-shi-xian-fen-ye-qi</id>
@@ -3794,228 +4092,6 @@ CMD java -Djava.security.egd=file:/dev/./urandom -javaagent:/skywalking/agent/sk
 <p>拓扑图</p>
 <figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20210326-03.png" alt=""></figure>
 <p>see you ~</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Jenkins API+Pipeline深度实践之input的自动化]]></title>
-        <id>https://www.ssgeek.com/post/jenkins-apipipeline-shen-du-shi-jian-zhi-input-de-zi-dong-hua</id>
-        <link href="https://www.ssgeek.com/post/jenkins-apipipeline-shen-du-shi-jian-zhi-input-de-zi-dong-hua">
-        </link>
-        <updated>2021-03-23T16:10:22.000Z</updated>
-        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
-<li>
-<ul>
-<li><a href="#1-pipeline-input%E6%A6%82%E8%BF%B0">1、pipeline input概述</a></li>
-<li><a href="#2-%E8%83%8C%E6%99%AF%E6%A6%82%E8%BF%B0">2、背景概述</a></li>
-<li><a href="#3-%E6%8E%A8%E7%90%86%E5%8F%8A%E6%B5%8B%E8%AF%95">3、推理及测试</a>
-<ul>
-<li><a href="#31-%E9%80%9A%E8%BF%87crumb%E5%AE%89%E5%85%A8%E6%93%8D%E4%BD%9Cjenkins">3.1 通过Crumb安全操作Jenkins</a></li>
-<li><a href="#32-%E9%80%9A%E8%BF%87token%E5%AE%89%E5%85%A8%E6%93%8D%E4%BD%9Cjenkins">3.2 通过Token安全操作Jenkins</a></li>
-<li><a href="#33-api%E6%93%8D%E4%BD%9C">3.3 API操作</a></li>
-<li><a href="#34-input%E7%9A%84%E6%94%B9%E9%80%A0">3.4 input的改造</a></li>
-</ul>
-</li>
-<li><a href="#4-%E8%87%AA%E5%8A%A8%E5%8C%96input%E7%9A%84%E6%9C%80%E7%BB%88%E5%AE%9E%E7%8E%B0">4、自动化input的最终实现</a></li>
-<li><a href="#5-%E5%B0%8F%E7%BB%93">5、小结</a></li>
-</ul>
-</li>
-</ul>
-</p>
-<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210324-02.jpg" alt=""></figure>
-<blockquote>
-<p>本文分享的小<code>Tips</code>是在我前面的文章<a href="https://www.ssgeek.com/post/devops-jian-she-zhi-ji-yu-ding-ding-oa-shen-pi-liu-de-zi-dong-hua-shang-xian/">DevOps建设之基于钉钉OA审批流的自动化上线</a>中提到的，当通过<code>API</code>自动触发<code>Jenkins Pipeline</code>流水线执行时，如果原来的流水线中定义了在构建正式开始后还需要接收用户<code>input</code>的步骤，想要自动绕过或自动执行<code>input</code>的方法</p>
-</blockquote>
-<h2 id="1-pipeline-input概述">1、pipeline input概述</h2>
-<p>首先回过头再来看看<code>pipeline input</code>的语法及功能，参考我之前总结的<a href="https://www.ssgeek.com/post/jenkinspipeline-yu-fa-gai-yao/#310-input"><code>pipeline input</code>语法</a></p>
-<p><code>input</code>指令<code>stage</code>允许使用<code>input step</code>提示输入。在<code>stage</code>将暂停任何后<code>options</code>已被应用，并在进入前<code>agent</code>块为<code>stage</code>或评估<code>when</code>的条件<code>stage</code>。如果<code>input</code>批准，<code>stage</code>则将继续。作为<code>input</code>提交的一部分提供的任何参数将在其余的环境中可用<code>stage</code>。</p>
-<p><strong>可选项</strong></p>
-<ul>
-<li>message<br>
-必需的，这将在用户提交时显示给用户<code>input</code></li>
-<li>id<br>
-可选标识符<code>input</code>，默认为<code>stage</code>名称</li>
-<li>ok<br>
-<code>input</code>表单上“确定”按钮的可选文本</li>
-<li>submitter<br>
-可选的逗号分隔列表，这些列表允许用户提交此用户或外部组名<code>input</code>。默认为允许任何用户。</li>
-<li>submitterParameter<br>
-环境变量的可选名称，用该<code>submitter</code>名称设置（如果存在）</li>
-<li>parameters<br>
-提示提交者提供的可选参数列表。请参阅<a href="https://www.jenkins.io/doc/book/pipeline/syntax/#parameters">Pipeline parameters</a>以获取更多信息</li>
-</ul>
-<h2 id="2-背景概述">2、背景概述</h2>
-<p>基于上面的语法描述，我这里线上发布流水线中<code>input</code>的功能仅仅是需要用户进行确认，所以没有传递任何参数，通过这种简单的<code>input</code>控制及<code>timeout</code>超时机制，实现了用户选择参数并点击开始构建后需要在60秒内二次确认的功能，流水线的部分内容如下</p>
-<pre><code class="language-groovy">stage('Deploy to prod'){
-    when {
-        environment name: 'PerformType', value: 'Deploy'
-    }
-    steps{
-        timeout(time:60, unit:'SECONDS') {
-        input &quot;确认要部署到线上环境吗？&quot;              
-            script{
-                try {
-                    ...
-                }
-                catch (exc) {
-                    ...
-                    throw(exc)
-                }
-            }
-        }
-    }
-}
-</code></pre>
-<p>到这里问题就产生了，<code>input</code>的过程是在流水线运行过程中动态出现的，如果是想要在钉钉<code>OA</code>审批通过后自动通过调用<code>jenkins api</code>并传入参数让整个流水线自动执行，并且自动进行<code>input</code>的确认操作或者绕过<code>input</code>，应该怎么做呢？</p>
-<h2 id="3-推理及测试">3、推理及测试</h2>
-<p>刚开始没有任何思路，唯一想到的办法就是把<code>input</code>的过程从<code>pipeline</code>中去除掉，这样就没有任何烦恼了</p>
-<p>但是为了保留原有<code>pipeline</code>设计的完整性，显然这种做法不够友好，只是避开了这个难点，是不可取的</p>
-<p>通过查找发现这方面的资料很少，最终有用的资料如下</p>
-<ul>
-<li><a href="https://www.jenkins.io/doc/pipeline/steps/pipeline-input-step/">input官方说明</a></li>
-</ul>
-<p><code>input</code>语法中可选字段包含<code>id</code>，每个<code>input</code>步骤都有一个唯一的<code>ID</code>。在生成的<code>URL</code>中可以使用它来继续或中止</p>
-<p>例如，可以使用特定的<code>ID</code>来机械地响应来自某些外部过程/工具的输入</p>
-<ul>
-<li>https://www.thinbug.com/q/48799442</li>
-</ul>
-<p>这篇文章中讲到了如何通过<code>Jenkins REST API</code>恢复暂停的管道？作为参考起到了一定帮助</p>
-<p>为了完成整个自动化<code>input</code>的过程，具体的演进流程如下</p>
-<h3 id="31-通过crumb安全操作jenkins">3.1 通过Crumb安全操作Jenkins</h3>
-<p><code>Crumb</code>指的是<code>Jenkins</code>的<code>CSRF token</code>，<code>Jenkins</code>服务器为了阻止不安全的跨域请求，默认开启了<code>CSRF</code>保护，参考<a href="https://www.jenkins.io/doc/book/using/remote-access-api/"><code>Jenkins</code>远程<code>API</code>访问</a></p>
-<p><a href="https://www.jenkins.io/doc/book/managing/security/#cross-site-request-forgery"><code>Jenkins</code>的<code>CSRF</code>配置</a>可以在「系统管理」——&gt; 「全局安全配置」——&gt; 「CSRF Protection」相关配置中关闭此保护，跨站请求伪造这是一个很常见的安全问题，为了安全起见建议不关闭。如果关闭，这里的内容可以略过。</p>
-<p>当<code>Jenkins</code>开启<code>CSRF</code>保护后，可以通过固定的接口获得一个安全的<code>Crumb</code>以便于通过<code>API</code>操作<code>Jenkins</code>，以<code>curl</code>请求为例，请求的可选方式一般是两种，如下</p>
-<pre><code class="language-shell">方法一：
-curl -u &lt;username&gt;:&lt;password&gt; 'https://jenkins.ssgeek.com/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,&quot;:&quot;,//crumb)'
-Jenkins-Crumb:dc78dfb9615fb56bbf2001fb99c64dbd3331c5e14c8d4edd54722e7ca790529e%
-
-方法二：
-curl -u &lt;username&gt;:&lt;password&gt; 'https://jenkins.ssgeek.com/crumbIssuer/api/json'
-{&quot;_class&quot;:&quot;hudson.security.csrf.DefaultCrumbIssuer&quot;,&quot;crumb&quot;:&quot;52d605f43328f15303c2e68eb492b9656e229ce124c2f5f2e39b6f552f54e4ac&quot;,&quot;crumbRequestField&quot;:&quot;Jenkins-Crumb&quot;}%
-</code></pre>
-<p>以上两种方式都可以获取一个<code>Crumb</code>，然后就能带着它去请求<code>Jenkins</code>的<code>API</code>了</p>
-<pre><code class="language-shell">curl -u &lt;username&gt;:&lt;password&gt; -X POST -H &quot;Jenkins-Crumb:b220147dbdf3cfebbeba4c29048c2e33&quot; -d &lt;data&gt; 'https://jenkins.ssgeek.com/&lt;jenkins api url&gt;'
-</code></pre>
-<h3 id="32-通过token安全操作jenkins">3.2 通过Token安全操作Jenkins</h3>
-<p>在官方文档的描述中有这样一句话：API tokens are preferred instead of crumbs for CSRF protection.</p>
-<p>意为在开启了<code>CSRF</code>的情况下，首选的是通过<code>API token</code>操作而不是<code>crumb</code>，这里的<code>API token</code>指的就是<code>Jenkins</code>中用户的<code>API token</code></p>
-<p>可以通过「用户」——&gt; 「设置」——&gt; 「API Token」——&gt; 「添加新Token」来获得一个<code>api token</code>，有了这个<code>Token</code>之后，以<code>curl</code>请求为例操作<code>Jenkins</code>的<code>API</code>方式如下</p>
-<pre><code class="language-shell">curl -u user_id:user_api_token -X POST -d &lt;data&gt; 'https://jenkins.ssgeek.com/&lt;jenkins api url&gt;'
-</code></pre>
-<h3 id="33-api操作">3.3 API操作</h3>
-<p>参考上面的文档资料<a href="https://www.thinbug.com/q/48799442">使用Jenkins REST API恢复暂停的管道</a></p>
-<p>对于<code>input</code>有这样的<code>api</code>接口地址可以使用，用于将输入发送到等待的输入步骤。<code>url</code>格式如下</p>
-<pre><code class="language-shell">http://&lt;JenkinsURL&gt;/&lt;JobURL&gt;/&lt;Build＃&gt;/input/&lt;InputID&gt;/submit
-</code></pre>
-<p>需要满足的条件</p>
-<ul>
-<li>
-<p>如果<code>Jenkins</code>启用了<code>CSRF</code>保护，则您需要使用<code>Crumb</code>或<code>API Token</code></p>
-</li>
-<li>
-<p>请求通过<code>POST</code>方式发送</p>
-</li>
-<li>
-<p>需要提供参数名为<code>proceed</code>的值，并且以<code>OK</code>作为参数值</p>
-</li>
-<li>
-<p>为了提供数据，需要带有<code>json</code>格式的参数，这些参数就是在<code>input</code>阶段需要接收的参数，格式为</p>
-<pre><code class="language-json">{
-    &quot;parameter&quot;:[
-        {
-            &quot;name&quot;:&quot;param1&quot;,
-            &quot;value&quot;:&quot;valueOfParam1&quot;
-        },
-        {
-            &quot;name&quot;:&quot;param2&quot;,
-            &quot;value&quot;:&quot;valueOfParam2&quot;
-        }
-    ]
-}
-</code></pre>
-<p>如果没有发送有效的<code>json</code>参数，则流水线也将继续进行，只是不会获得任何参数（这也可能导致流水线最终执行失败），如果成功则返回<code>302</code>状态码并重定向到用户界面</p>
-</li>
-<li>
-<p>必须填写<code>input id</code>，因此要从外部连接到的<code>input</code>步骤配置唯一的<code>id</code></p>
-</li>
-<li>
-<p>也可以使用下面的url，如果流水线成功，则返回状态码为<code>200</code>且响应为空</p>
-<pre><code class="language-shell">http://&lt;Jenkins URL&gt;/job/&lt;YOUR_PROJECT&gt;/&lt;BUILD_NUMBER&gt;/wfapi/inputSubmit
-</code></pre>
-</li>
-</ul>
-<p>其他可用的<code>api</code>接口地址以及作用</p>
-<ul>
-<li>用于中止流水线</li>
-</ul>
-<pre><code class="language-shell">http://&lt;Jenkins URL&gt;/job/&lt;YOUR_PROJECT&gt;/&lt;BUILD_NUMBER&gt;/input/&lt;INPUT_ID&gt;/abort
-</code></pre>
-<ul>
-<li>不传入任何参数并继续进行流水线</li>
-</ul>
-<pre><code class="language-shell">http://&lt;Jenkins URL&gt;/job/&lt;YOUR_PROJECT&gt;/&lt;BUILD_NUMBER&gt;/input/&lt;INPUT_ID&gt;/proceedEmpty
-</code></pre>
-<p>对于本文中我的需求，只需要在<code>input</code>执行时自动确认且无需传入任何参数即可，因此使用的接口地址为上面的最后一种（其余接口地址未测试）</p>
-<h3 id="34-input的改造">3.4 input的改造</h3>
-<p>为了实现在<code>input</code>执行时自动确认，需要对流水线的<code>input</code>部分进行改造，加入一个固定的<code>id</code>即可</p>
-<p>由于定义的<code>id</code>都是固定的，因此可以利用脚本对所有的流水线涉及到这种<code>input</code>的部分批量更新，这里就不列出具体方法了</p>
-<p>最终我的流水线调整如下</p>
-<pre><code class="language-groovy">stage('Deploy to prod'){
-    when {
-        beforeInput true
-        environment name: 'PerformType', value: 'Deploy'
-    }
-    options {
-        timeout(time:60, unit:'SECONDS')
-    }
-    input {
-        message &quot;确认要部署到线上环境吗？&quot;
-        id &quot;CustomId&quot;
-    }
-    steps{
-        script{
-            try {
-                ...
-            }
-            catch (exc) {
-                ...
-                throw(exc)
-            }
-        }
-    }
-}
-</code></pre>
-<h2 id="4-自动化input的最终实现">4、自动化input的最终实现</h2>
-<p>经过上面的推理和测试，解决了通过<code>API</code>自动执行<code>input</code>进行流水线确认的问题</p>
-<p>这里还剩下最后一个问题，通过测试发现，想要自动执行<code>input</code>过程，其接口对应的<code>url</code>地址并不是一直存在的，而是在流水线执行开始后到达<code>input</code>的时候才会出现，出现时通过浏览器访问查看如下</p>
-<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210324-01.png" alt=""></figure>
-<p>而其余时间发送请求都会返回<code>404</code>状态码，此时是无法接收<code>post</code>请求的，因此想要自动化执行<code>input</code>并不只是简单的向接口发送<code>POST</code>请求了</p>
-<p><strong>我这里的解决思路</strong>：</p>
-<p>在发送流水线开始执行的请求后，立即通过代码循环请求并判断接口地址返回的状态码是否是<code>200</code></p>
-<p>如果不是，那么表示流水线还没执行到这里；如果是，就可以完美的向这个地址发送自动执行的请求了</p>
-<p>以<code>python</code>语言调用<code>Jenkins api</code>为例，用到了<code>python-jenkins</code>这个包，在触发构建时使用<code>build_job</code>这个方法，这个方法返回值刚好是<code>job</code>任务的<code>build number</code>，这恰好是接口地址组成中需要的一部分</p>
-<p>好了，上最终的部分代码</p>
-<pre><code class="language-python">def auto_job_input(self, server_url, job_name, build_number):
-    &quot;&quot;&quot;
-    根据input阶段生成的url http状态码，判断当前job流水线运行的stage否进行到了input步骤
-    自动执行input or 继续判断
-    :param job_name:
-    :param build_number:
-    :return:
-    &quot;&quot;&quot;
-    # https://jenkins.ssgeek.com/job/input-demo/64/input
-    get_url = server_url + &quot;/job/&quot; + job_name + &quot;/&quot; + str(build_number) + &quot;/input&quot;
-    # https://jenkins.ssgeek.com/job/input-demo/64/input/CustomId/proceedEmpty
-    post_url = get_url + &quot;/CustomId/proceedEmpty&quot;
-    s = requests.Session()
-    res_code_get = s.get(url=get_url, auth=('user_id', 'user_token')).status_code
-    while res_code_get != 200:
-        res_code_get = s.get(url=get_url, auth=('user_id', 'user_token')).status_code
-    res_code_post = s.post(url=post_url, auth=('user_id', 'user_token'), data=None).status_code
-    return res_code_post
-</code></pre>
-<p>关键部分代码量很少，利用<code>request</code>并且携带认证参数进行请求，如果有大佬有更好的方案欢迎与我交流</p>
-<h2 id="5-小结">5、小结</h2>
-<p>到这里，通过一步步推理演进，在流水线中<code>input</code>的自动化执行就完美实现了，最终既实现了调用<code>api</code>触发自动构建并执行<code>input</code>进行自动确认，同时也保留了原流水线的<code>input</code>设计，对原有流水线只需要做很小的调整。</p>
 ]]></content>
     </entry>
 </feed>
