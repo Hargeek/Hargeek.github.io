@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://www.ssgeek.com</id>
     <title>山山仙人博客</title>
-    <updated>2021-05-31T15:42:34.069Z</updated>
+    <updated>2021-06-02T16:12:02.907Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://www.ssgeek.com"/>
     <link rel="self" href="https://www.ssgeek.com/atom.xml"/>
@@ -10,6 +10,165 @@
     <logo>https://www.ssgeek.com/images/avatar.png</logo>
     <icon>https://www.ssgeek.com/favicon.ico</icon>
     <rights>All rights reserved 2021, 山山仙人博客</rights>
+    <entry>
+        <title type="html"><![CDATA[浅谈GoPath和Go Modules包管理]]></title>
+        <id>https://www.ssgeek.com/post/qian-tan-gopath-he-go-modules-bao-guan-li</id>
+        <link href="https://www.ssgeek.com/post/qian-tan-gopath-he-go-modules-bao-guan-li">
+        </link>
+        <updated>2021-06-02T16:11:22.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">1、概述</a></li>
+<li><a href="#2-gopath%E4%BB%8B%E7%BB%8D">2、GOPATH介绍</a>
+<ul>
+<li><a href="#21-gopath%E7%9B%AE%E5%BD%95">2.1 GOPATH目录</a></li>
+<li><a href="#22-gopath%E7%9A%84%E7%BC%BA%E7%82%B9">2.2 GOPATH的缺点</a></li>
+</ul>
+</li>
+<li><a href="#3-go-module%E4%BB%8B%E7%BB%8D">3、GO Module介绍</a>
+<ul>
+<li><a href="#31-%E8%AE%BE%E5%AE%9Ago111module%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F">3.1 设定GO111MODULE环境变量</a></li>
+<li><a href="#32-%E5%88%9D%E5%A7%8B%E5%8C%96mod">3.2 初始化mod</a></li>
+<li><a href="#33-go-mod%E5%91%BD%E4%BB%A4">3.3 go mod命令</a></li>
+</ul>
+</li>
+<li><a href="#4-%E6%80%BB%E7%BB%93">4、总结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210603-01.png" alt=""></figure>
+<h2 id="1-概述">1、概述</h2>
+<p>大多数语言都有“依赖”、“包”等概念，<code>Go</code>语言的依赖处理经历了几次变革</p>
+<p>最早的时候，<code>Go</code>所依赖的所有的第三方库都放在<code>GOPATH</code>这个目录下面</p>
+<p>从<code>v1.5</code>开始开始引入<code>vendor</code>模式，如果项目目录下有<code>vendor</code>目录，那么<code>go</code>工具链会优先使用<code>vendor</code>内的包进行编译、测试等</p>
+<p>从<code>v1.11</code>开始，引入了<code>Go Module</code> 作为依赖解决方案，到<code>v1.14</code>宣布<code>Go Module</code>已经可以用于生产环境，到<code>v1.16</code>版本开始<code>Go Module</code>默认开启</p>
+<h2 id="2-gopath介绍">2、GOPATH介绍</h2>
+<h3 id="21-gopath目录">2.1 GOPATH目录</h3>
+<p><code>GOPATH</code>是什么，输入如下命令查看</p>
+<pre><code class="language-shell"># go env GOPATH
+GOPATH=&quot;/Users/ssgeek/go&quot;
+</code></pre>
+<p>进入到该目录下，目录结构如下</p>
+<pre><code class="language-shell"># cd `go env GOPATH`
+# tree -L 2 .
+.
+├── bin
+│   ├── dlv
+│   ├── go-outline
+│   ├── gomodifytags
+│   ├── gopkgs
+│   ├── goplay
+│   ├── gopls
+│   ├── gotests
+│   ├── impl
+│   └── staticcheck
+├── pkg
+│   ├── mod
+│   └── sumdb
+└── src
+    └── github.com
+    ...
+</code></pre>
+<p>三个目录中存放的文件说明如下</p>
+<pre><code class="language-shell">bin //用来存放编译后的可执行文件
+pkg //用于存放编译后生成的归档文件
+src //用来存放go源码文件
+</code></pre>
+<h3 id="22-gopath的缺点">2.2 GOPATH的缺点</h3>
+<p>在使用<code>GOPATH</code>的模式下，我们需要将应用代码存放在固定的<code>$GOPATH/src</code>目录下，并且如果执行<code>go get</code>来拉取外部依赖会自动下载并安装到<code>$GOPATH</code>目录下</p>
+<p>第三方套件只要不是官方库，都需要放置在<code>GOPATH/src</code>的路径下才可以使用</p>
+<p><code>go get</code>最常用在当我们想用别人公开在<code>GitHub</code>上的套件，可以帮我们从网络<code>clone</code>到<code>GOPATH/src</code>里面。虽然这样很方便，但是会发现<code>GOPATH/src</code>下会很复杂，除了有你自己开发的代码目录，同时也包含其他第三方库的专属目录</p>
+<p>我们给不同的项目设置不同的<code>GoPath</code>，优点非常明显：</p>
+<p>便于管理项目，每个项目都是不同的<code>GoPath</code>，这对于我们管理多个<code>Golang</code>项目而言，能够非常清晰的处理项目结构。如果我们把所有项目都放在同一个<code>GoPath</code>的<code>src</code>包下，那么项目的结构就会变得非常混乱，难以管理</p>
+<p>但是当我们需要依赖第三方的包的时候，不同的项目设置不同的<code>GoPath</code>的缺点也非常明显：</p>
+<ol>
+<li>第三方依赖的包和我们自己的<code>Golang</code>包混在一起，会给我们的项目文件管理带来一定的麻烦</li>
+<li>不同的<code>GoPath</code>都需要下载依赖，那么磁盘中重复的依赖就会非常多，会占用我们大量的磁盘空间</li>
+</ol>
+<h2 id="3-go-module介绍">3、GO Module介绍</h2>
+<p>为了解决<code>GOPATH</code>的问题，因此官方在<code>1.11</code>开始推出了<code>Go Modules</code>的功能。<code>Go Modules</code>解决方式很像是<code>Java</code>看到<code>Maven</code>的做法，将第三方库储存在本地的空间，并且给项目代码去引用</p>
+<h3 id="31-设定go111module环境变量">3.1 设定GO111MODULE环境变量</h3>
+<p>总共可以设置三种不同的值</p>
+<ul>
+<li>auto</li>
+</ul>
+<p>默认值，<code>go</code>命令会根据当前目录来决定是否启用<code>modules</code>功能。需要满足两种情形：<br>
+该目录不在<code>GOPATH/src/</code>下<br>
+当前或上一层目录存在<code>go.mod</code>文件</p>
+<ul>
+<li>on</li>
+</ul>
+<p><code>go</code>命令会使用<code>modules</code>，而不会去<code>GOPATH</code>目录下查找。</p>
+<ul>
+<li>off</li>
+</ul>
+<p><code>go</code>命令将不会支持<code>module</code>功能，寻找依赖按照以前<code>GOPATH</code>的做法去寻找</p>
+<p>目前<code>1.16</code>版本默认将这个参数设置成<code>on</code>，而且可能之后的版本会弃用掉<code>GO111MODULE</code>，因此建议要开发<code>Go</code>项目时就不再使用<code>GOPATH</code>了，而是采用<code>Go Modules</code>的做法，因此建议都设定<code>为on</code></p>
+<p>采用<code>Go Modules</code>，下载下来的第三方依赖就位于<code>GOPATH/pkg/mod</code>目录下</p>
+<h3 id="32-初始化mod">3.2 初始化mod</h3>
+<pre><code class="language-shell">go mod init &lt;module name&gt;
+</code></pre>
+<p><code>&lt;module name&gt;</code>可填可不填，不填的话预设就是默认的文件名称<code>go.mod</code></p>
+<p>在此文件中可以写以下几个关键字：</p>
+<ul>
+<li>module</li>
+</ul>
+<p>定义模组路径</p>
+<ul>
+<li>go</li>
+</ul>
+<p>定义<code>go</code>语言<code>version</code></p>
+<ul>
+<li>require</li>
+</ul>
+<p>指定依赖，预设是最新版，可以指定版本号</p>
+<ul>
+<li>exclude</li>
+</ul>
+<p>排除该依赖和其版本</p>
+<ul>
+<li>replace</li>
+</ul>
+<p>使用不同的依赖版本并替换原有的依赖版本注解<br>
+<code>indirect</code>代表被间接导入的依赖包</p>
+<p>假设现在我要引入GitHub上的<code>gin-gonic/gin</code>的依赖，如下定义：</p>
+<pre><code class="language-go">module myProject
+go 1.16
+require github.com/gin-gonic/gin v1.6.3
+</code></pre>
+<p>再执行以下指令：</p>
+<pre><code class="language-go">go mod xxx
+</code></pre>
+<p>会将需要的依赖安装在<code>GOPATH/pkg/mod</code>目录里面</p>
+<pre><code class="language-go">gin@v1.4.0 gin@v1.6.3 gin@v1.7.1
+</code></pre>
+<p>除了<code>go.mod</code>之外，<code>go</code>命令还维护一个名为<code>go.sum</code>的文件，其中包含特定模块版本内容的预期加密哈希<br>
+<code>go</code>命令使用<code>go.sum</code>文件确保这些模块的未来下载检索与第一次下载相同，以确保项目所依赖的模块不会出现意外更改，无论是出于恶意、意外还是其他原因。 <code>go.mod</code>和<code>go.sum</code>都应检入版本控制。<br>
+<code>go.sum</code>不需要手工维护，所以可以不用太关注</p>
+<p>只要有开启<code>go modules</code>功能，<code>go get</code> 就不会像以前一样在<code>GOPATH/src</code>下放置依赖，而是会放在<code>GOPATH/pkg/mod</code>里面，并且<code>go.mod</code>会写好引入</p>
+<h3 id="33-go-mod命令">3.3 go mod命令</h3>
+<p>常用</p>
+<pre><code class="language-shell">go mod init：初始化go mod， 生成go.mod文件，后可接参数指定 module 名，上面已经演示过。
+go mod download：手动触发下载依赖包到本地cache（默认为$GOPATH/pkg/mod目录）
+go list -m -json all：以 json 的方式打印依赖详情
+</code></pre>
+<p>其他</p>
+<pre><code class="language-shell">go mod graph： 打印项目的模块依赖结构
+go mod tidy ：添加缺少的包，且删除无用的包
+go mod verify ：校验模块是否被篡改过
+go mod why： 查看为什么需要依赖
+go mod vendor ：导出项目所有依赖到vendor下
+go mod edit ：编辑go.mod文件
+</code></pre>
+<h2 id="4-总结">4、总结</h2>
+<p><code>GoPath</code>所引出的问题，就是因为第三方类库的包所导致的，所以在有了<code>GoModule</code>之后，<code>GoPath</code>和<code>GoModule</code>就分别负责不同的职责，共同为<code>Golang</code>项目服务</p>
+<p><code>GoPath</code>用来存放我们从网上拉取的第三方依赖包<br>
+<code>GoModule</code>用来存放我们自己的<code>Golang</code>项目文件，当自己的项目需要依赖第三方的包的时候，我们通过<code>GoModule</code>目录下的一个<code>go.mod</code>文件来引用<code>GoPath</code>目录<code>pkg</code>包下的<code>mod</code>文件夹下的第三方依赖即可</p>
+<p>这样以来，既解决了原来只能局限在<code>GoPath</code>目录<code>src</code>包下进行编程的问题，也解决了第三方依赖包难以管理和重复依赖占用磁盘空间的问题</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Git目录为什么这么大]]></title>
         <id>https://www.ssgeek.com/post/git-mu-lu-wei-shi-me-zhe-me-da</id>
@@ -3872,226 +4031,6 @@ root@web-5ff5cd75f8-74pr6:/usr/local/apache2# cat /proc/cpuinfo| grep &quot;proc
 <p>参考：</p>
 <p>https://github.com/denverdino/lxcfs-admission-webhook</p>
 </blockquote>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[SkyWalking链路追踪系统-接入篇]]></title>
-        <id>https://www.ssgeek.com/post/skywalking-lian-lu-zhui-zong-xi-tong-jie-ru-pian</id>
-        <link href="https://www.ssgeek.com/post/skywalking-lian-lu-zhui-zong-xi-tong-jie-ru-pian">
-        </link>
-        <updated>2021-03-25T16:10:14.000Z</updated>
-        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
-<li>
-<ul>
-<li><a href="#1-%E4%BB%8B%E7%BB%8D">1、介绍</a>
-<ul>
-<li><a href="#11-%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84">1.1 整体架构</a></li>
-<li><a href="#12-%E4%B8%BB%E8%A6%81%E6%A6%82%E5%BF%B5">1.2 主要概念</a></li>
-</ul>
-</li>
-<li><a href="#2-%E5%87%86%E5%A4%87agent%E5%8C%85">2、准备agent包</a></li>
-<li><a href="#3-%E6%89%93%E5%8C%85%E5%88%B6%E4%BD%9C%E9%95%9C%E5%83%8F">3、打包制作镜像</a></li>
-<li><a href="#4-%E6%B3%A8%E5%85%A5%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F">4、注入环境变量</a></li>
-<li><a href="#5-%E9%83%A8%E7%BD%B2%E5%90%AF%E5%8A%A8%E5%B9%B6%E6%9F%A5%E7%9C%8Bui">5、部署启动并查看ui</a></li>
-</ul>
-</li>
-</ul>
-</p>
-<h2 id="1-介绍">1、介绍</h2>
-<p>在前面的文章中讲到<a href="https://www.ssgeek.com/post/skywalking-lian-lu-zhui-zong-xi-tong-bu-shu-pian/">SkyWalking链路追踪系统-部署篇</a>，接下来在正式接入<code>Skywalking</code>探针<code>agent</code>之前，先来接着了解一下<code>Skywalking</code>的整体架构和主要概念(内容主要汇总自官方文档或网络)</p>
-<h3 id="11-整体架构">1.1 整体架构</h3>
-<p>以下是来自<code>Skywalking</code>官方<code>Github</code>库上的一张架构图</p>
-<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210319-01.jpeg" alt=""></figure>
-<p>整体架构包含如下三个组成部分：</p>
-<ol>
-<li>探针(<code>agent</code>)负责进行数据的收集，包含了<code>Tracing</code>和<code>Metrics</code>的数据，<code>agent</code>会被安装到服务所在的服务器上，以方便数据的获取。</li>
-<li>可观测性分析平台<code>OAP</code>(Observability Analysis Platform)，接收探针发送的数据，并在内存中使用分析引擎（<code>Analysis Core</code>)进行数据的整合运算，然后将数据存储到对应的存储介质上，比如 <code>Elasticsearch</code>、<code>MySQL</code>数据库、<code>H2</code>数据库等。同时<code>OAP</code>还使用查询引擎(<code>Query Core</code>)提供<code>HTTP</code>查询接口。</li>
-<li><code>Skywalking</code>提供单独的<code>UI</code>进行数据的查看，此时<code>UI</code>会调用<code>OAP</code>提供的接口，获取对应的数据然后进行展示。</li>
-</ol>
-<p><code>Skywalking</code>提供<code>Tracing</code>和<code>Metrics</code>数据的获取和聚合：</p>
-<p><code>Metric</code>的特点是，它是可累加的：他们具有原子性，每个都是一个逻辑计量单元，或者一个时间 段内的柱状图。 例如：队列的当前深度可以被定义为一个计量单元，在写入或读取时被更新统 计； 输入<code>HTTP</code>请求的数量可以被定义为一个计数器，用于简单累加； 请求的执行时间可以被定 义为一个柱状图，在指定时间片上更新和统计汇总。</p>
-<p><code>Tracing</code>的最大特点就是，它在单次请求的范围内，处理信息。 任何的数据、元数据信息都被绑定 到系统中的单个事务上。 例如：一次调用远程服务的<code>RPC</code>执行过程；一次实际的<code>SQL</code>查询语句； 一次<code>HTTP</code>请求的业务性<code>ID</code>。</p>
-<p>总结，<code>Metric</code>主要用来进行数据的统计，比如<code>HTTP</code>请求数的计算。<code>Tracing</code>主要包含了某一次请求的链路数据。</p>
-<p>详细的内容可以查看<code>Skywalking</code>开发者吴晟翻译的文章，<a href="http://blog.oneapm.com/apm-tech/811.html">Metrics , tracing 和 logging 的关系</a></p>
-<h3 id="12-主要概念">1.2 主要概念</h3>
-<p><code>Skywalking</code>主要概念包含：</p>
-<ul>
-<li>服务(Service) ：用户服务就是<code>Skywalking</code>的服务<code>Service</code>，用户服务其实就是一个独立的应用<code>Application</code>，在<code>6.0</code>版本之后的<code>Skywalking</code>将应用更名为服务<code>Service</code></li>
-<li>端点(Endpoint) ：用户服务对外提供的<code>HTTP</code>接口例如<code>/usr/list</code>就是一个端点，端点就是对外提供的接口</li>
-<li>实例(Instance)：相同服务部署的节点就是实例，实例指同一服务可以部署多个，例如多台虚拟机或多个容器</li>
-</ul>
-<h2 id="2-准备agent包">2、准备agent包</h2>
-<p><code>Skywalking</code>目前支持很多语言的链路追踪，本文以常见的<code>java</code>应用为例进行记录</p>
-<p>下载官方和<code>server</code>版本相同的发行版本包，并获取<code>agent</code></p>
-<p>我这里对应前面安装的服务端下载地址：https://www.apache.org/dyn/closer.cgi/skywalking/8.4.0/apache-skywalking-apm-8.4.0.tar.gz</p>
-<p>下载后解压提取<code>agent</code>目录，结构如下</p>
-<pre><code class="language-shell">+-- agent
-    +-- activations
-         apm-toolkit-log4j-1.x-activation.jar
-         apm-toolkit-log4j-2.x-activation.jar
-         apm-toolkit-logback-1.x-activation.jar
-         ...
-    +-- config   # 配置文件目录
-         agent.config  
-    +-- plugins  # 主要插件目录
-         apm-dubbo-plugin.jar
-         apm-feign-default-http-9.x.jar
-         apm-httpClient-4.x-plugin.jar
-         .....
-    +-- optional-plugins  # 可选插件目录
-         apm-gson-2.x-plugin.jar
-         .....
-    +-- bootstrap-plugins
-         jdk-http-plugin.jar
-         .....
-    +-- logs     # 默认日志目录
-    skywalking-agent.jar
-</code></pre>
-<p>整个<code>agent</code>目录大概是<code>30MB</code>左右，很多插件都是可选的，在启动时启用了插件的话，具有更为强大的功能。部分插件在使用上会影响整体的性能或者由于其他原因放置于可选插件包中，不会直接加载，如果需要使用，将可选插件中的<code>jar</code>包拷贝到<code>plugins</code>目录下</p>
-<p>最终基于容器环境配置<code>skywalking agent</code>的方式一种是创建<code>ConfigMap</code>，然后通过 <code>ConfigMap</code> 挂载到容器里进行覆盖；另一种是在默认配置里引用各种变量，在容器启动时通过环境变量注入</p>
-<p>因此这里修改<code>agent</code>的配置文件<code>config/agent.config</code>，打开其中某些配置项的注释，但不进行具体配置修改，通过环境变量进行注入以使用</p>
-<pre><code class="language-shell"># grep -Ev '^$|#' agent/config/agent.config 
-agent.namespace=${SW_AGENT_NAMESPACE:default-namespace}
-agent.service_name=${SW_AGENT_NAME:Your_ApplicationName}
-agent.is_cache_enhanced_class = ${SW_AGENT_CACHE_CLASS:false}
-collector.backend_service=${SW_AGENT_COLLECTOR_BACKEND_SERVICES:127.0.0.1:11800}
-logging.file_name=${SW_LOGGING_FILE_NAME:skywalking-api.log}
-logging.level=${SW_LOGGING_LEVEL:INFO}
-logging.max_file_size=${SW_LOGGING_MAX_FILE_SIZE:314572800}
-logging.max_history_files=${SW_LOGGING_MAX_HISTORY_FILES:-1}
-plugin.mount=${SW_MOUNT_FOLDERS:plugins,activations}
-plugin.mysql.trace_sql_parameters=${SW_MYSQL_TRACE_SQL_PARAMETERS:false}
-</code></pre>
-<p>对应配置说明：</p>
-<ul>
-<li><code>agent.namespace</code>：命名空间，可通过此参数实现隔离</li>
-<li><code>agent.service_name</code>：在链路追踪 <code>UI</code> 中展示的应用名，如果是微服务架构，可以和注册中心中的应用名一致</li>
-<li><code>agent.is_cache_enhanced_class</code>：如果为<code>true</code>，则<code>SkyWalking</code>代理会将所有检测到的类文件缓存到内存或磁盘文件中（由类缓存模式决定）</li>
-<li><code>collector.backend_service</code>：后端<code>Collector</code>收集器的地址</li>
-<li><code>logging.file_name</code>：日志文件名</li>
-<li><code>logging.level</code>：日志等级</li>
-<li><code>logging.max_file_size</code>：日志文件大小控制</li>
-<li><code>logging.max_history_files</code>：历史日志文件个数控制</li>
-<li><code>plugin.mount</code>：挂载插件的文件夹名</li>
-<li><code>plugin.mysql.trace_sql_parameters</code>：收集<code>sql</code>的参数</li>
-</ul>
-<p>除了上面的参数外，还有一个常用参数<code>agent.ignore_suffix</code>，表示对请求追踪进行忽略，多个路径用逗号分隔，在实际的生产环境中某些请求是不需要被追踪的，例如心跳检查<code>/health</code>，监控指标<code>/metrics</code>等等，我们需要将对应的插件<code>jar</code>包<code>apm-trace-ignore-plugin-8.4.0.jar</code>拷贝到<code>plugins</code>目录下并进行对应的配置，配置文件内容部分如下</p>
-<pre><code class="language-shell"># If the operation name of the first span is included in this set, this segment should be ignored. Multiple values should be separated by `,`.
-# agent.ignore_suffix=${SW_AGENT_IGNORE_SUFFIX:.jpg,.jpeg,.js,.css,.png,.bmp,.gif,.ico,.mp3,.mp4,.html,.svg}
-</code></pre>
-<p>更多的配置项可以参考<a href="https://github.com/apache/skywalking/tree/master/docs/en/setup/service-agent/java-agent">官方配置说明</a></p>
-<h2 id="3-打包制作镜像">3、打包制作镜像</h2>
-<p>官方给出了在<code>java</code>应用的不同运行环境中<a href="https://github.com/apache/skywalking/tree/master/docs/en/setup/service-agent/java-agent#install-javaagent-faqs">java agent配置示例</a>：</p>
-<ul>
-<li>
-<p>Tomcat</p>
-<ul>
-<li>
-<p>Linux环境</p>
-<p>修改<code>tomcat/bin/catalina.sh</code></p>
-<pre><code class="language-shell">CATALINA_OPTS=&quot;$CATALINA_OPTS -javaagent:/path/to/skywalking-agent/skywalking-agent.jar&quot;; export CATALINA_OPTS
-</code></pre>
-</li>
-<li>
-<p>Windows环境</p>
-<p>修改<code>tomcat/bin/catalina.bat</code></p>
-<pre><code class="language-shell">set &quot;CATALINA_OPTS=-javaagent:/path/to/skywalking-agent/skywalking-agent.jar&quot;
-</code></pre>
-</li>
-</ul>
-</li>
-<li>
-<p>Jar包运行</p>
-<p>在启动参数中添加<code>-javaagent</code></p>
-<pre><code class="language-shell">java -javaagent:/path/to/skywalking-agent/skywalking-agent.jar -jar yourApp.jar
-</code></pre>
-</li>
-<li>
-<p>Jetty</p>
-<p>修改<code>jetty.sh</code>，在启动参数中添加<code>-javaagent</code></p>
-<pre><code class="language-shell">export JAVA_OPTIONS=&quot;${JAVA_OPTIONS} -javaagent:/path/to/skywalking-agent/skywalking-agent.jar&quot;
-</code></pre>
-</li>
-</ul>
-<p>本文以<code>spring boot</code>应用<code>jar</code>包运行的方式为例，首先修改基础<code>java</code>镜像的<code>Dockerfile</code>，将<code>agent</code>包打入镜像</p>
-<p>（一个小<code>Tips</code>：踩了很多坑，最终自己做<code>oracle jdk</code>的镜像，而不是用中央仓库的<code>openjdk</code>，基础镜像基于<code>centos</code>，为了减小镜像体积这里可以再进行优化）</p>
-<p>修改<code>Dockerfile</code></p>
-<pre><code class="language-shell">FROM centos:7.6.1810
-LABEL maintainer ssgeek@ssgeek.com
-
-ENV LANG &quot;en_US.UTF-8&quot;
-ENV JDK_VERSION 1.8.0_191
-ENV SW_VERSION 8.4.0
-
-ADD jdk-8u191-linux-x64.tar.gz /usr/local
-ADD agent /skywalking/agent
-
-ENV JAVA_HOME /usr/local/jdk1.8.0_191
-ENV CLASSPATH $JAVA_HOME/lib;$JAVA_HOME/jre/lib
-ENV PATH $PATH:$JAVA_HOME/bin
-
-RUN set -x &amp;&amp; \
-    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-</code></pre>
-<p>打包镜像并上传到仓库</p>
-<pre><code class="language-shell"># docker build -t hub.ssgeek.com/basic_image/jdk_8u191:skywalking_v1.0
-# docker push hub.ssgeek.com/basic_image/jdk_8u191:skywalking_v1.0
-</code></pre>
-<p>修改业务应用的<code>Dockerfile</code>，引用加入了<code>agent</code>包的基础镜像并修改启动参数</p>
-<pre><code class="language-shell">FROM hub.ssgeek.com/basic_image/jdk_8u191:skywalking_v1.0
-LABEL maintainer ssgeek@ssgeek.com
-
-RUN mkdir /app
-WORKDIR /app
-COPY target/*.jar /app/app.jar
-EXPOSE 8080
-CMD java -Djava.security.egd=file:/dev/./urandom -javaagent:/skywalking/agent/skywalking-agent.jar -jar ${JAVA_OPTS} /app/app.jar
-</code></pre>
-<h2 id="4-注入环境变量">4、注入环境变量</h2>
-<p>这里的<code>java</code>应用运行在<code>k8s</code>容器化环境中，因此对配置变量的注入可以通过在部署清单的<code>yaml</code>中以环境变量的形式注入，这样配置更为轻量和灵活</p>
-<p>其中部分参数的环境变量取值，通过在<code>Pod</code>中使用环境变量把自己的信息呈现给<code>Pod</code>中运行的容器，可以参考</p>
-<p><a href="https://kubernetes.io/zh/docs/tasks/inject-data-application/environment-variable-expose-pod-information/">通过环境变量将 Pod 信息呈现给容器</a></p>
-<pre><code class="language-yaml">...
-    spec:
-      imagePullSecrets:
-      - name: registry-pull-secret
-      containers:
-      - name: java
-        image: hub.ssgeek.com/java/xxx:tag
-        imagePullPolicy: IfNotPresent
-        env:
-        - name: JAVA_OPTS
-          value: 'JVM参数'
-        - name: SW_AGENT_NAMESPACE
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.namespace
-        - name: SW_AGENT_NAME
-          valueFrom:
-            fieldRef:
-              apiVersion: v1
-              fieldPath: metadata.name
-        - name: SW_AGENT_CACHE_CLASS
-          value: 'true'
-        - name: SW_MYSQL_TRACE_SQL_PARAMETERS
-          value: 'true'
-        - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
-          value: 'skywalking-oap.monitoring.svc:11800'
-        ports:
-        - containerPort: 8080
-          name: AppName
-          protocol: TCP
-</code></pre>
-<p>网络上有文章的操作方式大多都是添加一个<code>initContainer</code>将<code>agent</code>拷贝到应用<code>Pod</code>中，我个人认为会浪费系统资源且每次启动都需要执行，这必然会增加应用的启动时间，还不如修改基础<code>java</code>镜像，一劳永逸。</p>
-<h2 id="5-部署启动并查看ui">5、部署启动并查看ui</h2>
-<p>按照上面的操作对<code>Pod</code>应用注入了<code>Skywalking agent</code>相关配置，如果应用启动后会有如下的日志提示，表示<code>agent</code>注入启动成功了</p>
-<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210326-01.png" alt=""></figure>
-<p>当应用启动完成，正常接收流量后，服务端就可以采集并展示相关数据了，这里我展示一个微服务项目测试环境接入<code>Skywalking</code>后的仪表盘页面</p>
-<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210326-02.png" alt=""></figure>
-<p>拓扑图</p>
-<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20210326-03.png" alt=""></figure>
-<p>see you ~</p>
 ]]></content>
     </entry>
 </feed>
