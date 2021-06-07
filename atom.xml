@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://www.ssgeek.com</id>
     <title>山山仙人博客</title>
-    <updated>2021-06-02T16:16:10.738Z</updated>
+    <updated>2021-06-07T16:10:40.930Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://www.ssgeek.com"/>
     <link rel="self" href="https://www.ssgeek.com/atom.xml"/>
@@ -10,6 +10,624 @@
     <logo>https://www.ssgeek.com/images/avatar.png</logo>
     <icon>https://www.ssgeek.com/favicon.ico</icon>
     <rights>All rights reserved 2021, 山山仙人博客</rights>
+    <entry>
+        <title type="html"><![CDATA[MySQL MHA部署与测试-上篇]]></title>
+        <id>https://www.ssgeek.com/post/mysql-mha-bu-shu-yu-ce-shi-shang-pian</id>
+        <link href="https://www.ssgeek.com/post/mysql-mha-bu-shu-yu-ce-shi-shang-pian">
+        </link>
+        <updated>2021-06-07T16:09:38.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E4%BB%8B%E7%BB%8D">1、介绍</a>
+<ul>
+<li><a href="#11-%E7%AE%80%E4%BB%8B">1.1 简介</a></li>
+<li><a href="#12-%E4%B8%BB%E8%A6%81%E7%89%B9%E6%80%A7">1.2 主要特性</a></li>
+<li><a href="#13-%E7%BB%84%E6%88%90%E7%BB%93%E6%9E%84">1.3 组成结构</a></li>
+</ul>
+</li>
+<li><a href="#2-mha%E9%83%A8%E7%BD%B2">2、MHA部署</a>
+<ul>
+<li><a href="#21-%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87">2.1 环境准备</a>
+<ul>
+<li><a href="#211-%E6%8B%93%E6%89%91">2.1.1 拓扑</a></li>
+<li><a href="#212-%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87">2.1.2 环境准备</a></li>
+</ul>
+</li>
+<li><a href="#22-%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2">2.2 环境部署</a>
+<ul>
+<li><a href="#221-%E5%AE%89%E8%A3%85%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F">2.2.1 安装操作系统</a></li>
+<li><a href="#222-%E5%AE%89%E8%A3%85%E6%95%B0%E6%8D%AE%E5%BA%93">2.2.2 安装数据库</a></li>
+<li><a href="#223-%E6%90%AD%E5%BB%BA%E4%B8%BB%E4%BB%8E%E7%8E%AF%E5%A2%83">2.2.3 搭建主从环境</a></li>
+</ul>
+</li>
+<li><a href="#23-mha%E9%83%A8%E7%BD%B2">2.3 MHA部署</a>
+<ul>
+<li><a href="#231-%E8%8A%82%E7%82%B9%E4%BA%92%E4%BF%A1">2.3.1 节点互信</a></li>
+<li><a href="#232-%E4%B8%8B%E8%BD%BD%E8%BD%AF%E4%BB%B6">2.3.2 下载软件</a></li>
+<li><a href="#233-%E5%88%9B%E5%BB%BA%E8%BD%AF%E8%BF%9E%E6%8E%A5">2.3.3 创建软连接</a></li>
+<li><a href="#234-%E5%AE%89%E8%A3%85%E8%BD%AF%E4%BB%B6">2.3.4 安装软件</a></li>
+<li><a href="#235-%E5%88%9B%E5%BB%BA%E7%94%A8%E6%88%B7">2.3.5 创建用户</a></li>
+<li><a href="#236-%E5%88%9B%E5%BB%BA%E7%9B%B8%E5%85%B3%E7%9B%AE%E5%BD%95">2.3.6 创建相关目录</a></li>
+<li><a href="#237-manager%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">2.3.7 manager配置文件</a></li>
+<li><a href="#238-%E6%A3%80%E6%9F%A5%E7%8A%B6%E6%80%81">2.3.8 检查状态</a></li>
+<li><a href="#239-%E5%90%AF%E5%8A%A8manager%E6%9C%8D%E5%8A%A1">2.3.9 启动manager服务</a></li>
+<li><a href="#2310-%E6%9F%A5%E7%9C%8Bmha%E8%BF%90%E8%A1%8C%E7%8A%B6%E6%80%81">2.3.10 查看mha运行状态</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#3-vip-%E6%95%85%E9%9A%9C%E6%8F%90%E9%86%92-binlog_server">3、vip、故障提醒、binlog_server</a>
+<ul>
+<li><a href="#31-vip-%E5%8A%9F%E8%83%BD%E9%83%A8%E7%BD%B2">3.1 vip 功能部署</a>
+<ul>
+<li><a href="#311-%E5%87%86%E5%A4%87%E8%84%9A%E6%9C%AC">3.1.1 准备脚本</a></li>
+<li><a href="#312-%E4%BF%AE%E6%94%B9%E8%84%9A%E6%9C%AC">3.1.2 修改脚本</a></li>
+<li><a href="#313-%E4%B8%8A%E4%BC%A0%E8%84%9A%E6%9C%AC%E5%B9%B6%E6%8E%88%E6%9D%83">3.1.3 上传脚本并授权</a></li>
+<li><a href="#314-%E4%BF%AE%E6%94%B9manager%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">3.1.4 修改manager配置文件</a></li>
+<li><a href="#315-%E9%87%8D%E5%90%AFmha">3.1.5 重启mha</a></li>
+<li><a href="#316-%E5%9C%A8%E4%B8%BB%E5%BA%93db1%E5%A2%9E%E5%8A%A0vip">3.1.6 在主库db1增加vip</a></li>
+</ul>
+</li>
+<li><a href="#32-%E6%95%85%E9%9A%9C%E6%8F%90%E9%86%92%E5%8A%9F%E8%83%BD%E9%83%A8%E7%BD%B2">3.2 故障提醒功能部署</a>
+<ul>
+<li><a href="#321-%E5%87%86%E5%A4%87%E8%84%9A%E6%9C%AC">3.2.1 准备脚本</a></li>
+<li><a href="#322-%E4%BF%AE%E6%94%B9manager%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">3.2.2 修改manager配置文件</a></li>
+<li><a href="#323-%E9%87%8D%E5%90%AFmha">3.2.3 重启mha</a></li>
+</ul>
+</li>
+<li><a href="#33-binlog_server%E6%90%AD%E5%BB%BA">3.3 binlog_server搭建</a>
+<ul>
+<li><a href="#331-%E5%88%9B%E5%BB%BA%E7%9B%B8%E5%85%B3%E7%9B%AE%E5%BD%95">3.3.1 创建相关目录</a></li>
+<li><a href="#332-%E5%BC%80%E5%90%AFbinlog_server%E6%9C%8D%E5%8A%A1">3.3.2 开启binlog_server服务</a></li>
+<li><a href="#333-%E4%BF%AE%E6%94%B9manager%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">3.3.3 修改manager配置文件</a></li>
+<li><a href="#334-%E9%87%8D%E5%90%AFmha">3.3.4 重启mha</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#4-mha%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E4%BB%8B%E7%BB%8D">4、MHA工作原理介绍</a>
+<ul>
+<li><a href="#41-%E4%B8%BB%E8%A6%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B%E4%BB%8B%E7%BB%8D">4.1 主要工作流程介绍</a></li>
+<li><a href="#42-mha%E9%80%89%E4%B8%BB%E7%AD%96%E7%95%A5">4.2 mha选主策略</a>
+<ul>
+<li><a href="#421-%E9%80%89%E4%B8%BB%E4%BE%9D%E6%8D%AE">4.2.1 选主依据</a></li>
+<li><a href="#422-%E8%8A%82%E7%82%B9%E6%95%B0%E7%BB%84">4.2.2 节点数组</a></li>
+<li><a href="#423-%E9%80%89%E4%B8%BB%E5%88%A4%E6%96%AD">4.2.3 选主判断</a></li>
+</ul>
+</li>
+<li><a href="#43-%E6%95%B0%E6%8D%AE%E8%A1%A5%E5%81%BF">4.3 数据补偿</a>
+<ul>
+<li><a href="#431-%E5%8E%9F%E4%B8%BB%E5%BA%93ssh%E5%8F%AF%E8%BF%9E%E6%8E%A5">4.3.1 原主库ssh可连接</a></li>
+<li><a href="#432-%E5%8E%9F%E4%B8%BB%E5%BA%93ssh%E4%B8%8D%E8%83%BD%E8%BF%9E%E6%8E%A5">4.3.2 原主库ssh不能连接</a></li>
+<li><a href="#433-%E9%A2%9D%E5%A4%96%E6%95%B0%E6%8D%AE%E8%A1%A5%E5%81%BF%E4%B8%BB%E5%BA%93%E6%97%A5%E5%BF%97%E5%86%97%E4%BD%99%E6%9C%BA%E5%88%B6">4.3.3 额外数据补偿(主库日志冗余机制)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>作者：AshesCat</p>
+</blockquote>
+<h2 id="1-介绍">1、介绍</h2>
+<h3 id="11-简介">1.1 简介</h3>
+<p><code>MHA（Master High Availability）</code>目前在<code>MySQL</code>高可用方面是一个相对成熟的解决方案，它由日本<code>DeNA</code>公司的<code>youshimaton</code>（现就职于<code>Facebook</code>公司）开发，是一套优秀的作为<code>MySQL</code>高可用性环境下故障切换和主从提升的高可用软件</p>
+<h3 id="12-主要特性">1.2 主要特性</h3>
+<p><code>MHA</code>的主要特征：</p>
+<ul>
+<li>从<code>master</code>的监控到故障转移全部都能自动完成，故障转移也可以手动执行</li>
+<li>可在秒级单位内实现故障转移</li>
+<li>可将任意<code>slave</code>提升到<code>master</code></li>
+<li>具备在多个点上调用外部脚本（扩展）的技能，可以用在电源<code>OFF</code>或者<code>IP</code>地址的故障转移上</li>
+<li>安装和卸载不用停止当前的<code>mysql</code>进程</li>
+<li><code>MHA</code>自身不会增加服务器负担，不会降低性能，不用追加服务器</li>
+<li>不依赖<code>Storage Engine</code></li>
+<li>不依赖二进制文件的格式（不论是<code>statement</code>模式还是<code>Row</code>模式）</li>
+<li>针对<code>OS</code>挂掉的故障转移，检测系统是否挂掉需要<code>10</code>秒，故障转移仅需<code>4</code>秒</li>
+</ul>
+<h3 id="13-组成结构">1.3 组成结构</h3>
+<pre><code class="language-shell">manager 组件
+masterha_manger             # 启动MHA 
+masterha_check_ssh      	  # 检查MHA的SSH配置状况 
+masterha_check_repl         # 检查MySQL复制状况，配置信息
+masterha_master_monitor     # 检测master是否宕机 
+masterha_check_status       # 检测当前MHA运行状态 
+masterha_master_switch     	# 控制故障转移（自动或者手动）
+masterha_conf_host      	  # 添加或删除配置的server信息
+
+node 组件
+save_binary_logs            # 保存和复制master的二进制日志 
+apply_diff_relay_logs       # 识别差异的中继日志事件并将其差异的事件应用于其他的
+purge_relay_logs            # 清除中继日志（不会阻塞SQL线程）
+</code></pre>
+<h2 id="2-mha部署">2、MHA部署</h2>
+<h3 id="21-环境准备">2.1 环境准备</h3>
+<h4 id="211-拓扑">2.1.1 拓扑</h4>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210608-01.png" alt=""></figure>
+<h4 id="212-环境准备">2.1.2 环境准备</h4>
+<p>需准备<code>Linux</code>环境<code>Mysql</code>1主2从环境，本次部署具体使用软件版本情况如下<br>
+操作系统：<code>Linux CentOS 7.6</code><br>
+数据库：<code>MySQL 8.0.20</code><br>
+MHA：<code>mha4mysql-0.58</code></p>
+<h3 id="22-环境部署">2.2 环境部署</h3>
+<h4 id="221-安装操作系统">2.2.1 安装操作系统</h4>
+<p>操作系统版本：<code>Linux CentOS 7.6</code></p>
+<p>主机名及<code>ip</code>：</p>
+<p><code>db1</code>：192.168.10.51，<code>db2</code>：192.168.10.52，<code>db3</code>：192.168.10.53</p>
+<h4 id="222-安装数据库">2.2.2 安装数据库</h4>
+<p>分别在三台服务器安装<code>MySQL 8.0.20</code>数据库<br>
+配置文件如下：</p>
+<pre><code class="language-shell">[mysqld]
+user=mysql
+basedir=/usr/local/mysql
+datadir=/data/3306/data
+socket=/tmp/mysql.sock
+
+gtid-mode=on                        # gtid开关
+enforce-gtid-consistency=true       # 强制GTID一致
+log-slave-updates=1                 # 从库强制更新binlog日志
+
+log_bin = mysql-bin
+binlog_format = mixed
+expire_logs_days = 15
+log-error=/data/3306/data/mysql_error.log
+server-id = 51     # server-id 三台不同 ，db2为52，db3为53
+default_authentication_plugin=mysql_native_password   #修改密码加密方式
+
+[mysql]
+socket=/tmp/mysql.sock
+</code></pre>
+<h4 id="223-搭建主从环境">2.2.3 搭建主从环境</h4>
+<p>搭建主从环境，确认1主2从运行正常</p>
+<h3 id="23-mha部署">2.3 MHA部署</h3>
+<h4 id="231-节点互信">2.3.1 节点互信</h4>
+<p><code>db01</code></p>
+<pre><code class="language-shell">rm -rf /root/.ssh 
+ssh-keygen
+ssh-copy-id 192.168.10.51
+ssh-copy-id 192.168.10.52
+ssh-copy-id 192.168.10.53
+</code></pre>
+<p><code>db02</code></p>
+<pre><code class="language-shell">ssh-keygen
+ssh-copy-id 192.168.10.51
+ssh-copy-id 192.168.10.52
+ssh-copy-id 192.168.10.53
+</code></pre>
+<p><code>db03</code></p>
+<pre><code class="language-shell">ssh-keygen
+ssh-copy-id 192.168.10.51
+ssh-copy-id 192.168.10.52
+ssh-copy-id 192.168.10.53
+</code></pre>
+<h4 id="232-下载软件">2.3.2 下载软件</h4>
+<pre><code class="language-shell">mkdir -p /data/tools/ &amp;&amp; cd /data/tools
+wget https://qiniu.wsfnk.com/mha4mysql-node-0.58-0.el7.centos.noarch.rpm --no-check-certificate
+wget https://qiniu.wsfnk.com/mha4mysql-manager-0.58-0.el7.centos.noarch.rpm --no-check-certificate
+</code></pre>
+<h4 id="233-创建软连接">2.3.3 创建软连接</h4>
+<pre><code class="language-shell">ln -s /usr/local/mysql/bin/mysqlbinlog  /usr/bin/mysqlbinlog
+ln -s /usr/local/mysql/bin/mysql          /usr/bin/mysql
+</code></pre>
+<h4 id="234-安装软件">2.3.4 安装软件</h4>
+<p>安装<code>node</code>软件（<code>mha</code>的<code>manager</code>软件是依赖于<code>node</code>软件运行的，所以需要先安装<code>node</code>端）<br>
+db1-db3</p>
+<pre><code class="language-shell">yum install perl-DBD-MySQL -y
+rpm -ivh mha4mysql-node-0.58-0.el7.centos.noarch.rpm
+</code></pre>
+<p>安装<code>manager</code><br>
+db3</p>
+<pre><code class="language-shell">yum install -y perl-Config-Tiny epel-release perl-Log-Dispatch perl-Parallel-ForkManager perl-Time-HiRes
+yum install -y mha4mysql-manager-0.58-0.el7.centos.noarch.rpm 
+</code></pre>
+<h4 id="235-创建用户">2.3.5 创建用户</h4>
+<p>在<code>db1</code>主库中创建<code>mha</code>用户，此用户用于<code>mha</code>用来确认各节点存活状态、<code>binlog_server</code>拉去<code>binlog</code>日志。<br>
+(mysql 8.0之后版本需要单独创建用户后授权。注意密码加密方式)</p>
+<pre><code class="language-mysql">create user mha@'192.168.10.%' identified by 'mha';
+grant all privileges on *.* to mha@'192.168.10.%';
+</code></pre>
+<h4 id="236-创建相关目录">2.3.6 创建相关目录</h4>
+<p>db3</p>
+<pre><code class="language-shell">#创建配置文件目录
+ mkdir -p /etc/mha
+#创建日志目录
+ mkdir -p /var/log/mha/app1
+</code></pre>
+<h4 id="237-manager配置文件">2.3.7 manager配置文件</h4>
+<p>db3</p>
+<pre><code class="language-shell">cat &gt; /etc/mha/app1.cnf &lt;&lt;EOF
+[server default]
+manager_log=/var/log/mha/app1/manager              # MHA的工作日志设置
+manager_workdir=/var/log/mha/app1                  # MHA工作目录        
+master_binlog_dir=/data/3306/data                  # 主库的binlog目录
+user=mha                                           # 监控用户                      
+password=mha                                       # 监控密码
+ping_interval=2                                    # 心跳检测的间隔时间
+repl_password=123                                  # 复制用户
+repl_user=rep                                      # 复制密码
+ssh_user=root                                      # ssh互信的用户
+
+[server1]                                          # 节点信息....
+hostname=192.16.10.51
+port=3306  
+
+[server2]            
+hostname=192.168.10.52
+port=3306
+candidate_master=1                                 # 被选主
+
+[server3]
+no_master=1                                        # 不参与选主
+hostname=192.168.10.53
+port=3306
+EOF
+</code></pre>
+<h4 id="238-检查状态">2.3.8 检查状态</h4>
+<p>db3</p>
+<pre><code class="language-shell"># 检查ssl互通情况
+[root@db3 ~]# vim /etc/mha/app1.cnf 
+[root@db3 ~]# masterha_check_ssh   --conf=/etc/mha/app1.cnf 
+...
+Tue Jun  1 17:01:47 2021 - [info] All SSH connection tests passed successfully.
+
+
+# 检查 mha配置文件
+[root@db3 ~]# masterha_check_repl  --conf=/etc/mha/app1.cnf
+...
+MySQL Replication Health is NOT OK!
+</code></pre>
+<h4 id="239-启动manager服务">2.3.9 启动manager服务</h4>
+<p>db03</p>
+<pre><code class="language-shell">[root@db3 ~]# nohup masterha_manager --conf=/etc/mha/app1.cnf --remove_dead_master_conf --ignore_last_failover  &lt; /dev/null&gt; /var/log/mha/app1/manager.log 2&gt;&amp;1 &amp;
+[1] 4406
+
+--conf=/etc/mha/app1.cnf    # 指定配置文件
+--remove_dead_master_conf   # 剔除已经死亡的节点
+--ignore_last_failover      # 默认不能短时间(8小时)多次切换，此参数跳过检查
+</code></pre>
+<h4 id="2310-查看mha运行状态">2.3.10 查看mha运行状态</h4>
+<pre><code class="language-shell">[root@db3 ~]# masterha_check_status --conf=/etc/mha/app1.cnf
+app1 (pid:4406) is running(0:PING_OK), master:192.168.10.51
+</code></pre>
+<h2 id="3-vip-故障提醒-binlog_server">3、vip、故障提醒、binlog_server</h2>
+<pre><code>master_ip_failover  # vip故障转移脚本
+send_report         # 故障提醒脚本
+</code></pre>
+<h3 id="31-vip-功能部署">3.1 vip 功能部署</h3>
+<p>vip（eth0:1）网卡日常绑定在主库的网卡上，如主库出现错误导致<code>mha</code>重新选主，也会跟随移动到新主库的网卡上。所以要求各<code>mha</code>节点网卡名称一致<br>
+<code>vip</code>网段要求与各节点均在同一网段内<br>
+<code>vip</code>实现脚本是根据源码perl脚本重新编写<code>master_ip_failover</code></p>
+<h4 id="311-准备脚本">3.1.1 准备脚本</h4>
+<pre><code class="language-perl">#!/usr/bin/env perl
+
+use strict;
+use warnings FATAL =&gt; 'all';
+
+use Getopt::Long;
+
+my (
+    $command,          $ssh_user,        $orig_master_host, $orig_master_ip,
+    $orig_master_port, $new_master_host, $new_master_ip,    $new_master_port
+);
+
+my $vip = '192.168.10.49/24';
+my $key = '1';
+my $ssh_start_vip = &quot;/sbin/ifconfig eth0:$key $vip&quot;;
+my $ssh_stop_vip = &quot;/sbin/ifconfig eth0:$key down&quot;;
+my $ssh_Bcast_arp= &quot;/sbin/arping -I eth0 -c 3 -A 192.168.10.49&quot;;
+
+GetOptions(
+    'command=s'          =&gt; \$command,
+    'ssh_user=s'         =&gt; \$ssh_user,
+    'orig_master_host=s' =&gt; \$orig_master_host,
+    'orig_master_ip=s'   =&gt; \$orig_master_ip,
+    'orig_master_port=i' =&gt; \$orig_master_port,
+    'new_master_host=s'  =&gt; \$new_master_host,
+    'new_master_ip=s'    =&gt; \$new_master_ip,
+    'new_master_port=i'  =&gt; \$new_master_port,
+);
+
+exit &amp;main();
+
+sub main {
+
+    print &quot;\n\nIN SCRIPT TEST====$ssh_stop_vip==$ssh_start_vip===\n\n&quot;;
+
+    if ( $command eq &quot;stop&quot; || $command eq &quot;stopssh&quot; ) {
+
+        my $exit_code = 1;
+        eval {
+            print &quot;Disabling the VIP on old master: $orig_master_host \n&quot;;
+            &amp;stop_vip();
+            $exit_code = 0;
+        };
+        if ($@) {
+            warn &quot;Got Error: $@\n&quot;;
+            exit $exit_code;
+        }
+        exit $exit_code;
+    }
+    elsif ( $command eq &quot;start&quot; ) {
+
+        my $exit_code = 10;
+        eval {
+            print &quot;Enabling the VIP - $vip on the new master - $new_master_host \n&quot;;
+            &amp;start_vip();
+            $exit_code = 0;
+        };
+        if ($@) {
+            warn $@;
+            exit $exit_code;
+        }
+        exit $exit_code;
+    }
+    elsif ( $command eq &quot;status&quot; ) {
+        print &quot;Checking the Status of the script.. OK \n&quot;;
+        exit 0;
+    }
+    else {
+        &amp;usage();
+        exit 1;
+    }
+}
+
+sub start_vip() {
+    `ssh $ssh_user\@$new_master_host \&quot; $ssh_start_vip \&quot;`;
+}
+sub stop_vip() {
+     return 0  unless  ($ssh_user);
+    `ssh $ssh_user\@$orig_master_host \&quot; $ssh_stop_vip \&quot;`;
+}
+
+sub usage {
+    print
+    &quot;Usage: master_ip_failover --command=start|stop|stopssh|status --orig_master_host=host --orig_master_ip=ip --orig_master_port=port --new_master_host=host --new_master_ip=ip --new_master_port=port\n&quot;;
+}
+</code></pre>
+<h4 id="312-修改脚本">3.1.2 修改脚本</h4>
+<p>脚本中以下部分按照要求修改</p>
+<pre><code class="language-perl">vim  /usr/local/bin/master_ip_failover
+
+my $vip = '192.168.10.49/24';      # vip网段，与各节点服务器网段一致。
+my $key = '1';                     # 虚拟网卡eth0:1 的 1
+my $ssh_start_vip = &quot;/sbin/ifconfig eth0:$key $vip&quot;;  # 网卡按照实际网卡名称填写
+my $ssh_stop_vip = &quot;/sbin/ifconfig eth0:$key down&quot;;   # 网卡按照实际网卡名称填写
+my $ssh_Bcast_arp= &quot;/sbin/arping -I eth0 -c 3 -A 192.168.10.49&quot;; # 重新声明mac地址，arp
+</code></pre>
+<h4 id="313-上传脚本并授权">3.1.3 上传脚本并授权</h4>
+<pre><code class="language-shell">\cp -a * /usr/local/bin    # 上传脚本文件到/usr/local/bin 
+chmod +x /usr/local/bin/*  # 给脚本增加执行权限 
+dos2unix /usr/local/bin/*  # 处理脚本中的中文字符
+</code></pre>
+<h4 id="314-修改manager配置文件">3.1.4 修改manager配置文件</h4>
+<p>在配置文件中增加<code>vip</code>故障转移部分</p>
+<pre><code class="language-shell">vim /etc/mha/app1.cnf 
+master_ip_failover_script=/usr/local/bin/master_ip_failover
+</code></pre>
+<h4 id="315-重启mha">3.1.5 重启mha</h4>
+<pre><code class="language-shell">masterha_stop  --conf=/etc/mha/app1.cnf 
+nohup masterha_manager --conf=/etc/mha/app1.cnf --remove_dead_master_conf --ignore_last_failover  &lt; /dev/null&gt; /var/log/mha/app1/manager.log 2&gt;&amp;1 &amp;
+</code></pre>
+<h4 id="316-在主库db1增加vip">3.1.6 在主库db1增加vip</h4>
+<pre><code class="language-shell">ifconfig eth0:1 192.168.10.49/24
+</code></pre>
+<h3 id="32-故障提醒功能部署">3.2 故障提醒功能部署</h3>
+<h4 id="321-准备脚本">3.2.1 准备脚本</h4>
+<pre><code class="language-perl">#!/usr/bin/perl
+
+use strict;
+use warnings FATAL =&gt; 'all';
+use Mail::Sender;
+use Getopt::Long;
+ 
+#new_master_host and new_slave_hosts are set only when recovering master succeeded
+my ( $dead_master_host, $new_master_host, $new_slave_hosts, $subject, $body );
+my $smtp='smtp.qq.com';
+my $mail_from='xxxxxx@qq.com';
+my $mail_user='xxxxx';
+my $mail_pass='xxxxxx';
+#my $mail_to=['to1@qq.com','to2@qq.com'];
+my $mail_to='xxxxxx@qq.com';
+ 
+GetOptions(
+  'orig_master_host=s' =&gt; \$dead_master_host,
+  'new_master_host=s'  =&gt; \$new_master_host,
+  'new_slave_hosts=s'  =&gt; \$new_slave_hosts,
+  'subject=s'          =&gt; \$subject,
+  'body=s'             =&gt; \$body,
+);
+ 
+# Do whatever you want here
+mailToContacts($smtp,$mail_from,$mail_user,$mail_pass,$mail_to,$subject,$body);
+ 
+sub mailToContacts {
+	my ($smtp, $mail_from, $mail_user, $mail_pass, $mail_to, $subject, $msg ) = @_;
+	open my $DEBUG, &quot;&gt;/tmp/mail.log&quot;
+		or die &quot;Can't open the debug	file:$!\n&quot;;
+	my $sender = new Mail::Sender {
+		ctype		=&gt; 'text/plain;charset=utf-8',
+		encoding	=&gt; 'utf-8',
+		smtp		=&gt; $smtp,
+		from		=&gt; $mail_from,
+		auth		=&gt; 'LOGIN',
+		TLS_allowed	=&gt; '0',
+		authid		=&gt; $mail_user,
+		authpwd		=&gt; $mail_pass,
+		to		=&gt; $mail_to,
+		subject		=&gt; $subject,
+		debug		=&gt; $DEBUG
+	};
+	$sender-&gt;MailMsg(
+		{
+			msg =&gt; $msg,
+			debug =&gt; $DEBUG
+		}
+	) or print $Mail::Sender::Error;
+	return 1;
+}
+ 
+exit 0;
+</code></pre>
+<p>修改以下部分为个人邮箱内容</p>
+<pre><code class="language-perl">#new_master_host and new_slave_hosts are set only when recovering master succeeded
+my ( $dead_master_host, $new_master_host, $new_slave_hosts, $subject, $body );
+my $smtp='smtp.qq.com';                   # 发件服务器
+my $mail_from='xxxxxx@qq.com';            # 发件地址
+my $mail_user='xxxxx';                    # 发件用户名
+my $mail_pass='xxxxxx';                   # 发件邮箱密码
+my $mail_to='xxxxxx@qq.com';              # 收件地址
+
+#my $mail_to=['to1@qq.com','to2@qq.com']; # 可设置收件邮箱群组 
+</code></pre>
+<h4 id="322-修改manager配置文件">3.2.2 修改manager配置文件</h4>
+<pre><code class="language-shell">vim /etc/mha/app1.cnf 
+# 添加一行： 
+report_script=/usr/local/bin/send_report
+</code></pre>
+<h4 id="323-重启mha">3.2.3 重启mha</h4>
+<pre><code class="language-shell">masterha_stop  --conf=/etc/mha/app1.cnf 
+nohup masterha_manager --conf=/etc/mha/app1.cnf --remove_dead_master_conf --ignore_last_failover  &lt; /dev/null&gt; /var/log/mha/app1/manager.log 2&gt;&amp;1 &amp;
+</code></pre>
+<h3 id="33-binlog_server搭建">3.3 binlog_server搭建</h3>
+<p><code>binlog_server</code>功能主要是实时拉去主库<code>binlog</code>进行存储，如果主库出现宕机，<code>mha</code>切换主从时，通过<code>binlog_server</code>服务器拿取<code>bin_log</code>日志对新主库进行数据补偿，实现日志补偿冗余</p>
+<h4 id="331-创建相关目录">3.3.1 创建相关目录</h4>
+<pre><code class="language-shell">mkdir -p /data/binlog_server/   # binlog_server存储目录
+chown -R mysql.mysql /data/*    # 授权
+</code></pre>
+<h4 id="332-开启binlog_server服务">3.3.2 开启binlog_server服务</h4>
+<pre><code class="language-shell">cd  /data/binlog_server/     # 进入binlog_server存储目录
+mysql -e &quot;show slave status \G&quot;|grep &quot;Master_Log&quot;  # 确认当前slave的io进程拉取的日志量
+
+## 启动binlog日志拉取守护进程
+mysqlbinlog  -R --host=192.168.10.51 --user=mha --password=mha --raw  --stop-never mysql-bin.000004 &amp;      # 注意：拉取日志的起点,需要按照目前从库的已经获取到的二进制日志点为起点
+</code></pre>
+<h4 id="333-修改manager配置文件">3.3.3 修改manager配置文件</h4>
+<p>增加以下内容</p>
+<pre><code>vim /etc/mha/app1.cnf 
+[binlog1]
+no_master=1
+hostname=192.168.10.53
+master_binlog_dir=/data/binlog_server/
+</code></pre>
+<h4 id="334-重启mha">3.3.4 重启mha</h4>
+<pre><code class="language-shell">masterha_stop  --conf=/etc/mha/app1.cnf 
+nohup masterha_manager --conf=/etc/mha/app1.cnf --remove_dead_master_conf --ignore_last_failover  &lt; /dev/null&gt; /var/log/mha/app1/manager.log 2&gt;&amp;1 &amp;
+</code></pre>
+<h2 id="4-mha工作原理介绍">4、MHA工作原理介绍</h2>
+<h3 id="41-主要工作流程介绍">4.1 主要工作流程介绍</h3>
+<ul>
+<li>1、启动MHA-manager</li>
+</ul>
+<pre><code class="language-shell">nohup masterha_manager --conf=/etc/mha/app1.cnf --remove_dead_master_conf --ignore_last_failover  &lt; /dev/null&gt; /var/log/mha/app1/manager.log 2&gt;&amp;1 &amp;
+</code></pre>
+<ul>
+<li>2、监控</li>
+</ul>
+<pre><code class="language-shell">/usr/bin/masterha_master_monitor # 每隔ping_interval秒探测1次，连续4次还没有，说明主库宕机。
+</code></pre>
+<ul>
+<li>
+<p>3、选主<br>
+根据各项参数选择新主</p>
+</li>
+<li>
+<p>4、数据补偿<br>
+对新主的数据差异进行补偿。</p>
+</li>
+<li>
+<p>5、切换<br>
+所有从库解除主从身份。stop slave ; reset slave;<br>
+重构新的主从关系。change master to</p>
+</li>
+<li>
+<p>6、迁移vip<br>
+将vip网卡（eth0:1）绑定至新主服务器。</p>
+</li>
+<li>
+<p>7、故障提醒<br>
+发送故障提醒邮件</p>
+</li>
+<li>
+<p>8、额外数据补偿<br>
+根据binlog_server 服务器进行额外数据补偿</p>
+</li>
+<li>
+<p>9、剔除故障节点<br>
+将故障的主服务器剔除mha环境（配置文件删除）</p>
+</li>
+<li>
+<p>10、manager程序“自杀</p>
+</li>
+</ul>
+<h3 id="42-mha选主策略">4.2 mha选主策略</h3>
+<h4 id="421-选主依据">4.2.1 选主依据</h4>
+<p>1、日志量<code>latest</code></p>
+<p>选取获取<code>binlog</code>最多的<code>slave</code>节点，为<code>latest</code>节点</p>
+<pre><code>[root@db3 ~]# mysql -uroot -p123456 -e &quot;show slave status\G&quot; |grep Master_Log
+          Master_Log_File: mysql-bin.000005
+          Read_Master_Log_Pos: 196
+          Relay_Master_Log_File: mysql-bin.000005
+          Exec_Master_Log_Pos: 196
+</code></pre>
+<p>2、备选主<code>pref</code><br>
+<code>manager</code>配置文件中指定了<code>candidate_master=1</code>参数</p>
+<pre><code class="language-shell">[server2]            
+hostname=192.168.10.52
+port=3306
+candidate_master=1     # 备选主
+</code></pre>
+<p>3、不被选主<br>
+配置文件中设置<code>no_master=1</code></p>
+<pre><code class="language-shell">[server3]
+no_master=1    # 不被选
+hostname=192.168.10.53
+port=3306
+</code></pre>
+<p>二进制日志没开<code>log_bin</code><br>
+如果从库落后主库<code>100M</code>的日志量（可以关闭） check_slave_delay</p>
+<h4 id="422-节点数组">4.2.2 节点数组</h4>
+<table>
+<thead>
+<tr>
+<th>alive</th>
+<th>存活</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>latest</td>
+<td>日志最新</td>
+</tr>
+<tr>
+<td>perf</td>
+<td>被选</td>
+</tr>
+<tr>
+<td>bad</td>
+<td>不选</td>
+</tr>
+</tbody>
+</table>
+<h4 id="423-选主判断">4.2.3 选主判断</h4>
+<p>从上至下按条件依次筛选，上条不符合才会选择下一条<br>
+1、没有<code>pref</code>和<code>bad</code>，就选<code>latest</code>第一个（根据配置文件server1-2-3）<br>
+2、即是<code>latest</code>又是<code>perf</code>，又不是<code>bad</code><br>
+3、<code>perf</code>和<code>latest</code>，都不是<code>bad</code>，选<code>perf</code><br>
+4、第<code>3</code>条也可能选<code>latest</code>，如<code>perf</code>差<code>100M</code>以上<code>binlog</code><br>
+5、如果以上条件都不满足，且只有一个<code>salve</code>可选，则选择此<code>slave</code><br>
+6、没有符合的<code>slave</code>，则选主失败，<code>failover</code>失败</p>
+<h3 id="43-数据补偿">4.3 数据补偿</h3>
+<h4 id="431-原主库ssh可连接">4.3.1 原主库ssh可连接</h4>
+<p>各个从节点调用： <code>save_binary_logs</code>脚本，立即保存缺失部分的<code>binlog</code>到各自节点<code>/var/tmp</code>目录</p>
+<h4 id="432-原主库ssh不能连接">4.3.2 原主库ssh不能连接</h4>
+<p>从节点调用<code>apply_diff_relay_logs</code>，进行<code>relay-log</code>日志差异补偿</p>
+<h4 id="433-额外数据补偿主库日志冗余机制">4.3.3 额外数据补偿(主库日志冗余机制)</h4>
+<p><code>binlog_server</code>实现数据补偿</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[浅谈GoPath和Go Modules包管理]]></title>
         <id>https://www.ssgeek.com/post/qian-tan-gopath-he-go-modules-bao-guan-li</id>
@@ -3825,212 +4443,6 @@ skywalking-ui-698cdb4dbc-mjl2m    1/1     Running     0          19h
 <li>确定故障在哪，<code>tracing</code>调用关系，确定故障出现在哪个<code>service</code>或者<code>endpoint</code></li>
 <li><code>profile</code>手段（<code>skywalking</code>新能力）或者常见传统性能定位方法，定位单节点问题所在（比如<code>CPU</code>、内存、<code>io</code>、网络 ——&gt; 动态追踪采样 ——&gt; 火焰图）基本可以解决99.9%的问题</li>
 </ul>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[在k8s中解决pod资源的正确识别]]></title>
-        <id>https://www.ssgeek.com/post/zai-k8s-zhong-jie-jue-pod-zi-yuan-de-zheng-que-shi-bie</id>
-        <link href="https://www.ssgeek.com/post/zai-k8s-zhong-jie-jue-pod-zi-yuan-de-zheng-que-shi-bie">
-        </link>
-        <updated>2021-03-28T16:51:27.000Z</updated>
-        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
-<li>
-<ul>
-<li><a href="#1-%E5%AE%B9%E5%99%A8%E8%B5%84%E6%BA%90%E9%99%90%E5%88%B6%E6%A6%82%E8%BF%B0">1、容器资源限制概述</a></li>
-<li><a href="#2-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF">2、问题背景</a></li>
-<li><a href="#3-%E5%BC%95%E5%85%A5lxcfs">3、引入lxcfs</a>
-<ul>
-<li><a href="#31-%E5%9C%A8k8s%E4%B8%AD%E9%83%A8%E7%BD%B2lxcfs">3.1 在k8s中部署lxcfs</a></li>
-<li><a href="#32-%E5%BC%80%E5%90%AF%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E6%B3%A8%E5%85%A5">3.2 开启命名空间注入</a></li>
-<li><a href="#33-%E8%BF%98%E5%8E%9F">3.3 还原</a></li>
-</ul>
-</li>
-<li><a href="#4-%E6%B5%8B%E8%AF%95">4、测试</a></li>
-<li><a href="#5-%E5%B0%8F%E7%BB%93">5、小结</a></li>
-</ul>
-</li>
-</ul>
-</p>
-<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210329-01.png" alt=""></figure>
-<h2 id="1-容器资源限制概述">1、容器资源限制概述</h2>
-<p>在使用<code>docker</code>作为容器引擎的时候，可以通过添加<code>--memory</code>、<code>--cpus</code>及更多参数来限制容器可用的<code>cpu</code>和内存，具体参数可以参考<a href="https://docs.docker.com/config/containers/resource_constraints/">docker资源限制</a>，<code>docker</code>对容器进行限制的原理实际上是利用<code>Linux</code>内核的<code>cgroups</code>实现的，<code>cgroups</code>可以限制、记录、隔离进程组所使用的物理资源（包括：<code>CPU</code>、<code>memory</code>、<code>IO</code> 等），为容器实现虚拟化提供了基本保证，是构建<code>Docker</code>等一系列虚拟化管理工具的基石</p>
-<p>关于<code>cgroups</code>资源限制实现可以参考<a href="https://www.infoq.cn/article/docker-kernel-knowledge-cgroups-resource-isolation/">Docker背后的内核知识-cgroups资源限制</a></p>
-<h2 id="2-问题背景">2、问题背景</h2>
-<p>对于某些容器中运行的服务，通常会自动对当前环境的可用资源数量进行检测，接着根据这些数据来合理分配相应资源</p>
-<p>例如<code>nginx</code>容器，<code>nginx</code>通过在配置文件中指定<a href="http://nginx.org/en/docs/ngx_core_module.html#worker_processes"><code>nginx worker_processes</code></a>选项，默认这个选项参数的值为<code>1</code>，表示<code>nginx</code>仅启动1个<code>worker</code>进程</p>
-<p>如果需要在大并发环境下优化<code>nginx</code>性能，可以将这个值手动设置成对应环境的<code>cpu</code>核数，或者直接配置成<code>auto</code>让其自动设置，两种设置方法中前者需要将配置文件进行挂载并手动变更配置，后者更为灵活但在容器环境下会有一定问题，因为不管是通过<code>docker</code>直接运行的容器还是通过<code>k8s</code>运行的最小化单元<code>Pod</code>中的容器，识别到的<code>cpu</code>和内存都是所在<code>node</code>节点机器的资源信息，因此对<code>nginx</code>来说并不能直接通过<code>auto</code>参数对<code>cpu</code>进行正确的自动识别，例如我这里的一台<code>node</code>节点及节点上的<code>pod</code>资源信息</p>
-<pre><code class="language-shell"># kubectl describe nodes k8s-node-07|grep -A 5 &quot;Capacity&quot;
-Capacity:
-  cpu:                16
-  ephemeral-storage:  74408452Ki
-  hugepages-2Mi:      0
-  memory:             16430184Ki
-  pods:               110
-# docker info|grep -A 6 &quot;Kernel&quot;
-Kernel Version: 4.4.247-1.el7.elrepo.x86_64
-Operating System: CentOS Linux 7 (Core)
-OSType: linux
-Architecture: x86_64
-CPUs: 16
-Total Memory: 15.67GiB
-Name: k8s-node-07
-# kubectl exec -it test-pod-5dff4b89fd-bsh6b -- bash
-root@test-pod-5dff4b89fd-bsh6b:/# free -m
-              total        used        free      shared  buff/cache   available
-Mem:          16045        7915        2354        1002        5775        6222
-Swap:             0           0           0
-root@test-pod-5dff4b89fd-bsh6b:/# head -2 /proc/meminfo
-MemTotal:       16430184 kB
-MemFree:         2374064 kB
-</code></pre>
-<p>如果在<code>k8s</code>中通过<code>resources</code>限制了<code>Pod</code>的<code>cpu</code>和内存，例如</p>
-<pre><code class="language-yaml">        resources:
-          limits:
-            cpu: &quot;1&quot;
-            memory: 2Gi
-          requests:
-            cpu: 200m
-            memory: 512Mi
-</code></pre>
-<p>可以在创建出来的<code>pod</code>所在节点机器上通过<code>docker</code>命令查看具体的资源信息</p>
-<pre><code class="language-shell"># docker inspect b1f4bfb53a2c|grep -i cgroup
-            &quot;Cgroup&quot;: &quot;&quot;,
-            &quot;CgroupParent&quot;: &quot;/kubepods/burstable/podc4a25564-225b-4562-afee-fab8cc5d694f&quot;,
-            &quot;DeviceCgroupRules&quot;: null,
-# cat /sys/fs/cgroup/cpu/kubepods/burstable/podc4a25564-225b-4562-afee-fab8cc5d694f/cpu.cfs_quota_us
-100000
-# cat /sys/fs/cgroup/cpu/kubepods/burstable/podc4a25564-225b-4562-afee-fab8cc5d694f/cpu.cfs_period_us
-100000
-</code></pre>
-<p>通过查找相关资料得知，对<code>nginx</code>来说，获取<code>CPU</code>核心数是通过系统调用<code>sysconf(_SC_NPROCESSORS_ONLN)</code>来获取的，实际上是通过读取文件<code>/sys/devices/system/cpu/online</code>来获取的，而默认情况下<code>pod</code>中的这个文件信息和宿主机是一样的，因此<code>nginx</code>的<code>worker_processes</code>参数如果设置成<code>auto</code>，那么最终启动的worker进程数将会是<code>16</code>个，而<code>nginx</code>所在的<code>Pod</code>本身的<code>cpu</code>限制配置较小时，导致每个<code>worker</code>分配的时间片比较少，这会带来明显的响应慢的问题</p>
-<pre><code class="language-shell"># kubectl exec -it test-pod-5dff4b89fd-bsh6b -- cat /sys/devices/system/cpu/online
-0-15
-</code></pre>
-<h2 id="3-引入lxcfs">3、引入lxcfs</h2>
-<p><a href="https://github.com/lxc/lxcfs"><code>lxcfs</code></a>是一个的小型<code>FUSE</code>文件系统，旨在使<code>Linux</code>容器更像一个虚拟机，能够帮助容器正确的识别自身资源，处理对以下文件的信息</p>
-<pre><code class="language-shell">/proc/cpuinfo
-/proc/diskstats
-/proc/meminfo
-/proc/stat
-/proc/swaps
-/proc/uptime
-/sys/devices/system/cpu/online
-</code></pre>
-<p>当容器启动时，容器中的<code>/proc/xxx</code>会被挂载成<code>host</code>上<code>lxcfs</code>的目录。例如当容器内的应用如果需要读取<code>/proc/meminfo</code>的信息时，请求就会被导向<code>lxcfs</code>，而<code>lxcfs</code>又会通过<code>cgroup</code>的信息来返回正确的值最终使得容器内的应用正确识别</p>
-<h3 id="31-在k8s中部署lxcfs">3.1 在k8s中部署lxcfs</h3>
-<p>基于<code>k8s</code>部署的<code>lxcfs</code>文件系统的项目地址：https://github.com/denverdino/lxcfs-admission-webhook</p>
-<p>其最终利用的原理是基于<code>k8s</code>的<a href="https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#admission-webhooks">动态准入控制AdmissionWebhook</a></p>
-<p>我这里的<code>k8s</code>集群版本如下</p>
-<pre><code class="language-shell"># kubectl version -o yaml
-clientVersion:
-  buildDate: &quot;2020-12-08T17:59:43Z&quot;
-  compiler: gc
-  gitCommit: af46c47ce925f4c4ad5cc8d1fca46c7b77d13b38
-  gitTreeState: clean
-  gitVersion: v1.20.0
-  goVersion: go1.15.5
-  major: &quot;1&quot;
-  minor: &quot;20&quot;
-  platform: darwin/amd64
-serverVersion:
-  buildDate: &quot;2019-06-19T16:32:14Z&quot;
-  compiler: gc
-  gitCommit: e8462b5b5dc2584fdcd18e6bcfe9f1e4d970a529
-  gitTreeState: clean
-  gitVersion: v1.15.0
-  goVersion: go1.12.5
-  major: &quot;1&quot;
-  minor: &quot;15&quot;
-  platform: linux/amd64
-</code></pre>
-<p>首先获取资源清单并通过脚本一键部署</p>
-<pre><code class="language-shell"># git clone https://github.com/denverdino/lxcfs-admission-webhook.git
-# cd lxcfs-admission-webhook
-# ls deployment 
-deployment.yaml                lxcfs-daemonset.yaml           mutatingwebhook.yaml           uninstall.sh                   web.yaml                       webhook-patch-ca-bundle.sh
-install.sh                     mutatingwebhook-ca-bundle.yaml service.yaml                   validatingwebhook.yaml         webhook-create-signed-cert.sh
-# kubectl apply -f deployment/lxcfs-daemonset.yaml                    
-daemonset.apps/lxcfs created
-# ./deployment/install.sh  
-creating certs in tmpdir /var/folders/8n/11ndbfq95jv79gds8wqj2scc0000gn/T/tmp.c6OKXi4L 
-Generating RSA private key, 2048 bit long modulus
-.......................................+++
-...............+++
-e is 65537 (0x10001)
-certificatesigningrequest.certificates.k8s.io/lxcfs-admission-webhook-svc.default created
-NAME                                  AGE   REQUESTOR   CONDITION
-lxcfs-admission-webhook-svc.default   0s    admin       Pending
-certificatesigningrequest.certificates.k8s.io/lxcfs-admission-webhook-svc.default approved
-W0327 16:35:14.764281    8953 helpers.go:553] --dry-run is deprecated and can be replaced with --dry-run=client.
-secret/lxcfs-admission-webhook-certs created
-NAME                            TYPE     DATA   AGE
-lxcfs-admission-webhook-certs   Opaque   2      0s
-deployment.apps/lxcfs-admission-webhook-deployment created
-service/lxcfs-admission-webhook-svc created
-mutatingwebhookconfiguration.admissionregistration.k8s.io/mutating-lxcfs-admission-webhook-cfg created
-</code></pre>
-<p>查看部署结果，会运行一个名为<code>lxcfs-admission-webhook-deployment</code>的<code>pod</code>，以及在所有节点上以<code>ds</code>的方式运行一个<code>lxcfs</code>的<code>pod</code></p>
-<pre><code class="language-shell">kubectl get pods -o wide|grep lxcfs
-lxcfs-admission-webhook-deployment-6896958c4c-56k54   1/1     Running   0          80s     172.20.7.51    172.16.1.111   &lt;none&gt;           &lt;none&gt;
-lxcfs-67cgk                                           1/1     Running   0          94s     172.20.0.25    172.16.1.100   &lt;none&gt;           &lt;none&gt;
-lxcfs-c4lkx                                           1/1     Running   0          93s     172.20.1.25    172.16.1.101   &lt;none&gt;           &lt;none&gt;
-...
-</code></pre>
-<h3 id="32-开启命名空间注入">3.2 开启命名空间注入</h3>
-<pre><code class="language-shell"># kubectl label namespace default lxcfs-admission-webhook=enabled
-</code></pre>
-<p>为指定的命名空间开启<code>lxcfs</code>注入，开启后该命名空间下所有新创建的<code>Pod</code>都将被注入<code>lxcfs</code></p>
-<h3 id="33-还原">3.3 还原</h3>
-<p>如果是要还原安装的环境，执行目录中的卸载脚本即可</p>
-<pre><code class="language-shell"># ./deployment/uninstall.sh 
-mutatingwebhookconfiguration.admissionregistration.k8s.io &quot;mutating-lxcfs-admission-webhook-cfg&quot; deleted
-service &quot;lxcfs-admission-webhook-svc&quot; deleted
-deployment.apps &quot;lxcfs-admission-webhook-deployment&quot; deleted
-secret &quot;lxcfs-admission-webhook-certs&quot; deleted
-# kubectl delete -f deployment/lxcfs-daemonset.yaml        
-daemonset.apps &quot;lxcfs&quot; deleted
-</code></pre>
-<h2 id="4-测试">4、测试</h2>
-<p>克隆下来的代码中提供了一个用于测试的<code>httpd pod</code>的<code>yaml</code>，可以直接部署</p>
-<pre><code class="language-shell"># kubectl apply -f deployment/web.yaml 
-deployment.apps/web created
-# kubectl get pods -l app=web
-NAME                   READY   STATUS    RESTARTS   AGE
-web-5ff5cd75f8-74pr6   1/1     Running   0          27s
-web-5ff5cd75f8-bcm2x   1/1     Running   0          27s
-</code></pre>
-<p>进入容器查看资源</p>
-<pre><code class="language-shell">kubectl exec -it web-5ff5cd75f8-74pr6 -- bash
-root@web-5ff5cd75f8-74pr6:/usr/local/apache2# free -m
-             total       used       free     shared    buffers     cached
-Mem:           256         15        240          0          0          0
--/+ buffers/cache:         14        241
-Swap:            0          0          0
-root@web-5ff5cd75f8-74pr6:/usr/local/apache2# cat /proc/cpuinfo| grep &quot;processor&quot;| wc -l
-1
-</code></pre>
-<p>实际上通过<code>lxcfs</code>+动态准入控制，在创建新的<code>pod</code>时自动挂载了主机的相关文件，可以通过下面的方式查看</p>
-<pre><code class="language-shell"># kubectl describe pods web-5ff5cd75f8-74pr6
-...
-    Mounts:
-      /proc/cpuinfo from lxcfs-proc-cpuinfo (rw)
-      /proc/diskstats from lxcfs-proc-diskstats (rw)
-      /proc/loadavg from lxcfs-proc-loadavg (rw)
-      /proc/meminfo from lxcfs-proc-meminfo (rw)
-      /proc/stat from lxcfs-proc-stat (rw)
-      /proc/swaps from lxcfs-proc-swaps (rw)
-      /proc/uptime from lxcfs-proc-uptime (rw)
-      /sys/devices/system/cpu/online from lxcfs-sys-devices-system-cpu-online (rw)
-      /var/run/secrets/kubernetes.io/serviceaccount from default-token-jtj98 (ro)
-...
-</code></pre>
-<h2 id="5-小结">5、小结</h2>
-<p>容器中的<code>pod</code>已经能正确的读取到<code>cpu</code>及内存的限制值了，如果是自身应用要读取所在环境的资源配置，如果出现问题，一定要从底层弄清楚是如何获取到的环境资源</p>
-<p>通过上面的测试可以看到<code>lxcfs</code>也自动挂载了<code>nginx</code>需要的<code>/sys/devices/system/cpu/online</code>文件到<code>pod</code>中了，因此<code>nginx</code>容器中<code>worker process</code>自动设置的问题经过测试验证也已得到了解决</p>
-<blockquote>
-<p>参考：</p>
-<p>https://github.com/denverdino/lxcfs-admission-webhook</p>
-</blockquote>
 ]]></content>
     </entry>
 </feed>
