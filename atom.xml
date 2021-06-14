@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://www.ssgeek.com</id>
     <title>山山仙人博客</title>
-    <updated>2021-06-09T16:14:57.795Z</updated>
+    <updated>2021-06-14T16:08:45.418Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://www.ssgeek.com"/>
     <link rel="self" href="https://www.ssgeek.com/atom.xml"/>
@@ -10,6 +10,293 @@
     <logo>https://www.ssgeek.com/images/avatar.png</logo>
     <icon>https://www.ssgeek.com/favicon.ico</icon>
     <rights>All rights reserved 2021, 山山仙人博客</rights>
+    <entry>
+        <title type="html"><![CDATA[MySQL工具Atlas的安装使用]]></title>
+        <id>https://www.ssgeek.com/post/mysql-gong-ju-atlas-de-an-zhuang-shi-yong</id>
+        <link href="https://www.ssgeek.com/post/mysql-gong-ju-atlas-de-an-zhuang-shi-yong">
+        </link>
+        <updated>2021-06-14T16:08:20.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E4%BB%8B%E7%BB%8D">1、介绍</a></li>
+<li><a href="#2-%E5%AE%89%E8%A3%85%E9%85%8D%E7%BD%AE">2、安装配置</a>
+<ul>
+<li><a href="#21-%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87">2.1 环境准备</a></li>
+<li><a href="#22-%E4%B8%8B%E8%BD%BD%E5%AE%89%E8%A3%85altas">2.2 下载安装Altas</a></li>
+<li><a href="#23-%E5%A4%84%E7%90%86%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">2.3 处理配置文件</a></li>
+<li><a href="#24-%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1">2.4 启动服务</a></li>
+</ul>
+</li>
+<li><a href="#3-%E8%AF%BB%E5%86%99%E5%88%86%E7%A6%BB%E5%8A%9F%E8%83%BD%E6%B5%8B%E8%AF%95">3、读写分离功能测试</a>
+<ul>
+<li><a href="#31-%E8%BF%9E%E6%8E%A5%E6%9C%8D%E5%8A%A1">3.1 连接服务</a></li>
+<li><a href="#32-%E5%8F%AA%E8%AF%BB%E6%B5%8B%E8%AF%95">3.2 只读测试</a></li>
+<li><a href="#33-%E5%86%99%E5%85%A5%E6%B5%8B%E8%AF%95">3.3 写入测试</a></li>
+</ul>
+</li>
+<li><a href="#4-%E7%AE%A1%E7%90%86%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B">4、管理功能简介</a>
+<ul>
+<li><a href="#41-%E6%8C%81%E4%B9%85%E5%8C%96%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">4.1 持久化配置文件</a></li>
+<li><a href="#42-%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86%E6%9C%8D%E5%8A%A1">4.2 连接管理服务</a></li>
+<li><a href="#43-%E8%8A%82%E7%82%B9%E7%AE%A1%E7%90%86">4.3 节点管理</a>
+<ul>
+<li><a href="#431-%E6%9F%A5%E7%9C%8B%E6%89%80%E6%9C%89%E8%8A%82%E7%82%B9">4.3.1  查看所有节点</a></li>
+<li><a href="#432-%E8%8A%82%E7%82%B9%E7%9A%84%E4%B8%8A%E7%BA%BF%E5%92%8C%E4%B8%8B%E7%BA%BF">4.3.2 节点的上线和下线</a></li>
+<li><a href="#433-%E6%B7%BB%E5%8A%A0%E5%88%A0%E9%99%A4%E8%8A%82%E7%82%B9">4.3.3 添加删除节点</a></li>
+</ul>
+</li>
+<li><a href="#44-%E7%94%A8%E6%88%B7%E7%AE%A1%E7%90%86">4.4 用户管理</a>
+<ul>
+<li><a href="#441-%E5%9C%A8%E4%B8%BB%E5%BA%93%E5%A2%9E%E5%8A%A0%E6%95%B0%E6%8D%AE%E5%BA%93%E7%94%A8%E6%88%B7">4.4.1 在主库增加数据库用户</a></li>
+<li><a href="#442-%E6%9F%A5%E7%9C%8B%E5%BD%93%E5%89%8D%E7%94%A8">4.4.2 查看当前用</a></li>
+<li><a href="#443-%E5%A2%9E%E5%8A%A0atlas%E7%94%A8%E6%88%B7">4.4.3 增加Atlas用户</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210615-01.png" alt=""></figure>
+<blockquote>
+<p>作者：AshesCat</p>
+</blockquote>
+<h2 id="1-介绍">1、介绍</h2>
+<p><code>Atlas</code>是由<code>Qihoo 360</code>, <code>Web</code>平台部基础架构团队开发维护的一个基于<code>MySQL</code>协议的数据中间层项目<br>
+它是在<code>mysql-proxy 0.8.2</code>版本的基础上，对其进行了优化，增加了一些新的功能特性<br>
+<code>360</code>内部使用<code>Atlas</code>运行的<code>mysql</code>业务，每天承载的读写请求数达几十亿条<br>
+下载地址 ：https://github.com/Qihoo360/Atlas/releases</p>
+<p>注意：<br>
+1、<code>Atlas</code>只能安装运行在64位的系统上<br>
+2、<code>Centos 5.X</code>安装<code>Atlas-XX.el5.x86_64.rpm</code>，<code>Centos 6.X/7.X</code>安装<code>Atlas-XX.el6.x86_64.rpm</code><br>
+3、后端<code>mysql</code>版本应大于<code>5.1</code>，建议使用<code>Mysql 5.6</code>以上</p>
+<h2 id="2-安装配置">2、安装配置</h2>
+<h3 id="21-环境准备">2.1 环境准备</h3>
+<p>两台服务器<br>
+192.168.10.54：MySQL 5.7.30 一主三从，3307-3310端口<br>
+192.168.10.55：Atlas</p>
+<h3 id="22-下载安装altas">2.2 下载安装Altas</h3>
+<pre><code class="language-shell">
+wget https://github.com/Qihoo360/Atlas/releases/download/2.2.1/Atlas-2.2.1.el6.x86_64.rpm
+[root@db3 ~]# rpm -ivh Atlas-2.2.1.el6.x86_64.rpm 
+Preparing...        ####################### [100%]
+Updating / installing...
+   1:Atlas-2.2.1-1  ####################### [100%]
+</code></pre>
+<h3 id="23-处理配置文件">2.3 处理配置文件</h3>
+<pre><code class="language-shell">[root@db3 ~]# cd /usr/local/mysql-proxy/conf/
+[root@db3 conf]# mv test.cnf test.cnf.bak
+
+[root@db3 conf]# vim test.cnf
+[mysql-proxy]
+admin-username = user    # 管理用户
+admin-password = pwd     # 管理密码
+proxy-backend-addresses = 192.168.10.54:3307    # 写节点（主库）
+proxy-read-only-backend-addresses = 192.168.10.54:3308,192.168.10.54:3309,192.168.10.54:3310   # 只读节点（从库）
+pwds = test:3yb5jEku5h4=,repl:3yb5jEku5h4=      # 业务连接用户密码（逗号分隔），密码为Atlas/bin目录下encrypt命令生成
+daemon = true       # 后台运行
+keepalive = true    # 监测节点心跳
+event-threads = 4   # 并发数量，设置cpu核数一半
+log-level = message   # 日志级别
+log-path = /usr/local/mysql-proxy/log  # 日志目录
+sql-log = On   # sql记录（可做审计）
+proxy-address = 0.0.0.0:3306    # 业务连接端口
+admin-address = 0.0.0.0:2345    # 管理连接端口
+charset=utf8   # 字符集
+</code></pre>
+<h3 id="24-启动服务">2.4 启动服务</h3>
+<pre><code class="language-shell">[root@db3 mysql-proxy]# /usr/local/mysql-proxy/bin/mysql-proxyd test start
+OK: MySQL-Proxy of test is started
+[root@db3 mysql-proxy]# ps -ef |grep proxy
+root     105981      1  0 17:19 ?        00:00:00 /usr/local/mysql-proxy/bin/mysql-proxy --defaults-file=/usr/local/mysql-proxy/conf/test.cnf
+root     105982 105981  0 17:19 ?        00:00:00 /usr/local/mysql-proxy/bin/mysql-proxy --defaults-file=/usr/local/mysql-proxy/conf/test.cnf
+root     105995   1249  0 17:19 pts/0    00:00:00 grep --color=auto proxy
+</code></pre>
+<h2 id="3-读写分离功能测试">3、读写分离功能测试</h2>
+<p>测试读操作：</p>
+<pre><code class="language-shell">mysql -umha -pmha  -h 10.0.0.53 -P 33060 
+db03 [(none)]&gt;select @@server_id;
+</code></pre>
+<p>测试写操作：</p>
+<pre><code class="language-shell">mysql&gt; begin;select @@server_id;commit;
+</code></pre>
+<p><strong>注意:</strong><br>
+<code>DDL</code>建议不要在<code>Atlas</code>触发，最好是到主库触发<code>Online DDL</code>或者<code>PT-OSC</code><br>
+<code>DML</code>建议<code>begin</code>; <code>DML</code>;  <code>commit</code>;</p>
+<h3 id="31-连接服务">3.1 连接服务</h3>
+<pre><code class="language-mysql">[root@db5 conf]# mysql -urepl -p123 -h192.168.10.55 -P3306
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 1
+Server version: 5.0.81-log MySQL Community Server (GPL)   # 5.0.81版本
+</code></pre>
+<h3 id="32-只读测试">3.2 只读测试</h3>
+<pre><code class="language-mysql">mysql&gt; select @@server_id;
++-------------+
+| @@server_id |
++-------------+
+|           9 |
++-------------+
+1 row in set (0.00 sec)
+
+mysql&gt; select @@server_id;
++-------------+
+| @@server_id |
++-------------+
+|          10 |
++-------------+
+1 row in set (0.00 sec)
+
+mysql&gt; select @@server_id;
++-------------+
+| @@server_id |
++-------------+
+|           8 |
++-------------+
+1 row in set (0.00 sec)
+</code></pre>
+<h3 id="33-写入测试">3.3 写入测试</h3>
+<pre><code class="language-mysql">mysql&gt; begin;select @@server_id;commit;
+Query OK, 0 rows affected (0.00 sec)
+
++-------------+
+| @@server_id |
++-------------+
+|           7 |
++-------------+
+1 row in set (0.00 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
+mysql&gt; begin;select @@server_id;commit;
+Query OK, 0 rows affected (0.00 sec)
+
++-------------+
+| @@server_id |
++-------------+
+|           7 |
++-------------+
+1 row in set (0.00 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+</code></pre>
+<h2 id="4-管理功能简介">4、管理功能简介</h2>
+<h3 id="41-持久化配置文件">4.1 持久化配置文件</h3>
+<pre><code class="language-mysql">mysql&gt; save config;
+Empty set (0.00 sec)
+</code></pre>
+<h3 id="42-连接管理服务">4.2 连接管理服务</h3>
+<pre><code class="language-mysql">[root@db5 bin]# mysql -uuser -ppwd -h192.168.10.55 -P2345
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 1
+Server version: 5.0.99-agent-admin
+</code></pre>
+<h3 id="43-节点管理">4.3 节点管理</h3>
+<h4 id="431-查看所有节点">4.3.1  查看所有节点</h4>
+<pre><code class="language-mysql">mysql&gt; SELECT * FROM backends;
++-------------+--------------------+-------+------+
+| backend_ndx | address            | state | type |
++-------------+--------------------+-------+------+
+|           1 | 192.168.10.54:3307 | up    | rw   |
+|           2 | 192.168.10.54:3308 | up    | ro   |
+|           3 | 192.168.10.54:3309 | up    | ro   |
+|           4 | 192.168.10.54:3310 | up    | ro   |
++-------------+--------------------+-------+------+
+4 rows in set (0.00 sec)
+</code></pre>
+<h4 id="432-节点的上线和下线">4.3.2 节点的上线和下线</h4>
+<p>下线</p>
+<pre><code class="language-mysql">mysql&gt; set offline 1;
++-------------+--------------------+---------+------+
+| backend_ndx | address            | state   | type |
++-------------+--------------------+---------+------+
+|           1 | 192.168.10.54:3307 | offline | rw   |
++-------------+--------------------+---------+------+
+1 row in set (0.00 sec)
+mysql&gt; SELECT * FROM backends;
++-------------+--------------------+---------+------+
+| backend_ndx | address            | state   | type |
++-------------+--------------------+---------+------+
+|           1 | 192.168.10.54:3307 | offline | rw   |
+|           2 | 192.168.10.54:3308 | up      | ro   |
+|           3 | 192.168.10.54:3309 | up      | ro   |
+|           4 | 192.168.10.54:3310 | up      | ro   |
++-------------+--------------------+---------+------+
+4 rows in set (0.00 sec)
+</code></pre>
+<p>上线</p>
+<pre><code class="language-mysql">mysql&gt; set online 1;
++-------------+--------------------+---------+------+
+| backend_ndx | address            | state   | type |
++-------------+--------------------+---------+------+
+|           1 | 192.168.10.54:3307 | unknown | rw   |
++-------------+--------------------+---------+------+
+1 row in set (0.00 sec)
+
+</code></pre>
+<h4 id="433-添加删除节点">4.3.3 添加删除节点</h4>
+<p>删除</p>
+<pre><code class="language-mysql">mysql&gt; remove backend 4;
+Empty set (0.00 sec)
+
+mysql&gt; SELECT * FROM backends;
++-------------+--------------------+-------+------+
+| backend_ndx | address            | state | type |
++-------------+--------------------+-------+------+
+|           1 | 192.168.10.54:3307 | up    | rw   |
+|           2 | 192.168.10.54:3308 | up    | ro   |
+|           3 | 192.168.10.54:3309 | up    | ro   |
++-------------+--------------------+-------+------+
+3 rows in set (0.00 sec)
+</code></pre>
+<p>添加</p>
+<pre><code class="language-mysql">mysql&gt; add slave 192.168.10.54:3310;
+Empty set (0.00 sec)
+
+mysql&gt; SELECT * FROM backends;
++-------------+--------------------+-------+------+
+| backend_ndx | address            | state | type |
++-------------+--------------------+-------+------+
+|           1 | 192.168.10.54:3307 | up    | rw   |
+|           2 | 192.168.10.54:3308 | up    | ro   |
+|           3 | 192.168.10.54:3309 | up    | ro   |
+|           4 | 192.168.10.54:3310 | up    | ro   |
++-------------+--------------------+-------+------+
+4 rows in set (0.00 sec)
+</code></pre>
+<h3 id="44-用户管理">4.4 用户管理</h3>
+<h4 id="441-在主库增加数据库用户">4.4.1 在主库增加数据库用户</h4>
+<pre><code class="language-mysql">mysql&gt; grant all on *.* to user1@'192.168.10.%' identified by '123';
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+</code></pre>
+<h4 id="442-查看当前用">4.4.2 查看当前用</h4>
+<pre><code class="language-mysql">mysql&gt; select * from pwds;
++----------+--------------+
+| username | password     |
++----------+--------------+
+| test     | 3yb5jEku5h4= |
+| repl     | 3yb5jEku5h4= |
++----------+--------------+
+2 rows in set (0.00 sec)
+</code></pre>
+<h4 id="443-增加atlas用户">4.4.3 增加Atlas用户</h4>
+<pre><code class="language-mysql">mysql&gt; add pwd user1:123;
+Empty set (0.00 sec)
+
+mysql&gt; select * from pwds;
++----------+--------------+
+| username | password     |
++----------+--------------+
+| test     | 3yb5jEku5h4= |
+| repl     | 3yb5jEku5h4= |
+| user1    | 3yb5jEku5h4= |
++----------+--------------+
+3 rows in set (0.00 sec)
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[MySQL MHA部署与测试-下篇]]></title>
         <id>https://www.ssgeek.com/post/mysql-mha-bu-shu-yu-ce-shi-xia-pian</id>
@@ -4518,184 +4805,6 @@ urlpatterns = [
 <p>参考：</p>
 <p>http://blog.shabbywu.cn/posts/2020/04/15/python-auto-doc-for-drf.html</p>
 </blockquote>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[我的生产力工具推荐-终端01篇]]></title>
-        <id>https://www.ssgeek.com/post/wo-de-sheng-chan-li-gong-ju-tui-jian-zhong-duan-01-pian</id>
-        <link href="https://www.ssgeek.com/post/wo-de-sheng-chan-li-gong-ju-tui-jian-zhong-duan-01-pian">
-        </link>
-        <updated>2021-04-06T17:03:38.000Z</updated>
-        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
-<li>
-<ul>
-<li><a href="#1-%E5%85%B3%E4%BA%8E%E7%94%B5%E8%84%91">1、关于电脑</a></li>
-<li><a href="#2-%E7%BB%88%E7%AB%AF%E4%BB%8B%E7%BB%8D">2、终端介绍</a></li>
-<li><a href="#3-%E7%BB%88%E7%AB%AF%E5%B7%A5%E5%85%B7%E6%8E%A8%E8%8D%90">3、终端工具推荐</a>
-<ul>
-<li><a href="#31-fzf-%E6%A8%A1%E7%B3%8A%E6%9F%A5%E6%89%BE">3.1 fzf-模糊查找</a></li>
-<li><a href="#32-autojump-%E5%BF%AB%E9%80%9F%E8%B7%B3%E8%BD%AC">3.2 autojump-快速跳转</a></li>
-<li><a href="#33-tmate-%E7%BB%88%E7%AB%AF%E8%BF%9C%E7%A8%8B">3.3 tmate-终端远程</a></li>
-<li><a href="#34-hadolint-%E5%AF%B9dockerfile%E8%AF%AD%E6%B3%95%E6%A3%80%E6%9F%A5">3.4 hadolint-对Dockerfile语法检查</a></li>
-<li><a href="#35-speedtest-%E6%B5%8B%E7%BD%91%E9%80%9F">3.5 speedtest-测网速</a></li>
-<li><a href="#36-glances-%E5%AE%9E%E6%97%B6%E7%9B%91%E6%8E%A7">3.6 glances-实时监控</a></li>
-<li><a href="#37-lrzsz-%E7%BB%88%E7%AB%AF%E4%B8%8A%E4%BC%A0%E4%B8%8B%E8%BD%BD">3.7 lrzsz-终端上传下载</a></li>
-<li><a href="#38-neovim-%E5%A2%9E%E5%BC%BA%E7%89%88vim">3.8 neovim-增强版vim</a></li>
-</ul>
-</li>
-<li><a href="#4-%E5%B0%8F%E7%BB%93">4、小结</a></li>
-</ul>
-</li>
-</ul>
-</p>
-<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210407-01.png" alt=""></figure>
-<blockquote>
-<p>俗话说工欲善其事，必先利其器。从本文开始，在分享技术文章的同时，打算加入一个新的主题，关于我的办公（个人）电脑（生产力工具）的相关配置分享</p>
-<p>希望能帮到大家~</p>
-</blockquote>
-<h2 id="1-关于电脑">1、关于电脑</h2>
-<p>如果你和我从事一样的职业（<code>such as a developers or about Linux</code>），如果电脑是你的另一半，而且还在使用<code>Windows</code>的话，强烈建议尝试使用类<code>Unix</code>系统，主要有以下三个途径（来自我的亲测经历）</p>
-<p>a、给自己的电脑安装<code>Deepin</code>、<code>Ubuntu</code>等桌面版<code>Linux</code>操作系统，缺点是安装操作系统后，相关应用的软件包很少很难找</p>
-<p>b、攒<code>cuán</code>一台配置稍好点的主机，安装黑苹果，缺点是驱动问题很难解决。就算安装好了，一旦系统升级或因为某些原因导致诸多驱动不可用</p>
-<p>c、攒<code>zǎn</code>钱换一台<code>Mac</code>，时至今日，<code>Mac</code>的价格其实也不贵，得益于其强大的操作系统、生态周边以及应用商店，从我个人使用来看，带给我的 “快乐” 比<code>Windows</code>不要太多</p>
-<p>大四实习的那一年里，终于攒钱换上了梦寐以求的<code>MBP</code>，作为人生的第二台电脑，得到的那一刻无比兴奋，可能这就是一个对电子产品无比热爱的男孩的快乐吧~</p>
-<p>我的电脑型号是<code>MacBook Pro (15-inch, 2018)（A1990）</code></p>
-<p>除此外还淘有一台<code>Mac mini (Late 2012)</code></p>
-<p>电脑细节我就不多做介绍了，回归正题，还是讲讲如何优化电脑各种配置</p>
-<h2 id="2-终端介绍">2、终端介绍</h2>
-<p>作为一个长期使用终端（依赖患者）的 “工具” 人，拥有一个强大的终端工具是很有必要的，和<code>linux</code>操作系统的软件包管理工具<code>yum</code>、<code>deb</code>、<code>apt</code>一样，在<code>Mac</code>上用的最为普遍的是<code>Homebrew</code>，其次还有<code>python</code>的包管理工具<code>pip</code>，除了自带的终端外，终端软件可以选择<code>iTerm2</code>、<code>SecureCRT</code>、<code>Royal TSX</code>、<code>Termius</code>等等，我用的较多的终端软件是<code>iTerm2</code>和<code>SecureCRT</code>，关于包管理工具<code>Homebrew</code>及<code>pip</code>的安装使用和终端软件<code>iTerm2</code>的使用配置技巧这里也就不多介绍了，网络上有很多很多文章供参考</p>
-<h2 id="3-终端工具推荐">3、终端工具推荐</h2>
-<p>到这里才是本文的正题，用上了方便的<code>Homebrew</code>以及配置酷炫的<code>iTerm2</code>后，可以借助以下增强工具来提高生产力，部分终端工具同样可以安装在服务器<code>Linux</code>操作系统上</p>
-<h3 id="31-fzf-模糊查找">3.1 fzf-模糊查找</h3>
-<p><code>fzf</code>可以用来查找任何列表内容、文件、历史命令、本机绑定的<code>host</code>、进程、<code>Git</code>分支、进程等。所有的命令行工具可以生成列表输出的都可以再通过管道<code>pipe</code>到<code>fzf</code>上进行搜索和查找</p>
-<p>安装命令</p>
-<pre><code class="language-shell">brew install fzf
-</code></pre>
-<p>安装完后还需要安装键盘映射和模糊提示</p>
-<pre><code class="language-shell">$(brew --prefix)/opt/fzf/install
-</code></pre>
-<p>两大用法：<code>ctrl + t</code>查找目录下的条目、<code>ctrl +r</code>优化历史记录选择</p>
-<p>目前我使用最多的是利用其进行历史记录的模糊查找，比传统的<code>ctrl+r</code>显示效果更好，效果如下</p>
-<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210407-02.gif" alt=""></figure>
-<h3 id="32-autojump-快速跳转">3.2 autojump-快速跳转</h3>
-<p><code>autojump</code>提供了一种快速进行文件目录导航的方式。其效果就是实现目录间快速跳转，想去哪个目录直接<code>j</code>+ 目录名(甚至不用输全)，不用频繁的<code>cd</code>了</p>
-<p>安装命令</p>
-<pre><code class="language-shell">brew install autojump
-</code></pre>
-<p>修改 <code>~/.zshrc</code> 文件，添加到<code>plugins</code>配置列表并在尾部追加如下内容，配置完后<code>source</code>生效</p>
-<pre><code class="language-shell">plugins=(
-  git
-  autojump
-)
-
-...
-
-[ -f /usr/local/etc/profile.d/autojump.sh ] &amp;&amp; . /usr/local/etc/profile.d/autojump.sh
-</code></pre>
-<p>用法很简单，想要跳转到哪个目录下直接使用<strong>j + 目录名跳转</strong>，甚至可以模糊输入，前提是有通过<code>cd</code>进入过这个目录，例如从任何目录跳转进入到<code>git-workspace</code>目录下</p>
-<pre><code class="language-shell">j git-workspace
-或者模糊跳转
-j git
-</code></pre>
-<h3 id="33-tmate-终端远程">3.3 tmate-终端远程</h3>
-<p>这个工具可以认为是终端版本<code>teamviewer</code>，在有网络的情况下远程终端连接并监视或操作</p>
-<p>安装命令</p>
-<pre><code class="language-shell">brew install tmate
-</code></pre>
-<p>使用方法，例如要从<code>A</code>机器远程到<code>B</code>机器，在<code>B</code>机器上安装并运行<code>tmate</code>启动</p>
-<pre><code class="language-shell"># tmate
-Tip: if you wish to use tmate only for remote access, run: tmate -F                  [0/0]
-To see the following messages again, run in a tmate session: tmate show-messages
-Press &lt;q&gt; or &lt;ctrl-c&gt; to continue
----------------------------------------------------------------------
-Connecting to ssh.tmate.io...
-Note: clear your terminal before sharing readonly access
-web session read only: https://tmate.io/t/ro-xmVWpRRN6GGJrR4zWLMKrSt7T
-ssh session read only: ssh ro-xmVWpRRN6GGJrR4zWLMKrSt7T@sfo2.tmate.io
-web session: https://tmate.io/t/3PwVRseDmXpG74X43EQG9hBYq
-ssh session: ssh 3PwVRseDmXpG74X43EQG9hBYq@sfo2.tmate.io
-
-[tmate] ssh session: ssh 3PwVRseDmXpG74X43EQG9hBYq@sfo2.tmate.io
-</code></pre>
-<p>然后在<code>A</code>上就可以通过上面四种方式连接到<code>B</code>机器：<code>web</code>会话和<code>ssh</code>会话，分为只读和读写两种</p>
-<p>具体原理可以查看官方文档</p>
-<h3 id="34-hadolint-对dockerfile语法检查">3.4 hadolint-对Dockerfile语法检查</h3>
-<p><code>Hadolint</code>可以帮助进行<code>Dockerfile</code>语法检查，实现的是<code>Dockerfile linter</code>，其实现依据来自于<code>Docker</code>官网推荐的<code>Dockerfile</code>最佳实践</p>
-<p>安装命令</p>
-<pre><code class="language-shell">brew install hadolint
-</code></pre>
-<p>使用</p>
-<pre><code class="language-shell">hadolint node.Dockerfile
-node.Dockerfile:21 DL3007 Using latest is prone to errors if the image will ever update. Pin the version explicitly to a release tag
-# 提示说镜像的tag使用latest不是最佳的，因为一旦镜像升级，下次再拉取的latest镜像可能就不是当前的版本了，应该明确具体的版本号
-</code></pre>
-<h3 id="35-speedtest-测网速">3.5 speedtest-测网速</h3>
-<p><code>speedtest</code>是一个测网速的工具，其也有图形化工具</p>
-<p>安装命令</p>
-<pre><code class="language-shell">brew tap teamookla/speedtest
-brew update
-brew install speedtest --force
-</code></pre>
-<p>使用</p>
-<pre><code class="language-shell"># speedtest
-
-   Speedtest by Ookla
-
-     Server: Beijing Unicom - Beijing (id = 5145)
-        ISP: China Unicom Beijing
-    Latency:     3.57 ms   (0.88 ms jitter)
-   Download:    93.43 Mbps (data used: 44.5 MB)
-     Upload:    93.37 Mbps (data used: 42.2 MB)
-Packet Loss:     0.0%
- Result URL: https://www.speedtest.net/result/c/aa6513eb-a9b3-466b-8edd-92f73c59267f
-</code></pre>
-<p>此外还有一个用<code>python</code>脚本实现的，项目地址https://github.com/sivel/speedtest-cli，作用同样是测试网速，将此脚本下载并放到本地的<code>bin</code>目录下添加执行权限即可使用</p>
-<pre><code class="language-shell"># speedtest-cli
-Retrieving speedtest.net configuration...
-Testing from China Unicom Beijing (114.246.34.169)...
-Retrieving speedtest.net server list...
-Selecting best server based on ping...
-Hosted by Beijing Broadband Network (Beijing) [1.72 km]: 4.659 ms
-Testing download speed................................................................................
-Download: 93.27 Mbit/s
-Testing upload speed................................................................................................
-Upload: 93.64 Mbit/s
-</code></pre>
-<h3 id="36-glances-实时监控">3.6 glances-实时监控</h3>
-<p>类似于<code>mac</code>自带的活动监视器，以客户端/服务器端模式运行，远程监控可以通过终端、<code>Web</code>接口或<code>API</code>（XML-RPC和RESTful）来实现。除此之外，数据还可以导出至文件或外部数据库中。</p>
-<p>采用<code>Python</code>开发，并使用了外部库来从目标系统收集数据。该工具基于开源架构实现，开发者可以根据自己的需求来增加新的插件或导出模块，可以监控的信息如下</p>
-<ul>
-<li>CPU 使用率</li>
-<li>内存使用情况</li>
-<li>内核统计信息和运行队列信息</li>
-<li>磁盘 I/O 速度、传输和读/写比率</li>
-<li>文件系统中的可用空间</li>
-<li>磁盘适配器</li>
-<li>网络 I/O 速度、传输和读/写比率</li>
-<li>页面空间和页面速度</li>
-<li>消耗资源最多的进程</li>
-<li>计算机信息和系统资源</li>
-</ul>
-<p>安装命令</p>
-<pre><code class="language-shell">brew install glances
-</code></pre>
-<p>效果如下</p>
-<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210407-03.png" alt=""></figure>
-<h3 id="37-lrzsz-终端上传下载">3.7 lrzsz-终端上传下载</h3>
-<p><code>lrzsz</code>是一款在<code>linux</code>里可代替<code>ftp</code>上传和下载的程序，可以直接在终端进行文件上传下载，其传输协议是<code>ZModem协议</code></p>
-<p>安装命令</p>
-<pre><code class="language-shell">brew install lrzsz
-</code></pre>
-<p>在<code>iTerm2</code>上配置和使用<code>lrzsz</code>可以参考我之前的文章<a href="https://www.ssgeek.com/post/mac-xia-iterm2-pei-zhi-lrzsz-gong-neng/">Mac下iTerm2配置lrzsz功能</a></p>
-<h3 id="38-neovim-增强版vim">3.8 neovim-增强版vim</h3>
-<p><code>neovim</code>是一个增强版本的<code>vim</code>编辑器，其特性有异步任务和<code>socket</code>、内建<code>terminal</code>、<code>26</code>位真彩色支持、浮动窗口等</p>
-<p>安装命令</p>
-<pre><code class="language-shell">brew install neovim
-</code></pre>
-<p>在<code>iTerm2</code>上配置和使用可以参考<a href="http://www.eryajf.net/4733.html">Mac电脑iterm中配置neovim入门与实践</a></p>
-<h2 id="4-小结">4、小结</h2>
-<p>以上工具都极大提高了我日常工作和学习的效率，由于篇幅和时间关系，只列出了我对这些工具的常用用法，详细内容可以参考工具开源地址</p>
-<p>本文只推荐了一部分，后面有机会再继续 ~</p>
 ]]></content>
     </entry>
 </feed>
