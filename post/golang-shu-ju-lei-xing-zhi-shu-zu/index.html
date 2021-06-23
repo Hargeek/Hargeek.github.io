@@ -9,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
-<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1624467081135">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1624467840992">
 <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
 
@@ -55,7 +55,7 @@ var _hmt = _hmt || [];
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://www.ssgeek.com">
-        <img src="https://www.ssgeek.com/images/avatar.png?v=1624467081135" class="site-logo">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1624467840992" class="site-logo">
         <h1 class="site-title">山山仙人博客</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -179,7 +179,7 @@ var _hmt = _hmt || [];
 <p>但<code>Go</code>中也有类似的动态&quot;数组&quot;，称为切片<code>slice</code></p>
 <p><code>Go</code>中的数组是<code>slice</code>和<code>map</code>两种数据类型的基础，这两种数据类型的底层都是通过数组实现的</p>
 <h2 id="1-存储方式">1、存储方式</h2>
-<p>当在<code>Go</code>中声明一个数组之后，会在内存中开辟一段固定长度的、连续的空间存放数组中的各个元素，这些元素的数据类型完全相同，可以是内置的简单数据类型(<code>int</code>、<code>string</code>等)，也可以是自定义的<code>struct</code>结构体类型</p>
+<p>当在<code>Go</code>中声明一个数组之后，会在内存中开辟一段固定长度的、连续的空间存放数组中的各个元素，这些元素的数据类型完全相同，可以是内置的简单数据类型(<code>int</code>、<code>string等)，也可以是自定义的</code>struct`结构体类型</p>
 <ul>
 <li>固定长度：这意味着数组不可增长、不可缩减。想要扩展数组，只能创建新数组，将原数组的元素复制到新数组</li>
 <li>连续空间：这意味可以在缓存中保留的时间更长，搜索速度更快，是一种非常高效的数据结构，同时还意味着可以通过数值<code>index</code>的方式访问数组中的某个元素</li>
@@ -294,9 +294,9 @@ for i, v := range a {
 */
 </code></pre>
 <h2 id="7-多维数组">7、多维数组</h2>
-<p>可以通过组合两个一维数组的方式构成二维数组, 二维数据还是比较常用</p>
+<p>可以通过组合两个一维数组的方式构成二维数组, 二维数据还是比较常用，</p>
 <p>比如定义坐标, 表示<code>4</code>个坐标<code>(1,1) (2,2) (3,3) (4,4)</code></p>
-<pre><code class="language-go">pos := [4][2]int{{1, 1}, {2, 2}, {3, 3}, {4, 4}}
+<pre><code class="language-go">// pos := [4][2]int{{1, 1}, {2, 2}, {3, 3}, {4, 4}}
 fmt.Println(pos)
 // [[1 1] [2 2] [3 3] [4 4]]
 
