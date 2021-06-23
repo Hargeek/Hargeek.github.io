@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://www.ssgeek.com</id>
     <title>山山仙人博客</title>
-    <updated>2021-06-23T17:04:04.389Z</updated>
+    <updated>2021-06-23T17:14:27.829Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://www.ssgeek.com"/>
     <link rel="self" href="https://www.ssgeek.com/atom.xml"/>
@@ -160,15 +160,12 @@ for i, v := range a {
 <h2 id="7-多维数组">7、多维数组</h2>
 <p>可以通过组合两个一维数组的方式构成二维数组, 二维数据还是比较常用，</p>
 <p>比如定义坐标, 表示<code>4</code>个坐标<code>(1,1) (2,2) (3,3) (4,4)</code></p>
-<pre><code class="language-go">// pos := [4][2]int{{1, 1}, {2, 2}, {3, 3}, {4, 4}}
-fmt.Println(pos)
-// [[1 1] [2 2] [3 3] [4 4]]
+<pre><code class="language-go">// pos是一个二维数组
+fmt.Println(pos)  // [[1 1] [2 2] [3 3] [4 4]]
 
 // 修改第一点的坐标
 pos[0] = [2]int{10, 10}
-fmt.Println(pos)
-
-// [[10 10] [2 2] [3 3] [4 4]]
+fmt.Println(pos)  // [[10 10] [2 2] [3 3] [4 4]]
 </code></pre>
 <h2 id="8-数组作为函数参数">8、数组作为函数参数</h2>
 <p><code>Go</code>中的传值方式是按值传递，这意味着给变量赋值、给函数传参时，都是直接拷贝一个副本然后将副本赋值给对方的。这样的拷贝方式意味着：</p>

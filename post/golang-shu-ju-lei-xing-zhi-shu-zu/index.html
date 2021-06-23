@@ -9,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
-<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1624467840992">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1624468453735">
 <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
 
@@ -55,7 +55,7 @@ var _hmt = _hmt || [];
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://www.ssgeek.com">
-        <img src="https://www.ssgeek.com/images/avatar.png?v=1624467840992" class="site-logo">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1624468453735" class="site-logo">
         <h1 class="site-title">山山仙人博客</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -296,15 +296,12 @@ for i, v := range a {
 <h2 id="7-多维数组">7、多维数组</h2>
 <p>可以通过组合两个一维数组的方式构成二维数组, 二维数据还是比较常用，</p>
 <p>比如定义坐标, 表示<code>4</code>个坐标<code>(1,1) (2,2) (3,3) (4,4)</code></p>
-<pre><code class="language-go">// pos := [4][2]int{{1, 1}, {2, 2}, {3, 3}, {4, 4}}
-fmt.Println(pos)
-// [[1 1] [2 2] [3 3] [4 4]]
+<pre><code class="language-go">// pos是一个二维数组
+fmt.Println(pos)  // [[1 1] [2 2] [3 3] [4 4]]
 
 // 修改第一点的坐标
 pos[0] = [2]int{10, 10}
-fmt.Println(pos)
-
-// [[10 10] [2 2] [3 3] [4 4]]
+fmt.Println(pos)  // [[10 10] [2 2] [3 3] [4 4]]
 </code></pre>
 <h2 id="8-数组作为函数参数">8、数组作为函数参数</h2>
 <p><code>Go</code>中的传值方式是按值传递，这意味着给变量赋值、给函数传参时，都是直接拷贝一个副本然后将副本赋值给对方的。这样的拷贝方式意味着：</p>
