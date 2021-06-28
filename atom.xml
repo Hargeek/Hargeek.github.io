@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://www.ssgeek.com</id>
     <title>山山仙人博客</title>
-    <updated>2021-06-23T17:14:27.829Z</updated>
+    <updated>2021-06-28T17:24:51.251Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://www.ssgeek.com"/>
     <link rel="self" href="https://www.ssgeek.com/atom.xml"/>
@@ -10,6 +10,240 @@
     <logo>https://www.ssgeek.com/images/avatar.png</logo>
     <icon>https://www.ssgeek.com/favicon.ico</icon>
     <rights>All rights reserved 2021, 山山仙人博客</rights>
+    <entry>
+        <title type="html"><![CDATA[Golang数据类型之切片]]></title>
+        <id>https://www.ssgeek.com/post/golang-shu-ju-lei-xing-zhi-qie-pian</id>
+        <link href="https://www.ssgeek.com/post/golang-shu-ju-lei-xing-zhi-qie-pian">
+        </link>
+        <updated>2021-06-28T17:24:06.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%88%87%E7%89%87%E4%BB%8B%E7%BB%8D">1、切片介绍</a></li>
+<li><a href="#2-%E5%A3%B0%E6%98%8E%E5%92%8C%E5%88%9D%E5%A7%8B%E5%8C%96">2、声明和初始化</a>
+<ul>
+<li><a href="#21-make%E5%88%9B%E5%BB%BA">2.1 make创建</a></li>
+<li><a href="#22-%E5%AD%97%E9%9D%A2%E9%87%8F%E5%88%9B%E5%BB%BA">2.2 字面量创建</a></li>
+<li><a href="#23-%E5%88%9B%E5%BB%BA%E6%95%B0%E7%BB%84%E5%92%8C%E5%88%87%E7%89%87%E7%9A%84%E5%8C%BA%E5%88%AB">2.3 创建数组和切片的区别</a></li>
+<li><a href="#24-%E5%88%9B%E5%BB%BA%E5%88%87%E7%89%87%E7%9A%84%E6%9C%AC%E8%B4%A8">2.4 创建切片的本质</a></li>
+</ul>
+</li>
+<li><a href="#3-%E5%88%87%E7%89%87%E8%AE%BF%E9%97%AE">3、切片访问</a></li>
+<li><a href="#4-nil%E5%92%8C%E7%A9%BA%E5%88%87%E7%89%87">4、nil和空切片</a></li>
+<li><a href="#5-%E5%88%87%E7%89%87%E4%B8%AD%E6%B7%BB%E5%8A%A0%E5%85%83%E7%B4%A0">5、切片中添加元素</a></li>
+<li><a href="#6-%E9%80%9A%E8%BF%87%E5%88%87%E7%89%87%E5%88%9B%E5%BB%BA%E5%88%87%E7%89%87">6、通过切片创建切片</a></li>
+<li><a href="#7-%E5%88%87%E7%89%87%E9%81%8D%E5%8E%86">7、切片遍历</a></li>
+<li><a href="#8-%E5%88%87%E7%89%87%E6%8B%B7%E8%B4%9D">8、切片拷贝</a></li>
+<li><a href="#9-%E5%88%87%E7%89%87%E4%BD%9C%E4%B8%BA%E5%87%BD%E6%95%B0%E5%8F%82%E6%95%B0">9、切片作为函数参数</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/golang.png" alt=""></figure>
+<h2 id="1-切片介绍">1、切片介绍</h2>
+<p><code>Go</code>中的切片<code>slice</code>依赖于数组，它的底层就是数组，所以数组具有的优点，<code>slice</code>都有。 且<code>slice</code>支持可以通过<code>append</code>向<code>slice</code>中追加元素，长度不够时会动态扩展，通过再次<code>slice</code>切片，可以得到得到更小的<code>slice</code>结构，可以迭代、遍历等</p>
+<pre><code class="language-go">// runtime/slice.go
+type slice struct {
+    array unsafe.Pointer // 数组指针
+    len   int // 长度 
+    cap   int // 容量
+}
+</code></pre>
+<p>每一个<code>slice</code>结构都由3部分组成：</p>
+<ul>
+<li>容量(capacity)：即底层数组的长度，表示这个<code>slice</code>目前最多能扩展到的长度</li>
+<li>长度(length)：表示<code>slice</code>当前的长度，即当前容纳的元素个数</li>
+<li>数组指针(array)：指向底层数组的指针</li>
+</ul>
+<p>比如创建一个长度为<code>3</code>，容量为<code>5</code>，<code>int</code>类型的切片</p>
+<pre><code class="language-go">s := make([]int, 3, 4)
+fmt.Println(a, len(s), cap(s)) // [0 0 0] 3 5
+</code></pre>
+<h2 id="2-声明和初始化">2、声明和初始化</h2>
+<p>在<code>Go</code>中可以通过多种方式创建和初始化切片</p>
+<p>是否提前知道切片所需的容量通常会决定如何创建切片</p>
+<h3 id="21-make创建">2.1 make创建</h3>
+<pre><code class="language-go">// 创建一个整型切片, 其长度为 3 个元素，容量为 5 个元素
+slice := make([]int, 3, 5)
+
+// 我们也可以省略容量, 默认长度==容量
+// 创建一个整型切片 其长度和容量都是 5 个元素
+slice := make([]int, 5)
+
+// 但是长度不能小于容量, 否则编译器过不了
+// a := make([]int, 5, 3)
+</code></pre>
+<h3 id="22-字面量创建">2.2 字面量创建</h3>
+<pre><code class="language-go">// 这种方法和创建数组类似，只是不需要指定[]运算符里的值。初始的长度和容量会基于初始化时提供的元素的个数确定
+slice := []int{1,2,3}
+
+// 和数组一样也可以通过指定索引初始化, 比如index 4 值为100
+slice := []int{3: 100}
+</code></pre>
+<h3 id="23-创建数组和切片的区别">2.3 创建数组和切片的区别</h3>
+<p>如果在<code>[]</code>运算符里指定了一个值，那么创建的就是数组而不是切片，比如</p>
+<pre><code class="language-go">a := [3]int{1,2,3}
+b := []int{1,2,3}
+</code></pre>
+<p>虽然他们声明时只要这一点点区别，但是他们的数据结构区差别却很大，一个是引用类型一个是值类型</p>
+<h3 id="24-创建切片的本质">2.4 创建切片的本质</h3>
+<p>切片相关源码放置位置: src/runtime/slice.go, 我们使用<code>make</code>时, 实际上是调用的<code>makeslice</code>函数</p>
+<pre><code class="language-go">// 这里一波操作过后返回的是slice的pointer
+func makeslice(et *_type, len, cap int) unsafe.Pointer {}
+</code></pre>
+<h2 id="3-切片访问">3、切片访问</h2>
+<p>对切片里某个索引指向的元素赋值和对数组里某个索引指向的元素赋值的方法完全一样。使<br>
+用<code>[]</code>操作符就可以改变某个元素的值，下面是使用切片字面量来声明切片</p>
+<pre><code class="language-go">s := []int{1,2,3}
+s[0]
+
+// 但是不能越界访问, 比如
+s[3] // panic: runtime error: index out of range [3] with length 3
+</code></pre>
+<p>查看切片长度: <code>len</code></p>
+<p>查看切片容量: <code>cap</code></p>
+<h2 id="4-nil和空切片">4、nil和空切片</h2>
+<p>声明未初始化的切片为<code>nil</code></p>
+<pre><code class="language-go">var s []int
+var s1 []int
+fmt.Printf(&quot;%p\n&quot;, s1)  // 0x0
+</code></pre>
+<p><code>make</code>初始化的是一个空切片</p>
+<pre><code class="language-go">s := make([]int,0)
+// unsafe.Pointer ——&gt; *slice
+s2 := make([]int, 0)
+fmt.Printf(&quot;%p\n&quot;, s2)  // 0x126c9
+</code></pre>
+<p>所以<code>nil</code>切片直接赋值是要报错的</p>
+<pre><code class="language-go">var s []int
+s[0] = 1 // panic: runtime error: index out of range [0] with length 0
+</code></pre>
+<h2 id="5-切片中添加元素">5、切片中添加元素</h2>
+<p>通过<code>append</code>函数往切片中追加元素, 比如</p>
+<pre><code class="language-go">s := make([]int, 0, 4)
+s = append(s, 10, 20, 30, 40)
+</code></pre>
+<p>现在底层数组已经满了，再往里面追加元素会如何？</p>
+<pre><code class="language-go">s = append(s,50)
+</code></pre>
+<p>函数<code>append()</code>会智能地处理底层数组的容量增长。在切片的容量小于<code>1024</code>个元素时，总是会成倍地增加容量。一旦元素个数超过<code>1024</code>，容量的增长因子会设为<code>1.25</code>，也就是会每次增加<code>25%</code>的容量(随着语言的演化，这种增长算法可能会有所改变)</p>
+<p>因此扩容对于切片来说是一个比较消耗成本的事情，会开辟新的内存空间</p>
+<p>扩容时是新创建一个切片数组，若原数据没有继续使用，会被<code>gc</code></p>
+<pre><code class="language-go">s1 := make([]int, 0, 4)
+s1 = append(s1, 10, 20, 30, 40) // 10, 20, 30, 40
+fmt.Println(s1, len(s1), cap(s1))  // [10 20 30 40] 4 4
+s1 = append(s1, 50)
+fmt.Println(s1, len(s1), cap(s1))  // [10 20 30 40 50] 5 8
+</code></pre>
+<h2 id="6-通过切片创建切片">6、通过切片创建切片</h2>
+<p>切片之所以被称为切片，是因为创建一个新的切片，也就是把底层数组切出一部分。通过切片创建新切片的语法如下, 详情请参考: <a href="https://golang.org/ref/spec#Slice_expressions">切片的语法</a></p>
+<pre><code class="language-go">slice[low : high]
+slice[low : high : max]
+</code></pre>
+<ul>
+<li>low : 表示从<code>slic</code>的第几个元素开始切</li>
+<li>high : 控制切片的长度<code>high-low</code></li>
+<li>max : 控制切片的容量<code>max-low</code></li>
+</ul>
+<p>比如</p>
+<pre><code class="language-go">s1 := []int{1, 2, 3, 4}
+s2 := s1[2:4:4]  // [index2, index4) 左闭右开区间, 容量 4-2
+fmt.Println(s2, len(s2), cap(s2)) // [3 4] 2 2
+</code></pre>
+<p>如果<code>high == max</code>也可以省略<code>max</code>，比如:</p>
+<pre><code class="language-go">s3 := s1[2:4]
+</code></pre>
+<p>再次基础上还要几种省略写法:</p>
+<ul>
+<li>省略low：表示从<code>index 0</code>开始</li>
+<li>省略high：表示到结尾<code>len</code></li>
+<li>省略max ：表示到结尾<code>len</code></li>
+<li>都省略：等于复制</li>
+</ul>
+<pre><code class="language-go">slice[i:]  // 从 i 切到最尾部
+slice[:j]  // 从最开头切到 j(不包含 j)
+slice[:]   // 从头切到尾，等价于复制整个 slice
+</code></pre>
+<p>注意: 通过切片创建出来的切片是共享底层数据结构的(数组)</p>
+<p>共享底层数组会导致相互影响， 比如修改原切片会影响多所有复制出来的切片</p>
+<pre><code class="language-go">s1 := []int{10, 20, 30, 40}
+s2 := s1[1:3]
+fmt.Println(s2, len(s2), cap(s2))
+
+fmt.Println(s1[1], s2[0])
+s1[1] = 200
+fmt.Println(s1[1], s2[0])
+</code></pre>
+<p>有扩容的原理也可以知道，当扩容后，就不共享底层数组了，比如:</p>
+<pre><code class="language-go">s1 := []int{10, 20, 30, 40}
+s2 := s1[1:3:3]
+fmt.Println(s2, len(s2), cap(s2))
+
+fmt.Println(s1[1], s2[0])
+s2 = append(s2, 30)   // s2 扩容
+s1[1] = 200           // 修改s1
+fmt.Println(s1[1], s2[0]) // s1修改并不会影响s2
+</code></pre>
+<p>因此，一般不要修改切片，如果要修改请使用后面的深拷贝复制一个全新的切片</p>
+<h2 id="7-切片遍历">7、切片遍历</h2>
+<p>切片是一个集合，可以迭代其中的元素。<code>Go</code>有个特殊的关键字<code>range</code>，它可以配合关键字<code>for</code>来迭代切片里的元素</p>
+<pre><code class="language-go">func TestSliceAppend1(t *testing.T) {
+	s := make([]int, 0, 4)
+	s = append(s, 10, 20, 30, 40)
+	for i, v := range s {
+		fmt.Println(i, v)
+	}
+	/*
+	0 10
+	1 20
+	2 30
+	3 40
+	 */
+}
+</code></pre>
+<p>这种方式底层的实现，也是拷贝一份切片提供给循环使用，因此同样会带来开销</p>
+<p>当迭代切片时，关键字<code>range</code>会返回两个值。第一个值是当前迭代到的索引位置，第二个值是该位置对应元素值的一份副本。需要强调的是，<code>range</code>创建了每个元素的副本，而不是直接返回对该元素的引用。要想获取每个元素的地址，可以使用切片变量和索引值</p>
+<h2 id="8-切片拷贝">8、切片拷贝</h2>
+<p>不能像数组一样直接使用赋值语句来拷贝一个切片，因为数组是值，而切片是指针， 真正的数据维护在底层数组里面</p>
+<pre><code class="language-go">a1 := [2]{1,2}
+a2 := a1    // 值拷贝, a1, a2 互不影响
+
+s1 := []{1, 2}
+s2 := s1   // 指针拷贝 s1, s2 指向同一*slice结构体, 就是一个东西，等于没拷贝
+</code></pre>
+<p><code>Go</code>内置的<code>copy()</code>函数可以将一个切片中的元素拷贝到另一个切片中，其函数声明为</p>
+<pre><code class="language-go">func copy(dst, src []Type) int
+</code></pre>
+<p>它表示把切片<code>src</code>中的元素拷贝到切片<code>dst</code>中，返回值为拷贝成功的元素个数。如果<code>src</code>比<code>dst</code>长，就截断；如果<code>src</code>比<code>dst</code>短，则只拷贝<code>src</code>那部分</p>
+<pre><code class="language-go">s1 := []int{10, 20, 30, 40}
+s2 := make([]int, 5)
+num := copy(s2, s1)   // 这时候s1 和 s2 就是2个切片，包含底层数据, 互不影响
+fmt.Println(num)  // 4
+fmt.Println(s1, s2)  // [10 20 30 40] [10 20 30 40 0]
+s1[0] = 100
+fmt.Println(s1[0], s2[0])  // 100 10
+</code></pre>
+<h2 id="9-切片作为函数参数">9、切片作为函数参数</h2>
+<p>函数在调用传参时，都是值拷贝</p>
+<p>切片的本质是指针，如果是切片作为函数的参数调用，则拷贝的是指针的地址</p>
+<p>因此切片作为函数的参数时，最大的好处是传递效率高</p>
+<p>因此切片的用法远多于数组，数组用来定义底层的数据结构</p>
+<pre><code class="language-go">func TestSliceMain2(t *testing.T) {
+	s1 := make([]int, 0, 4)
+	s1 = append(s1, 10, 20, 30, 40) // 10, 20, 30, 40
+	fmt.Println(Sum1(s1))  // 100
+}
+
+func Sum1(args []int) int {
+	sum := 0
+	for _, v := range args {
+		sum += v
+	}
+	return sum
+}
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Golang数据类型之数组]]></title>
         <id>https://www.ssgeek.com/post/golang-shu-ju-lei-xing-zhi-shu-zu</id>
@@ -4484,154 +4718,6 @@ def version_gte(v1, v2):
 <p>到这里，这篇文章简要提到的两个<code>IDE</code>插件的相关安装、配置、使用就介绍完了。关于以上两个插件的具体使用就不再记录了。此外，还可以在<code>IDE</code>中使用<code>Git</code>插件操作项目的版本控制，也可以直接使用终端进行更多操作等等</p>
 <p>借助于<code>IDE</code>及上述插件等，可以很方便的让我们对应用的生命周期进行干预，再加上一个强大的<code>Web Browser</code>，基本就不需要其他工具了</p>
 <p>See you ~</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[浅谈Python鸭子类型]]></title>
-        <id>https://www.ssgeek.com/post/qian-tan-python-ya-zi-lei-xing</id>
-        <link href="https://www.ssgeek.com/post/qian-tan-python-ya-zi-lei-xing">
-        </link>
-        <updated>2021-04-29T17:46:02.000Z</updated>
-        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
-<li>
-<ul>
-<li><a href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E9%B8%AD%E5%AD%90%E7%B1%BB%E5%9E%8B">1、什么是“鸭子类型”</a></li>
-<li><a href="#2-%E9%B8%AD%E5%AD%90%E7%B1%BB%E5%9E%8B%E4%BB%8E%E4%BD%95%E8%80%8C%E6%9D%A5">2、“鸭子类型”从何而来</a>
-<ul>
-<li><a href="#21-%E5%A4%9A%E6%80%81">2.1 多态</a></li>
-<li><a href="#22-%E5%A4%9A%E6%80%81%E7%9A%84%E4%BD%BF%E7%94%A8">2.2 多态的使用</a></li>
-<li><a href="#23-%E9%B8%AD%E5%AD%90%E7%B1%BB%E5%9E%8B%E4%BA%A7%E7%94%9F">2.3 鸭子类型产生</a></li>
-</ul>
-</li>
-<li><a href="#3-%E5%B0%8F%E7%BB%93">3、小结</a></li>
-</ul>
-</li>
-</ul>
-</p>
-<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210430-01.png" alt=""></figure>
-<h2 id="1-什么是鸭子类型">1、什么是“鸭子类型”</h2>
-<p><code>Python</code>崇尚“鸭子类型”</p>
-<p>对于<code>鸭子模型</code>常见的说法是：“当看到一只鸟走起来像鸭子、游泳起来像鸭子、叫起来也像鸭子，那么这只鸟就可以被称为鸭子。”</p>
-<p><strong>鸭子类型</strong>（英语：<strong>duck typing</strong>）在程序设计中是动态类型的一种风格。在这种风格中，一个对象有效的语义，不是由继承自特定的类或实现特定的接口，而是由“当前方法和属性的集合”决定</p>
-<p>在鸭子类型中，关注点在于对象的行为能做什么；而不是关注对象所属的类型。例如，在不使用鸭子类型的语言中，我们可以编写一个函数，它接受一个类型为&quot;鸭子&quot;的对象，并调用它的&quot;走&quot;和&quot;叫&quot;方法。在使用鸭子类型的语言中，这样的一个函数可以接受一个任意类型的对象，并调用它的&quot;走&quot;和&quot;叫&quot;方法。如果这些需要被调用的方法不存在，那么将引发一个运行时错误。任何拥有这样的正确的&quot;走&quot;和&quot;叫&quot;方法的对象都可被函数接受的这种行为引出了以上表述，这种决定类型的方式因此得名</p>
-<p>鸭子类型通常得益于&quot;不&quot;测试方法和函数中参数的类型，而是依赖文档、清晰的代码和测试来确保正确使用</p>
-<p>在常规类型中，我们能否在一个特定场景中使用某个对象取决于这个对象的类型，而在鸭子类型中，则取决于这个对象是否具有某种属性或者方法——即只要具备特定的属性或方法，能通过鸭子测试，就可以使用。</p>
-<blockquote>
-<p>内容参考自维基百科：https://zh.wikipedia.org/wiki/%E9%B8%AD%E5%AD%90%E7%B1%BB%E5%9E%8B</p>
-</blockquote>
-<h2 id="2-鸭子类型从何而来">2、“鸭子类型”从何而来</h2>
-<h3 id="21-多态">2.1 多态</h3>
-<p>先来看看“多态”</p>
-<p>大学时学习过<code>C</code>、<code>Java</code>基础这一类强类型语言，面向对象编程的三大特性之一有个概念叫做“多态”</p>
-<p>简单来说，定义时的类型和运行时的类型不一样就是多态</p>
-<p>更通俗的来说，多态是指一类事物有多种形态。比如动物有多种形态，人、狗、猫等等</p>
-<p>放到二进制的世界，例如文件，文件有多种形态：文本文件、可执行文件</p>
-<p>总而言之，多态即某类的再分类，再分的每一类就是父类的多种形态的一种</p>
-<p>例如下面代码示例：</p>
-<ul>
-<li>
-<p>程序在运行到<code>list</code>这一步是只把<code>Cat</code>，<code>Dog</code>，<code>Duck</code>当成变量</p>
-</li>
-<li>
-<p>只有在最后实例化调用类方法的时候才会明白是一个类，这就表示多态</p>
-</li>
-</ul>
-<pre><code class="language-python">class Cat(object):
-    def info(self):
-        print(&quot;我是一只猫&quot;)
-
-
-class Dog(object):
-    def info(self):
-        print(&quot;我是一只狗&quot;)
-
-
-class Duck(object):
-    def info(self):
-        print(&quot;我是一只鸭&quot;)
-
-list=[Cat,Dog,Duck]
-for animal in list:
-    animal().info()
-</code></pre>
-<h3 id="22-多态的使用">2.2 多态的使用</h3>
-<p>再来一个偏实际的应用示例代码</p>
-<pre><code class="language-python">from abc import ABCMeta,abstractmethod #(抽象方法)
-
-class Payment(metaclass=ABCMeta):   # metaclass 元类  metaclass = ABCMeta表示Payment类是一个规范类
-    def __init__(self,name,money):
-        self.money=money
-        self.name=name
-
-    @abstractmethod      # @abstractmethod表示下面一行中的pay方法是一个必须在子类中实现的方法
-    def pay(self,*args,**kwargs):
-        pass
-
-class AliPay(Payment):
-
-    def pay(self):
-        # 支付宝提供了一个网络上的联系渠道
-        print('%s通过支付宝消费了%s元'%(self.name,self.money))
-
-class WeChatPay(Payment):
-
-    def pay(self):
-        # 微信提供了一个网络上的联系渠道
-        print('%s通过微信消费了%s元'%(self.name,self.money))
-
-
-class Order(object):
-
-    def account(self,pay_obj):
-        pay_obj.pay()
-
-pay_obj = WeChatPay(&quot;wang&quot;,100)
-pay_obj2 = AliPay(&quot;zhang&quot;,200)
-
-order = Order()
-order.account(pay_obj)
-order.account(pay_obj2)
-</code></pre>
-<p>从上述代码可见，在调用<code>order</code>对象的<code>account()</code>方法时，程序并不关心为该方法传入的参数对象<code>pay_obj</code>是谁，只要求此参数对象<code>pay_obj</code>包含<code>pay()</code>方法即可，而调用者传入的参数对象类型<code>pay_obj</code>是子类对象还是其他类对象，对<code>Python</code>来说无所谓</p>
-<p>多态性就是相同的消息（函数方法触发）使得不同的类做出不同的响应，这就是典型的类编程中多态性的应用实例</p>
-<h3 id="23-鸭子类型产生">2.3 鸭子类型产生</h3>
-<p>在上面的例子中<code>order.account(pay_obj)</code>中<code>pay_obj</code>不需要类型声明，而<code>java</code>在使用时要定义好类型</p>
-<p>（<code>order.account(Payment pay_obj)</code>），所以你传入别的类型对象一定报错</p>
-<p>但是<code>python</code>因为是动态语言所以传入的对象只要拥有调用的方法即可视为<code>Payment</code>类型对象，这就是所谓的鸭子类型</p>
-<pre><code class="language-python">class Duck():
-    def walk(self):
-        print('I walk like a duck')
-    def swim(self):
-        print('i swim like a duck')
-
-class Person():
-    def walk(self):
-    　　print('this one walk like a duck') 
-    def swim(self):
-    　　print('this man swim like a duck')
-</code></pre>
-<p>可以很明显的看出，<code>Person</code>类拥有跟<code>Duck</code>类一样的方法，当有一个函数调用<code>Duck</code>类，并利用到了两个方法<code>walk()</code>和<code>swim()</code>。我们传入<code>Person</code>类也一样可以运行，函数并不会检查对象的类型是不是<code>Duck</code>，只要他拥有<code>walk()</code>和<code>swim()</code>方法，就可以正确的被调用</p>
-<h2 id="3-小结">3、小结</h2>
-<ul>
-<li>在鸭子类型中，关注的不是对象的类型本身，而是它是如何使用的</li>
-</ul>
-<p>例如，在不使用鸭子类型的语言中，我们可以编写一个函数，它接受一个类型为&quot;鸭子&quot;的对象，并调用它的&quot;走&quot;和&quot;叫&quot;方法</p>
-<ul>
-<li>在使用鸭子类型的语言中，这样的一个函数可以接受一个任意类型的对象，并调用它的&quot;走&quot;和&quot;叫&quot;方法</li>
-</ul>
-<p>如果这些需要被调用的方法不存在，那么将引发一个运行时错误</p>
-<p>任何拥有这样的正确的&quot;走&quot;和&quot;叫&quot;方法的对象都可被函数接受的这种行为引出了以上表述，这种决定类型的方式因此得名</p>
-<ul>
-<li>
-<p>鹅不是鸭子，但是鹅一旦拥有鸭子的一些方法，就可以被当成鸭子类型了</p>
-</li>
-<li>
-<p>鸭子类型的好处就在于能够避免一些类的重写，无需大量复制相同的代码</p>
-</li>
-<li>
-<p>鸭子类型使用的前提是需要良好的文档支持，不然会让代码变得很混乱，如果没有良好的文档及说明，有可能会导致你的“鸭子”不是我的“鹅”了</p>
-</li>
-</ul>
 ]]></content>
     </entry>
 </feed>
