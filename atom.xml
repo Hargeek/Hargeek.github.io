@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://www.ssgeek.com</id>
     <title>山山仙人博客</title>
-    <updated>2021-07-07T16:12:43.700Z</updated>
+    <updated>2021-07-07T16:15:22.267Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://www.ssgeek.com"/>
     <link rel="self" href="https://www.ssgeek.com/atom.xml"/>
@@ -33,6 +33,7 @@
 </li>
 </ul>
 </p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/golang.png" alt=""></figure>
 <h2 id="1-无中生友">1、无中生“友”</h2>
 <p>我有一个“朋友”，正在学习第二门语言时遇到这样一个现象</p>
 <pre><code class="language-go">package main
@@ -71,8 +72,8 @@ func main() {
 <p>另外一个是用<code>64</code>比特表示双精度的浮点数，也就是我们平时说的 <code>double</code></p>
 <p>在计算机中都是用二进制存储，因此不论是<code>32</code>位浮点数还是<code>64</code>位浮点数，由于基数<code>2</code>是固定常数，对每一个浮点数都一样，所以不必用显示的方式来表示它</p>
 <p>对<code>go</code>语言来说，分别是<code>float32</code>和<code>float64</code>，这两种类型的二进制表示分别如下图</p>
-<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210708-01.png" alt=""></figure>
-<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210708-02.png" alt=""></figure>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210708-01.png" alt=""></figure>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210708-02.png" alt=""></figure>
 <p>那么具体是怎么转换和存储的呢？</p>
 <h3 id="31-浮点数转换为二进制">3.1 浮点数转换为二进制</h3>
 <p>以浮点数<code>39.29</code>为例</p>
@@ -116,7 +117,7 @@ func main() {
 <li>Float64，用<code>64</code>位的二进制来存储一个浮点数</li>
 </ul>
 <p>以<code>float32</code>位为例进行表示</p>
-<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210708-03.png" alt=""></figure>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20210708-03.png" alt=""></figure>
 <ul>
 <li>
 <p>sign：用<code>1</code>位表示浮点型的正负，<code>0</code>表示正数，<code>1</code>表示负数</p>
