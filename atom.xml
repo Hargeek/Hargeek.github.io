@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://www.ssgeek.com</id>
     <title>山山仙人博客</title>
-    <updated>2021-07-07T16:15:22.267Z</updated>
+    <updated>2021-07-13T15:04:54.439Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://www.ssgeek.com"/>
     <link rel="self" href="https://www.ssgeek.com/atom.xml"/>
@@ -10,6 +10,238 @@
     <logo>https://www.ssgeek.com/images/avatar.png</logo>
     <icon>https://www.ssgeek.com/favicon.ico</icon>
     <rights>All rights reserved 2021, 山山仙人博客</rights>
+    <entry>
+        <title type="html"><![CDATA[利用Github Action实现Github到Gitee的持续同步]]></title>
+        <id>https://www.ssgeek.com/post/li-yong-github-action-shi-xian-github-dao-gitee-de-chi-xu-tong-bu</id>
+        <link href="https://www.ssgeek.com/post/li-yong-github-action-shi-xian-github-dao-gitee-de-chi-xu-tong-bu">
+        </link>
+        <updated>2021-07-13T16:04:00.000Z</updated>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E4%BB%80%E4%B9%88%E6%98%AFgithub-action">1、什么是Github Action</a></li>
+<li><a href="#2-github%E5%92%8Cgitee%E5%90%8C%E6%AD%A5">2、github和gitee同步</a></li>
+<li><a href="#3-%E9%80%89%E7%94%A8%E6%88%96%E7%BC%96%E5%86%99action">3、选用或编写action</a></li>
+<li><a href="#4-%E8%AF%AD%E6%B3%95%E7%A4%BA%E4%BE%8B">4、语法示例</a></li>
+<li><a href="#5-%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C">5、准备工作</a>
+<ul>
+<li><a href="#51-%E8%AE%BE%E7%BD%AEdst_key">5.1 设置dst_key</a></li>
+<li><a href="#52-%E8%AE%BE%E7%BD%AEdst_token">5.2 设置dst_token</a></li>
+</ul>
+</li>
+<li><a href="#6-github%E5%90%8C%E6%AD%A5%E5%88%B0gitee">6、github同步到gitee</a></li>
+<li><a href="#7-%E5%B0%8F%E7%BB%93">7、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210714-01.png" alt=""></figure>
+<h2 id="1-什么是github-action">1、什么是Github Action</h2>
+<p><code>github action</code>是<code>github</code>推出的自动化<code>CI/CD</code>的功能，随着<code>2019</code>年<code>11</code>月后<code>github</code>对该功能的全面开放，现在所有的<code>github</code>用户可以直接使用该功能</p>
+<p><code>github action</code>的语法类似于<code>gitlab ci</code>，与之相比，还有更多优势，例如：</p>
+<ul>
+<li><code>action</code>对<code>github</code>各个事件的支持更为全面，如<code>release</code>、<code>pull-request</code>、<code>issue</code>事件等等</li>
+<li><code>action</code>支持直接使用别人编写好的<code>action</code></li>
+<li><code>action</code>的执行器类似于<code>gitlab runner</code>，可以使用<code>github</code>托管的执行器，也可以托管自己的执行器。甚至在<code>action</code>运行的时候，还可以通过某些特殊技巧进入到执行器里面，相当于一台临时的服务器供我们使用</li>
+</ul>
+<h2 id="2-github和gitee同步">2、github和gitee同步</h2>
+<p><code>github</code>的服务器在国外，因为某些原因，在大多数的网络环境下都是无法顺畅访问的</p>
+<p><code>gitee</code>的服务器在国内，由国内公司运营</p>
+<p>纵使如此，大多数开发者还是习惯使用<code>github</code>（远在海外，也要想尽各种办法）</p>
+<p>那么为什么需要把<code>github</code>和<code>gitee</code>的仓库进行同步呢？原因不言而喻</p>
+<p>目前可用的进行同步的方法可能有：</p>
+<ul>
+<li>利用<code>gitee</code>官方的同步（导入<code>github</code>项目），这种方法只能一次性导入</li>
+<li>本地同时关联<code>gitee</code>和<code>github</code>，提交时都<code>push</code>一份，这种方法纯属手动</li>
+<li>利用<code>github action</code></li>
+</ul>
+<p>下面介绍利用<code>github action</code>如何实现<code>github</code>到<code>gitee</code>的持续同步</p>
+<h2 id="3-选用或编写action">3、选用或编写action</h2>
+<p>实现<code>github</code>和<code>gitee</code>同步的思路主要是基于我们的账户调用<code>github</code>和<code>gitee</code>各自的<code>api</code>接口和密钥通信，在执行器内拉取并推送代码库到<code>gitee</code></p>
+<p><code>action</code>的编写语法和<code>gitlab ci</code>很相似，同时<code>github</code>还推出了官方的<code>action</code>市场，地址为 https://github.com/marketplace</p>
+<p>这里我们使用的<code>action</code>是<a href="https://github.com/Yikun/hub-mirror-action">Yikun/hub-mirror-action</a></p>
+<h2 id="4-语法示例">4、语法示例</h2>
+<p>上述<code>action</code>，支持较为全面。参照说明，相关不同场景下的语法如下：</p>
+<ul>
+<li>组织同步</li>
+</ul>
+<p>同步<code>Github</code>的组织到<code>Gitee</code></p>
+<pre><code class="language-yaml">- name: Organization mirror
+  uses: Yikun/hub-mirror-action@master
+  with:
+    src: github/kunpengcompute
+    dst: gitee/kunpengcompute
+    dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
+    dst_token: ${{ secrets.GITEE_TOKEN }}
+    account_type: org
+
+</code></pre>
+<ul>
+<li>黑/白名单</li>
+</ul>
+<p>动态获取源端<code>github</code>的<code>repos</code>，但仅同步名为<code>hub-mirror-action</code>，不同步<code>hashes</code>这个<code>repo</code>到<code>Gittee</code></p>
+<pre><code class="language-yaml">- name: Single repo mirror
+  uses: Yikun/hub-mirror-action@master
+  with:
+    src: github/Yikun
+    dst: gitee/yikunkero
+    dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
+    dst_token: ${{ secrets.GITEE_TOKEN }}
+    white_list: &quot;hub-mirror-action&quot;
+    black_list: &quot;hashes&quot;
+</code></pre>
+<ul>
+<li>静态名单（可用于单一仓库同步）</li>
+</ul>
+<p>不会动态获取源端<code>github</code>的<code>repos</code>，仅同步<code>hub-mirror-action</code>这个<code>repo</code></p>
+<pre><code class="language-yaml">- name: Black list
+  uses: Yikun/hub-mirror-action@master
+  with:
+    src: github/Yikun
+    dst: gitee/yikunkero
+    dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
+    dst_token: ${{ secrets.GITEE_TOKEN }}
+    static_list: &quot;hub-mirror-action&quot;
+</code></pre>
+<ul>
+<li>使用ssh方式进行clone</li>
+</ul>
+<pre><code class="language-yaml">- name: ssh clone style
+  uses: Yikun/hub-mirror-action@master
+  with:
+    src: github/Yikun
+    dst: gitee/yikunkero
+    dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
+    dst_token: ${{ secrets.GITEE_TOKEN }}
+    clone_style: &quot;ssh&quot;
+</code></pre>
+<ul>
+<li>强制更新，并打开debug日志开关</li>
+</ul>
+<pre><code class="language-yaml">- name: Mirror with force push (git push -f)
+  uses: Yikun/hub-mirror-action@master
+  with:
+    src: github/Yikun
+    dst: gitee/yikunkero
+    dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
+    dst_token: ${{ secrets.GITEE_TOKEN }}
+    force_update: true
+    debug: true
+</code></pre>
+<ul>
+<li>设置命令行超时时间为1小时</li>
+</ul>
+<pre><code class="language-yaml">- name: Mirror with force push (git push -f)
+  uses: Yikun/hub-mirror-action@master
+  with:
+    src: github/Yikun
+    dst: gitee/yikunkero
+    dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
+    dst_token: ${{ secrets.GITEE_TOKEN }}
+    force_update: true
+    timeout: '1h'
+</code></pre>
+<h2 id="5-准备工作">5、准备工作</h2>
+<h3 id="51-设置dst_key">5.1 设置dst_key</h3>
+<p>在<code>github</code>上打开一个自己的仓库（可以是一个已有的仓库，也可以是用来专门存放<code>action</code>的仓库），这里以我的个人公开仓库为例</p>
+<p>首先在本地生成一个<code>ssh</code>密钥对</p>
+<pre><code class="language-shell"># ssh-keygen -t rsa -f ~/Documents/ssh-key/id_rsa
+Generating public/private rsa key pair.
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /Users/ssgeek/Documents/Document/ssh-key/id_rsa.
+Your public key has been saved in /Users/ssgeek/Documents/Document/ssh-key/id_rsa.pub.
+The key fingerprint is:
+SHA256:eUf8KzgFFoTikDoo1at9/fVpftcUWkWgTgPNbWTVOdM ssgeek@honganrongdeMac-mini.local
+The key's randomart image is:
++---[RSA 3072]----+
+|   . .   o+o o++*|
+|  . + . .  +ooo+E|
+| o . + .  o *.  +|
+|o o . .  o = o o |
+|.  +   .S . + + .|
+|  . . . .. +.. ..|
+|     .   .o....o.|
+|          .. .+ +|
+|             o...|
++----[SHA256]-----+
+</code></pre>
+<p>在<code>github</code>打开<code>settings</code>—&gt;<code>secrets</code>，新建一个<code>secret</code>，名为<code>GITEE_PRIVATE_KEY</code>，值为上面生成的密钥对的私钥</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210714-02.png" alt=""></figure>
+<p>然后登录到<code>gitee</code>，在个人设置—&gt;安全设置—&gt;<code>SSH</code>公钥中添加上面生成的密钥对的公钥，命名随意</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210714-03.png" alt=""></figure>
+<h3 id="52-设置dst_token">5.2 设置dst_token</h3>
+<p>在<code>gitee</code>打开个人设置—&gt;安全设置—&gt;私人令牌，新建一个私人令牌，命名随意，复制生成的令牌值</p>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20210714-04.png" alt=""></figure>
+<p>在<code>github</code>打开<code>settings</code>—&gt;<code>secrets</code>，新建一个<code>secret</code>，名为<code>GITEE_TOKEN</code>，值为上面复制的令牌值</p>
+<figure data-type="image" tabindex="5"><img src="https://image.ssgeek.com/20210714-05.png" alt=""></figure>
+<h2 id="6-github同步到gitee">6、github同步到gitee</h2>
+<p>在刚才的<code>GitHub</code>仓库中，新建 <code>.github/workflows/SyncToGitee.yml</code> 文件，其中<code>.github/workflows/</code>是固定的目录名</p>
+<p>内容如下</p>
+<pre><code class="language-yaml">name: Sync Github Repos To Gitee
+
+on:
+  push:
+    branches: 
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+
+    - name: Sync Github Repos To Gitee  # 名字随便起
+      uses: Yikun/hub-mirror-action@v1.1  # 使用Yikun/hub-mirror-action
+      with:
+        src: github/Hargeek  # 源端账户名(github)
+        dst: gitee/ssgeek  # 目的端账户名(gitee)
+        dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}  # SSH密钥对中的私钥
+        dst_token:  ${{ secrets.GITEE_TOKEN }}  # Gitee账户的私人令牌
+        account_type: user  # 账户类型
+        clone_style: &quot;https&quot;  # 使用https方式进行clone，也可以使用ssh
+        debug: true  # 启用后会显示所有执行命令
+        force_update: true  # 启用后，强制同步，即强制覆盖目的端仓库
+        static_list: &quot;python-nianbao-struct&quot;  # 静态同步列表，在此填写需要同步的仓库名称，可填写多个
+        timeout: '600s'  # git超时设置，超时后会自动重试git操作
+</code></pre>
+<p>相关语法说明：</p>
+<ul>
+<li>on</li>
+</ul>
+<p>指定<code>action</code>的触发条件，一般有：使用web事件触发工作流，并且可以具体指定<code>branches</code>，<code>tags</code>以及文件路径；使用<code>cron</code>语法指定时间触发工作流</p>
+<ul>
+<li>job</li>
+</ul>
+<p>指定相应的任务，每一个<code>step</code>是一个步骤，<code>step</code>是<code>job</code>的最小单元，所有<code>step</code>配置在<code>steps</code>中</p>
+<p>其中<code>uses</code>用于使用其他用户所发布的<code>action</code></p>
+<p>其他的内容这里不再赘述，更多内容可以参考官方语法说明 <a href="https://docs.github.com/cn/actions">github action doc</a></p>
+<p>提交该<code>action</code>，观察<code>github</code>上的执行视图</p>
+<figure data-type="image" tabindex="6"><img src="https://image.ssgeek.com/20210714-06.png" alt=""></figure>
+<p>此时打开<code>gitee</code>，就会发现自动创建了同名称的仓库且自动提交了同样的代码</p>
+<p>分析<code>action</code>的执行日志，主要如下</p>
+<pre><code class="language-shell">...
+Successfully installed GitPython-3.1.13 PyYAML-5.4.1 certifi-2021.5.30 chardet-4.0.0 gitdb-4.0.7 idna-2.10 requests-2.25.1 six-1.16.0 smmap-4.0.0 tenacity-6.3.1 urllib3-1.26.6
++ python3 /hub-mirror/hubmirror.py --src github/Hargeek --dst gitee/ssxr --dst-token *** --account-type user --clone-style https --cache-path /github/workspace/hub-mirror-cache --black-list '' --white-list '' --static-list python-nianbao-struct --force-update true --debug true --timeout 600s
+Backup python-nianbao-struct
+(1/3) Downloading...
+Starting git clone https://github.com/Hargeek/python-nianbao-struct.git
+Clone completed: /github/workspace/github/workspace/hub-mirror-cache/python-nianbao-struct
+(2/3) Creating...
+python-nianbao-struct doesn't exist, create it...
+Destination repo creating accepted.
+(3/3) Force pushing...
+Total: 1, skip: 0, successed: 1, failed: 0.
+Failed: []
++ exit 0
+Cleaning up orphan processes
+</code></pre>
+<p>大致流程：执行器运行起来后，自动检出了该仓库，然后判断目标仓库是否存在，不存在则先创建，存在则直接执行强制推送</p>
+<p>后面每一次提交代码或对仓库做变更都可以按照触发条件触发<code>action</code>的执行了</p>
+<h2 id="7-小结">7、小结</h2>
+<p>到这里，利用<code>github action</code>将<code>github</code>仓库的代码实时同步到<code>gitee</code>就完成了，个人认为<code>github action</code>比<code>gitlabci</code>更为强大且有更多高阶玩法，但企业内部一般还都是私有仓库，因此对个人来说还是很实用的，后面再继续分享我的<code>action</code>拙作</p>
+<p>See you ~</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[浅谈float浮点型的底层存储与运算]]></title>
         <id>https://www.ssgeek.com/post/qian-tan-float-fu-dian-xing-de-di-ceng-cun-chu-yu-yun-suan</id>
@@ -4868,318 +5100,6 @@ private String getIp() {
 </code></pre>
 <h2 id="8-小结">8、小结</h2>
 <p>本文记录了私有云和有外部负载的真实场景下，<code>k8s</code>集群中的应用获取用户<code>ip</code>的相关实现逻辑及关键处理，希望能帮助到大家</p>
-<p>See you ~</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[使用Jenkins Operator在k8s中部署Jenkins]]></title>
-        <id>https://www.ssgeek.com/post/shi-yong-jenkins-operator-zai-k8s-zhong-bu-shu-jenkins</id>
-        <link href="https://www.ssgeek.com/post/shi-yong-jenkins-operator-zai-k8s-zhong-bu-shu-jenkins">
-        </link>
-        <updated>2021-05-16T16:07:05.000Z</updated>
-        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
-<li>
-<ul>
-<li><a href="#1-jenkins-operator%E4%BB%8B%E7%BB%8D">1、Jenkins Operator介绍</a></li>
-<li><a href="#2-jenkins-operator%E7%9A%84%E6%9E%B6%E6%9E%84%E5%92%8C%E8%AE%BE%E8%AE%A1">2、Jenkins Operator的架构和设计</a></li>
-<li><a href="#3-%E4%BD%BF%E7%94%A8operator%E9%83%A8%E7%BD%B2jenkins">3、使用Operator部署Jenkins</a>
-<ul>
-<li><a href="#31-%E5%89%8D%E6%8F%90%E6%9D%A1%E4%BB%B6">3.1 前提条件</a></li>
-<li><a href="#32-%E8%8E%B7%E5%8F%96%E5%B9%B6%E5%88%9B%E5%BB%BAcrd">3.2 获取并创建CRD</a></li>
-<li><a href="#33-%E9%83%A8%E7%BD%B2jenkins-operator">3.3 部署Jenkins Operator</a></li>
-<li><a href="#34-%E9%83%A8%E7%BD%B2jenkins">3.4 部署Jenkins</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</p>
-<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210517-01.png" alt=""></figure>
-<h2 id="1-jenkins-operator介绍">1、Jenkins Operator介绍</h2>
-<p><a href="https://www.redhat.com/zh/topics/containers/what-is-a-kubernetes-operator">Kubernetes Operator</a>是一种特定于应用的控制器，可扩展<code>Kubernetes API</code>的功能，来代表<code>Kubernetes</code>用户创建、配置和管理复杂应用的实例</p>
-<p>这里对<code>Operator</code>的相关介绍就不多赘述了，主要还是回到<code>Jenkins Operator</code>这个话题</p>
-<p>基于<code>k8s</code>上<code>Jenkins</code>的常规安装是使用<code>yaml</code>资源清单，更为方便一点的是<code>helm chart</code>，但是常常我们在安装后还需要做很多的动作。例如插件问题，这尽管可以通过<code>Configuration as Code</code>的方式来解决，根据个人实际经验来看，还是存在一定几率会因主镜像版本、环境等存在诸多不可预知的问题。当然不同的部署方式都各有利弊，大家根据实际情况选择即可。</p>
-<p>直到官方支持<code>Jenkins</code>可以在<code>k8s</code>中通过<code>Operator</code>方式部署，在<code>4</code>月中旬，<a href="https://www.jenkins.io/blog/2021/04/15/jenkins-operator-sub-project/">Jenkins blog</a>说道：<strong>Jenkins Operator 正式成为了 Jenkins 的子项目</strong>，填补了<code>Jenkins</code>与<code>Kubernetes</code>间的缝隙。也就是说，最初由（个人）三方团队编写的<code>Jenkins Operator</code>被<code>Jenkins</code>官方认可了</p>
-<p>参考官方说明，<code>Jenkins Operator</code>可以帮我们解决以下问题：</p>
-<ul>
-<li>
-<p>安装指定版本的插件</p>
-<p>即使最新版本插件不兼容或具备安全漏洞，还是为了插件稳定性而使用（因为常常会出现我们通过一键升级插件导致很多问题而去手动安装旧版本插件的情况）</p>
-</li>
-<li>
-<p>更好的自定义配置</p>
-<p>包含在安装指定版本插件时指定插件配置等声明式配置</p>
-</li>
-<li>
-<p>开箱即用的安全配置</p>
-</li>
-<li>
-<p>可灵活调整的<code>debug</code>错误调试</p>
-</li>
-<li>
-<p>备份和还原作业历史记录</p>
-<p>......</p>
-</li>
-</ul>
-<h2 id="2-jenkins-operator的架构和设计">2、Jenkins Operator的架构和设计</h2>
-<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210517-02.png" alt=""></figure>
-<p>参考<a href="https://jenkinsci.github.io/kubernetes-operator/docs/how-it-works/architecture-and-design/">Jenkins Operator Architecture and design</a></p>
-<p><code>Jenkins Operator</code>的设计包含以下概念</p>
-<ul>
-<li>监视清单的任何更改，并根据已部署的自定义资源清单维护所需的状态</li>
-<li>实现主<code>reconciliation</code>循环，由两个较小的<code>reconciliation</code>循环：<code>base</code>和<code>user</code></li>
-</ul>
-<p><code>Base reconciliation</code> 循环负责监听<code>Jenkins</code>基础配置：</p>
-<ul>
-<li>确认清单-监听清单中发生的任何更改</li>
-<li>确保<code>Jenkins Pod</code>状态，创建和验证<code>Jenkins Server Pod</code>的状态</li>
-<li>确认<code>Jenkins</code>的配置，包括安全加固、初始化配置等</li>
-<li>确认<code>Jenkins API token</code>，生成<code>token</code>并初始化<code>Jenkins Client</code></li>
-</ul>
-<p><code>User reconciliation</code>循环负责协调用户提供的配置：</p>
-<ul>
-<li>确保恢复任务，创建恢复任务，并确保恢复已成功执行</li>
-<li>确保<code>Seed Jobs</code>，创建<code>Seed Jobs</code>并确保所有这些工作都已成功执行</li>
-<li>确保用户配置，执行用户提供的配置，如<code>groovy</code>脚本，配置为代码或插件</li>
-<li>确保备份任务，创建备份任务并确保备份成功</li>
-</ul>
-<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210517-03.png" alt=""></figure>
-<p><strong><code>Operator</code>状态</strong><br>
-<code>Operator</code>状态保存在自定义资源状态部分中，该部分用于存储<code>Operator</code>管理的任何配置事件或<code>Job</code>状态</p>
-<p>即使操作者或<code>Jenkins</code>重新启动，它也能帮助保持或恢复所需的状态</p>
-<h2 id="3-使用operator部署jenkins">3、使用Operator部署Jenkins</h2>
-<h3 id="31-前提条件">3.1 前提条件</h3>
-<p>参考<a href="https://jenkinsci.github.io/kubernetes-operator/docs/"><code>Jenkins Operator</code>官方文档</a>，需要有一个<code>1.11+</code>版本的<code>Kubernetes</code>集群，这里我的环境如下</p>
-<pre><code class="language-yaml"># kubectl version -o yaml
-clientVersion:
-  buildDate: &quot;2020-12-08T17:59:43Z&quot;
-  compiler: gc
-  gitCommit: af46c47ce925f4c4ad5cc8d1fca46c7b77d13b38
-  gitTreeState: clean
-  gitVersion: v1.20.0
-  goVersion: go1.15.5
-  major: &quot;1&quot;
-  minor: &quot;20&quot;
-  platform: darwin/amd64
-serverVersion:
-  buildDate: &quot;2021-01-13T13:20:00Z&quot;
-  compiler: gc
-  gitCommit: faecb196815e248d3ecfb03c680a4507229c2a56
-  gitTreeState: clean
-  gitVersion: v1.20.2
-  goVersion: go1.15.5
-  major: &quot;1&quot;
-  minor: &quot;20&quot;
-  platform: linux/amd64
-</code></pre>
-<h3 id="32-获取并创建crd">3.2 获取并创建CRD</h3>
-<p>获取<code>yaml</code>并创建<code>crd</code>，当然也可以通过直接<code>apply</code>远程地址，这里先将其保存到本地</p>
-<pre><code class="language-shell"># wget -c https://raw.githubusercontent.com/jenkinsci/kubernetes-operator/master/deploy/crds/jenkins_v1alpha2_jenkins_crd.yaml
-# kubectl apply -f jenkins_v1alpha2_jenkins_crd.yaml
-Warning: apiextensions.k8s.io/v1beta1 CustomResourceDefinition is deprecated in v1.16+, unavailable in v1.22+; use apiextensions.k8s.io/v1 CustomResourceDefinition
-customresourcedefinition.apiextensions.k8s.io/jenkins.jenkins.io created
-customresourcedefinition.apiextensions.k8s.io/jenkinsimages.jenkins.io created
-</code></pre>
-<h3 id="33-部署jenkins-operator">3.3 部署Jenkins Operator</h3>
-<p>有以下两种方式部署<code>Jenkins Operator</code></p>
-<ul>
-<li>
-<p>使用<code>yaml</code>一键安装，默认将安装在<code>default</code>命名空间下</p>
-<pre><code class="language-shell"># kubectl apply -f https://raw.githubusercontent.com/jenkinsci/kubernetes-operator/master/deploy/all-in-one-v1alpha2.yaml
-# kubectl get pods -w
-</code></pre>
-</li>
-<li>
-<p>使用<code>helm</code>并自定义安装，依赖<code>helm</code>在<code>v3</code>以上版本</p>
-</li>
-</ul>
-<p>创建<code>ns</code></p>
-<pre><code class="language-shell"># kubectl create ns jenkins
-</code></pre>
-<p>添加<code>helm</code>仓库并获取<code>chart</code></p>
-<pre><code class="language-shell"># helm repo add jenkins https://raw.githubusercontent.com/jenkinsci/kubernetes-operator/master/chart
-&quot;jenkins&quot; has been added to your repositories
-# helm pull jenkins/jenkins-operator
-# tar xf jenkins-operator-0.4.3.tgz &amp;&amp; cd jenkins-operator 
-</code></pre>
-<p>修改<code>value yaml</code>部分内容，可以定义关于<code>jenkins</code>实例、<code>operator deployment</code>、<code>backup</code>备份相关、<code>Configuration</code>配置相关字段</p>
-<ul>
-<li>指定ns</li>
-<li>指定插件</li>
-<li>默认情况只持久化了备份卷，这里将数据卷也做持久化，<code>sc</code>使用<code>csi-rbd-sc</code></li>
-<li>默认开启<code>configurationAsCode</code>，并通过<code>configmap</code>和<code>secret</code>注入</li>
-</ul>
-<pre><code class="language-yaml">jenkins:
-...
-  namespace: jenkins
-...
-  basePlugins:
-    - name: kubernetes
-      version: &quot;1.28.6&quot;
-    - name: workflow-job
-      version: &quot;2.40&quot;
-    - name: workflow-aggregator
-      version: &quot;2.6&quot;
-    - name: git
-      version: &quot;4.5.0&quot;
-    - name: job-dsl
-      version: &quot;1.77&quot;
-    - name: configuration-as-code
-      version: &quot;1.46&quot;
-    - name: kubernetes-credentials-provider
-      version: &quot;0.15&quot;
-  plugins:
-    - name: simple-theme-plugin
-      version: &quot;0.6&quot;
-#  plugins: []
-...
-  # volumes used by Jenkins
-  # By default, we are only using backup
-  volumes:
-    - name: backup # PVC volume where backups will be stored
-      persistentVolumeClaim:
-        claimName: jenkins-backup
-
-  # volumeMounts are mounts for Jenkins pod
-  volumeMounts: []
-...
-  backup:
-    # enabled is enable/disable switch for backup feature
-    # By default the feature is enabled
-    enabled: true
-
-    # image used by backup feature
-    # By default using prebuilt backup PVC image by VirtusLab
-    image: virtuslab/jenkins-operator-backup-pvc:v0.1.0
-
-    # containerName is backup container name
-    containerName: backup
-
-    # interval defines how often make backup in seconds
-    interval: 30
-
-    # makeBackupBeforePodDeletion when enabled will make backup before pod deletion
-    makeBackupBeforePodDeletion: true
-
-    # backupCommand is backup container command
-    backupCommand:
-      - /home/user/bin/backup.sh
-
-    # restoreCommand is backup restore command
-    restoreCommand:
-      - /home/user/bin/restore.sh
-
-    getLatestAction:
-      - /home/user/bin/get-latest.sh
-
-    # pvc is Persistent Volume Claim Kubernetes resource
-    pvc:
-      # enabled is enable/disable switch for PVC
-      enabled: true
-
-      # size is size of PVC
-      size: 5Gi
-
-      # className is storageClassName for PVC
-      # See https://kubernetes.io/docs/concepts/storage/persistent-volumes/#class-1 for more details
-      className: &quot;csi-rbd-sc&quot;
-
-    # env contains container environment variables
-    # PVC backup provider handles these variables:
-    # BACKUP_DIR - path for storing backup files (default: &quot;/backup&quot;)
-    # JENKINS_HOME - path to jenkins home (default: &quot;/jenkins-home&quot;)
-    # BACKUP_COUNT - define how much recent backups will be kept
-    env:
-      - name: BACKUP_DIR
-        value: /backup
-      - name: JENKINS_HOME
-        value: /jenkins-home
-      - name: BACKUP_COUNT
-        value: &quot;3&quot; # keep only the 3 most recent backups
-
-    # volumeMounts holds the mount points for volumes
-    volumeMounts:
-      - name: jenkins-home
-        mountPath: /jenkins-home # Jenkins home volume
-      - mountPath: /backup # backup volume
-        name: backup
-...
-  configuration:
-    configurationAsCode: {}
-    #    - configMapName: jenkins-casc
-    #      content: {}
-    groovyScripts: {}
-    #    - configMapName: jenkins-gs
-    #      content: {}
-
-    # secretRefName of existing secret (previously created)
-    secretRefName: &quot;&quot;
-
-    # secretData creates new secret if secretRefName is empty and fills with data provided in secretData
-    secretData: {}
-</code></pre>
-<p>执行安装</p>
-<pre><code class="language-shell"># helm install jenkins jenkins-operator -n jenkins --values ./jenkins-operator/values.yaml
-NAME: jenkins
-LAST DEPLOYED: Sun May 16 19:42:32 2021
-NAMESPACE: jenkins
-STATUS: deployed
-REVISION: 1
-TEST SUITE: None
-NOTES:
-1. Watch Jenkins instance being created:
-$ kubectl --namespace jenkins get pods -w
-
-2. Get Jenkins credentials:
-$ kubectl --namespace jenkins get secret jenkins-operator-credentials-jenkins -o 'jsonpath={.data.user}' | base64 -d
-$ kubectl --namespace jenkins get secret jenkins-operator-credentials-jenkins -o 'jsonpath={.data.password}' | base64 -d
-
-3. Connect to Jenkins (actual Kubernetes cluster):
-$ kubectl --namespace jenkins port-forward jenkins-jenkins 8080:8080
-
-Now open the browser and enter http://localhost:8080
-
-</code></pre>
-<p>检查创建的<code>operator</code></p>
-<pre><code class="language-shell"># kubectl get pods -n jenkins
-NAME                                       READY   STATUS    RESTARTS   AGE
-jenkins-jenkins                            1/2     Running   0          44s
-jenkins-jenkins-operator-996887c4b-wftz2   1/1     Running   0          1m29s
-# kubectl -n jenkins get jenkins        
-NAME      AGE
-jenkins   70s
-</code></pre>
-<h3 id="34-部署jenkins">3.4 部署Jenkins</h3>
-<p>一旦上面的<code>Jenkins Operator</code>部署后启动并正常运行，就自动会部署一个<code>Jenkins</code>实例<code>Pod</code>了</p>
-<p>实际上可以看到，通过<code>Jenkins Operator</code>部署的<code>Jenkins</code>的控制器不是场景<code>k8s</code>自带的三大控制器，而是由<code>operator</code>自己管控</p>
-<p>观察<code>operator</code>的日志如下</p>
-<pre><code class="language-shell"># kubectl -n jenkins logs -f jenkins-jenkins-operator-996887c4b-wftz2
-2021-05-16T11:59:05.017Z        INFO    controller-jenkins      jenkins/jenkins_controller.go:432       Setting default Jenkins API settings    {&quot;cr&quot;: &quot;jenkins&quot;}
-2021-05-16T11:59:05.073Z        INFO    controller-jenkins      jenkins/handler.go:88   *v1alpha2.Jenkins/jenkins has been updated      {&quot;cr&quot;: &quot;jenkins&quot;}
-2021-05-16T11:59:06.568Z        INFO    controller-jenkins      base/pod.go:159 Creating a new Jenkins Master Pod jenkins/jenkins-jenkins       {&quot;cr&quot;: &quot;jenkins&quot;}
-</code></pre>
-<p>观察<code>jenkins pod</code>中<code>jenkins master</code>的日志如下，正在下载插件（此步骤稍慢）</p>
-<pre><code class="language-shell"># kubectl -n jenkins logs -f jenkins-jenkins -c jenkins-master
-...
- &gt; bootstrap4-api depends on font-awesome-api:5.15.2-2,jquery3-api:3.5.1-3,popper-api:1.16.1-2
-Downloading plugin: font-awesome-api from https://updates.jenkins.io/dynamic-2.263//latest/font-awesome-api.hpi
-Downloading plugin: jquery3-api from https://updates.jenkins.io/dynamic-2.263//latest/jquery3-api.hpi
-Downloading plugin: popper-api from https://updates.jenkins.io/dynamic-2.263//latest/popper-api.hpi
-</code></pre>
-<p>如果在有限时间（健康检查时间）内没有下载成功，这通常是由于网络原因引起的，<code>Operator</code>会中断该<code>Pod</code>并重新创建</p>
-<pre><code class="language-shell"># kubectl -n jenkins logs -f jenkins-jenkins-operator-996887c4b-wftz2
-2021-05-16T12:09:42.854Z        INFO    controller-jenkins      base/reconcile.go:370   Container 'jenkins-master' is terminated, status '{Name:jenkins-master State:{Waiting:nil Running:nil Terminated:&amp;ContainerStateTerminated{ExitCode:137,Signal:0,Reason:Error,Message:,StartedAt:2021-05-16 12:05:54 +0000 UTC,FinishedAt:2021-05-16 12:09:42 +0000 UTC,ContainerID:docker://342349d9e4045cd312345937797a2d9f048f3623fc1ce6bf1c2b77ff4f04d8da,}} LastTerminationState:{Waiting:nil Running:nil Terminated:nil} Ready:false RestartCount:0 Image:jenkins/jenkins:2.263.2-lts-alpine ImageID:docker-pullable://jenkins/jenkins@sha256:496142509b7d3e3f22f5cdc81b1d1322db61ec929d34dfd66b9ec3257bca13e5 ContainerID:docker://342349d9e4045cd312345937797a2d9f048f3623fc1ce6bf1c2b77ff4f04d8da Started:0xc0005aa2c6}' {&quot;cr&quot;: &quot;jenkins&quot;}
-</code></pre>
-<p>可行的一个解决办法是将<code>value.yaml</code>中的健康检查时间微调或者临时去掉健康检查，并<code>helm</code>更新让其正常启动并持久化后再次恢复，或者新创建一个<code>Jenkins</code>控制器将其覆盖</p>
-<pre><code class="language-shell"># helm -n jenkins upgrade jenkins jenkins-operator --values ./jenkins-operator/values.yaml 
-</code></pre>
-<p>最终直到看见这样的日志，就表示<code>Jenkins</code>启动成功了</p>
-<pre><code class="language-shell">2021-05-16 13:26:14.221+0000 [id=28]    INFO    o.s.c.s.AbstractApplicationContext#obtainFreshBeanFactory: Bean factory for application context [org.springframework.web.context.support.StaticWebApplicationContext@295b7e33]: org.springframework.beans.factory.support.DefaultListableBeanFactory@52880f75
-2021-05-16 13:26:14.223+0000 [id=28]    INFO    o.s.b.f.s.DefaultListableBeanFactory#preInstantiateSingletons: Pre-instantiating singletons in org.springframework.beans.factory.support.DefaultListableBeanFactory@52880f75: defining beans [filter,legacy]; root of factory hierarchy
-2021-05-16 13:26:14.489+0000 [id=29]    INFO    jenkins.InitReactorRunner$1#onAttained: Completed initialization
-2021-05-16 13:26:14.767+0000 [id=20]    INFO    hudson.WebAppMain$3#run: Jenkins is fully up and running
-</code></pre>
-<p>到这里，通过<code>Jenkins Operator</code>部署<code>Jenkins</code>就完成了（尽管看上去也没多少比<code>helm</code>或传统方式部署的优势），其实<code>Jenkins Operator</code>还有更为好用的的其他功能，后续再介绍。</p>
 <p>See you ~</p>
 ]]></content>
     </entry>
