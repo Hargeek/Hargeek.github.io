@@ -9,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
-<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1626191238351">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1626191817042">
 <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
 
@@ -55,7 +55,7 @@ var _hmt = _hmt || [];
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://www.ssgeek.com">
-        <img src="https://www.ssgeek.com/images/avatar.png?v=1626191238351" class="site-logo">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1626191817042" class="site-logo">
         <h1 class="site-title">山山仙人博客</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -373,6 +373,7 @@ Cleaning up orphan processes
 </code></pre>
 <p>大致流程：执行器运行起来后，自动检出了该仓库，然后判断目标仓库是否存在，不存在则先创建，存在则直接执行强制推送</p>
 <p>后面每一次提交代码或对仓库做变更都可以按照触发条件触发<code>action</code>的执行了</p>
+<figure data-type="image" tabindex="7"><img src="https://image.ssgeek.com/20210714-07.png" alt=""></figure>
 <h2 id="7-小结">7、小结</h2>
 <p>到这里，利用<code>github action</code>将<code>github</code>仓库的代码实时同步到<code>gitee</code>就完成了，个人认为<code>github action</code>比<code>gitlabci</code>更为强大且有更多高阶玩法，但企业内部一般还都是私有仓库，因此对个人来说还是很实用的</p>
 <p>See you ~</p>
