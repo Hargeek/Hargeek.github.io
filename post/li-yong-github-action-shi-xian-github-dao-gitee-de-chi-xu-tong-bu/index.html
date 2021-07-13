@@ -9,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
-<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1626189502213">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1626190111259">
 <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
 <link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
 
@@ -55,7 +55,7 @@ var _hmt = _hmt || [];
   <div class="top-container" data-aos="fade-right">
     <div class="top-header-container">
       <a class="site-title-container" href="https://www.ssgeek.com">
-        <img src="https://www.ssgeek.com/images/avatar.png?v=1626189502213" class="site-logo">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1626190111259" class="site-logo">
         <h1 class="site-title">山山仙人博客</h1>
       </a>
       <div class="menu-btn" @click="menuVisible = !menuVisible">
@@ -207,8 +207,8 @@ var _hmt = _hmt || [];
   with:
     src: github/kunpengcompute
     dst: gitee/kunpengcompute
-    dst_key: secrets.GITEE_PRIVATE_KEY
-    dst_token: secrets.GITEE_TOKEN
+    dst_key: `${{ secrets.GITEE_PRIVATE_KEY }}`
+    dst_token: `${{ secrets.GITEE_TOKEN }}`
     account_type: org
 
 </code></pre>
@@ -221,8 +221,8 @@ var _hmt = _hmt || [];
   with:
     src: github/Yikun
     dst: gitee/yikunkero
-    dst_key: secrets.GITEE_PRIVATE_KEY
-    dst_token: secrets.GITEE_TOKEN
+    dst_key: `${{ secrets.GITEE_PRIVATE_KEY }}`
+    dst_token: `${{ secrets.GITEE_TOKEN }}`
     white_list: &quot;hub-mirror-action&quot;
     black_list: &quot;hashes&quot;
 </code></pre>
@@ -235,8 +235,8 @@ var _hmt = _hmt || [];
   with:
     src: github/Yikun
     dst: gitee/yikunkero
-    dst_key: secrets.GITEE_PRIVATE_KEY
-    dst_token: secrets.GITEE_TOKEN
+    dst_key: `${{ secrets.GITEE_PRIVATE_KEY }}`
+    dst_token: `${{ secrets.GITEE_TOKEN }}`
     static_list: &quot;hub-mirror-action&quot;
 </code></pre>
 <ul>
@@ -247,8 +247,8 @@ var _hmt = _hmt || [];
   with:
     src: github/Yikun
     dst: gitee/yikunkero
-    dst_key: secrets.GITEE_PRIVATE_KEY
-    dst_token: secrets.GITEE_TOKEN
+    dst_key: `${{ secrets.GITEE_PRIVATE_KEY }}`
+    dst_token: `${{ secrets.GITEE_TOKEN }}`
     clone_style: &quot;ssh&quot;
 </code></pre>
 <ul>
@@ -259,8 +259,8 @@ var _hmt = _hmt || [];
   with:
     src: github/Yikun
     dst: gitee/yikunkero
-    dst_key: secrets.GITEE_PRIVATE_KEY
-    dst_token: secrets.GITEE_TOKEN
+    dst_key: `${{ secrets.GITEE_PRIVATE_KEY }}`
+    dst_token: `${{ secrets.GITEE_TOKEN }}`
     force_update: true
     debug: true
 </code></pre>
@@ -272,8 +272,8 @@ var _hmt = _hmt || [];
   with:
     src: github/Yikun
     dst: gitee/yikunkero
-    dst_key: secrets.GITEE_PRIVATE_KEY
-    dst_token: secrets.GITEE_TOKEN
+    dst_key: `${{ secrets.GITEE_PRIVATE_KEY }}`
+    dst_token: `${{ secrets.GITEE_TOKEN }}`
     force_update: true
     timeout: '1h'
 </code></pre>
@@ -331,8 +331,8 @@ jobs:
       with:
         src: github/Hargeek  # 源端账户名(github)
         dst: gitee/ssgeek  # 目的端账户名(gitee)
-        dst_key: secrets.GITEE_PRIVATE_KEY  # SSH密钥对中的私钥
-        dst_token:  secrets.GITEE_TOKEN  # Gitee账户的私人令牌
+        dst_key: `${{ secrets.GITEE_PRIVATE_KEY }}`  # SSH密钥对中的私钥
+        dst_token:  `${{ secrets.GITEE_TOKEN }}`  # Gitee账户的私人令牌
         account_type: user  # 账户类型
         clone_style: &quot;https&quot;  # 使用https方式进行clone，也可以使用ssh
         debug: true  # 启用后会显示所有执行命令
