@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>k8s包管理工具helm - 介绍和安装 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">k8s包管理工具helm - 介绍和安装</h2>
+            <div class="post-date">2019-09-22</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-kubernetes-%E5%BA%94%E7%94%A8%E9%83%A8%E7%BD%B2%E7%9A%84%E6%8C%91%E6%88%98">1、Kubernetes 应用部署的挑战</a></li>
+<li><a href="#2-helm-%E6%98%AF%E4%BB%80%E4%B9%88">2、Helm 是什么</a></li>
+<li><a href="#3-helm-%E7%BB%84%E4%BB%B6%E5%8F%8A%E7%9B%B8%E5%85%B3%E6%9C%AF%E8%AF%AD">3、Helm 组件及相关术语</a></li>
+<li><a href="#4-helm-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86">4、Helm 工作原理</a></li>
+<li><a href="#5-helm-%E5%AE%89%E8%A3%85">5、Helm 安装</a>
+<ul>
+<li><a href="#51-%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%89%E8%A3%85">5.1 客户端安装</a></li>
+<li><a href="#52-%E5%AE%89%E8%A3%85%E6%9C%8D%E5%8A%A1%E7%AB%AF-tiller">5.2 安装服务端 Tiller</a></li>
+<li><a href="#53-%E7%BB%99-tiller-%E6%8E%88%E6%9D%83">5.3 给 Tiller 授权</a></li>
+<li><a href="#54-helm-%E5%91%BD%E4%BB%A4%E8%A1%A5%E5%85%A8">5.4 Helm 命令补全</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-kubernetes-应用部署的挑战">1、Kubernetes 应用部署的挑战</h2>
+<blockquote>
+<p>Kubernetes 是一个提供了基于容器的应用集群管理解决方案，Kubernetes 为容器化应用提供了部署运行、资源调度、服务发现和动态伸缩等一系列完整功能。<br>
+Kubernetes 的核心设计理念是: 用户定义要部署的应用程序的规则，而 Kubernetes 则负责按照定义的规则部署并运行应用程序。如果应用程序出现问题导致偏离了定义的规格，Kubernetes 负责对其进行自动修正。例如：定义的应用规则要求部署两个实例（Pod），其中一个实例异常终止了，Kubernetes 会检查到并重新启动一个新的实例。<br>
+用户通过使用 Kubernetes API 对象来描述应用程序规则，包括 Pod、Service、Volume、Namespace、ReplicaSet、Deployment、Job等等。一般这些资源对象的定义需要写入一系列的 YAML 文件中，然后通过 Kubernetes 命令行工具 Kubectl 调 Kubernetes API 进行部署。</p>
+</blockquote>
+<p>以一个典型的三层应用 Wordpress 为例，该应用程序就涉及到多个 Kubernetes API 对象，而要描述这些 Kubernetes API 对象就可能要同时维护多个 YAML 文件。<br>
+在进行 Kubernetes 软件部署时，我们面临下述几个问题：</p>
+<ul>
+<li>如何管理、编辑和更新这些这些分散的 Kubernetes 应用配置文件。</li>
+<li>如何把一套相关的配置文件作为一个应用进行管理。</li>
+<li>如何分发和重用 Kubernetes 的应用配置</li>
+</ul>
+<h2 id="2-helm-是什么">2、Helm 是什么</h2>
+<p>Helm 是 Deis 开发的一个用于 Kubernetes 应用的包管理工具，主要用来管理 Charts。有点类似于 Ubuntu 中的 APT 或 CentOS 中的 YUM。</p>
+<p>Helm Chart 是用来封装 Kubernetes 原生应用程序的一系列 YAML 文件。可以在你部署应用的时候自定义应用程序的一些 Metadata，以便于应用程序的分发。</p>
+<p>对于应用发布者而言，可以通过 Helm 打包应用、管理应用依赖关系、管理应用版本并发布应用到软件仓库。</p>
+<p>对于使用者而言，使用 Helm 后不用需要编写复杂的应用部署文件，可以以简单的方式在 Kubernetes 上查找、安装、升级、回滚、卸载应用程序。<br>
+做为 Kubernetes 的一个包管理工具，Helm具有如下功能：<br>
+创建新的 chart<br>
+chart 打包成 tgz 格式<br>
+上传 chart 到 chart 仓库或从仓库中下载 chart<br>
+在Kubernetes集群中安装或卸载 chart<br>
+管理用Helm安装的 chart 的发布周期</p>
+<h2 id="3-helm-组件及相关术语">3、Helm 组件及相关术语</h2>
+<p>本文中讲到的是helm V2最新版本，V3版本也已经发布了beta版，在 Helm 3 中，Tiller 被移除了。</p>
+<ul>
+<li>
+<p>Helm<br>
+Helm 是一个命令行下的客户端工具。主要用于 Kubernetes 应用程序 Chart 的创建、打包、发布以及创建和管理本地和远程的 Chart 仓库。</p>
+</li>
+<li>
+<p>Tiller<br>
+Tiller 是 Helm 的服务端，部署在 Kubernetes 集群中。Tiller 用于接收 Helm 的请求，并根据 Chart 生成 Kubernetes 的部署文件（ Helm 称为 Release ），然后提交给 Kubernetes 创建应用。Tiller 还提供了 Release 的升级、删除、回滚等一系列功能。</p>
+</li>
+<li>
+<p>Chart<br>
+包含了创建Kubernetes的一个应用实例的必要信息，Helm 的软件包，采用 TAR 格式。类似于 APT 的 DEB 包或者 YUM 的 RPM 包，其包含了一组定义 Kubernetes 资源相关的 YAML 文件。</p>
+</li>
+<li>
+<p>Repoistory<br>
+Helm 的软件仓库，Repository 本质上是一个 Web 服务器，该服务器保存了一系列的 Chart 软件包以供用户下载，并且提供了一个该 Repository 的 Chart 包的清单文件以供查询。Helm 可以同时管理多个不同的 Repository。</p>
+</li>
+<li>
+<p>Release<br>
+是一个 chart 及其配置的一个运行实例，使用 helm install 命令在 Kubernetes 集群中部署的 Chart 称为 Release。</p>
+</li>
+</ul>
+<h2 id="4-helm-工作原理">4、Helm 工作原理</h2>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20190922-01.png" alt=""></figure>
+<ul>
+<li>
+<p>Chart Install 过程<br>
+Helm 从指定的目录或者 TAR 文件中解析出 Chart 结构信息。<br>
+Helm 将指定的 Chart 结构和 Values 信息通过 gRPC 传递给 Tiller。<br>
+Tiller 根据 Chart 和 Values 生成一个 Release。<br>
+Tiller 将 Release 发送给 Kubernetes 用于生成 Release。</p>
+</li>
+<li>
+<p>Chart Update 过程<br>
+Helm 从指定的目录或者 TAR 文件中解析出 Chart 结构信息。<br>
+Helm 将需要更新的 Release 的名称、Chart 结构和 Values 信息传递给 Tiller。<br>
+Tiller 生成 Release 并更新指定名称的 Release 的 History。<br>
+Tiller 将 Release 发送给 Kubernetes 用于更新 Release。</p>
+</li>
+<li>
+<p>Chart Rollback 过程<br>
+Helm 将要回滚的 Release 的名称传递给 Tiller。<br>
+Tiller 根据 Release 的名称查找 History。<br>
+Tiller 从 History 中获取上一个 Release。<br>
+Tiller 将上一个 Release 发送给 Kubernetes 用于替换当前 Release。</p>
+</li>
+<li>
+<p>Chart 处理依赖说明<br>
+Tiller 在处理 Chart 时，直接将 Chart 以及其依赖的所有 Charts 合并为一个 Release，同时传递给 Kubernetes。因此 Tiller 并不负责管理依赖之间的启动顺序。Chart 中的应用需要能够自行处理依赖关系。</p>
+</li>
+</ul>
+<p>Helm Client 是用户命令行工具，其主要负责如下：</p>
+<ul>
+<li>本地 chart 开发</li>
+<li>仓库管理</li>
+<li>与 Tiller sever 交互</li>
+<li>发送预安装的 chart</li>
+<li>查询 release 信息</li>
+<li>要求升级或卸载已存在的 release</li>
+</ul>
+<p>Tiller Server是一个部署在Kubernetes集群内部的 server，其与 Helm client、Kubernetes API server 进行交互。Tiller server 主要负责如下：<br>
+监听来自 Helm client 的请求<br>
+通过 chart 及其配置构建一次发布<br>
+安装 chart 到Kubernetes集群，并跟踪随后的发布<br>
+通过与Kubernetes交互升级或卸载 chart<br>
+简单的说，client 管理 charts，而 server 管理发布 release</p>
+<h2 id="5-helm-安装">5、Helm 安装</h2>
+<h3 id="51-客户端安装">5.1 客户端安装</h3>
+<p>客户端二进制文件下载地址：https://github.com/helm/helm/releases<br>
+解压后将可执行文件helm拷贝到/usr/local/bin目录下即可，这样Helm客户端就在这台机器上安装完成了。</p>
+<pre><code>[root@master01 helm-soft]# mv linux-amd64/helm /usr/local/bin/
+[root@master01 helm-soft]# helm version
+Client: &amp;version.Version{SemVer:&quot;v2.14.3&quot;, GitCommit:&quot;0e7f3b6637f7af8fcfddb3d2941fcc7cbebb0085&quot;, GitTreeState:&quot;clean&quot;}
+Error: could not find tiller
+</code></pre>
+<h3 id="52-安装服务端-tiller">5.2 安装服务端 Tiller</h3>
+<p>Tiller 是以 Deployment 方式部署在 Kubernetes 集群中的，只需使用以下指令便可简单的完成安装，使用阿里云镜像安装并把默认仓库设置为阿里云上的镜像仓库</p>
+<pre><code>[root@master01 helm-soft]# helm init --upgrade --tiller-image registry.cn-hangzhou.aliyuncs.com/google_containers/tiller:v2.14.3 --stable-repo-url https://kubernetes.oss-cn-hangzhou.aliyuncs.com/charts
+$HELM_HOME has been configured at /root/.helm.
+
+Tiller (the Helm server-side component) has been installed into your Kubernetes Cluster.
+Happy Helming!
+[root@master01 helm-soft]# kubectl get pods -n kube-system |grep tiller-deploy
+tiller-deploy-6d99bc8567-zv9q8          1/1     Running   0          2m33s
+[root@master01 helm-soft]# helm version
+Client: &amp;version.Version{SemVer:&quot;v2.14.3&quot;, GitCommit:&quot;0e7f3b6637f7af8fcfddb3d2941fcc7cbebb0085&quot;, GitTreeState:&quot;clean&quot;}
+Server: &amp;version.Version{SemVer:&quot;v2.14.3&quot;, GitCommit:&quot;0e7f3b6637f7af8fcfddb3d2941fcc7cbebb0085&quot;, GitTreeState:&quot;clean&quot;}
+</code></pre>
+<p>如果在初始化时报错</p>
+<pre><code>Error: cannot connect to Tiller
+</code></pre>
+<p>解决方法为在节点执行</p>
+<pre><code>yum install -y socat
+</code></pre>
+<h3 id="53-给-tiller-授权">5.3 给 Tiller 授权</h3>
+<p>因为 Helm 的服务端 Tiller 是一个部署在 Kubernetes 中 Kube-System Namespace 下 的 Deployment，它会去连接 Kube-Api 在 Kubernetes 里创建和删除应用。<br>
+而从 Kubernetes 1.6 版本开始，API Server 启用了 RBAC 授权。目前的 Tiller 部署时默认没有定义授权的 ServiceAccount，这会导致访问 API Server 时被拒绝。所以我们需要明确为 Tiller 部署添加授权。详细内容可见https://docs.helm.sh/using_helm/#role-based-access-control</p>
+<pre><code>[root@master01 helm]# pwd
+/root/manifest/helm
+[root@master01 helm]# vim rbac.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tiller
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tiller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: tiller
+    namespace: kube-system
+[root@master01 helm]# kubectl create -f rbac.yaml 
+serviceaccount/tiller created
+clusterrolebinding.rbac.authorization.k8s.io/tiller created    
+</code></pre>
+<p>使用 kubectl patch 更新 API 对象，给 Tiller 打上一个 ServiceAccount 的补丁</p>
+<pre><code>[root@master01 helm]# kubectl patch deploy --namespace kube-system tiller-deploy -p '{&quot;spec&quot;:{&quot;template&quot;:{&quot;spec&quot;:{&quot;serviceAccount&quot;:&quot;tiller&quot;}}}}'
+deployment.extensions/tiller-deploy patched
+</code></pre>
+<p>查看授权是否成功</p>
+<pre><code>[root@master01 helm]# kubectl get deploy --namespace kube-system   tiller-deploy  --output yaml|grep  serviceAccount
+      serviceAccount: tiller
+      serviceAccountName: tiller
+</code></pre>
+<p>卸载 Helm 服务器端 Tiller<br>
+如果你需要在 Kubernetes 中卸载已部署的 Tiller，可使用命令helm reset完成卸载。</p>
+<h3 id="54-helm-命令补全">5.4 Helm 命令补全</h3>
+<p>命令自动补全<br>
+为了方便 helm 命令的使用，Helm 提供了自动补全功能<br>
+如果使用 ZSH 请执行</p>
+<pre><code>$ source &lt;(helm completion zsh)
+</code></pre>
+<p>如果使用 BASH 请执行</p>
+<pre><code>$ source &lt;(helm completion bash)
+$ echo &quot;source &lt;(helm completion bash)&quot; &gt;&gt; ~/.bashrc
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/s_shbCfn-" class="tag">
+                    helm
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/kubernetes-wang-luo-zhi-flannel-gong-zuo-yuan-li">
+                  <h3 class="post-title">
+                    Kubernetes网络之Flannel工作原理
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

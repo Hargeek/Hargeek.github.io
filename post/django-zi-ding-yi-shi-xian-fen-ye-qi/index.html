@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Django自定义实现分页器 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Django自定义实现分页器</h2>
+            <div class="post-date">2021-05-28</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%88%86%E6%9E%90%E5%92%8C%E6%8E%A8%E5%AF%BC">1、分析和推导</a>
+<ul>
+<li><a href="#11-%E5%BD%93%E5%89%8D%E9%A1%B5">1.1 当前页</a></li>
+<li><a href="#12-%E8%B5%B7%E5%A7%8B%E4%BD%8D%E7%BD%AE%E5%92%8C%E7%BB%88%E6%AD%A2%E4%BD%8D%E7%BD%AE">1.2 起始位置和终止位置</a></li>
+<li><a href="#13-%E6%B7%BB%E5%8A%A0%E6%8C%89%E9%92%AE%E4%BC%A0%E9%80%92%E9%A1%B5%E7%A0%81%E6%95%B0">1.3 添加按钮传递页码数</a></li>
+</ul>
+</li>
+<li><a href="#2-%E6%96%B9%E6%B3%95%E7%9A%84%E5%B0%81%E8%A3%85">2、方法的封装</a>
+<ul>
+<li><a href="#21-%E5%88%86%E9%A1%B5%E5%99%A8%E7%B1%BB">2.1 分页器类</a></li>
+<li><a href="#22-%E8%A7%86%E5%9B%BE%E5%87%BD%E6%95%B0">2.2 视图函数</a></li>
+<li><a href="#23-%E6%A8%A1%E6%9D%BF%E9%A1%B5%E9%9D%A2">2.3 模板页面</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>前面的文章中分别介绍了<a href="https://www.ssgeek.com/post/drf-fen-ye-qi/"><code>drf</code>框架中分页器的使用</a>及<a href="https://www.ssgeek.com/post/django-fen-ye-qi-de-yong-fa/"><code>Django</code>框架中分页器的用法</a>，其重点在于视图函数和模板页面如何利用自带的分页器的相关参数进行数据传递和页面渲染</p>
+<p>本文继续介绍分页器，即自定义分页器如何实现，其实也就是如何使用自定义的方式计算出和上面类似自带的分页器的相关参数值</p>
+</blockquote>
+<h2 id="1-分析和推导">1、分析和推导</h2>
+<p>分页中的关键信息：当前页、每页展示多少条、起始位置、终止位置</p>
+<h3 id="11-当前页">1.1 当前页</h3>
+<p>思路：浏览器携带页码发送<code>get</code>请求，获取当前页信息。后端从<code>get</code>请求中获取响应的页码数，查询对应数据并返回</p>
+<pre><code class="language-python"># 想访问哪一页
+current_page = request.GET.get('page', 1)  # 如果获取不到当前页码 就展示第一页
+# 数据类型转换，将获取的字符串页码转换成int
+try:
+  current_page = int(current_page)
+except Exception:
+    current_page = 1
+</code></pre>
+<h3 id="12-起始位置和终止位置">1.2 起始位置和终止位置</h3>
+<p>每页条数、起始位置、终止位置的推导</p>
+<pre><code class="language-shell">per_page_num = 10
+current_page                start_page                  end_page
+    1                           0                           10
+    2                           10                          20
+    3                           20                          30
+    4                           30                          40
+
+
+per_page_num = 5
+current_page                start_page                  end_page
+    1                           0                           5
+    2                           5                           10
+    3                           10                          15
+    4                           15                          20
+</code></pre>
+<p>由此得出三者之间的关系</p>
+<pre><code class="language-python">start_page = (current_page - 1) * per_page_num
+end_page = current_page * per_page_num
+</code></pre>
+<p>最终基于页码查询出当前页的数据</p>
+<pre><code class="language-python"># 每页展示多少条
+per_page_num = 10
+# 起始位置
+start_page = (current_page - 1) * per_page_num
+# 终止位置
+end_page = current_page * per_page_num
+book_queryset = book_list[start_page:end_page]
+</code></pre>
+<h3 id="13-添加按钮传递页码数">1.3 添加按钮传递页码数</h3>
+<p>总的页码数需要传递到页面，总页数与总数和每页数有关系，例如</p>
+<pre><code class="language-shell">总数据100 每页展示10 需要10页
+总数据101 每页展示10 需要11页
+总数据99  每页展示10 需要10页
+</code></pre>
+<p>如何动态计算到底需要多少页呢？这里可以利用<code>divmod</code>方法来计算总数与每页个数的商和余数，余数不为<code>0</code>时，把页数加<code>1</code></p>
+<pre><code class="language-python"># 分页
+book_list = models.Book.objects.all()
+# 计算出到底需要多少页
+all_count = book_list.count()
+page_count, more = divmod(all_count, per_page_num)  # 计算总数%每页个数的商和余数，余数不为0时，把页数+1
+if more:  # 有余数则总页数加一
+    page_count += 1
+</code></pre>
+<p>关于页码布局，在制作页码个数的时候一般情况下都是奇数个页码，这更符合对称美的标准</p>
+<p>最后，在后端把页码计算逻辑写出来动态的传给前端</p>
+<pre><code class="language-python"># 在后端把页码计算逻辑写出来传给前端
+page_html = ''
+x = current_page
+if current_page &lt; 6:  # 控制页码数量，当小于6时，不显示负数页码
+    current_page = 6
+for i in range(current_page - 5, current_page + 6):  # 显示11个页码，被选中的在最中间
+    if x == i:  # 高亮显示被选中的那一个页码
+        page_html += '&lt;li class=&quot;active&quot;&gt;&lt;a href=&quot;?page=%s&quot;&gt;%s&lt;/a&gt;&lt;/li&gt;' % (i, i)
+    else:
+        page_html += '&lt;li&gt;&lt;a href=&quot;?page=%s&quot;&gt;%s&lt;/a&gt;&lt;/li&gt;' % (i, i)
+
+book_queryset = book_list[start_page:end_page]
+return render(request, 'ab_pl.html', locals())
+</code></pre>
+<p>前端模板页面接收</p>
+<pre><code class="language-html">&lt;ul class=&quot;pagination&quot;&gt;
+    &lt;li&gt;
+      &lt;a href=&quot;#&quot; aria-label=&quot;Previous&quot;&gt;
+        &lt;span aria-hidden=&quot;true&quot;&gt;&amp;laquo;&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/li&gt;
+    { page_html|safe }
+    &lt;li&gt;
+      &lt;a href=&quot;#&quot; aria-label=&quot;Next&quot;&gt;
+        &lt;span aria-hidden=&quot;true&quot;&gt;&amp;raquo;&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/li&gt;
+&lt;/ul&gt;
+</code></pre>
+<p>到这里，就实现了后端动态的根据已有的数据并动态的将页码数传递到了前端页面渲染生成对应的页码按钮</p>
+<h2 id="2-方法的封装">2、方法的封装</h2>
+<p>上面是自定义分页器开发流程的基本推导思路，最后将自定义分页器进行封装</p>
+<h3 id="21-分页器类">2.1 分页器类</h3>
+<p><code>mypage.py</code></p>
+<pre><code class="language-python">class Pagination(object):
+    def __init__(self, current_page, all_count, per_page_num=2, pager_count=11):
+        &quot;&quot;&quot;
+        封装分页相关数据
+        :param current_page: 当前页
+        :param all_count:    数据库中的数据总条数
+        :param per_page_num: 每页显示的数据条数
+        :param pager_count:  最多显示的页码个数
+        &quot;&quot;&quot;
+        try:
+            current_page = int(current_page)
+        except Exception as e:
+            current_page = 1
+        if current_page &lt; 1:
+            current_page = 1
+        self.current_page = current_page
+        self.all_count = all_count
+        self.per_page_num = per_page_num
+
+        # 总页码
+        all_pager, tmp = divmod(all_count, per_page_num)
+        if tmp:
+            all_pager += 1
+        self.all_pager = all_pager
+
+        self.pager_count = pager_count
+        self.pager_count_half = int((pager_count - 1) / 2)
+
+    @property
+    def start(self):
+        return (self.current_page - 1) * self.per_page_num
+
+    @property
+    def end(self):
+        return self.current_page * self.per_page_num
+
+    def page_html(self):
+        # 如果总页码 &lt; 11个：
+        if self.all_pager &lt;= self.pager_count:
+            pager_start = 1
+            pager_end = self.all_pager + 1
+        # 总页码  &gt; 11
+        else:
+            # 当前页如果&lt;=页面上最多显示11/2个页码
+            if self.current_page &lt;= self.pager_count_half:
+                pager_start = 1
+                pager_end = self.pager_count + 1
+            # 当前页大于5
+            else:
+                # 页码翻到最后
+                if (self.current_page + self.pager_count_half) &gt; self.all_pager:
+                    pager_end = self.all_pager + 1
+                    pager_start = self.all_pager - self.pager_count + 1
+                else:
+                    pager_start = self.current_page - self.pager_count_half
+                    pager_end = self.current_page + self.pager_count_half + 1
+        page_html_list = []
+        # 添加前面的nav和ul标签
+        page_html_list.append('''
+                    &lt;nav aria-label='Page navigation&gt;'
+                    &lt;ul class='pagination'&gt;
+                ''')
+        first_page = '&lt;li&gt;&lt;a href=&quot;?page=%s&quot;&gt;首页&lt;/a&gt;&lt;/li&gt;' % (1)
+        page_html_list.append(first_page)
+
+        if self.current_page &lt;= 1:
+            prev_page = '&lt;li class=&quot;disabled&quot;&gt;&lt;a href=&quot;#&quot;&gt;上一页&lt;/a&gt;&lt;/li&gt;'
+        else:
+            prev_page = '&lt;li&gt;&lt;a href=&quot;?page=%s&quot;&gt;上一页&lt;/a&gt;&lt;/li&gt;' % (self.current_page - 1,)
+
+        page_html_list.append(prev_page)
+
+        for i in range(pager_start, pager_end):
+            if i == self.current_page:
+                temp = '&lt;li class=&quot;active&quot;&gt;&lt;a href=&quot;?page=%s&quot;&gt;%s&lt;/a&gt;&lt;/li&gt;' % (i, i,)
+            else:
+                temp = '&lt;li&gt;&lt;a href=&quot;?page=%s&quot;&gt;%s&lt;/a&gt;&lt;/li&gt;' % (i, i,)
+            page_html_list.append(temp)
+
+        if self.current_page &gt;= self.all_pager:
+            next_page = '&lt;li class=&quot;disabled&quot;&gt;&lt;a href=&quot;#&quot;&gt;下一页&lt;/a&gt;&lt;/li&gt;'
+        else:
+            next_page = '&lt;li&gt;&lt;a href=&quot;?page=%s&quot;&gt;下一页&lt;/a&gt;&lt;/li&gt;' % (self.current_page + 1,)
+        page_html_list.append(next_page)
+
+        last_page = '&lt;li&gt;&lt;a href=&quot;?page=%s&quot;&gt;尾页&lt;/a&gt;&lt;/li&gt;' % (self.all_pager,)
+        page_html_list.append(last_page)
+        # 尾部添加标签
+        page_html_list.append('''
+                                           &lt;/nav&gt;
+                                           &lt;/ul&gt;
+                                       ''')
+        return ''.join(page_html_list)
+</code></pre>
+<h3 id="22-视图函数">2.2 视图函数</h3>
+<p>视图函数中引用</p>
+<pre><code class="language-python">from utils.mypage import Pagination
+
+def get_books(request):
+    book_queryset = models.Book.objects.all()
+    current_page = request.GET.get(&quot;page&quot;, 1)
+    all_count = book_queryset.count()
+    # 1 传值生成对象
+    page_obj = Pagination(current_page=current_page, all_count=all_count, per_page_num=10)
+    # 2 直接对总数据进行切片操作
+    page_queryset = book_list[page_obj.start:page_obj.end]
+    # 3 将page_queryset传递到页面
+    return render(request, 'booklist.html', locals())
+</code></pre>
+<h3 id="23-模板页面">2.3 模板页面</h3>
+<p>模板页面中渲染</p>
+<pre><code class="language-html">&lt;div class=&quot;container&quot;&gt;
+    &lt;div class=&quot;row&quot;&gt;
+        &lt;div class=&quot;col-md-8 col-md-offset-2&quot;&gt;
+            {% for book in page_queryset %}
+            &lt;p&gt;{ book.title }&lt;/p&gt;
+            {% endfor %}
+          	{#利用自定义分页器直接显示分页器样式#}
+            { page_obj.page_html|safe }
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/VEfPb2dUj" class="tag">
+                    django
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/vhKLQmmvn" class="tag">
+                    python
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/django-fen-ye-qi-de-yong-fa">
+                  <h3 class="post-title">
+                    Django分页器的用法
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

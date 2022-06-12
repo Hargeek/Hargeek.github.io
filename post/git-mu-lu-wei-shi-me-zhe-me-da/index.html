@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Git目录为什么这么大 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Git目录为什么这么大</h2>
+            <div class="post-date">2021-06-01</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E4%BB%8B%E7%BB%8D">1、介绍</a></li>
+<li><a href="#2-git%E5%AD%98%E5%82%A8%E5%8E%9F%E7%90%86">2、Git存储原理</a>
+<ul>
+<li><a href="#21-%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84">2.1 目录结构</a></li>
+<li><a href="#22-%E6%8F%90%E4%BA%A4%E5%86%85%E5%AE%B9">2.2 提交内容</a></li>
+<li><a href="#23-%E5%A6%82%E4%BD%95%E5%BD%BB%E5%BA%95%E5%88%A0%E9%99%A4%E4%B8%80%E4%B8%AA%E6%96%87%E4%BB%B6">2.3 如何彻底删除一个文件</a></li>
+</ul>
+</li>
+<li><a href="#3-%E8%A7%A3%E6%9E%90object%E5%AD%98%E5%82%A8%E6%96%B9%E5%BC%8F">3、解析Object存储方式</a></li>
+<li><a href="#4-%E5%A4%84%E7%90%86%E5%A4%A7%E6%96%87%E4%BB%B6">4、处理大文件</a>
+<ul>
+<li><a href="#41-%E5%A4%A7%E6%96%87%E4%BB%B6%E7%9A%84%E4%BA%A7%E7%94%9F">4.1 大文件的产生</a></li>
+<li><a href="#42-%E5%AF%BB%E6%89%BE%E5%A4%A7%E6%96%87%E4%BB%B6%E7%9A%84id">4.2 寻找大文件的ID</a></li>
+<li><a href="#43-%E5%88%A0%E9%99%A4%E5%A4%A7%E6%96%87%E4%BB%B6">4.3 删除大文件</a></li>
+<li><a href="#44-%E6%8C%89%E7%85%A7pack%E6%96%87%E4%BB%B6%E7%9B%B4%E6%8E%A5%E6%93%8D%E4%BD%9C">4.4 按照pack文件直接操作</a></li>
+</ul>
+</li>
+<li><a href="#5-%E5%A4%A7%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E7%9A%84%E6%AD%A3%E7%A1%AE%E6%96%B9%E5%BC%8F">5、大文件存储的正确方式</a></li>
+<li><a href="#6-%E5%85%B6%E4%BB%96%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88">6、其他解决方案</a></li>
+<li><a href="#7-%E5%B0%8F%E7%BB%93">7、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210601-02.png" alt=""></figure>
+<h2 id="1-介绍">1、介绍</h2>
+<p><code>Git</code>作为一个分布式的版本控制工具，在每天高频次的使用中难免遇到一些问题</p>
+<p>本文围绕<code>git</code>的目录过大，从<code>git</code>进行版本控制底层存储出发，简要分析<code>Git</code>目录过大的原因，以及如何处理</p>
+<h2 id="2-git存储原理">2、Git存储原理</h2>
+<h3 id="21-目录结构">2.1 目录结构</h3>
+<p>使用版本控制的人都会知道，不管是<code>svn</code>还是更为流行的<code>git</code>，整个工程目录下，除了项目代码外，与版本控制相关的就是<code>.svn</code>或<code>.git</code>目录</p>
+<p>以<code>git</code>为例，<code>.git</code>下的目录结构如下</p>
+<pre><code class="language-shell">tree -L 1 .git
+.git
+├── COMMIT_EDITMSG
+├── FETCH_HEAD
+├── HEAD
+├── ORIG_HEAD
+├── config
+├── description
+├── hooks
+├── index
+├── info
+├── logs
+├── objects
+├── packed-refs
+├── refs
+└── sourcetreeconfig
+</code></pre>
+<p>其中一些目录的说明</p>
+<ul>
+<li>
+<p>HEAD：表示当前本地签出的分支</p>
+</li>
+<li>
+<p>hooks：<code>git</code>钩子目录，关于钩子的使用可以参考我之前的文章 <a href="https://www.ssgeek.com/post/li-yong-git-gou-zi-shi-xian-dai-ma-fa-bu/">利用Git钩子实现代码发布</a></p>
+</li>
+<li>
+<p>index： 存储缓冲区<code>GitExtensions</code>中的<code>stage</code>的内容</p>
+</li>
+<li>
+<p>objects：存储对象的目录，<code>git</code>中对象分为<code>commit</code>对象，<code>tree</code>对象(多叉树)，<code>blob</code>对象</p>
+</li>
+<li>
+<p>refs：存储指向<code>branch</code>的最近一次<code>commit</code>对象的指针，也就是<code>commit</code>对象的<code>sha-1</code>值，其中<code>heads</code>存储<code>branch</code>对应的<code>commit</code>，<code>tags</code>存储<code>tag</code>对应的<code>commit</code></p>
+</li>
+<li>
+<p>config：仓库配置，比如远程的<code>url</code>，邮箱和用户名等</p>
+</li>
+</ul>
+<h3 id="22-提交内容">2.2 提交内容</h3>
+<p><code>git</code>的一次提交包含<code>4</code>个部分：</p>
+<ul>
+<li>
+<p>工作目录快照名称（一个哈希值）</p>
+</li>
+<li>
+<p>一条评论/注释</p>
+</li>
+<li>
+<p>提交者信息</p>
+</li>
+<li>
+<p>父提交的哈希值</p>
+</li>
+</ul>
+<p>每一个提交<code>Commit</code>相当于一个<code>Patch</code>应用在之前的项目上，借此一个项目可以回到任何一次提交时的文件状态</p>
+<p>于是在<code>Git</code>中删除一个文件时，<code>Git</code>只是记录了该删除操作，该记录作为一个<code>Patch</code>存储在 <code>.git</code> 中。 删除前的文件仍然在<code>Git</code>仓库中保存着。直接删除文件并提交起不到给<code>Git</code>仓库瘦身的效果</p>
+<p>在<code>Git</code>仓库彻底删除一个文件只有一种办法：重写<code>Rewrite</code>涉及该文件的所有提交。借助 <code>git filter-branch</code> 便可以重写历史提交，当然这也是<code>Git</code>中最危险的操作</p>
+<h3 id="23-如何彻底删除一个文件">2.3 如何彻底删除一个文件</h3>
+<p>以一个文件的提交为例，这个文件可能会关联很多次提交，只有将每一次与该文件有关的的提交记录进行重写，才能真正实现删除这个文件，具体做法如下</p>
+<pre><code class="language-shell"># git filter-branch -f --prune-empty --index-filter 'git rm -rf --cached --ignore-unmatch api/app/test.py' --tag-name-filter cat -- --all
+Rewrite 2771f50d45a0293668a30af77983d87886441640 (264/982)rm 'api/app/test.py'
+Rewrite 1a98ecb3f39e1f200e31754714eec18bc92848ce (265/982)rm 'api/app/test.py'
+Rewrite d4e61cfb1d88187b0561d283e663b81b738df2c7 (270/982)rm 'api/app/test.py'
+Rewrite 4ba0df06b26cf86fd39c2cda6b012c521cbc4dc1 (271/982)rm 'api/app/test.py'
+Rewrite 242ae98060c77863f5e826ba7e1ec47
+</code></pre>
+<p>这里要删除的文件位置是<code>api/app/test.py</code></p>
+<p><code>--index-filter</code> 参数用来指定一条<code>Bash</code>命令，<code>--all</code> 参数告诉<code>Git</code>我们需要重写所有分支（或引用）</p>
+<p><code>Git</code>会检出<code>checkout</code>所有的提交， 执行该命令，然后重新提交。我们在提交前移除了 <code>test.py</code> 文件， 这个文件便从<code>Git</code>的所有记录中完全消失了</p>
+<h2 id="3-解析object存储方式">3、解析Object存储方式</h2>
+<p>为了一步步熟悉<code>Object</code>存储的方式，这里在本地创建一个空的<code>git</code>仓库，且<code>objects</code>目录中还没有任何内容，创建一个文件并提交</p>
+<pre><code class="language-shell"># mkdir git-test &amp;&amp; cd git-test &amp;&amp; mkdir src
+# git init .
+Initialized empty Git repository in /Users/ssgeek/Git-workspace/git-test/.git/
+# echo &quot;test project&quot; &gt; README.md
+# echo &quot;hello world&quot; &gt; src/demo1.txt
+# git add .
+# git commit -sm &quot;first commit&quot;
+[master (root-commit) ca1114d] first commit
+ 2 files changed, 2 insertions(+)
+ create mode 100644 README.md
+ create mode 100644 src/demo1.txt
+</code></pre>
+<p>从输出可以看到，上面的命令创建了一个<code>commit</code>对象，该<code>commit</code>包含两个文件</p>
+<p>查看<code>.git/objects</code>目录，可以看到该目录下增加了<code>4</code>个子目录 32，3b， 4c， ca，d2，每个子目录下有一个以一长串字母数字命名的文件</p>
+<pre><code class="language-shell"># tree .git/objects
+.git/objects
+├── 32
+│   └── 73e239f79eacf09654a5ecc18498bda0d2e7eb
+├── 3b
+│   └── 18e512dba79e4c8300dd08aeb37f8e728b8dad
+├── 4c
+│   └── 3ced11d9e650d74fa5e518b26b311f06d7069c
+├── ca
+│   └── 1114de8da76527ec73cdf52100eb7ba58e1878
+├── d2
+│   └── df53f517e6e2c85ff2b0c6b0970428889f265f
+├── info
+└── pack
+</code></pre>
+<p>前面提到<code>object</code>目录下存放的是<code>Git</code>为对象生成一个文件，并根据文件信息生成一个<code>SHA-1</code>哈希值作为文件内容的校验和，创建以该校验和前两个字符为名称的子目录，并以 (校验和) 剩下<code>38</code>个字符为文件命名 ，将该文件保存至子目录下</p>
+<p>可以通过 <code>git cat-file</code>命令查看<code>Git Object</code>中存储的内容及对象类型，命令参数为<code>Git Object</code>的<code>SHA-1</code>哈希值，即目录名+文件名。一般不用输入整个<code>Hash</code>，输入前几位即可</p>
+<p>当前分支的对象引用保存在<code>HEAD</code>文件中，可以查看该文件得到当前<code>HEAD</code>对应的<code>branch</code>，并通过<code>branch</code>查到对应的<code>commit</code>对象</p>
+<pre><code class="language-shell"># cat .git/HEAD
+ref: refs/heads/master
+# cat .git/refs/heads/master
+ca1114de8da76527ec73cdf52100eb7ba58e1878
+</code></pre>
+<p>使用<code>-t</code>参数查看文件类型，使用<code>-p</code>参数可以查看文件内容</p>
+<pre><code class="language-shell"># git cat-file -t ca1114
+commit
+# git cat-file -p ca1114
+tree d2df53f517e6e2c85ff2b0c6b0970428889f265f
+author ssgeek &lt;ssgeek@ssgeek.com&gt; 1622445604 +0800
+committer ssgeek &lt;ssgeek@ssgeek.com&gt; 1622445604 +0800
+
+first commit
+
+Signed-off-by: ssgeek &lt;ssgeek@ssgeek.com&gt;
+</code></pre>
+<p>这是一个<code>commit</code>对象，<code>commit</code>对象中保存了<code>commit</code>的作者，<code>commit</code>的描述信息，签名信息以及该<code>commit</code>中包含哪些<code>tree</code>对象和<code>blob</code>对象，继续看该<code>tree</code>对象中的内容</p>
+<pre><code class="language-shell"># git cat-file -p d2df53
+100644 blob 4c3ced11d9e650d74fa5e518b26b311f06d7069c	README.md
+040000 tree 3273e239f79eacf09654a5ecc18498bda0d2e7eb	src
+# git cat-file -p 4c3ced
+test project
+# git cat-file -p 3273e2
+100644 blob 3b18e512dba79e4c8300dd08aeb37f8e728b8dad	demo1.txt
+# git cat-file -p 3b18e5
+hello world
+</code></pre>
+<p>因此可以得知，git中存储了三种类型的对象，<code>commit</code>，<code>tree</code>和<code>blob</code>，三者分别对应<code>git commit</code>，此<code>commit</code>中的目录和文件，这些对象之间的关系如下图</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210601-01.png" alt=""></figure>
+<h2 id="4-处理大文件">4、处理大文件</h2>
+<h3 id="41-大文件的产生">4.1 大文件的产生</h3>
+<p>由上面的详细分析流程可以看出，<code>git</code>会为每一个提交到版本控制的文件进行追踪，那么大文件究竟如何产生呢？</p>
+<p>在上面的<code>object</code>目录下还存在着<code>pack</code>和<code>info</code>文件夹。<code>Git</code>往磁盘保存对象时默认使用的格式叫松散对象<code>loose object</code>格式，当你对同一个文件修改哪怕一行，<code>git</code>都会使用全新的文件存储这个修改了的文件，放在了<code>objects</code>中。<code>Git</code>时不时地将这些对象打包至一个叫<code>packfile</code>的二进制文件以节省空间并提高效率，当版本库中有太多的松散对象，或者你手动执行 <code>git gc</code> 命令，或者你向远程服务器执行推送时，<code>Git</code>都会这样做</p>
+<p>因此，往往在向<code>git</code>中提交了大文件，会造成<code>pack</code>文件过大，到这里“元凶”终于出现了</p>
+<h3 id="42-寻找大文件的id">4.2 寻找大文件的ID</h3>
+<p>以我的博客代码为例操作</p>
+<p>首先查找出大文件</p>
+<pre><code class="language-shell"># git rev-list --objects --all | grep &quot;$(git verify-pack -v .git/objects/pack/*.idx | sort -k 3 -n | tail -5 | awk '{print$1}')&quot;
+
+385321b5a0be589af4436ddc6dd0d08a687f8d80 pdf/test/1.gif
+21224e779a19dfe7f716eb031d7c69ad65fb684c pdf/test/2.gif
+b615ba62e75bdb1c1faca8c43a82c5ef810d7e20 pdf/test/3.gif
+cd5762af542f724ca44656f02936940cf6de6525 zip/1.zip
+089977cb9de0105969d57bb070f6df0240b9da63 pdf/test/search_index.json
+</code></pre>
+<blockquote>
+<p>参数说明：</p>
+<p>rev-list 命令用来列出Git仓库中的提交，我们用它来列出所有提交中涉及的文件名及其ID。 该命令可以指定只显示某个引用（或分支）的上下游的提交<br>
+--objects 列出该提交涉及的所有文件ID<br>
+--all 所有分支的提交，相当于指定了位于/refs下的所有引用<br>
+verify-pack 命令用于显示已打包的内容，我们用它来找到那些大文件<br>
+-v（verbose）参数是打印详细信息</p>
+</blockquote>
+<h3 id="43-删除大文件">4.3 删除大文件</h3>
+<pre><code class="language-shell"># git filter-branch --force --prune-empty --index-filter 'git rm -rf --cached --ignore-unmatch YOU-FILE-NAME' --tag-name-filter cat -- --all
+</code></pre>
+<blockquote>
+<p>参数说明：</p>
+<p>filter-branch 命令可以用来重写Git仓库中的提交<br>
+--index-filter 参数用来指定一条Bash命令，然后Git会检出（checkout）所有的提交， 执行该命令，然后重新提交<br>
+–all 参数表示我们需要重写所有分支（或引用）<br>
+YOU-FILE-NAME 你查找出来的大文件名字</p>
+</blockquote>
+<p>也可以将上面查找出的大文件输出重定向输入到某个文件，这样更便于操作</p>
+<pre><code class="language-shell"># 定向到文件
+# git rev-list --objects --all | grep &quot;$(git verify-pack -v .git/objects/pack/*.idx | sort -k 3 -n | tail -5 | awk '{print$1}')&quot; &gt;&gt; large-files.txt
+# 得到文件路径并批量删除
+# cat large-files.txt| awk '{print $2}' | tr '\n' ' ' &gt;&gt; large-files-inline.txt
+# git filter-branch -f --prune-empty --index-filter &quot;git rm -rf --cached --ignore-unmatch `cat large-files-inline.txt`&quot; --tag-name-filter cat -- --all
+# 或者直接删除目录下的所有文件
+# git filter-branch --force --index-filter 'git rm -rf --cached --ignore-unmatch  gitbook/**' --prune-empty --tag-name-filter cat -- --all
+</code></pre>
+<p>强制推送</p>
+<pre><code class="language-shell"># git push --force --all
+</code></pre>
+<p>本地的<code>repo</code>里面仍然保留了这些<code>objects</code>, 等待<code>GC</code>垃圾回收，因此需要彻底清除并收回空间</p>
+<pre><code class="language-shell"># rm -rf .git/refs/original/
+# git reflog expire --expire=now --all
+# git gc --prune=now
+Enumerating objects: 40395, done.
+Counting objects: 100% (40395/40395), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (5546/5546), done.
+Writing objects: 100% (40395/40395), done.
+Total 40395 (delta 19454), reused 35405 (delta 16700), pack-reused 0
+Removing duplicate objects: 100% (256/256), done.
+</code></pre>
+<h3 id="44-按照pack文件直接操作">4.4 按照pack文件直接操作</h3>
+<p>除了上面的方式，也可以通过直接找到大的<code>pack</code>文件，基于这些文件进行快速操作</p>
+<pre><code class="language-shell"># 找到pack文件，重建索引
+git filter-branch --index-filter 'git rm -r --cached --ignore-unmatch .git/objects/pack/xxxxx.pack' --prune-empty
+# 删除和重建的索引
+# git for-each-ref --format='delete %(refname)' refs/original | git update-ref --stdin
+# 设置reflog过期
+git reflog expire --expire=now --all
+# 清理垃圾
+git gc --aggressive --prune=now
+</code></pre>
+<h2 id="5-大文件存储的正确方式">5、大文件存储的正确方式</h2>
+<p>大文件一般是不建议直接存储到<code>git</code>仓库中的，<code>git</code>仓库是代码仓库，存放的应该是<code>n</code>个代码文件（其实也可以认为是文本文件）</p>
+<p>如果是作为仓库管理员，应该有意识的将<code>git</code>仓库设置一个允许的文件大小限制</p>
+<p>如果是非变化性的大文件，可以存储到专用的文件服务器、对象存储等</p>
+<p>如果非要在版本库中存储大文件，更好的方式是通过<code>git-lfs</code>，及时使用 <code>lfs</code> 来追踪、记录和管理大文件。这样大文件既不会污染我们的 <code>.git</code> 目录，也可以让我们更方便的使用，这里不多做原理展开，</p>
+<p>简单来说操作方法如下</p>
+<pre><code class="language-shell"># 1.开启lfs功能
+# git lfs install
+# 2.追踪所有后缀名为“.psd”的文件
+# git lfs track &quot;*.iso&quot;
+# 3.追踪单个文件
+git lfs track &quot;logo.png&quot;
+# 4.提交存储信息文件
+# git add .gitattributes
+# 5.提交并推送到GitHub仓库
+# git add .
+# git commit -m &quot;Add some files&quot;
+# git push origin master
+</code></pre>
+<p>关于<code>git-lfs</code>的使用及原理说明可以参考国内的<code>gitee</code>官方帮助说明文档<a href="https://gitee.com/help/articles/4235#article-header9">Git LFS 操作指南</a></p>
+<h2 id="6-其他解决方案">6、其他解决方案</h2>
+<p>除了上面的操作，还可以利用更为好用的开源效率工具<code>bfg</code>进行清理，参考<a href="https://rtyley.github.io/bfg-repo-cleaner/"><code>bfg</code>文档</a>，配置好<code>java</code>环境后，操作如下</p>
+<pre><code class="language-shell"># 下载封装好的jar包
+$ wget https://repo1.maven.org/maven2/com/madgag/bfg/1.13.0/bfg-1.13.0.jar
+
+# 克隆的时候需要--mirror参数
+$ git clone --mirror git://example.com/big-repo.git
+
+# 运行BFG来清理存储库
+$ java -jar bfg.jar --strip-blobs-bigger-than 100M big-repo.git
+
+# 去除脏数据
+$ cd big-repo.git
+$ git reflog expire --expire=now --all
+$ git gc --prune=now --aggressive
+
+# 推送上去
+# 此推将更新远程服务器上的所有refs分支
+$ git push
+</code></pre>
+<p>其他用法</p>
+<pre><code class="language-shell"># 删除所有的名为'id_dsa'或'id_rsa'的文件
+$ java -jar bfg.jar --delete-files id_{dsa,rsa}  my-repo.git
+# 删除所有大于50M的文件
+$ java -jar bfg.jar --strip-blobs-bigger-than 50M  my-repo.git
+# 删除文件夹下所有的文件
+$ java -jar bfg.jar --delete-folders doc  my-repo.git
+</code></pre>
+<h2 id="7-小结">7、小结</h2>
+<p>本文分析了<code>git</code>底层版本控制的存储实现，分析了版本控制系统中大文件的产生，并通过一定手段进行解决。</p>
+<p>要提到的是，上面的操作难免也会出现风险，如果是作为一个规范的代码仓库，应该在前期就做好规划，避免大文件提交到仓库，规范每一次的提交记录，做好<code>code review</code>及仓库管理</p>
+<p>See you ~</p>
+<p>参考文档：https://harttle.land/2016/03/22/purge-large-files-in-gitrepo.html#header-6</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/git" class="tag">
+                    git
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/django-zi-ding-yi-shi-xian-fen-ye-qi">
+                  <h3 class="post-title">
+                    Django自定义实现分页器
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

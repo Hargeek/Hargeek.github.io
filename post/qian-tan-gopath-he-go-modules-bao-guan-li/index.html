@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>浅谈GoPath和Go Modules包管理 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">浅谈GoPath和Go Modules包管理</h2>
+            <div class="post-date">2021-06-03</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">1、概述</a></li>
+<li><a href="#2-gopath%E4%BB%8B%E7%BB%8D">2、GOPATH介绍</a>
+<ul>
+<li><a href="#21-gopath%E7%9B%AE%E5%BD%95">2.1 GOPATH目录</a></li>
+<li><a href="#22-gopath%E7%9A%84%E7%BC%BA%E7%82%B9">2.2 GOPATH的缺点</a></li>
+</ul>
+</li>
+<li><a href="#3-go-module%E4%BB%8B%E7%BB%8D">3、GO Module介绍</a>
+<ul>
+<li><a href="#31-%E8%AE%BE%E5%AE%9Ago111module%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F">3.1 设定GO111MODULE环境变量</a></li>
+<li><a href="#32-%E5%88%9D%E5%A7%8B%E5%8C%96mod">3.2 初始化mod</a></li>
+<li><a href="#33-go-mod%E5%91%BD%E4%BB%A4">3.3 go mod命令</a></li>
+</ul>
+</li>
+<li><a href="#4-%E6%80%BB%E7%BB%93">4、总结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210603-01.png" alt=""></figure>
+<h2 id="1-概述">1、概述</h2>
+<p>大多数语言都有“依赖”、“包”等概念，<code>Go</code>语言的依赖处理经历了几次变革</p>
+<p>最早的时候，<code>Go</code>所依赖的所有的第三方库都放在<code>GOPATH</code>这个目录下面</p>
+<p>从<code>v1.5</code>开始开始引入<code>vendor</code>模式，如果项目目录下有<code>vendor</code>目录，那么<code>go</code>工具链会优先使用<code>vendor</code>内的包进行编译、测试等</p>
+<p>从<code>v1.11</code>开始，引入了<code>Go Module</code> 作为依赖解决方案，到<code>v1.14</code>宣布<code>Go Module</code>已经可以用于生产环境，到<code>v1.16</code>版本开始<code>Go Module</code>默认开启</p>
+<h2 id="2-gopath介绍">2、GOPATH介绍</h2>
+<h3 id="21-gopath目录">2.1 GOPATH目录</h3>
+<p><code>GOPATH</code>是什么，输入如下命令查看</p>
+<pre><code class="language-shell"># go env GOPATH
+GOPATH=&quot;/Users/ssgeek/go&quot;
+</code></pre>
+<p>进入到该目录下，目录结构如下</p>
+<pre><code class="language-shell"># cd `go env GOPATH`
+# tree -L 2 .
+.
+├── bin
+│   ├── dlv
+│   ├── go-outline
+│   ├── gomodifytags
+│   ├── gopkgs
+│   ├── goplay
+│   ├── gopls
+│   ├── gotests
+│   ├── impl
+│   └── staticcheck
+├── pkg
+│   ├── mod
+│   └── sumdb
+└── src
+    └── github.com
+    ...
+</code></pre>
+<p>三个目录中存放的文件说明如下</p>
+<pre><code class="language-shell">bin //用来存放编译后的可执行文件
+pkg //用于存放编译后生成的归档文件
+src //用来存放go源码文件
+</code></pre>
+<h3 id="22-gopath的缺点">2.2 GOPATH的缺点</h3>
+<p>在使用<code>GOPATH</code>的模式下，我们需要将应用代码存放在固定的<code>$GOPATH/src</code>目录下，并且如果执行<code>go get</code>来拉取外部依赖会自动下载并安装到<code>$GOPATH</code>目录下</p>
+<p>第三方套件只要不是官方库，都需要放置在<code>GOPATH/src</code>的路径下才可以使用</p>
+<p><code>go get</code>最常用在当我们想用别人公开在<code>GitHub</code>上的套件，可以帮我们从网络<code>clone</code>到<code>GOPATH/src</code>里面。虽然这样很方便，但是会发现<code>GOPATH/src</code>下会很复杂，除了有你自己开发的代码目录，同时也包含其他第三方库的专属目录</p>
+<p>我们给不同的项目设置不同的<code>GoPath</code>，优点非常明显：</p>
+<p>便于管理项目，每个项目都是不同的<code>GoPath</code>，这对于我们管理多个<code>Golang</code>项目而言，能够非常清晰的处理项目结构。如果我们把所有项目都放在同一个<code>GoPath</code>的<code>src</code>包下，那么项目的结构就会变得非常混乱，难以管理</p>
+<p>但是当我们需要依赖第三方的包的时候，不同的项目设置不同的<code>GoPath</code>的缺点也非常明显：</p>
+<ol>
+<li>第三方依赖的包和我们自己的<code>Golang</code>包混在一起，会给我们的项目文件管理带来一定的麻烦</li>
+<li>不同的<code>GoPath</code>都需要下载依赖，那么磁盘中重复的依赖就会非常多，会占用我们大量的磁盘空间</li>
+</ol>
+<h2 id="3-go-module介绍">3、GO Module介绍</h2>
+<p>为了解决<code>GOPATH</code>的问题，因此官方在<code>1.11</code>开始推出了<code>Go Modules</code>的功能。<code>Go Modules</code>解决方式很像是<code>Java</code>看到<code>Maven</code>的做法，将第三方库储存在本地的空间，并且给项目代码去引用</p>
+<h3 id="31-设定go111module环境变量">3.1 设定GO111MODULE环境变量</h3>
+<p>总共可以设置三种不同的值</p>
+<ul>
+<li>auto</li>
+</ul>
+<p>默认值，<code>go</code>命令会根据当前目录来决定是否启用<code>modules</code>功能。需要满足两种情形：<br>
+该目录不在<code>GOPATH/src/</code>下<br>
+当前或上一层目录存在<code>go.mod</code>文件</p>
+<ul>
+<li>on</li>
+</ul>
+<p><code>go</code>命令会使用<code>modules</code>，而不会去<code>GOPATH</code>目录下查找。</p>
+<ul>
+<li>off</li>
+</ul>
+<p><code>go</code>命令将不会支持<code>module</code>功能，寻找依赖按照以前<code>GOPATH</code>的做法去寻找</p>
+<p>目前<code>1.16</code>版本默认将这个参数设置成<code>on</code>，而且可能之后的版本会弃用掉<code>GO111MODULE</code>，因此建议要开发<code>Go</code>项目时就不再使用<code>GOPATH</code>了，而是采用<code>Go Modules</code>的做法，因此建议都设定<code>为on</code></p>
+<p>采用<code>Go Modules</code>，下载下来的第三方依赖就位于<code>GOPATH/pkg/mod</code>目录下</p>
+<h3 id="32-初始化mod">3.2 初始化mod</h3>
+<pre><code class="language-shell">go mod init &lt;module name&gt;
+</code></pre>
+<p><code>&lt;module name&gt;</code>可填可不填，不填的话预设就是默认的文件名称<code>go.mod</code></p>
+<p>在此文件中可以写以下几个关键字：</p>
+<ul>
+<li>module</li>
+</ul>
+<p>定义模组路径</p>
+<ul>
+<li>go</li>
+</ul>
+<p>定义<code>go</code>语言<code>version</code></p>
+<ul>
+<li>require</li>
+</ul>
+<p>指定依赖，预设是最新版，可以指定版本号</p>
+<ul>
+<li>exclude</li>
+</ul>
+<p>排除该依赖和其版本</p>
+<ul>
+<li>replace</li>
+</ul>
+<p>使用不同的依赖版本并替换原有的依赖版本注解<br>
+<code>indirect</code>代表被间接导入的依赖包</p>
+<p>假设现在我要引入GitHub上的<code>gin-gonic/gin</code>的依赖，如下定义：</p>
+<pre><code class="language-go">module myProject
+go 1.16
+require github.com/gin-gonic/gin v1.6.3
+</code></pre>
+<p>再执行以下指令：</p>
+<pre><code class="language-go">go mod xxx
+</code></pre>
+<p>会将需要的依赖安装在<code>GOPATH/pkg/mod</code>目录里面</p>
+<pre><code class="language-go">gin@v1.4.0 gin@v1.6.3 gin@v1.7.1
+</code></pre>
+<p>除了<code>go.mod</code>之外，<code>go</code>命令还维护一个名为<code>go.sum</code>的文件，其中包含特定模块版本内容的预期加密哈希<br>
+<code>go</code>命令使用<code>go.sum</code>文件确保这些模块的未来下载检索与第一次下载相同，以确保项目所依赖的模块不会出现意外更改，无论是出于恶意、意外还是其他原因。 <code>go.mod</code>和<code>go.sum</code>都应检入版本控制。<br>
+<code>go.sum</code>不需要手工维护，所以可以不用太关注</p>
+<p>只要有开启<code>go modules</code>功能，<code>go get</code> 就不会像以前一样在<code>GOPATH/src</code>下放置依赖，而是会放在<code>GOPATH/pkg/mod</code>里面，并且<code>go.mod</code>会写好引入</p>
+<h3 id="33-go-mod命令">3.3 go mod命令</h3>
+<p>常用</p>
+<pre><code class="language-shell">go mod init：初始化go mod， 生成go.mod文件，后可接参数指定 module 名，上面已经演示过。
+go mod download：手动触发下载依赖包到本地cache（默认为$GOPATH/pkg/mod目录）
+go list -m -json all：以 json 的方式打印依赖详情
+</code></pre>
+<p>其他</p>
+<pre><code class="language-shell">go mod graph： 打印项目的模块依赖结构
+go mod tidy ：添加缺少的包，且删除无用的包
+go mod verify ：校验模块是否被篡改过
+go mod why： 查看为什么需要依赖
+go mod vendor ：导出项目所有依赖到vendor下
+go mod edit ：编辑go.mod文件
+</code></pre>
+<h2 id="4-总结">4、总结</h2>
+<p><code>GoPath</code>所引出的问题，就是因为第三方类库的包所导致的，所以在有了<code>GoModule</code>之后，<code>GoPath</code>和<code>GoModule</code>就分别负责不同的职责，共同为<code>Golang</code>项目服务</p>
+<p><code>GoPath</code>用来存放我们从网上拉取的第三方依赖包<br>
+<code>GoModule</code>用来存放我们自己的<code>Golang</code>项目文件，当自己的项目需要依赖第三方的包的时候，我们通过<code>GoModule</code>目录下的一个<code>go.mod</code>文件来引用<code>GoPath</code>目录<code>pkg</code>包下的<code>mod</code>文件夹下的第三方依赖即可</p>
+<p>这样以来，既解决了原来只能局限在<code>GoPath</code>目录<code>src</code>包下进行编程的问题，也解决了第三方依赖包难以管理和重复依赖占用磁盘空间的问题</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/golang" class="tag">
+                    golang
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/git-mu-lu-wei-shi-me-zhe-me-da">
+                  <h3 class="post-title">
+                    Git目录为什么这么大
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

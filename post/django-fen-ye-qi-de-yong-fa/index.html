@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Django分页器的用法 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Django分页器的用法</h2>
+            <div class="post-date">2021-05-26</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%87%86%E5%A4%87%E5%9F%BA%E7%A1%80%E6%95%B0%E6%8D%AE">1、准备基础数据</a></li>
+<li><a href="#2-%E4%B8%80%E6%AC%A1%E6%80%A7%E5%B1%95%E7%A4%BA%E6%95%B0%E6%8D%AE">2、一次性展示数据</a></li>
+<li><a href="#3-%E5%BC%95%E5%85%A5%E5%88%86%E9%A1%B5%E5%99%A8">3、引入分页器</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p><code>Django</code>是一个大而全的框架。需要明确的是，传参进行分页获取分页后的数据，一般都是通过向服务器发送<code>get</code>请求的方式实现的，在向后端服务发送查看数据的同时可以携带一个或多个参数并发送<code>get</code>请求来实现分页查看功能</p>
+<p>前面总结过<a href="https://www.ssgeek.com/post/drf-fen-ye-qi/"><code>drf</code>框架中分页器的使用</a>，本文主要介绍在利用<code>Django</code>开发<code>MVT</code>模型项目时分页器的使用</p>
+</blockquote>
+<h2 id="1-准备基础数据">1、准备基础数据</h2>
+<p>设计表模型</p>
+<p>为了体现分页的效果，需要先创建一个表并准备较多数据，模型如下</p>
+<pre><code class="language-python">from django.db import models
+
+# Create your models here.
+
+class Book(models.Model):
+    title = models.CharField(max_length=32)
+    price = models.DecimalField(max_digits=9, decimal_places=2)  # 9999999.99
+</code></pre>
+<p>执行数据库迁移后，设计一个视图函数，通过触发视图函数往此表中批量插入数据</p>
+<p><code>Django</code>中利用<code>orm</code>实现批量插入一般有两种方式：单条插入或者利用<code>bulk_create</code>批量插入</p>
+<p>最终翻译转换成<code>sql</code>语句也就类似于多条<code>insert</code>语句和一条<code>insert</code>的区别</p>
+<pre><code class="language-python">def create_book(request):
+
+    # 批量插入方式一
+    for i in range(100):
+        Book.objects.create(title=&quot;book&quot;+str(i),price=i*i)
+		# 批量插入方式二
+    book_list = []
+    for i in range(100):
+        book = Book(title=&quot;book&quot;+str(i),price=i*i)
+        book_list.append(book)
+    Book.objects.bulk_create(book_list)
+    
+    return HttpResponse(&quot;添加成功&quot;)
+</code></pre>
+<h2 id="2-一次性展示数据">2、一次性展示数据</h2>
+<p>接下来通过模板语法一次性将数据展示到前端页面</p>
+<p>视图函数如下</p>
+<pre><code class="language-python">def get_books(request):
+    book_list = Book.objects.all()
+    return render(request, &quot;index.html&quot;, {&quot;book_list&quot;: book_list})
+</code></pre>
+<p>模板页面<code>index.html</code>如下</p>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Title&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;ul&gt;
+    {% for book in book_list %}
+    &lt;li&gt;{ book.title } : { book.price }&lt;/li&gt;
+    {% endfor %}
+&lt;/ul&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>这时一次性访问即展示了所有的<code>book</code></p>
+<h2 id="3-引入分页器">3、引入分页器</h2>
+<p>引入分页器后，可以对全局分页对象和单页对象进行相关操作，相关语法</p>
+<pre><code class="language-python"># 引入分页器
+from django.core.paginator import Paginator
+
+		...
+    # 全局分页器对象
+    paginator = Paginator([1,2,3,4,5,6,7,8,9,10],3)
+    print(paginator.count) # 10  数据总数
+    print(paginator.num_pages)  # 4  总页数
+    print(paginator.page_range) # range(1, 5)  页码的列表
+
+    # 单页对象
+    page = paginator.page(2)
+    print(page.has_next())  # 是否有下一页
+    print(page.next_page_number())  # 写一页的页码
+    print(page.has_previous())  # 是否有上一页
+    print(page.previous_page_number())  # 上一页的页码
+    # 取出单页对象的值
+    print(page.object_list) # [4, 5, 6]
+    for i in page:
+       print(i)
+</code></pre>
+<p>在这里的例子中具体使用分页器及模板语法，例如每页取出<code>8</code>条，获取用户给出的页码条件数，返回相应页的数据，默认不给出任何条件时返回第一页的数据</p>
+<pre><code class="language-python">from django.core.paginator import Paginator
+   # 取出当前用户页码
+   current_num = int(request.GET.get(&quot;page&quot;, 1))
+   book_list = Book.objects.all()
+   paginator = Paginator(book_list, 8)
+   page = paginator.page(current_num)
+  
+   return render(request,&quot;index.html&quot;,{&quot;page&quot;:page})
+</code></pre>
+<p>最后，可以利用<code>bootstrap</code>组件在页面模板中添加翻页的按钮，在当前页时按钮加深，没有上一页时禁止点击</p>
+<pre><code class="language-html">...
+&lt;body&gt;
+
+&lt;ul&gt;
+    {% for book in page %}
+    &lt;li&gt;{ book.title } : { book.price }&lt;/li&gt;
+    {% endfor %}
+&lt;/ul&gt;
+&lt;nav aria-label=&quot;Page navigation&quot;&gt;
+  &lt;ul class=&quot;pagination&quot;&gt;
+    {% if page.has_previous %}
+    &lt;li&gt;
+      &lt;a href=&quot;/?page={ page.previous_page_number }&quot; aria-label=&quot;Previous&quot;&gt;
+        &lt;span aria-hidden=&quot;true&quot;&gt;上一页&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/li&gt;
+    {% else %}
+    &lt;li class=&quot;disabled&quot;&gt;
+      &lt;a href=&quot;#&quot; aria-label=&quot;Previous&quot;&gt;
+        &lt;span aria-hidden=&quot;true&quot;&gt;上一页&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/li&gt;
+    {% endif %}
+      {% for num in page_range %}
+      {% if num == current_num %}
+          &lt;li class=&quot;active&quot;&gt;&lt;a href=&quot;/?page={ num }&quot;&gt;{ num }&lt;/a&gt;&lt;/li&gt;
+      {% else %}
+          &lt;li&gt;&lt;a href=&quot;/?page={ num }&quot;&gt;{ num }&lt;/a&gt;&lt;/li&gt;
+      {% endif %}
+      {% endfor %}
+    &lt;li&gt;
+      &lt;a href=&quot;#&quot; aria-label=&quot;Next&quot;&gt;
+        &lt;span aria-hidden=&quot;true&quot;&gt;下一页&lt;/span&gt;
+      &lt;/a&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+&lt;/body&gt;
+...
+</code></pre>
+<p>在视图函数中：处理相关异常；传递相关参数；当页码较多时只显示部分页码，例如最多时总共<code>10</code>个页码，当前页码始终在中间显示；单独处理出现边界情况，负数页码的情况及最大页码用完的情况</p>
+<pre><code class="language-python">from django.core.paginator import Paginator
+		...
+    # 取出当前用户页码
+    current_num = int(request.GET.get(&quot;page&quot;, 1))
+    book_list = Book.objects.all()
+    paginator = Paginator(book_list, 8)
+    page = paginator.page(current_num)
+
+    # 大于11页时
+    if paginator.num_pages &gt; 11:
+        # 当前页码的后5页数超过最大页码时，显示最后10项
+        if current_num + 5 &gt; paginator.num_pages:
+            page_range = range(paginator.num_pages - 10, paginator.num_pages + 1)
+        # 当前页码的前5页数为负数时，显示开始的10项
+        elif current_num - 5 &lt; 1:
+            page_range = range(1, 12)
+        else:
+            # 显示左5页到右5页的页码
+            page_range = range(current_num - 5, current_num + 5 + 1)
+    # 小于11页时显示所有页码
+    else:
+        page_range = paginator.page_range
+
+    return render(request, &quot;index.html&quot;, {&quot;page&quot;: page, &quot;paginator&quot;: paginator, &quot;current_num&quot;: current_num, &quot;page_range&quot;: page_range})
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/VEfPb2dUj" class="tag">
+                    django
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/vhKLQmmvn" class="tag">
+                    python
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/fei-lvm-de-xfs-wen-jian-xi-tong-kuo-rong">
+                  <h3 class="post-title">
+                    非LVM的xfs文件系统扩容
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

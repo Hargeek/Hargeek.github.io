@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Minio对象存储 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Minio对象存储</h2>
+            <div class="post-date">2019-06-23</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">1、概述</a></li>
+<li><a href="#2-%E5%8A%9F%E8%83%BD%E7%89%B9%E6%80%A7">2、功能特性</a></li>
+<li><a href="#3-%E9%9B%86%E7%BE%A4%E8%A7%84%E5%88%92">3、集群规划</a>
+<ul>
+<li><a href="#31-%E5%8D%95%E8%8A%82%E7%82%B9">3.1、单节点</a></li>
+<li><a href="#32-%E5%A4%9A%E8%8A%82%E7%82%B9">3.2、多节点</a></li>
+<li><a href="#33-%E5%88%86%E5%B8%83%E5%BC%8F">3.3、分布式</a></li>
+</ul>
+</li>
+<li><a href="#4-%E5%88%86%E5%B8%83%E5%BC%8Fminio%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA">4、分布式minio集群搭建</a>
+<ul>
+<li><a href="#41-%E9%9B%86%E7%BE%A4%E8%A7%84%E5%88%92">4.1、集群规划</a></li>
+<li><a href="#42-%E5%88%9B%E5%BB%BA%E7%94%A8%E6%88%B7">4.2、创建用户</a></li>
+<li><a href="#43-%E5%88%9B%E5%BB%BA%E7%9B%B8%E5%85%B3%E7%9B%AE%E5%BD%95%E6%89%80%E6%9C%89%E8%8A%82%E7%82%B9">4.3、创建相关目录（所有节点）</a></li>
+<li><a href="#44-%E7%BC%96%E5%86%99%E9%9B%86%E7%BE%A4%E5%90%AF%E5%8A%A8%E8%84%9A%E6%9C%AC%E6%89%80%E6%9C%89%E8%8A%82%E7%82%B9">4.4、编写集群启动脚本（所有节点）</a></li>
+<li><a href="#45-%E7%BC%96%E5%86%99%E6%9C%8D%E5%8A%A1%E8%84%9A%E6%9C%AC%E6%89%80%E6%9C%89%E8%8A%82%E7%82%B9">4.5、编写服务脚本（所有节点）</a></li>
+<li><a href="#46-%E6%9C%8D%E5%8A%A1%E5%90%AF%E5%8A%A8">4.6、服务启动</a>
+<ul>
+<li><a href="#461-%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6">4.6.1、二进制文件</a></li>
+<li><a href="#462-%E8%B5%8B%E4%BA%88%E5%90%AF%E5%8A%A8%E8%84%9A%E6%9C%AC%E6%9D%83%E9%99%90">4.6.2、赋予启动脚本权限</a></li>
+<li><a href="#463-%E4%BF%AE%E6%94%B9%E7%9B%AE%E5%BD%95%E6%89%80%E5%B1%9E">4.6.3、修改目录所属</a></li>
+<li><a href="#464-%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1">4.6.4、启动服务</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#5-%E9%85%8D%E7%BD%AE%E5%9F%9F%E5%90%8D%E5%8F%8Ahttps">5、配置域名及https</a>
+<ul>
+<li><a href="#51-%E9%85%8D%E7%BD%AE%E5%9F%9F%E5%90%8D">5.1、配置域名</a></li>
+<li><a href="#52-%E9%85%8D%E7%BD%AEhttps">5.2、配置https</a></li>
+<li><a href="#53-%E8%AE%BF%E9%97%AE%E8%AE%A4%E8%AF%81">5.3、访问认证</a></li>
+</ul>
+</li>
+<li><a href="#6-%E6%8E%A7%E5%88%B6%E5%8F%B0%E7%95%8C%E9%9D%A2%E6%93%8D%E4%BD%9C%E5%8F%8A%E5%AE%A2%E6%88%B7%E7%AB%AFsdk">6、控制台界面操作及客户端sdk</a>
+<ul>
+<li><a href="#61-%E6%8E%A7%E5%88%B6%E5%8F%B0%E7%95%8C%E9%9D%A2">6.1、控制台界面</a></li>
+<li><a href="#62-%E6%8E%A7%E5%88%B6%E5%8F%B0%E7%95%8C%E9%9D%A2%E6%93%8D%E4%BD%9C">6.2、控制台界面操作</a></li>
+<li><a href="#63-%E5%AE%A2%E6%88%B7%E7%AB%AFsdk">6.3、客户端sdk</a></li>
+</ul>
+</li>
+<li><a href="#7-%E5%A4%9A%E7%A7%9F%E6%88%B7%E9%83%A8%E7%BD%B2">7、多租户部署</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-概述">1、概述</h2>
+<blockquote>
+<p>​	Minio是一个基于Apache License v2.0开源和谈的工具存储服务。它兼容亚马逊S3云存储服务接口，异常符合于存储大容量非构造化的数据，比如图片、视频、日记文献、备份数据和容器/杜撰机镜像等，而一个工具文献能够是任性巨细，从几kb到最大5T不等。且Minio十足笨重，可与使用顺序绳捆索绑在一齐，相似于NodeJS，Redis和MySQL。<br>
+​	官方文档地址：https://docs.min.io/cn<br>
+​	对于有需求不能或不使用云厂商提供的存储服务，例如阿里云的oss、七牛云的对象存储等，可以通过自建minio对象存储集群的方式</p>
+</blockquote>
+<h2 id="2-功能特性">2、功能特性</h2>
+<ul>
+<li>Amazon S3兼容<br>
+Minio使用Amazon S3 v2 / v4 API。可以使用Minio SDK，Minio Client，AWS SDK和AWS CLI访问Minio服务器。</li>
+<li>数据保护<br>
+Minio使用Minio Erasure Code来防止硬件故障。也许会损坏一半以上的driver，但是仍然可以从中恢复。</li>
+<li>高度可用<br>
+Minio服务器可以容忍分布式设置中高达（N / 2）-1节点故障。而且，您可以配置Minio服务器在Minio与任意Amazon S3兼容服务器之间存储数据。</li>
+<li>Lambda计算<br>
+Minio服务器通过其兼容AWS SNS / SQS的事件通知服务触发Lambda功能。支持的目标是消息队列，如Kafka，NATS，AMQP，MQTT，Webhooks以及Elasticsearch，Redis，Postgres和MySQL等数据库。</li>
+<li>加密和防篡改<br>
+Minio为加密数据提供了机密性，完整性和真实性保证，而且性能开销微乎其微。使用AES-256-GCM，ChaCha20-Poly1305和AES-CBC支持服务器端和客户端加密。加密的对象使用AEAD服务器端加密进行防篡改。</li>
+<li>可对接后端存储<br>
+除了Minio自己的文件系统，还支持DAS、 JBODs、NAS、Google云存储和Azure Blob存储。</li>
+<li>sdk支持<br>
+基于Minio轻量的特点，它得到类似Java、Python或Go等语言的sdk支持</li>
+</ul>
+<h2 id="3-集群规划">3、集群规划</h2>
+<h3 id="31-单节点">3.1、单节点</h3>
+<ul>
+<li>根据存储是否为远端，可直接使用FS或NFS直接操作存储中的Object</li>
+<li>调用S3接口，通过Minio使用FS或NFS来操作Object<br>
+<img src="https://image.ssgeek.com/20190623-01.png" alt=""></li>
+</ul>
+<h3 id="32-多节点">3.2、多节点</h3>
+<p>多节点的Minio会根据不同的Access_key及Secret_Key来区分不同租户，每个租户可操作对应Server获取Object。Minio Server间可以通过不同的进程模型、容器或是虚拟机来互相隔离。<br>
+<img src="https://image.ssgeek.com/20190623-02.png" alt=""></p>
+<h3 id="33-分布式">3.3、分布式</h3>
+<p>分布式Minio在无共享架构中根据需求扩展到尽可能多的服务器，所有节点需要使用相同的Access_key及Secret_key来登录。分布式Minio使用Web负载均衡器或DNS轮循(DNS round-robin)，在各服务器之间实现负载均衡。<br>
+<img src="https://image.ssgeek.com/20190623-03.png" alt=""></p>
+<h2 id="4-分布式minio集群搭建">4、分布式minio集群搭建</h2>
+<p>minio存储的部署方案在官网有很多，例如在docker-compose，kubernetes，DC/OS等环境下，本文采用的是较稳定的二进制部署方式。</p>
+<h3 id="41-集群规划">4.1、集群规划</h3>
+<p>minio二进制文件下载地址： https://dl.minio.io/server/minio/release/linux-amd64/minio<br>
+操作系统CentOS 7.6<br>
+服务器资源：</p>
+<ul>
+<li>172.16.1.101<br>
+/minio/data1 /minio/data2</li>
+<li>172.16.1.102<br>
+/minio/data1 /minio/data2</li>
+</ul>
+<p>本集群由2台服务器构成（官方推荐集群最小4台服务器），每个服务器上挂载两个磁盘目录，最小数据挂载点为4个</p>
+<h3 id="42-创建用户">4.2、创建用户</h3>
+<p>创建专用的用户</p>
+<pre><code>useradd -M -s /sbin/nologin -r minio-user
+</code></pre>
+<h3 id="43-创建相关目录所有节点">4.3、创建相关目录（所有节点）</h3>
+<ul>
+<li>数据存储目录</li>
+</ul>
+<pre><code>[root@localhost ~]# mkdir -p /minio/data1
+[root@localhost ~]# mkdir -p /minio/data2
+</code></pre>
+<ul>
+<li>启动脚本目录</li>
+</ul>
+<pre><code>[root@localhost ~]# mkdir -p /opt/minio
+</code></pre>
+<ul>
+<li>集群配置文件目录</li>
+</ul>
+<pre><code>[root@localhost ~]# mkdir -p /etc/minio
+</code></pre>
+<h3 id="44-编写集群启动脚本所有节点">4.4、编写集群启动脚本（所有节点）</h3>
+<pre><code>[root@localhost ~]# vim /opt/minio/run.sh
+#!/bin/bash
+export MINIO_ACCESS_KEY=Minio
+export MINIO_SECRET_KEY=Test123456
+/opt/minio/minio server --config-dir /etc/minio \
+http://172.16.1.101/minio/data1 http://172.16.1.101/minio/data2 \
+http://172.16.1.102/minio/data1 http://172.16.1.102/minio/data2 \
+</code></pre>
+<p>其中，“MINIO_ACCESS_KEY”为用户名，“MINIO_SECRET_KEY”为密码，密码不能设置过于简单，不然minio会启动失败，“–config-dir”指定集群配置文件目录，生成复杂用户名和密码可通过类似Linux命令<br>
+<code>tr -cd '[:alnum:]' &lt;/dev/urandom |fold -w64|head -n1</code>的方式来生成</p>
+<h3 id="45-编写服务脚本所有节点">4.5、编写服务脚本（所有节点）</h3>
+<pre><code>[root@localhost ~]# vim /usr/lib/systemd/system/minio.service
+[Unit]
+Description=Minio service
+Documentation=https://docs.minio.io/
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=minio-user
+Group=minio-user
+WorkingDirectory=/opt/minio/
+ExecStart=/opt/minio/run.sh
+
+# Let systemd restart this service on-failure
+Restart=on-failure
+RestartSec=5
+
+# Specifies the maximum file descriptor number that can be opened by this process
+LimitNOFILE=65536
+
+# Disable timeout logic and wait until process is stopped
+TimeoutStopSec=infinity
+SendSIGKILL=no
+
+[Install]
+WantedBy=multi-user.target
+[root@localhost ~]# chmod +x /usr/lib/systemd/system/minio.service
+</code></pre>
+<p>其中，“WorkingDirectory”为启动脚本目录，“ExecStart”为指定集群启动脚本<br>
+参考官方地址：<br>
+https://github.com/minio/minio-service/blob/master/linux-systemd/minio.service</p>
+<h3 id="46-服务启动">4.6、服务启动</h3>
+<h4 id="461-二进制文件">4.6.1、二进制文件</h4>
+<p>将minio二进制文件上传到/opt/minio目录下并赋予权限</p>
+<pre><code>chmod +x minio
+</code></pre>
+<h4 id="462-赋予启动脚本权限">4.6.2、赋予启动脚本权限</h4>
+<pre><code>chmod +x /opt/minio/run.sh
+</code></pre>
+<h4 id="463-修改目录所属">4.6.3、修改目录所属</h4>
+<p>由于<code>minio</code>服务由<code>minio-user</code>这个用户启动和运行，所以需要修改相应目录的属主和属组</p>
+<pre><code>chown -R minio-user:minio-user /minio
+chown -R minio-user:minio-user /etc/minio
+chown -R minio-user:minio-user /opt/minio
+</code></pre>
+<h4 id="464-启动服务">4.6.4、启动服务</h4>
+<pre><code>systemctl daemon-reload
+systemctl start minio
+systemctl enable minio
+systemctl status minio
+</code></pre>
+<p>启动后可通过访问节点:9000，并使用设置的key登录到控制台，也可在启动脚本中加入参数<code>--address &quot;127.0.0.1:9000&quot;</code>修改端口，即：</p>
+<pre><code>#!/bin/bash
+export MINIO_ACCESS_KEY=Minio
+export MINIO_SECRET_KEY=Test123456
+
+/opt/minio/minio server --config-dir /etc/minio \
+--address &quot;127.0.0.1:9000&quot; \
+http://172.16.1.101/minio/data1 http://172.16.1.101/minio/data2 \
+http://172.16.1.102/minio/data1 http://172.16.1.102/minio/data2 \
+</code></pre>
+<h2 id="5-配置域名及https">5、配置域名及https</h2>
+<h3 id="51-配置域名">5.1、配置域名</h3>
+<p>使用nginx配置域名进行访问，在 Nginx 的配置文件中加入下面的内容：</p>
+<pre><code>location / {
+    proxy_set_header Host $http_host;
+    proxy_pass http://localhost:9000;
+}
+</code></pre>
+<h3 id="52-配置https">5.2、配置https</h3>
+<p>使用nginx配置https安全访问，并根据301规则自动跳转到https，https证书可自签、也可申请一个浏览器可信的证书，下面的证书属于浏览器可信的，全局配置如下：</p>
+<pre><code>worker_processes  1;
+events {
+    worker_connections  1024;
+}
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    log_format  main  '$remote_addr - $remote_user [$time_local] &quot;$request&quot; '
+                      '$status $body_bytes_sent &quot;$http_referer&quot; '
+                      '&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;';
+    sendfile        on;
+    server_tokens  off;
+    keepalive_timeout  65;
+	client_max_body_size 50m;
+    access_log   /var/log/nginx/nginx.access.log;
+    error_log    /var/log/nginx/nginx.error.log;
+    upstream minio_server {
+        server 192.168.10.101:9000;
+        server 192.168.10.102:9000;
+        ip_hash;
+    }
+    server {
+        listen       80;
+        server_name  minio.test.com;
+        return 301   https://$host$request_uri;
+    }
+    server {
+        listen        443 ssl;
+        server_name   minio.test.com;
+        if ($host != 'minio.test.com') {
+            return 403;
+        }
+        ssl_certificate      /usr/local/nginx/cert-ssl/minio.test.com.pem;
+        ssl_certificate_key  /usr/local/nginx/cert-ssl/minio.test.com.key;
+        ssl_session_timeout 5m;
+        ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;
+        ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+        ssl_prefer_server_ciphers on;
+        location / {
+            proxy_pass http://minio_server;
+            proxy_redirect    off;
+            proxy_set_header  Host             $http_host;
+            proxy_set_header  X-Real-IP        $remote_addr;
+            proxy_set_header  X-Forwarded-For  $proxy_add_x_forwarded_for;
+        }
+     }
+}
+</code></pre>
+<h3 id="53-访问认证">5.3、访问认证</h3>
+<p>minio控制台界面是通过Accsss Key和Secret Key登录的，除了将这对Key用于客户端，作为管理员还可能有需要对控制台访问做保护，即在用Key登录的基础上再加一层。这就如同非X-pack版本的Kibana界面一样，没有访问控制。同样的，可以尝试使用nginx的basic_auth模块。一番折腾发现是不可行的，对于nginx基础认证，后端不支持非AWS4-HMAC-SHA256签名算法，可能出现如下图所示的返回结果：<br>
+<img src="https://image.ssgeek.com/20190623-07.jpg" alt=""><br>
+因此这个想法不可行，具体如何实现也没有google到。。。</p>
+<h2 id="6-控制台界面操作及客户端sdk">6、控制台界面操作及客户端sdk</h2>
+<h3 id="61-控制台界面">6.1、控制台界面</h3>
+<p>通过上面配置的域名访问到minio界面<br>
+<img src="https://image.ssgeek.com/20190623-04.png" alt=""><br>
+并通过指定的Access Key及Secret Key登录到控制台<br>
+<img src="https://image.ssgeek.com/20190623-05.png" alt=""></p>
+<h3 id="62-控制台界面操作">6.2、控制台界面操作</h3>
+<p>控制台可以做的操作如下：</p>
+<ul>
+<li>创建一个存储空间(存储桶)bucket</li>
+<li>在存储桶内上传下载文件</li>
+<li>文件生成链接，设置链接过期时间<br>
+<img src="https://image.ssgeek.com/20190623-06.png" alt=""></li>
+</ul>
+<h3 id="63-客户端sdk">6.3、客户端sdk</h3>
+<ul>
+<li><a href="https://docs.min.io/cn/javascript-client-quickstart-guide.html">JavaScript Client SDK指南</a></li>
+<li><a href="https://docs.min.io/cn/java-client-quickstart-guide.html">Java Client SDK指南</a></li>
+<li><a href="https://docs.min.io/cn/python-client-quickstart-guide.html">Python Client SDK指南</a></li>
+</ul>
+<p>更多内容可查看官网文档</p>
+<h2 id="7-多租户部署">7、多租户部署</h2>
+<p>多租户的实现可参考：<br>
+https://blog.csdn.net/dingjs520/article/details/79118305</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/storage" class="tag">
+                    存储
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/linux" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/bai-hua-jie-shuo-tcpip-xie-yi-san-ci-wo-shou-he-si-ci-hui-shou">
+                  <h3 class="post-title">
+                    白话解说TCP/IP协议三次握手和四次挥手
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

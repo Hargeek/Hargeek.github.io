@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>常见的Linux系统监控命令 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">常见的Linux系统监控命令</h2>
+            <div class="post-date">2018-07-13</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-free">1、free</a></li>
+<li><a href="#2-df">2、df</a></li>
+<li><a href="#3-top">3、top</a></li>
+<li><a href="#4-uptime">4、uptime</a></li>
+<li><a href="#5-lscpu">5、lscpu</a></li>
+<li><a href="#6-iftop">6、iftop</a>
+<ul>
+<li><a href="#61-iftop%E7%95%8C%E9%9D%A2%E7%9B%B8%E5%85%B3%E8%AF%B4%E6%98%8E">6.1、iftop界面相关说明</a></li>
+<li><a href="#62-iftop%E7%95%8C%E9%9D%A2%E7%9B%B8%E5%85%B3%E5%8F%82%E6%95%B0">6.2、iftop界面相关参数</a></li>
+</ul>
+</li>
+<li><a href="#7-iostat">7、iostat</a></li>
+<li><a href="#8-vmstat">8、vmstat</a></li>
+<li><a href="#9-dmidecode">9、dmidecode</a></li>
+<li><a href="#10-nethogs">10、nethogs</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-free">1、free</h2>
+<p>显示当前系统未使用的和已使用的内存数目，还可以显示被内核使用的内存缓冲区</p>
+<ul>
+<li>-b：以Byte为单位显示内存使用情况；</li>
+<li>-k：以KB为单位显示内存使用情况；</li>
+<li>-m：以MB为单位显示内存使用情况；</li>
+<li>-o：不显示缓冲区调节列；</li>
+<li>-s&lt;间隔秒数&gt;：持续观察内存使用状况；</li>
+<li>-t：显示内存总和列</li>
+</ul>
+<h2 id="2-df">2、df</h2>
+<p>显示磁盘分区上的可使用的磁盘空间。默认显示单位为<code>KB</code>。可以利用该命令来获取硬盘被占用了多少空间，目前还剩下多少空间等信息。</p>
+<ul>
+<li>-a或--all：包含全部的文件系统；</li>
+<li>--block-size=&lt;区块大小&gt;：以指定的区块大小来显示区块数目；</li>
+<li>-h或--human-readable：以可读性较高的方式来显示信息；</li>
+<li>-H或--si：与-h参数相同，但在计算时是以1000 Bytes为换算单位而非1024 Bytes；</li>
+<li>-i或--inodes：显示inode的信息；</li>
+<li>-k或--kilobytes：指定区块大小为1024字节；</li>
+<li>-l或--local：仅显示本地端的文件系统；</li>
+<li>-m或--megabytes：指定区块大小为1048576字节；</li>
+<li>--no-sync：在取得磁盘使用信息前，不要执行sync指令，此为预设值；</li>
+<li>-P或--portability：使用POSIX的输出格式；</li>
+<li>--sync：在取得磁盘使用信息前，先执行sync指令；</li>
+<li>-t&lt;文件系统类型&gt;或--type=&lt;文件系统类型&gt;：仅显示指定文件系统类型的磁盘信息；</li>
+<li>-T或--print-type：显示文件系统的类型；</li>
+<li>-x&lt;文件系统类型&gt;或--exclude-type=&lt;文件系统类型&gt;：不要显示指定文件系统类型的磁盘信息</li>
+</ul>
+<h2 id="3-top">3、top</h2>
+<p>实时动态地查看系统的整体运行情况，是一个综合了多方信息监测系统性能和运行信息的实用工具。通过<code>top</code>命令所提供的互动式界面，用热键可以管理。</p>
+<ul>
+<li>
+<p>选项</p>
+</li>
+<li>
+<p>-b：以批处理模式操作；</p>
+</li>
+<li>
+<p>-c：显示完整的治命令；</p>
+</li>
+<li>
+<p>-d：屏幕刷新间隔时间；</p>
+</li>
+<li>
+<p>-I：忽略失效过程；</p>
+</li>
+<li>
+<p>-s：保密模式；</p>
+</li>
+<li>
+<p>-S：累积模式；</p>
+</li>
+<li>
+<p>-i&lt;时间&gt;：设置间隔时间；</p>
+</li>
+<li>
+<p>-u&lt;用户名&gt;：指定用户名；</p>
+</li>
+<li>
+<p>-p&lt;进程号&gt;：指定进程；</p>
+</li>
+<li>
+<p>-n&lt;次数&gt;：循环显示的次数</p>
+</li>
+<li>
+<p>交互命令</p>
+</li>
+<li>
+<p>1：显示具体cpu的状态；</p>
+</li>
+<li>
+<p>“Shift”+“&gt;”和“shift”+“&lt;”：修改进程信息的排序方式；</p>
+</li>
+<li>
+<p>h：显示帮助画面，给出一些简短的命令总结说明；</p>
+</li>
+<li>
+<p>k：终止一个进程；</p>
+</li>
+<li>
+<p>i：忽略闲置和僵死进程，这是一个开关式命令；</p>
+</li>
+<li>
+<p>q：退出程序；</p>
+</li>
+<li>
+<p>r：重新安排一个进程的优先级别；</p>
+</li>
+<li>
+<p>S：切换到累计模式；</p>
+</li>
+<li>
+<p>s：改变两次刷新之间的延迟时间（单位为s），如果有小数，就换算成ms。输入0值则系统将不断刷新，默认值是5s；</p>
+</li>
+<li>
+<p>f或者F：从当前显示中添加或者删除项目；</p>
+</li>
+<li>
+<p>o或者O：改变显示项目的顺序；</p>
+</li>
+<li>
+<p>l：切换显示平均负载和启动时间信息；</p>
+</li>
+<li>
+<p>m：切换显示内存信息；</p>
+</li>
+<li>
+<p>t：切换显示进程和CPU状态信息；</p>
+</li>
+<li>
+<p>c：切换显示命令名称和完整命令行；</p>
+</li>
+<li>
+<p>M：根据驻留内存大小进行排序；</p>
+</li>
+<li>
+<p>P：根据CPU使用百分比大小进行排序；</p>
+</li>
+<li>
+<p>T：根据时间/累计时间进行排序；</p>
+</li>
+<li>
+<p>w：将当前设置写入~/.toprc文件中</p>
+</li>
+</ul>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20180713-01.png" alt=""></figure>
+<p>top中一些字段的含义</p>
+<ul>
+<li>第一行：</li>
+<li>当前的时间</li>
+<li>系统累积以及运行的时间</li>
+<li>当前登入用户的数量</li>
+<li>当前的系统负载</li>
+<li>第二行：</li>
+<li>进程总数</li>
+<li>正常运行的进程数量</li>
+<li>休眠的进程总数</li>
+<li>停止的进程总数</li>
+<li>僵死进程总数</li>
+</ul>
+<p>附：zombie僵尸进程<br>
+僵尸进程：一个进程使用<code>fork</code>创建子进程，如果子进程退出，而父进程并没有调用<code>wait</code>或<code>waitpid</code>获取子进程的状态信息，那么子进程的进程描述符仍然保存在系统中。这种进程称之为僵死进程。在每个进程退出的时候,内核释放该进程所有的资源,包括打开的文件,占用的内存等。 但是仍然为其保留一定的信息(包括进程号<code>the process ID</code>,退出状态<code>the termination status of the process</code>,运行时间<code>the amount of CPU time taken by the process</code>等)。直到父进程通过<code>wait/waitpid</code>来取时才释放。 但这样就导致了问题，如果进程不调用<code>wait/waitpid</code>的话， 那么保留的那段信息就不会释放，其进程号就会一直被占用，但是系统所能使用的进程号是有限的，如果大量的产生僵死进程，将因为没有可用的进程号而导致系统不能产生新的进程. 此即为僵尸进程的危害，应当避免。<br>
+从系统角度来说，处理僵尸进程有两种方法：<br>
+1、找到僵死进程的父进程，kill掉父进程，那么僵死进程将变为孤儿进程，孤儿进程在系统中由init进程接管，init进程将回收僵死进程的资源<br>
+2、reboot系统，因为僵死进程是不可以被kill掉</p>
+<ul>
+<li>第三行：<br>
+%Cpu(s): 10.6 us,  1.4 sy,  0.0 ni, 87.7 id,  0.0 wa,  0.0 hi,  0.3 si,  0.0 st</li>
+<li>us用户进程占用cpu资源的百分比</li>
+<li>sy内核态进程占cpu资源的百分比（对于硬件的控制，内核来控制）</li>
+<li>ni用户进程空间内改变过优先级的进程占cpu资源的百分比</li>
+<li>id空闲cpu的百分比</li>
+<li>wa等待输入输出（io）的进程占c资源的百分比 (从硬盘加载到内存)</li>
+<li>hi硬中断（Hardware IRQ）占用cpu的百分比</li>
+<li>si软中断（Software Interrupts）占用cpu的百分比</li>
+<li>st虚拟机占用cpu的百分比</li>
+</ul>
+<p>进程信息：</p>
+<ul>
+<li>PR：Priority 进程的优先级</li>
+<li>NI：Nice Value.优先级的值，负数表示优先级很高，正数表示优先级比较低。</li>
+<li>VIRT：virtual memory usage 虚拟内存，虚拟内存=物理内存+swap<br>
+1、进程“需要的”虚拟内存大小，包括进程使用的库、代码、数据等<br>
+2、假如进程申请100m的内存，但实际只使用了10m，那么它会增长100m，而不是实际的使用量</li>
+<li>RES：resident memory usage 常驻内存<br>
+1、进程当前使用的内存大小，但不包括swap out<br>
+2、包含其他进程的共享<br>
+3、如果申请100m的内存，实际使用10m，它只增长10m，与VIRT相反<br>
+4、关于库占用内存的情况，它只统计加载的库文件所占内存大小</li>
+<li>SHR：shared memory 共享内存<br>
+S — 进程状态 D=不可中断的睡眠状态 R=运行 S=睡眠 T=跟踪/停止 Z=僵尸进程</li>
+<li>1、除了自身进程的共享内存，也包括其他进程的共享内存</li>
+<li>2、虽然进程只使用了几个共享库的函数，但它包含了整个共享库的大小</li>
+<li>3、计算某个进程所占的物理内存大小公式：RES – SHR</li>
+<li>4、swap out后，它将会降下来</li>
+<li>DATA</li>
+<li>1、数据占用的内存。如果top没有显示，按f键可以显示出来。</li>
+<li>2、真正的该程序要求的数据空间，是真正在运行中要使用的。<br>
+早期操作系统不支持多任务<br>
+对于操作系统的多任务，通过cpu时间片来实现处理多任务，目前的cpu主频率可达5.0GHz</li>
+</ul>
+<h2 id="4-uptime">4、uptime</h2>
+<p>打印系统总共运行了多长时间和系统的平均负载。<code>uptime</code>命令可以显示的信息显示依次为：现在时间、系统已经运行了多长时间、目前有多少登陆用户、系统在过去的<code>1</code>分钟、<code>5</code>分钟和<code>15</code>分钟内的平均负载，系统平均负载是指在特定时间间隔内运行队列中的平均进程数。</p>
+<pre><code>[root@zabbix ~]# uptime
+ 17:48:22 up  2:28,  2 users,  load average: 0.00, 0.06, 0.07
+</code></pre>
+<p>负载越高，系统越卡，负载值尽量不要超过cpu核数的两倍以上</p>
+<h2 id="5-lscpu">5、lscpu</h2>
+<p>显示<code>cpu</code>的相关信息，也可以通过<code>cat /proc/cpuinfo</code>查看详细信息<br>
+<code>lscpu</code>从<code>sysfs</code>和<code>/proc/cpuinfo</code>收集<code>cpu</code>体系结构信息，命令的输出比较易读<br>
+命令输出的信息包含cpu数量，线程，核数，套接字和N<code>om-Uniform Memeor Access(NUMA)</code>，缓存等<br>
+显示格式：</p>
+<ul>
+<li>Architecture: #架构</li>
+<li>CPU(s): #逻辑cpu颗数</li>
+<li>Thread(s) per core: #每个核心线程</li>
+<li>Core(s) per socket: #每个cpu插槽核数/每颗物理cpu核数</li>
+<li>CPU socket(s): #cpu插槽数</li>
+<li>Vendor ID: #cpu厂商ID</li>
+<li>CPU family: #cpu系列</li>
+<li>Model: #型号</li>
+<li>Stepping: #步进</li>
+<li>CPU MHz: #cpu主频</li>
+<li>Virtualization: #cpu支持的虚拟化技术</li>
+<li>L1d cache: #一级缓存（google了下，这具体表示表示cpu的L1数据缓存）</li>
+<li>L1i cache: #一级缓存（具体为L1指令缓存）</li>
+<li>L2 cache: #二级缓存</li>
+</ul>
+<h2 id="6-iftop">6、iftop</h2>
+<p><code>iftop</code>可以用来监控网卡的实时流量（可以指定网段）、反向解析<code>IP</code>、显示端口信息等<br>
+安装</p>
+<pre><code>yum install iftop -y
+</code></pre>
+<h3 id="61-iftop界面相关说明">6.1、iftop界面相关说明</h3>
+<p><img src="https://image.ssgeek.com/20180713-02.png" alt=""><br>
+界面上面显示的是类似刻度尺的刻度范围，为显示流量图形的长条作标尺用的。<br>
+中间的&lt;= =&gt;这两个左右箭头，表示的是流量的方向。</p>
+<ul>
+<li>TX：发送流量</li>
+<li>RX：接收流量</li>
+<li>TOTAL：总流量</li>
+<li>Cumm：运行iftop到目前时间的总流量</li>
+<li>peak：流量峰值</li>
+<li>rates：分别表示过去 2s 10s 40s 的平均流量</li>
+</ul>
+<h3 id="62-iftop界面相关参数">6.2、iftop界面相关参数</h3>
+<p>常用的参数</p>
+<ul>
+<li>-i设定监测的网卡，如：# iftop -i eth1</li>
+<li>-B 以bytes为单位显示流量(默认是bits)，如：# iftop -B</li>
+<li>-n使host信息默认直接都显示IP，如：# iftop -n</li>
+<li>-N使端口信息默认直接都显示端口号，如: # iftop -N</li>
+<li>-F显示特定网段的进出流量，如# iftop -F 10.10.1.0/24或# iftop -F 10.10.1.0/255.255.255.0</li>
+<li>-h（display this message），帮助，显示参数信息</li>
+<li>-p使用这个参数后，中间的列表显示的本地主机信息，出现了本机以外的IP信息;</li>
+<li>-b使流量图形条默认就显示;</li>
+<li>-f过滤计算包用;</li>
+<li>-P使host信息及端口信息默认就都显示;</li>
+<li>-m设置界面最上边的刻度的最大值，刻度分五个大段显示，例：# iftop -m 100M</li>
+</ul>
+<p>进入iftop画面后的一些操作命令(注意大小写)</p>
+<ul>
+<li>按h切换是否显示帮助;</li>
+<li>按n切换显示本机的IP或主机名;</li>
+<li>按s切换是否显示本机的host信息;</li>
+<li>按d切换是否显示远端目标主机的host信息;</li>
+<li>按t切换显示格式为2行/1行/只显示发送流量/只显示接收流量;</li>
+<li>按N切换显示端口号或端口服务名称;</li>
+<li>按S切换是否显示本机的端口信息;</li>
+<li>按D切换是否显示远端目标主机的端口信息;</li>
+<li>按p切换是否显示端口信息;</li>
+<li>按P切换暂停/继续显示;</li>
+<li>按b切换是否显示平均流量图形条;</li>
+<li>按B切换计算2秒或10秒或40秒内的平均流量;</li>
+<li>按T切换是否显示每个连接的总流量;</li>
+<li>按l打开屏幕过滤功能，输入要过滤的字符，比如ip,按回车后，屏幕就只显示这个IP相关的流量信息;</li>
+<li>按L切换显示画面上边的刻度;刻度不同，流量图形条会有变化;</li>
+<li>按j或按k可以向上或向下滚动屏幕显示的连接记录;</li>
+<li>按1或2或3可以根据右侧显示的三列流量数据进行排序;</li>
+<li>按&lt;根据左边的本机名或IP排序;</li>
+<li>按&gt;根据远端目标主机的主机名或IP排序;</li>
+<li>按o切换是否固定只显示当前的连接;</li>
+<li>按f可以编辑过滤代码</li>
+<li>按!可以使用shell命令</li>
+<li>按q退出监控</li>
+</ul>
+<h2 id="7-iostat">7、iostat</h2>
+<p><code>iostat</code>主要用于监控系统设备的<code>IO</code>负载情况，<code>iostat</code>首次运行时显示自系统启动开始的各项统计信息，之后运行<code>iostat</code>将显示自上次运行该命令以后的统计信息。用户可以通过指定统计的次数和时间来获得所需的统计信息。<br>
+安装</p>
+<pre><code>yum install sysstat -y 
+</code></pre>
+<p>参数：</p>
+<ul>
+<li>-c 仅显示CPU统计信息.与-d选项互斥.</li>
+<li>-d 仅显示磁盘统计信息.与-c选项互斥.</li>
+<li>-k 以K为单位显示每秒的磁盘请求数,默认单位块.</li>
+<li>-p device | ALL<br>
+与-x选项互斥,用于显示块设备及系统分区的统计信息.也可以在-p后指定一个设备名,如:# iostat -p hda或显示所有设备# iostat -p ALL</li>
+<li>-t    在输出数据时,打印搜集数据的时间.</li>
+<li>-V    打印版本号和帮助信息.</li>
+<li>-x    输出扩展信息</li>
+</ul>
+<p><img src="https://image.ssgeek.com/20180713-03.png" alt=""><br>
+第一部分包含了CPU报告</p>
+<ul>
+<li>%user : 显示了在执行用户(应用)层时的CPU利用率</li>
+<li>%nice : 显示了在以nice优先级运行用户层的CPU利用率</li>
+<li>%system : 显示了在执行系统(内核)层时的CPU利用率</li>
+<li>%iowait : 显示了CPU在I/O请求挂起时空闲时间的百分比</li>
+<li>%steal : 显示了当hypervisor正服务于另外一个虚拟处理器时无意识地等待虚拟CPU所占有的时间百分比。</li>
+<li>%idle : 显示了CPU在I/O没有挂起请求时空闲时间的百分比</li>
+</ul>
+<p>第二部分包含了设备利用率报告</p>
+<ul>
+<li>Device : 列出的/dev 目录下的设备/分区名称</li>
+<li>tps : 显示每秒传输给设备的数量。更高的tps意味着处理器更忙。</li>
+<li>KB_read/s : 显示了每秒从设备上读取的块的数量(KB,MB)</li>
+<li>KB_wrtn/s : 显示了每秒写入设备上块的数量(KB,MB)</li>
+<li>KB_read : 显示所有已读取的块</li>
+<li>KB_wrtn : 显示所有已写入的块</li>
+</ul>
+<h2 id="8-vmstat">8、vmstat</h2>
+<p>显示虚拟内存状态（“Viryual Memor Statics”），但是它可以报告关于进程、内存、I/O等系统整体运行状态。</p>
+<ul>
+<li>-a：显示活动内页；</li>
+<li>-f：显示启动后创建的进程总数；</li>
+<li>-m：显示slab信息；</li>
+<li>-n：头信息仅显示一次；</li>
+<li>-s：以表格方式显示事件计数器和内存状态；</li>
+<li>-d：报告磁盘状态；</li>
+<li>-p：显示指定的硬盘分区状态；</li>
+<li>-S：输出信息的单位。</li>
+</ul>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20180713-04.png" alt=""></figure>
+<p>字段说明：<br>
+Procs（进程）</p>
+<ul>
+<li>r: 运行队列中进程数量，这个值也可以判断是否需要增加CPU。（长期大于1）</li>
+<li>b: 等待IO的进程数量。</li>
+</ul>
+<p>Memory（内存）</p>
+<ul>
+<li>swpd: 使用虚拟内存大小，如果swpd的值不为0，但是SI，SO的值长期为0，这种情况不会影响系统性能。</li>
+<li>free: 空闲物理内存大小。</li>
+<li>buff: 用作缓冲的内存大小。</li>
+<li>cache: 用作缓存的内存大小，如果cache的值大的时候，说明cache处的文件数多，如果频繁访问到的文件都能被cache处，那么磁盘的读IO bi会非常小。</li>
+</ul>
+<p>Swap</p>
+<ul>
+<li>si: 每秒从交换区写到内存的大小，由磁盘调入内存。</li>
+<li>so: 每秒写入交换区的内存大小，由内存调入磁盘。</li>
+</ul>
+<p>注意：内存够用的时候，这2个值都是0，如果这2个值长期大于0时，系统性能会受到影响，磁盘IO和CPU资源都会被消耗。有些朋友看到空闲内存（free）很少的或接近于0时，就认为内存不够用了，不能光看这一点，还要结合si和so，如果free很少，但是si和so也很少（大多时候是0），那么不用担心，系统性能这时不会受到影响的。</p>
+<ul>
+<li>IO（现在的Linux版本块的大小为1kb）</li>
+<li>bi: 每秒读取的块数</li>
+<li>bo: 每秒写入的块数<br>
+注意：随机磁盘读写的时候，这2个值越大（如超出1024k)，能看到CPU在IO等待的值也会越大。</li>
+</ul>
+<p>system（系统）</p>
+<ul>
+<li>in: 每秒中断数，包括时钟中断。</li>
+<li>cs: 每秒上下文切换数。<br>
+注意：上面2个值越大，会看到由内核消耗的CPU时间会越大。</li>
+</ul>
+<p>CPU（以百分比表示）</p>
+<ul>
+<li>us: 用户进程执行时间百分比(user time)<br>
+us的值比较高时，说明用户进程消耗的CPU时间多，但是如果长期超50%的使用，那么我们就该考虑优化程序算法或者进行加速。</li>
+<li>sy: 内核系统进程执行时间百分比(system time)<br>
+sy的值高时，说明系统内核消耗的CPU资源多，这并不是良性表现，我们应该检查原因。</li>
+<li>wa: IO等待时间百分比<br>
+wa的值高时，说明IO等待比较严重，这可能由于磁盘大量作随机访问造成，也有可能磁盘出现瓶颈（块操作）。</li>
+<li>id: 空闲时间百分比</li>
+</ul>
+<h2 id="9-dmidecode">9、dmidecode</h2>
+<p>获取有关硬件方面的信息。dmidecode遵循SMBIOS/DMI标准，其输出的信息包括BIOS、系统、主板、处理器、内存、缓存等等<br>
+参数：</p>
+<ul>
+<li>-d：(default:/dev/mem)从设备文件读取信息，输出内容与不加参数标准输出相同。</li>
+<li>-h：显示帮助信息。</li>
+<li>-s：只显示指定DMI字符串的信息。(string)</li>
+<li>-t：只显示指定条目的信息。(type)</li>
+<li>-u：显示未解码的原始条目内容。</li>
+<li>--dump-bin file：将DMI数据转储到一个二进制文件中。</li>
+<li>--from-dump FILE：从一个二进制文件读取DMI数据。</li>
+</ul>
+<p>dmidecode的输出格式：<br>
+其中的前三行都称为记录头（recode header），其中包括了：</p>
+<ul>
+<li>1.recode id(Handle)：DMI表中的记录标识符，这是唯一的，比如上例中的Handle 0x0002.</li>
+<li>2.DMI type id：记录的类型，譬如说：BIOS，Memory，上例是type 2，即“Base Board Information”.</li>
+<li>3.recode size：DMI表中对应记录的大小，上例为95 bytes。（不包括文本信息，所有实际输出的内容比这个size要更大）。记录头之后就是记录的值。</li>
+<li>4.recoded values：记录值可以是多行的，比如上例显示了主板的制造商（Manufacturer）、Product Name、Version以及Serial Number。</li>
+</ul>
+<p>示例：</p>
+<ul>
+<li>查看服务器型号：dmidecode | grep 'Product Name'</li>
+<li>查看主板的序列号：dmidecode |grep 'Serial Number'</li>
+<li>查看系统序列号：dmidecode -s system-serial-number</li>
+<li>查看内存信息：dmidecode -t memory</li>
+<li>查看OEM信息：dmidecode -t 11</li>
+<li>取出内存信息Size</li>
+</ul>
+<pre><code>awk '/Size/{print $(NF-1)}' a.txt|sort -n|uniq -c|awk '{print $1&quot;*&quot;$2}'|xargs -n 100|tr ' ' '+'
+</code></pre>
+<h2 id="10-nethogs">10、nethogs</h2>
+<p>按进程或程序实时统计网络带宽使用率</p>
+<pre><code>yum install nethogs -y
+nethogs -d 5			#设置5秒钟的刷新频率
+nethogs eth0			#监视设备（eth0）的网络带宽
+nethogs eth0 eth1	#同时监视eth0和eth1接口
+</code></pre>
+<p>交互命令</p>
+<ul>
+<li>m: 修改单位</li>
+<li>r: 按流量排序</li>
+<li>s: 按发送流量排序</li>
+<li>q: 退出命令提示符</li>
+</ul>
+<p>文章整理于网络</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/B2ac1IMZx" class="tag">
+                    监控
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/linux" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/zabbix-shi-yong-jmx-jian-kong-tomcat">
+                  <h3 class="post-title">
+                    zabbix使用jmx监控tomcat
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

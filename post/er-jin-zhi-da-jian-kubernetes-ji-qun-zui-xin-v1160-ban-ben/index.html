@@ -1,0 +1,2288 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>二进制搭建Kubernetes集群(最新v1.16.0版本) | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">二进制搭建Kubernetes集群(最新v1.16.0版本)</h2>
+            <div class="post-date">2019-10-08</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83k8s%E5%B9%B3%E5%8F%B0%E6%9E%B6%E6%9E%84">1、生产环境k8s平台架构</a></li>
+<li><a href="#2-%E5%AE%98%E6%96%B9%E6%8F%90%E4%BE%9B%E4%B8%89%E7%A7%8D%E9%83%A8%E7%BD%B2%E6%96%B9%E5%BC%8F">2、官方提供三种部署方式</a></li>
+<li><a href="#3-%E6%9C%8D%E5%8A%A1%E5%99%A8%E8%A7%84%E5%88%92">3、服务器规划</a></li>
+<li><a href="#4-%E7%B3%BB%E7%BB%9F%E5%88%9D%E5%A7%8B%E5%8C%96">4、系统初始化</a></li>
+<li><a href="#5-etcd%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2">5、Etcd集群部署</a></li>
+<li><a href="#51-%E5%AE%89%E8%A3%85cfssl%E5%B7%A5%E5%85%B7">5.1、安装cfssl工具</a></li>
+<li><a href="#52-%E7%94%9F%E6%88%90etcd%E8%AF%81%E4%B9%A6">5.2、生成etcd证书</a>
+<ul>
+<li><a href="#521-%E5%88%9B%E5%BB%BA%E7%94%A8%E6%9D%A5%E7%94%9F%E6%88%90-ca-%E6%96%87%E4%BB%B6%E7%9A%84-json-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">5.2.1 创建用来生成 CA 文件的 JSON 配置文件</a></li>
+<li><a href="#522-%E5%88%9B%E5%BB%BA%E7%94%A8%E6%9D%A5%E7%94%9F%E6%88%90-ca-%E8%AF%81%E4%B9%A6%E7%AD%BE%E5%90%8D%E8%AF%B7%E6%B1%82csr%E7%9A%84-json-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">5.2.2 创建用来生成 CA 证书签名请求（CSR）的 JSON 配置文件</a></li>
+<li><a href="#523-%E7%94%9F%E6%88%90ca%E8%AF%81%E4%B9%A6capem%E5%92%8C%E5%AF%86%E9%92%A5ca-keypem">5.2.3 生成CA证书（ca.pem）和密钥（ca-key.pem）</a></li>
+<li><a href="#524-%E5%88%9B%E5%BB%BA-etcd-%E8%AF%81%E4%B9%A6%E7%AD%BE%E5%90%8D%E8%AF%B7%E6%B1%82">5.2.4 创建 etcd 证书签名请求</a></li>
+<li><a href="#525-%E7%94%9F%E6%88%90etcd%E8%AF%81%E4%B9%A6%E5%92%8C%E7%A7%81%E9%92%A5">5.2.5 生成etcd证书和私钥</a></li>
+</ul>
+</li>
+<li><a href="#53-%E9%83%A8%E7%BD%B2etcd">5.3、部署etcd</a>
+<ul>
+<li><a href="#531-etcd%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%8C%85">5.3.1 etcd二进制包</a></li>
+<li><a href="#532-%E8%AE%BE%E7%BD%AEetcd%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">5.3.2 设置etcd配置文件</a></li>
+<li><a href="#533-%E5%88%9B%E5%BB%BAetcd%E7%B3%BB%E7%BB%9F%E6%9C%8D%E5%8A%A1">5.3.3 创建etcd系统服务</a></li>
+<li><a href="#534-%E6%8B%B7%E8%B4%9D%E8%AF%81%E4%B9%A6">5.3.4 拷贝证书</a></li>
+<li><a href="#535-%E6%8B%B7%E8%B4%9D%E9%85%8D%E7%BD%AE%E5%88%B0%E5%85%B6%E4%BB%96%E8%8A%82%E7%82%B9%E5%B9%B6%E4%BF%AE%E6%94%B9%E9%85%8D%E7%BD%AE">5.3.5 拷贝配置到其他节点并修改配置</a></li>
+<li><a href="#536-%E5%90%AF%E5%8A%A8%E5%B9%B6%E6%A3%80%E6%9F%A5">5.3.6 启动并检查</a></li>
+</ul>
+</li>
+<li><a href="#6-%E9%83%A8%E7%BD%B2master%E7%BB%84%E4%BB%B6">6、部署Master组件</a>
+<ul>
+<li><a href="#61-%E7%94%9F%E6%88%90%E8%AF%81%E4%B9%A6">6.1 生成证书</a>
+<ul>
+<li><a href="#611-%E5%88%9B%E5%BB%BA%E7%94%A8%E6%9D%A5%E7%94%9F%E6%88%90-ca-%E6%96%87%E4%BB%B6%E7%9A%84-json-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">6.1.1 创建用来生成 CA 文件的 JSON 配置文件</a></li>
+<li><a href="#612-%E5%88%9B%E5%BB%BA%E7%94%A8%E6%9D%A5%E7%94%9F%E6%88%90-ca-%E8%AF%81%E4%B9%A6%E7%AD%BE%E5%90%8D%E8%AF%B7%E6%B1%82csr%E7%9A%84-json-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">6.1.2 创建用来生成 CA 证书签名请求（CSR）的 JSON 配置文件</a></li>
+<li><a href="#613-%E7%94%9F%E6%88%90ca%E8%AF%81%E4%B9%A6capem%E5%92%8C%E5%AF%86%E9%92%A5ca-keypem">6.1.3 生成CA证书（ca.pem）和密钥（ca-key.pem）</a></li>
+<li><a href="#614-%E7%94%9F%E6%88%90api-server%E8%AF%81%E4%B9%A6">6.1.4 生成api-server证书</a></li>
+<li><a href="#615-%E7%94%9F%E6%88%90kube-proxy%E8%AF%81%E4%B9%A6">6.1.5 生成kube-proxy证书</a></li>
+<li><a href="#616-%E7%94%9F%E6%88%90admin%E7%AE%A1%E7%90%86%E5%91%98%E8%AF%81%E4%B9%A6">6.1.6 生成admin管理员证书</a></li>
+<li><a href="#617-%E6%8B%B7%E8%B4%9D%E8%AF%81%E4%B9%A6">6.1.7 拷贝证书</a></li>
+</ul>
+</li>
+<li><a href="#62-%E5%88%9B%E5%BB%BAtlsbootstrapping-token">6.2 创建TLSBootstrapping Token</a></li>
+<li><a href="#63-%E5%87%86%E5%A4%87%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%8C%85">6.3 准备二进制包</a></li>
+<li><a href="#64-%E9%83%A8%E7%BD%B2kube-apiserver">6.4 部署kube-apiserver</a>
+<ul>
+<li><a href="#641-%E5%88%9B%E5%BB%BAapiserver%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">6.4.1 创建apiserver配置文件</a></li>
+<li><a href="#642-systemd%E7%AE%A1%E7%90%86apiserver">6.4.2 systemd管理apiserver</a></li>
+<li><a href="#643-%E5%90%AF%E5%8A%A8apiserver">6.4.3 启动apiserver</a></li>
+</ul>
+</li>
+<li><a href="#65-%E9%83%A8%E7%BD%B2controller-manager">6.5 部署controller-manager</a>
+<ul>
+<li><a href="#651-%E5%88%9B%E5%BB%BAcontroller-manager%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">6.5.1 创建controller-manager配置文件</a></li>
+<li><a href="#652-systemd%E7%AE%A1%E7%90%86controller-manager">6.5.2 systemd管理controller-manager</a></li>
+<li><a href="#653-%E5%90%AF%E5%8A%A8controller-manager">6.5.3 启动controller-manager</a></li>
+</ul>
+</li>
+<li><a href="#66-%E9%83%A8%E7%BD%B2kube-scheduler">6.6 部署kube-scheduler</a>
+<ul>
+<li><a href="#661-%E5%88%9B%E5%BB%BAkube-scheduler%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">6.6.1 创建kube-scheduler配置文件</a></li>
+<li><a href="#662-systemd%E7%AE%A1%E7%90%86kube-scheduler">6.6.2 systemd管理kube-scheduler</a></li>
+<li><a href="#663-%E5%90%AF%E5%8A%A8kube-scheduler">6.6.3 启动kube-scheduler</a></li>
+</ul>
+</li>
+<li><a href="#66-%E7%BB%99kubelet-bootstrap%E6%8E%88%E6%9D%83">6.6 给kubelet-bootstrap授权</a></li>
+<li><a href="#67-%E6%A3%80%E6%9F%A5%E9%9B%86%E7%BE%A4%E7%8A%B6%E6%80%81">6.7 检查集群状态</a></li>
+</ul>
+</li>
+<li><a href="#7-%E9%83%A8%E7%BD%B2node%E7%BB%84%E4%BB%B6">7、部署Node组件</a>
+<ul>
+<li><a href="#71-%E5%AE%89%E8%A3%85docker">7.1、安装docker</a></li>
+<li><a href="#72-%E5%87%86%E5%A4%87%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%8C%85">7.2、准备二进制包</a></li>
+<li><a href="#73-%E6%8B%B7%E8%B4%9D%E8%AF%81%E4%B9%A6%E5%88%B0node">7.3、拷贝证书到node</a></li>
+<li><a href="#74-%E9%83%A8%E7%BD%B2kubelet">7.4、部署kubelet</a>
+<ul>
+<li><a href="#741-%E5%88%9B%E5%BB%BAkubelet%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">7.4.1、创建kubelet配置文件</a></li>
+<li><a href="#742-%E5%88%9B%E5%BB%BAbootstrapkubeconfig%E6%96%87%E4%BB%B6">7.4.2、创建bootstrap.kubeconfig文件</a></li>
+<li><a href="#743-%E5%88%9B%E5%BB%BAkubelet-configyml%E6%96%87%E4%BB%B6">7.4.3、创建kubelet-config.yml文件</a></li>
+<li><a href="#744-%E5%88%9B%E5%BB%BAkubeletkubeconfig%E6%96%87%E4%BB%B6">7.4.4、创建kubelet.kubeconfig文件</a></li>
+<li><a href="#745-systemd%E7%AE%A1%E7%90%86kubelet">7.4.5、systemd管理kubelet</a></li>
+<li><a href="#746-%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1">7.4.6、启动服务</a></li>
+<li><a href="#747-%E5%85%81%E8%AE%B8%E7%BB%99node%E9%A2%81%E5%8F%91%E8%AF%81%E4%B9%A6">7.4.7、允许给Node颁发证书</a></li>
+</ul>
+</li>
+<li><a href="#75-%E9%83%A8%E7%BD%B2kube-proxy">7.5、部署kube-proxy</a>
+<ul>
+<li><a href="#751-%E5%88%9B%E5%BB%BAkube-proxy%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">7.5.1、创建kube-proxy配置文件</a></li>
+<li><a href="#752-%E5%88%9B%E5%BB%BAkube-proxykubeconfig%E6%96%87%E4%BB%B6">7.5.2、创建kube-proxy.kubeconfig文件</a></li>
+<li><a href="#753-%E5%88%9B%E5%BB%BAkube-proxy-configyml%E6%96%87%E4%BB%B6">7.5.3、创建kube-proxy-config.yml文件</a></li>
+<li><a href="#754-systemd%E7%AE%A1%E7%90%86kube-proxy">7.5.4、systemd管理kube-proxy</a></li>
+<li><a href="#755-%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1">7.5.5、启动服务</a></li>
+</ul>
+</li>
+<li><a href="#76-%E9%83%A8%E7%BD%B2%E5%8F%A6%E5%A4%96%E4%B8%80%E4%B8%AAnode">7.6、部署另外一个node</a></li>
+<li><a href="#77-%E9%83%A8%E7%BD%B2cni%E7%BD%91%E7%BB%9C%E6%8F%92%E4%BB%B6">7.7、部署cni网络插件</a>
+<ul>
+<li><a href="#771-%E5%87%86%E5%A4%87%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%8C%85">7.7.1、准备二进制包</a></li>
+<li><a href="#772-%E9%83%A8%E7%BD%B2k8s%E9%9B%86%E7%BE%A4%E7%BD%91%E7%BB%9C">7.7.2、部署k8s集群网络</a></li>
+<li><a href="#773-%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E6%B5%8B%E8%AF%95pod%E6%9F%A5%E7%9C%8B%E6%98%AF%E5%90%A6%E6%88%90%E5%8A%9F">7.7.3、创建一个测试pod，查看是否成功</a></li>
+</ul>
+</li>
+<li><a href="#78-%E6%8E%88%E6%9D%83apiserver%E8%AE%BF%E9%97%AEkubelet">7.8、授权apiserver访问kubelet</a></li>
+</ul>
+</li>
+<li><a href="#8-%E9%83%A8%E7%BD%B2web-uidashboard">8、部署Web UI（Dashboard）</a>
+<ul>
+<li><a href="#81-%E9%83%A8%E7%BD%B2dashboard">8.1、部署dashboard</a></li>
+<li><a href="#82-%E5%88%9B%E5%BB%BAservice-account%E5%B9%B6%E7%BB%91%E5%AE%9A%E9%BB%98%E8%AE%A4cluster-admin%E7%AE%A1%E7%90%86%E5%91%98%E9%9B%86%E7%BE%A4%E8%A7%92%E8%89%B2">8.2、创建service account并绑定默认cluster-admin管理员集群角色</a></li>
+<li><a href="#83-%E4%BD%BF%E7%94%A8token%E7%99%BB%E5%BD%95%E5%88%B0dashboard%E7%95%8C%E9%9D%A2">8.3、使用token登录到dashboard界面</a></li>
+</ul>
+</li>
+<li><a href="#9-%E9%83%A8%E7%BD%B2%E9%9B%86%E7%BE%A4%E5%86%85%E9%83%A8dns%E8%A7%A3%E6%9E%90%E6%9C%8D%E5%8A%A1coredns">9、部署集群内部DNS解析服务（CoreDNS）</a>
+<ul>
+<li><a href="#91-%E9%83%A8%E7%BD%B2coredns">9.1、部署coredns</a></li>
+<li><a href="#92-%E6%B5%8B%E8%AF%95dns%E6%98%AF%E5%90%A6%E5%8F%AF%E7%94%A8">9.2、测试dns是否可用</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-生产环境k8s平台架构">1、生产环境k8s平台架构</h2>
+<ul>
+<li>单master集群<br>
+<img src="https://image.ssgeek.com/20191008-01.png" alt=""></li>
+<li>多master集群（HA）<br>
+<img src="https://image.ssgeek.com/20191008-02.png" alt=""></li>
+</ul>
+<h2 id="2-官方提供三种部署方式">2、官方提供三种部署方式</h2>
+<ul>
+<li>
+<p>minikube<br>
+Minikube是一个工具，可以在本地快速运行一个单点的Kubernetes，仅用于尝试Kubernetes或日常开发的用户使用。<br>
+部署地址：<br>
+https://kubernetes.io/docs/setup/minikube/</p>
+</li>
+<li>
+<p>kubeadm<br>
+Kubeadm也是一个工具，提供kubeadm init和kubeadm join，用于快速部署Kubernetes集群。<br>
+部署地址：<br>
+https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm/</p>
+</li>
+<li>
+<p>二进制<br>
+推荐，从官方下载发行版的二进制包，手动部署每个组件，组成Kubernetes集群。<br>
+下载地址：<br>
+https://github.com/kubernetes/kubernetes/releases</p>
+</li>
+</ul>
+<h2 id="3-服务器规划">3、服务器规划</h2>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>IP</th>
+<th>组件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>k8s-master-01</td>
+<td>192.168.2.10</td>
+<td>kube-apiserver kube-controller-manager kube-scheduller etcd</td>
+</tr>
+<tr>
+<td>k8s-node-01</td>
+<td>192.168.2.11</td>
+<td>kubelet kube-proxy docker etcd</td>
+</tr>
+<tr>
+<td>k8s-node-02</td>
+<td>192.168.2.12</td>
+<td>kubelet kube-proxy docker etcd</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-系统初始化">4、系统初始化</h2>
+<ul>
+<li>关闭防火墙：</li>
+</ul>
+<pre><code>systemctl stop firewalld
+systemctl disable firewalld
+</code></pre>
+<ul>
+<li>关闭selinux：</li>
+</ul>
+<pre><code>setenforce 0 # 临时
+sed -i 's/enforcing/disabled/' /etc/selinux/config # 永久
+</code></pre>
+<ul>
+<li>关闭swap：</li>
+</ul>
+<pre><code>swapoff -a  # 临时
+vim /etc/fstab  # 永久
+</code></pre>
+<ul>
+<li>同步系统时间：</li>
+</ul>
+<pre><code>ntpdate time.windows.com
+</code></pre>
+<ul>
+<li>添加hosts：</li>
+</ul>
+<pre><code>vim /etc/hosts
+192.168.2.10 k8s-master-01
+192.168.2.11 k8s-node-01
+192.168.2.12 k8s-node-02
+</code></pre>
+<ul>
+<li>修改主机名：</li>
+</ul>
+<pre><code>hostnamectl set-hostname k8s-master-01
+</code></pre>
+<h2 id="5-etcd集群部署">5、Etcd集群部署</h2>
+<h2 id="51-安装cfssl工具">5.1、安装cfssl工具</h2>
+<pre><code>[root@k8s-master-01 ~]# curl -L https://pkg.cfssl.org/R1.2/cfssl_linux-amd64 -o /usr/local/bin/cfssl
+[root@k8s-master-01 ~]# curl -L https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64 -o /usr/local/bin/cfssljson
+[root@k8s-master-01 ~]# curl -L https://pkg.cfssl.org/R1.2/cfssl-certinfo_linux-amd64 -o /usr/local/bin/cfssl-certinfo
+[root@k8s-master-01 ~]# chmod +x /usr/local/bin/cfssl /usr/local/bin/cfssljson /usr/local/bin/cfssl-certinfo
+</code></pre>
+<p>在任意节点完成以下操作</p>
+<h2 id="52-生成etcd证书">5.2、生成etcd证书</h2>
+<pre><code>[root@k8s-master-01 ~]# mkdir /usr/local/kubernetes/{k8s-cert,etcd-cert} -p
+[root@master01 ~]# cd /usr/local/kubernetes/etcd-cert/
+</code></pre>
+<h3 id="521-创建用来生成-ca-文件的-json-配置文件">5.2.1 创建用来生成 CA 文件的 JSON 配置文件</h3>
+<pre><code>[root@k8s-master-01 etcd-cert]# vim ca-config.json
+{
+  &quot;signing&quot;: {
+    &quot;default&quot;: {
+      &quot;expiry&quot;: &quot;87600h&quot;
+    },
+    &quot;profiles&quot;: {
+      &quot;www&quot;: {
+         &quot;expiry&quot;: &quot;87600h&quot;,
+         &quot;usages&quot;: [
+            &quot;signing&quot;,
+            &quot;key encipherment&quot;,
+            &quot;server auth&quot;,
+            &quot;client auth&quot;
+        ]
+      }
+    }
+  }
+}
+</code></pre>
+<h3 id="522-创建用来生成-ca-证书签名请求csr的-json-配置文件">5.2.2 创建用来生成 CA 证书签名请求（CSR）的 JSON 配置文件</h3>
+<pre><code>[root@k8s-master-01 etcd-cert]# vim ca-csr.json
+{
+    &quot;CN&quot;: &quot;etcd CA&quot;,
+    &quot;key&quot;: {
+        &quot;algo&quot;: &quot;rsa&quot;,
+        &quot;size&quot;: 2048
+    },
+    &quot;names&quot;: [
+        {
+            &quot;C&quot;: &quot;CN&quot;,
+            &quot;L&quot;: &quot;Beijing&quot;,
+            &quot;ST&quot;: &quot;Beijing&quot;
+        }
+    ]
+}
+</code></pre>
+<h3 id="523-生成ca证书capem和密钥ca-keypem">5.2.3 生成CA证书（ca.pem）和密钥（ca-key.pem）</h3>
+<pre><code>[root@k8s-master-01 etcd-cert]# cfssl gencert -initca ca-csr.json | cfssljson -bare ca
+2019/10/07 18:14:49 [INFO] generating a new CA key and certificate from CSR
+2019/10/07 18:14:49 [INFO] generate received request
+2019/10/07 18:14:49 [INFO] received CSR
+2019/10/07 18:14:49 [INFO] generating key: rsa-2048
+2019/10/07 18:14:50 [INFO] encoded CSR
+2019/10/07 18:14:50 [INFO] signed certificate with serial number 241296075377614671289689316194561193913636321821
+[root@k8s-master-01 etcd-cert]# ls
+ca-config.json  ca.csr  ca-csr.json  ca-key.pem  ca.pem
+</code></pre>
+<h3 id="524-创建-etcd-证书签名请求">5.2.4 创建 etcd 证书签名请求</h3>
+<pre><code>[root@k8s-master-01 etcd-cert]# vim server-csr.json
+{
+    &quot;CN&quot;: &quot;etcd&quot;,
+    &quot;hosts&quot;: [
+        &quot;192.168.2.10&quot;,
+        &quot;192.168.2.11&quot;,
+        &quot;192.168.2.12&quot;
+        ],
+    &quot;key&quot;: {
+        &quot;algo&quot;: &quot;rsa&quot;,
+        &quot;size&quot;: 2048
+    },
+    &quot;names&quot;: [
+        {
+            &quot;C&quot;: &quot;CN&quot;,
+            &quot;L&quot;: &quot;BeiJing&quot;,
+            &quot;ST&quot;: &quot;BeiJing&quot;
+        }
+    ]
+}
+</code></pre>
+<h3 id="525-生成etcd证书和私钥">5.2.5 生成etcd证书和私钥</h3>
+<pre><code>[root@k8s-master-01 etcd-cert]# cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=www server-csr.json | cfssljson -bare server
+2019/10/07 18:18:00 [INFO] generate received request
+2019/10/07 18:18:00 [INFO] received CSR
+2019/10/07 18:18:00 [INFO] generating key: rsa-2048
+2019/10/07 18:18:00 [INFO] encoded CSR
+2019/10/07 18:18:00 [INFO] signed certificate with serial number 344196956354486691280839684095587396673015955849
+2019/10/07 18:18:00 [WARNING] This certificate lacks a &quot;hosts&quot; field. This makes it unsuitable for
+websites. For more information see the Baseline Requirements for the Issuance and Management
+of Publicly-Trusted Certificates, v.1.1.6, from the CA/Browser Forum (https://cabforum.org);
+specifically, section 10.2.3 (&quot;Information Requirements&quot;).
+[root@k8s-master-01 etcd-cert]# ls
+ca-config.json  ca.csr  ca-csr.json  ca-key.pem  ca.pem  server.csr  server-csr.json  server-key.pem  server.pem
+</code></pre>
+<h2 id="53-部署etcd">5.3、部署etcd</h2>
+<h3 id="531-etcd二进制包">5.3.1 etcd二进制包</h3>
+<p>下载地址：https://github.com/coreos/etcd/releases</p>
+<pre><code>[root@k8s-master-01 etcd-cert]# cd ..
+[root@k8s-master-01 kubernetes]# mkdir soft
+[root@k8s-master-01 kubernetes]# cd soft/
+[root@k8s-master-01 soft]# tar xf etcd-v3.4.1-linux-amd64.tar.gz
+[root@k8s-master-01 soft]# mkdir /opt/etcd/{bin,cfg,ssl} -p
+[root@k8s-master-01 soft]# mv etcd-v3.4.1-linux-amd64/{etcd,etcdctl} /opt/etcd/bin/
+</code></pre>
+<h3 id="532-设置etcd配置文件">5.3.2 设置etcd配置文件</h3>
+<pre><code>[root@k8s-master-01 soft]# vim /opt/etcd/cfg/etcd.conf
+#[Member]
+ETCD_NAME=&quot;etcd-1&quot;
+ETCD_DATA_DIR=&quot;/var/lib/etcd/default.etcd&quot;
+ETCD_LISTEN_PEER_URLS=&quot;https://192.168.2.10:2380&quot;
+ETCD_LISTEN_CLIENT_URLS=&quot;https://192.168.2.10:2379&quot;
+
+#[Clustering]
+ETCD_INITIAL_ADVERTISE_PEER_URLS=&quot;https://192.168.2.10:2380&quot;
+ETCD_ADVERTISE_CLIENT_URLS=&quot;https://192.168.2.10:2379&quot;
+ETCD_INITIAL_CLUSTER=&quot;etcd-1=https://192.168.2.10:2380,etcd-2=https://192.168.2.11:2380,etcd-3=https://192.168.2.12:2380&quot;
+ETCD_INITIAL_CLUSTER_TOKEN=&quot;etcd-cluster&quot;
+ETCD_INITIAL_CLUSTER_STATE=&quot;new&quot;
+</code></pre>
+<p>说明：<br>
+ETCD_NAME 节点名称<br>
+ETCD_DATA_DIR 数据目录<br>
+ETCD_LISTEN_PEER_URLS 集群通信监听地址<br>
+ETCD_LISTEN_CLIENT_URLS 客户端访问监听地址<br>
+ETCD_INITIAL_ADVERTISE_PEER_URLS 集群通告地址<br>
+ETCD_ADVERTISE_CLIENT_URLS 客户端通告地址<br>
+ETCD_INITIAL_CLUSTER 集群节点地址<br>
+ETCD_INITIAL_CLUSTER_TOKEN 集群Token<br>
+ETCD_INITIAL_CLUSTER_STATE 加入集群的当前状态，new是新集群，existing表示加入已有集群</p>
+<h3 id="533-创建etcd系统服务">5.3.3 创建etcd系统服务</h3>
+<pre><code>[root@master01 soft]# vim /usr/lib/systemd/system/etcd.service
+[Unit]
+Description=Etcd Server
+After=network.target
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+EnvironmentFile=/opt/etcd/cfg/etcd.conf
+ExecStart=/opt/etcd/bin/etcd \
+        --name=${ETCD_NAME} \
+        --data-dir=${ETCD_DATA_DIR} \
+        --listen-peer-urls=${ETCD_LISTEN_PEER_URLS} \
+        --listen-client-urls=${ETCD_LISTEN_CLIENT_URLS},http://127.0.0.1:2379 \
+        --advertise-client-urls=${ETCD_ADVERTISE_CLIENT_URLS} \
+        --initial-advertise-peer-urls=${ETCD_INITIAL_ADVERTISE_PEER_URLS} \
+        --initial-cluster=${ETCD_INITIAL_CLUSTER} \
+        --initial-cluster-token=${ETCD_INITIAL_CLUSTER_TOKEN} \
+        --initial-cluster-state=new \
+        --cert-file=/opt/etcd/ssl/server.pem \
+        --key-file=/opt/etcd/ssl/server-key.pem \
+        --peer-cert-file=/opt/etcd/ssl/server.pem \
+        --peer-key-file=/opt/etcd/ssl/server-key.pem \
+        --trusted-ca-file=/opt/etcd/ssl/ca.pem \
+        --peer-trusted-ca-file=/opt/etcd/ssl/ca.pem
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+<h3 id="534-拷贝证书">5.3.4 拷贝证书</h3>
+<pre><code>[root@k8s-master-01 soft]# cp ../etcd-cert/{ca,server-key,server}.pem /opt/etcd/ssl/
+</code></pre>
+<h3 id="535-拷贝配置到其他节点并修改配置">5.3.5 拷贝配置到其他节点并修改配置</h3>
+<pre><code>[root@k8s-master-01 soft]# scp -r /opt/etcd/ root@192.168.2.11:/opt/
+[root@k8s-master-01 soft]# scp -r /opt/etcd/ root@192.168.2.12:/opt/
+[root@k8s-master-01 soft]# scp /usr/lib/systemd/system/etcd.service root@192.168.2.11:/usr/lib/systemd/system 
+[root@k8s-master-01 soft]# scp /usr/lib/systemd/system/etcd.service root@192.168.2.12:/usr/lib/systemd/systemroot@172.16.1.66:/usr/lib/systemd/system
+[root@k8s-node-01 ~]# vim /opt/etcd/cfg/etcd.conf
+修改ETCD_NAME为节点的ETCD_NAME，url的ip地址为节点对应ip
+</code></pre>
+<h3 id="536-启动并检查">5.3.6 启动并检查</h3>
+<p>在每个节点启动etcd并加入开机启动</p>
+<pre><code>systemctl daemon-reload 
+systemctl start etcd.service 
+systemctl enable etcd.service
+</code></pre>
+<p>检查集群状态</p>
+<pre><code>[root@k8s-master-01 bin]# /opt/etcd/bin/etcdctl --ca-file=/opt/etcd/ssl/ca.pem --cert-file=/opt/etcd/ssl/server.pem --key-file=/opt/etcd/ssl/server-key.pem --endpoints=&quot;https://192.168.2.10:2379,https://192.168.2.11:2379,https://192.168.2.12:2379&quot; cluster-health
+member 272dad16f2666b47 is healthy: got healthy result from https://192.168.2.11:2379
+member 2ab38a249cac7a26 is healthy: got healthy result from https://192.168.2.12:2379
+member e99d560084d446c8 is healthy: got healthy result from https://192.168.2.10:2379
+cluster is healthy
+</code></pre>
+<p>如上输出，则etcd部署没有问题</p>
+<h2 id="6-部署master组件">6、部署Master组件</h2>
+<h3 id="61-生成证书">6.1 生成证书</h3>
+<h4 id="611-创建用来生成-ca-文件的-json-配置文件">6.1.1 创建用来生成 CA 文件的 JSON 配置文件</h4>
+<pre><code>[root@k8s-master-01 k8s-cert]# cd /usr/local/kubernetes/k8s-cert/
+[root@k8s-master-01 k8s-cert]# vim ca-config.json
+{
+  &quot;signing&quot;: {
+    &quot;default&quot;: {
+      &quot;expiry&quot;: &quot;87600h&quot;
+    },
+    &quot;profiles&quot;: {
+      &quot;kubernetes&quot;: {
+         &quot;expiry&quot;: &quot;87600h&quot;,
+         &quot;usages&quot;: [
+            &quot;signing&quot;,
+            &quot;key encipherment&quot;,
+            &quot;server auth&quot;,
+            &quot;client auth&quot;
+        ]
+      }
+    }
+  }
+}
+</code></pre>
+<h4 id="612-创建用来生成-ca-证书签名请求csr的-json-配置文件">6.1.2 创建用来生成 CA 证书签名请求（CSR）的 JSON 配置文件</h4>
+<pre><code>[root@k8s-master-01 k8s-cert]# vim ca-csr.json
+{
+    &quot;CN&quot;: &quot;kubernetes&quot;,
+    &quot;key&quot;: {
+        &quot;algo&quot;: &quot;rsa&quot;,
+        &quot;size&quot;: 2048
+    },
+    &quot;names&quot;: [
+        {
+            &quot;C&quot;: &quot;CN&quot;,
+            &quot;L&quot;: &quot;Beijing&quot;,
+            &quot;ST&quot;: &quot;Beijing&quot;,
+      	    &quot;O&quot;: &quot;k8s&quot;,
+            &quot;OU&quot;: &quot;System&quot;
+        }
+    ]
+}
+</code></pre>
+<h4 id="613-生成ca证书capem和密钥ca-keypem">6.1.3 生成CA证书（ca.pem）和密钥（ca-key.pem）</h4>
+<pre><code>[root@k8s-master-01 k8s-cert]# cfssl gencert -initca ca-csr.json | cfssljson -bare ca -
+2019/10/07 19:40:46 [INFO] generating a new CA key and certificate from CSR
+2019/10/07 19:40:46 [INFO] generate received request
+2019/10/07 19:40:46 [INFO] received CSR
+2019/10/07 19:40:46 [INFO] generating key: rsa-2048
+2019/10/07 19:40:46 [INFO] encoded CSR
+2019/10/07 19:40:46 [INFO] signed certificate with serial number 588664830704961805809033488881742877285758664105
+[root@k8s-master-01 k8s-cert]# ls
+ca-config.json  ca.csr  ca-csr.json  ca-key.pem  ca.pem
+</code></pre>
+<h4 id="614-生成api-server证书">6.1.4 生成api-server证书</h4>
+<pre><code>证书签名请求文件中的hosts可以多规划一些，方便以后添加节点避免重新制作证书
+[root@k8s-master-01 k8s-cert]# vim server-csr.json
+{
+    &quot;CN&quot;: &quot;kubernetes&quot;,
+    &quot;hosts&quot;: [
+      &quot;10.0.0.1&quot;,
+      &quot;127.0.0.1&quot;,
+      &quot;kubernetes&quot;,
+      &quot;kubernetes.default&quot;,
+      &quot;kubernetes.default.svc&quot;,
+      &quot;kubernetes.default.svc.cluster&quot;,
+      &quot;kubernetes.default.svc.cluster.local&quot;,
+      &quot;192.168.2.10&quot;,
+      &quot;192.168.2.11&quot;,
+      &quot;192.168.2.12&quot;,
+      &quot;192.168.2.13&quot;,
+      &quot;192.168.2.14&quot;,
+      &quot;192.168.2.15&quot;
+    ],
+    &quot;key&quot;: {
+        &quot;algo&quot;: &quot;rsa&quot;,
+        &quot;size&quot;: 2048
+    },
+    &quot;names&quot;: [
+        {
+            &quot;C&quot;: &quot;CN&quot;,
+            &quot;L&quot;: &quot;BeiJing&quot;,
+            &quot;ST&quot;: &quot;BeiJing&quot;,
+            &quot;O&quot;: &quot;k8s&quot;,
+            &quot;OU&quot;: &quot;System&quot;
+        }
+    ]
+}
+[root@k8s-master-01 k8s-cert]# cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kubernetes server-csr.json | cfssljson -bare server
+2019/10/07 19:42:13 [INFO] generate received request
+2019/10/07 19:42:13 [INFO] received CSR
+2019/10/07 19:42:13 [INFO] generating key: rsa-2048
+2019/10/07 19:42:13 [INFO] encoded CSR
+2019/10/07 19:42:13 [INFO] signed certificate with serial number 662961272942353092215454648475276017019331528744
+2019/10/07 19:42:13 [WARNING] This certificate lacks a &quot;hosts&quot; field. This makes it unsuitable for
+websites. For more information see the Baseline Requirements for the Issuance and Management
+of Publicly-Trusted Certificates, v.1.1.6, from the CA/Browser Forum (https://cabforum.org);
+specifically, section 10.2.3 (&quot;Information Requirements&quot;).
+[root@k8s-master-01 k8s-cert]# ls server
+server.csr       server-csr.json  server-key.pem   server.pem
+</code></pre>
+<h4 id="615-生成kube-proxy证书">6.1.5 生成kube-proxy证书</h4>
+<pre><code>[root@k8s-master-01 k8s-cert]# vim kube-proxy-csr.json
+{
+  &quot;CN&quot;: &quot;system:kube-proxy&quot;,
+  &quot;hosts&quot;: [],
+  &quot;key&quot;: {
+    &quot;algo&quot;: &quot;rsa&quot;,
+    &quot;size&quot;: 2048
+  },
+  &quot;names&quot;: [
+    {
+      &quot;C&quot;: &quot;CN&quot;,
+      &quot;L&quot;: &quot;BeiJing&quot;,
+      &quot;ST&quot;: &quot;BeiJing&quot;,
+      &quot;O&quot;: &quot;k8s&quot;,
+      &quot;OU&quot;: &quot;System&quot;
+    }
+  ]
+}
+[root@k8s-master-01 k8s-cert]# cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kubernetes kube-proxy-csr.json | cfssljson -bare kube-proxy
+2019/10/07 19:43:56 [INFO] generate received request
+2019/10/07 19:43:56 [INFO] received CSR
+2019/10/07 19:43:56 [INFO] generating key: rsa-2048
+2019/10/07 19:43:57 [INFO] encoded CSR
+2019/10/07 19:43:57 [INFO] signed certificate with serial number 213756085107124414330670553092451400314905460929
+2019/10/07 19:43:57 [WARNING] This certificate lacks a &quot;hosts&quot; field. This makes it unsuitable for
+websites. For more information see the Baseline Requirements for the Issuance and Management
+of Publicly-Trusted Certificates, v.1.1.6, from the CA/Browser Forum (https://cabforum.org);
+specifically, section 10.2.3 (&quot;Information Requirements&quot;).
+[root@k8s-master-01 k8s-cert]# ls kube-proxy
+kube-proxy.csr       kube-proxy-csr.json  kube-proxy-key.pem   kube-proxy.pem
+</code></pre>
+<h4 id="616-生成admin管理员证书">6.1.6 生成admin管理员证书</h4>
+<pre><code>[root@master01 k8s-cert]# vim admin-csr.json
+{
+  &quot;CN&quot;: &quot;admin&quot;,
+  &quot;hosts&quot;: [],
+  &quot;key&quot;: {
+    &quot;algo&quot;: &quot;rsa&quot;,
+    &quot;size&quot;: 2048
+  },
+  &quot;names&quot;: [
+    {
+      &quot;C&quot;: &quot;CN&quot;,
+      &quot;L&quot;: &quot;BeiJing&quot;,
+      &quot;ST&quot;: &quot;BeiJing&quot;,
+      &quot;O&quot;: &quot;system:masters&quot;,
+      &quot;OU&quot;: &quot;System&quot;
+    }
+  ]
+}
+[root@master01 k8s-cert]# cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=kubernetes admin-csr.json | cfssljson -bare admin
+[root@master01 k8s-cert]# ll admin
+admin.csr       admin-csr.json  admin-key.pem   admin.pem
+</code></pre>
+<h4 id="617-拷贝证书">6.1.7 拷贝证书</h4>
+<pre><code>[root@k8s-master-01 k8s-cert]# cp ca.pem ca-key.pem server.pem server-key.pem /opt/kubernetes/ssl/
+</code></pre>
+<h3 id="62-创建tlsbootstrapping-token">6.2 创建TLSBootstrapping Token</h3>
+<pre><code>[root@master01 k8s-cert]# cd /opt/kubernetes/cfg/
+[root@master01 cfg]# head -c 16 /dev/urandom | od -An -t x | tr -d ' '
+c47ffb939f5ca36231d9e3121a252940
+[root@master01 cfg]# vim token.csv
+c47ffb939f5ca36231d9e3121a252940,kubelet-bootstrap,10001,&quot;system:node-bootstrapper&quot;
+</code></pre>
+<h3 id="63-准备二进制包">6.3 准备二进制包</h3>
+<p>下载地址：https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG-1.16.md</p>
+<pre><code>[root@master01 ~]# cd /usr/local/kubernetes/soft/
+[root@master01 soft]# tar xf kubernetes-server-linux-amd64.tar.gz 
+[root@master01 soft]# mkdir /opt/kubernetes/{bin,cfg,ssl,logs} -p
+[root@master01 soft]# cd kubernetes/server/bin/
+[root@master01 bin]# cp kube-apiserver kube-scheduler kube-controller-manager kubectl /opt/kubernetes/bin/
+</code></pre>
+<h3 id="64-部署kube-apiserver">6.4 部署kube-apiserver</h3>
+<h4 id="641-创建apiserver配置文件">6.4.1 创建apiserver配置文件</h4>
+<pre><code>[root@k8s-master-01 bin]# cd /opt/kubernetes/cfg/
+[root@k8s-master-01 cfg]# vim kube-apiserver
+KUBE_APISERVER_OPTS=&quot;--logtostderr=false \
+--v=2 \
+--log-dir=/opt/kubernetes/logs \
+--etcd-servers=https://192.168.2.10:2379,https://192.168.2.11:2379,https://192.168.2.12:2379 \
+--bind-address=192.168.2.10 \
+--secure-port=6443 \
+--advertise-address=192.168.2.10 \
+--allow-privileged=true \
+--service-cluster-ip-range=10.0.0.0/24 \
+--enable-admission-plugins=NamespaceLifecycle,LimitRanger,ServiceAccount,ResourceQuota,NodeRestriction \
+--authorization-mode=RBAC,Node \
+--enable-bootstrap-token-auth=true \
+--token-auth-file=/opt/kubernetes/cfg/token.csv \
+--service-node-port-range=30000-32767 \
+--kubelet-client-certificate=/opt/kubernetes/ssl/server.pem \
+--kubelet-client-key=/opt/kubernetes/ssl/server-key.pem \
+--tls-cert-file=/opt/kubernetes/ssl/server.pem  \
+--tls-private-key-file=/opt/kubernetes/ssl/server-key.pem \
+--client-ca-file=/opt/kubernetes/ssl/ca.pem \
+--service-account-key-file=/opt/kubernetes/ssl/ca-key.pem \
+--etcd-cafile=/opt/etcd/ssl/ca.pem \
+--etcd-certfile=/opt/etcd/ssl/server.pem \
+--etcd-keyfile=/opt/etcd/ssl/server-key.pem \
+--audit-log-maxage=30 \
+--audit-log-maxbackup=3 \
+--audit-log-maxsize=100 \
+--audit-log-path=/opt/kubernetes/logs/k8s-audit.log&quot;
+</code></pre>
+<p>参数说明：<br>
+--logtostderr 启用日志<br>
+---v 日志等级<br>
+--etcd-servers etcd集群地址<br>
+--bind-address 监听地址<br>
+--secure-port https安全端口<br>
+--advertise-address 集群通告地址<br>
+--allow-privileged 启用授权<br>
+--service-cluster-ip-range Service虚拟IP地址段<br>
+--enable-admission-plugins 准入控制模块<br>
+--authorization-mode 认证授权，启用RBAC授权和节点自管理<br>
+--enable-bootstrap-token-auth 启用TLS bootstrap功能，后面会讲到<br>
+--token-auth-file token文件<br>
+--service-node-port-range Service Node类型默认分配端口范围</p>
+<h4 id="642-systemd管理apiserver">6.4.2 systemd管理apiserver</h4>
+<pre><code>[root@k8s-master-01 cfg]# vim /usr/lib/systemd/system/kube-apiserver.service
+[Unit]
+Description=Kubernetes API Server
+Documentation=https://github.com/kubernetes/kubernetes
+
+[Service]
+EnvironmentFile=/opt/kubernetes/cfg/kube-apiserver.conf
+ExecStart=/opt/kubernetes/bin/kube-apiserver $KUBE_APISERVER_OPTS
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+<h4 id="643-启动apiserver">6.4.3 启动apiserver</h4>
+<pre><code>[root@k8s-master-01 cfg]# systemctl daemon-reload
+[root@k8s-master-01 cfg]# systemctl enable kube-apiserver
+[root@k8s-master-01 cfg]# systemctl restart kube-apiserver
+[root@k8s-master-01 cfg]# systemctl status kube-apiserver
+</code></pre>
+<h3 id="65-部署controller-manager">6.5 部署controller-manager</h3>
+<h4 id="651-创建controller-manager配置文件">6.5.1 创建controller-manager配置文件</h4>
+<pre><code>[root@k8s-master-01 cfg]# vim kube-controller-manager.conf 
+KUBE_CONTROLLER_MANAGER_OPTS=&quot;--logtostderr=false \
+--v=2 \
+--log-dir=/opt/kubernetes/logs \
+--leader-elect=true \
+--master=127.0.0.1:8080 \
+--address=127.0.0.1 \
+--allocate-node-cidrs=true \
+--cluster-cidr=10.244.0.0/16 \
+--service-cluster-ip-range=10.0.0.0/24 \
+--cluster-signing-cert-file=/opt/kubernetes/ssl/ca.pem \
+--cluster-signing-key-file=/opt/kubernetes/ssl/ca-key.pem  \
+--root-ca-file=/opt/kubernetes/ssl/ca.pem \
+--service-account-private-key-file=/opt/kubernetes/ssl/ca-key.pem \
+--experimental-cluster-signing-duration=87600h0m0s&quot;
+</code></pre>
+<p>参数说明：<br>
+--master 连接本地apiserver<br>
+--leader-elect 当该组件启动多个时，自动选举（HA）</p>
+<h4 id="652-systemd管理controller-manager">6.5.2 systemd管理controller-manager</h4>
+<pre><code>[root@k8s-master-01 cfg]# vim /usr/lib/systemd/system/kube-controller-manager.service
+[Unit]
+Description=Kubernetes Controller Manager
+Documentation=https://github.com/kubernetes/kubernetes
+
+[Service]
+EnvironmentFile=/opt/kubernetes/cfg/kube-controller-manager.conf
+ExecStart=/opt/kubernetes/bin/kube-controller-manager $KUBE_CONTROLLER_MANAGER_OPTS
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+<h4 id="653-启动controller-manager">6.5.3 启动controller-manager</h4>
+<pre><code>[root@master01 cfg]# systemctl daemon-reload
+[root@master01 cfg]# systemctl enable kube-controller-manager
+[root@master01 cfg]# systemctl restart kube-controller-manager
+[root@master01 cfg]# systemctl status kube-controller-manager
+</code></pre>
+<h3 id="66-部署kube-scheduler">6.6 部署kube-scheduler</h3>
+<h4 id="661-创建kube-scheduler配置文件">6.6.1 创建kube-scheduler配置文件</h4>
+<pre><code>[root@k8s-master-01 vim]# cat kube-scheduler.conf 
+KUBE_SCHEDULER_OPTS=&quot;--logtostderr=false \
+--v=2 \
+--log-dir=/opt/kubernetes/logs \
+--leader-elect \
+--master=127.0.0.1:8080 \
+--address=127.0.0.1&quot;
+</code></pre>
+<h4 id="662-systemd管理kube-scheduler">6.6.2 systemd管理kube-scheduler</h4>
+<pre><code>[root@master01 cfg]# vim /usr/lib/systemd/system/kube-scheduler.service
+[Unit]
+Description=Kubernetes Scheduler
+Documentation=https://github.com/kubernetes/kubernetes
+
+[Service]
+EnvironmentFile=/opt/kubernetes/cfg/kube-scheduler.conf
+ExecStart=/opt/kubernetes/bin/kube-scheduler $KUBE_SCHEDULER_OPTS
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+<h4 id="663-启动kube-scheduler">6.6.3 启动kube-scheduler</h4>
+<pre><code>[root@master01 cfg]# systemctl daemon-reload
+[root@master01 cfg]# systemctl enable kube-scheduler
+[root@master01 cfg]# systemctl restart kube-scheduler
+[root@master01 cfg]# systemctl status kube-scheduler
+</code></pre>
+<h3 id="66-给kubelet-bootstrap授权">6.6 给kubelet-bootstrap授权</h3>
+<p>Master apiserver启用TLS认证后，Node节点kubelet组件想要加入集群，必须使用CA签发的有效证书才能与apiserver通信，当Node节点很多时，签署证书是一件很繁琐的事情，因此有了TLS Bootstrapping机制，kubelet会以一个低权限用户自动向apiserver申请证书，kubelet的证书由apiserver动态签署。<br>
+TLS Bootstrapping认证机制：<br>
+<img src="https://image.ssgeek.com/20191008-03.png" alt=""></p>
+<pre><code>[root@k8s-master-01 cfg]# kubectl create clusterrolebinding kubelet-bootstrap \
+--clusterrole=system:node-bootstrapper \
+--user=kubelet-bootstrap
+clusterrolebinding.rbac.authorization.k8s.io/kubelet-bootstrap created
+</code></pre>
+<h3 id="67-检查集群状态">6.7 检查集群状态</h3>
+<pre><code>[root@master01 cfg]# cp /opt/kubernetes/bin/kubectl /usr/local/bin/
+[root@master01 cfg]# kubectl get cs
+NAME                 AGE
+scheduler            &lt;unknown&gt;
+controller-manager   &lt;unknown&gt;
+etcd-0               &lt;unknown&gt;
+etcd-1               &lt;unknown&gt;
+etcd-2               &lt;unknown&gt;
+</code></pre>
+<h2 id="7-部署node组件">7、部署Node组件</h2>
+<h3 id="71-安装docker">7.1、安装docker</h3>
+<p>docker二进制包下载地址：https://download.docker.com/linux/static/stable/x86_64/</p>
+<pre><code>[root@k8s-node-01 ~]# tar xf docker-18.09.6.tgz
+[root@k8s-node-01 ~]# mv docker/* /usr/bin/
+[root@k8s-node-01 ~]# mkdir /etc/docker
+[root@k8s-node-01 ~]# cd /etc/docker
+[root@k8s-node-01 ~]# vim /etc/docker/daemon.json 
+{
+    &quot;registry-mirrors&quot;: [&quot;http://bc437cce.m.daocloud.io&quot;]
+}
+[root@k8s-node-01 ~]# vim /usr/lib/systemd/system/docker.service 
+[Unit]
+Description=Docker Application Container Engine
+Documentation=https://docs.docker.com
+After=network-online.target firewalld.service containerd.service
+Wants=network-online.target
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/dockerd
+ExecReload=/bin/kill -s HUP $MAINPID
+TimeoutSec=0
+RestartSec=2
+Restart=always
+StartLimitBurst=3
+StartLimitInterval=60s
+LimitNOFILE=infinity
+LimitNPROC=infinity
+LimitCORE=infinity
+TasksMax=infinity
+Delegate=yes
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
+[root@k8s-node-01 ~]# systemctl daemon-reload 
+[root@k8s-node-01 ~]# systemctl enable docker.service 
+[root@k8s-node-01 ~]# systemctl start docker.service
+[root@k8s-node-01 ~]# docker version
+Client: Docker Engine - Community
+ Version:           18.09.6
+ API version:       1.39
+ Go version:        go1.10.8
+ Git commit:        481bc77
+ Built:             Sat May  4 02:33:34 2019
+ OS/Arch:           linux/amd64
+ Experimental:      false
+
+Server: Docker Engine - Community
+ Engine:
+  Version:          18.09.6
+  API version:      1.39 (minimum version 1.12)
+  Go version:       go1.10.8
+  Git commit:       481bc77
+  Built:            Sat May  4 02:41:08 2019
+  OS/Arch:          linux/amd64
+  Experimental:     false
+</code></pre>
+<h3 id="72-准备二进制包">7.2、准备二进制包</h3>
+<p>下载地址：https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG-1.16.md</p>
+<pre><code>[root@k8s-node-01 ~]# cd /usr/local/kubernetes/soft/
+[root@k8s-node-01 soft]# tar xf kubernetes-node-linux-amd64.tar.gz
+[root@k8s-node-01 soft]# cd kubernetes/node/bin/
+[root@k8s-node-01 soft]# mkdir /opt/kubernetes/{bin,cfg,ssl,logs} -p
+[root@k8s-node-01 bin]# cp kubelet kube-proxy /opt/kubernetes/bin/
+</code></pre>
+<h3 id="73-拷贝证书到node">7.3、拷贝证书到node</h3>
+<pre><code>[root@k8s-master-01 k8s-cert]# scp ca.pem kube-proxy.pem kube-proxy-key.pem root@192.168.2.11:/opt/kubernetes/ssl/
+</code></pre>
+<h3 id="74-部署kubelet">7.4、部署kubelet</h3>
+<h4 id="741-创建kubelet配置文件">7.4.1、创建kubelet配置文件</h4>
+<pre><code>[root@k8s-node-01 opt]# vim /opt/kubernetes/cfg/kubelet.conf
+KUBELET_OPTS=&quot;--logtostderr=false \
+--v=2 \
+--log-dir=/opt/kubernetes/logs \
+--hostname-override=k8s-node-01 \
+--network-plugin=cni \
+--kubeconfig=/opt/kubernetes/cfg/kubelet.kubeconfig \
+--bootstrap-kubeconfig=/opt/kubernetes/cfg/bootstrap.kubeconfig \
+--config=/opt/kubernetes/cfg/kubelet-config.yml \
+--cert-dir=/opt/kubernetes/ssl \
+--pod-infra-container-image=mirrorgooglecontainers/pause-amd64:3.0&quot;
+</code></pre>
+<p>参数说明：<br>
+--hostname-override：指定节点注册到k8s中显示的节点名称<br>
+--network-plugin：启用网络插件<br>
+--bootstrap-kubeconfig 指定刚才生成的bootstrap.kubeconfig文件<br>
+--cert-dir 颁发证书存放位置<br>
+--pod-infra-container-image 管理Pod网络的镜像</p>
+<h4 id="742-创建bootstrapkubeconfig文件">7.4.2、创建bootstrap.kubeconfig文件</h4>
+<pre><code>[root@k8s-node-01 opt]# vim /opt/kubernetes/cfg/bootstrap.kubeconfig 
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority: /opt/kubernetes/ssl/ca.pem
+    server: https://192.168.2.10:6443
+  name: kubernetes
+contexts:
+- context:
+    cluster: kubernetes
+    user: kubelet-bootstrap
+  name: default
+current-context: default
+kind: Config
+preferences: {}
+users:
+- name: kubelet-bootstrap
+  user:
+    token: c47ffb939f5ca36231d9e3121a252940
+</code></pre>
+<h4 id="743-创建kubelet-configyml文件">7.4.3、创建kubelet-config.yml文件</h4>
+<pre><code>[root@k8s-node-01 opt]# vim /opt/kubernetes/cfg/kubelet-config.yml 
+kind: KubeletConfiguration
+apiVersion: kubelet.config.k8s.io/v1beta1
+address: 0.0.0.0
+port: 10250
+readOnlyPort: 10255
+cgroupDriver: cgroupfs
+clusterDNS:
+- 10.0.0.2
+clusterDomain: cluster.local 
+failSwapOn: false
+authentication:
+  anonymous:
+    enabled: false
+  webhook:
+    cacheTTL: 2m0s
+    enabled: true
+  x509:
+    clientCAFile: /opt/kubernetes/ssl/ca.pem 
+authorization:
+  mode: Webhook
+  webhook:
+    cacheAuthorizedTTL: 5m0s
+    cacheUnauthorizedTTL: 30s
+evictionHard:
+  imagefs.available: 15%
+  memory.available: 100Mi
+  nodefs.available: 10%
+  nodefs.inodesFree: 5%
+maxOpenFiles: 1000000
+maxPods: 110
+</code></pre>
+<h4 id="744-创建kubeletkubeconfig文件">7.4.4、创建kubelet.kubeconfig文件</h4>
+<pre><code>[root@k8s-node-01 cfg]# vim /opt/kubernetes/cfg/kubelet.kubeconfig
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority: /opt/kubernetes/ssl/ca.pem
+    server: https://192.168.2.10:6443
+  name: default-cluster
+contexts:
+- context:
+    cluster: default-cluster
+    namespace: default
+    user: default-auth
+  name: default-context
+current-context: default-context
+kind: Config
+preferences: {}
+users:
+- name: default-auth
+  user:
+    client-certificate: /opt/kubernetes/ssl/kubelet-client-current.pem
+    client-key: /opt/kubernetes/ssl/kubelet-client-current.pem
+</code></pre>
+<h4 id="745-systemd管理kubelet">7.4.5、systemd管理kubelet</h4>
+<pre><code>[root@k8s-node-01 ~]# vim /usr/lib/systemd/system/kubelet.service
+[Unit]
+Description=Kubernetes Kubelet
+After=docker.service
+Before=docker.service
+
+[Service]
+EnvironmentFile=/opt/kubernetes/cfg/kubelet.conf
+ExecStart=/opt/kubernetes/bin/kubelet $KUBELET_OPTS
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+<h4 id="746-启动服务">7.4.6、启动服务</h4>
+<pre><code>[root@k8s-node-01 ~]# systemctl daemon-reload 
+[root@k8s-node-01 ~]# systemctl enable kubelet.service 
+Created symlink from /etc/systemd/system/multi-user.target.wants/kubelet.service to /usr/lib/systemd/system/kubelet.service.
+[root@k8s-node-01 ~]# systemctl start kubelet.service
+</code></pre>
+<h4 id="747-允许给node颁发证书">7.4.7、允许给Node颁发证书</h4>
+<pre><code>[root@k8s-master-01 ~]# kubectl get csr
+NAME                                                   AGE   REQUESTOR           CONDITION
+node-csr-xjZUw-J4jvu4ht0mtt05-lP3hYcQQHt-DEKkm-gRg4Y   80s   kubelet-bootstrap   Pending
+[root@k8s-master-01 ~]# kubectl certificate approve node-csr-xjZUw-J4jvu4ht0mtt05-lP3hYcQQHt-DEKkm-gRg4Y
+certificatesigningrequest.certificates.k8s.io/node-csr-xjZUw-J4jvu4ht0mtt05-lP3hYcQQHt-DEKkm-gRg4Y approved
+[root@k8s-master-01 ~]# kubectl get csr
+NAME                                                   AGE   REQUESTOR           CONDITION
+node-csr-xjZUw-J4jvu4ht0mtt05-lP3hYcQQHt-DEKkm-gRg4Y   94s   kubelet-bootstrap   Approved,Issued
+[root@k8s-master-01 ~]# kubectl get nodes
+NAME          STATUS     ROLES    AGE   VERSION
+k8s-node-01   NotReady   &lt;none&gt;   7s    v1.16.0
+[root@k8s-node-01 kubernetes]# ll /opt/kubernetes/ssl/
+total 24
+-rw-r--r-- 1 root root 1359 Oct  7 23:15 ca.pem
+-rw------- 1 root root 1273 Oct  7 23:23 kubelet-client-2019-10-07-23-23-29.pem
+lrwxrwxrwx 1 root root   58 Oct  7 23:23 kubelet-client-current.pem -&gt; /opt/kubernetes/ssl/kubelet-client-2019-10-07-23-23-29.pem
+-rw-r--r-- 1 root root 2185 Oct  7 23:22 kubelet.crt
+-rw------- 1 root root 1675 Oct  7 23:22 kubelet.key
+-rw------- 1 root root 1679 Oct  7 23:15 kube-proxy-key.pem
+-rw-r--r-- 1 root root 1403 Oct  7 23:15 kube-proxy.pem
+</code></pre>
+<h3 id="75-部署kube-proxy">7.5、部署kube-proxy</h3>
+<h4 id="751-创建kube-proxy配置文件">7.5.1、创建kube-proxy配置文件</h4>
+<pre><code>[root@k8s-node-01 opt]# vim /opt/kubernetes/cfg/kube-proxy.conf 
+KUBE_PROXY_OPTS=&quot;--logtostderr=false \
+--v=2 \
+--log-dir=/opt/kubernetes/logs \
+--config=/opt/kubernetes/cfg/kube-proxy-config.yml&quot;
+</code></pre>
+<h4 id="752-创建kube-proxykubeconfig文件">7.5.2、创建kube-proxy.kubeconfig文件</h4>
+<pre><code>[root@k8s-node-01 opt]# vim /opt/kubernetes/cfg/kube-proxy.kubeconfig 
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority: /opt/kubernetes/ssl/ca.pem
+    server: https://192.168.2.10:6443
+  name: kubernetes
+contexts:
+- context:
+    cluster: kubernetes
+    user: kube-proxy
+  name: default
+current-context: default
+kind: Config
+preferences: {}
+users:
+- name: kube-proxy
+  user:
+    client-certificate: /opt/kubernetes/ssl/kube-proxy.pem
+    client-key: /opt/kubernetes/ssl/kube-proxy-key.pem
+</code></pre>
+<h4 id="753-创建kube-proxy-configyml文件">7.5.3、创建kube-proxy-config.yml文件</h4>
+<pre><code>[root@k8s-node-01 opt]# cat /opt/kubernetes/cfg/kube-proxy-config.yml 
+kind: KubeProxyConfiguration
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+address: 0.0.0.0
+metricsBindAddress: 0.0.0.0:10249
+clientConnection:
+  kubeconfig: /opt/kubernetes/cfg/kube-proxy.kubeconfig
+hostnameOverride: k8s-node-01
+clusterCIDR: 10.0.0.0/24
+mode: ipvs
+ipvs:
+  scheduler: &quot;rr&quot;
+iptables:
+  masqueradeAll: true
+</code></pre>
+<h4 id="754-systemd管理kube-proxy">7.5.4、systemd管理kube-proxy</h4>
+<pre><code>[root@k8s-node-01 ~]# vim /usr/lib/systemd/system/kube-proxy.service
+[Unit]
+Description=Kubernetes Proxy
+After=network.target
+
+[Service]
+EnvironmentFile=/opt/kubernetes/cfg/kube-proxy.conf
+ExecStart=/opt/kubernetes/bin/kube-proxy $KUBE_PROXY_OPTS
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+<h4 id="755-启动服务">7.5.5、启动服务</h4>
+<pre><code>[root@k8s-node-01 kubernetes]# systemctl daemon-reload
+[root@k8s-node-01 kubernetes]# systemctl enable kube-proxy.service 
+[root@k8s-node-01 kubernetes]# systemctl start kube-proxy.service
+[root@k8s-node-01 kubernetes]# systemctl status kube-proxy.service
+</code></pre>
+<h3 id="76-部署另外一个node">7.6、部署另外一个node</h3>
+<p>步骤省略</p>
+<h3 id="77-部署cni网络插件">7.7、部署cni网络插件</h3>
+<p>相关内容可参考：https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/</p>
+<h4 id="771-准备二进制包">7.7.1、准备二进制包</h4>
+<p>下载地址：https://github.com/containernetworking/plugins/releases</p>
+<pre><code>[root@k8s-node-01 ~]# mkdir /opt/cni/bin -p
+[root@k8s-node-01 ~]# mkdir /etc/cni/net.d -p
+[root@k8s-node-01 soft]# tar xf cni-plugins-linux-amd64-v0.8.2.tgz -C /opt/cni/bin/
+</code></pre>
+<h4 id="772-部署k8s集群网络">7.7.2、部署k8s集群网络</h4>
+<p>yaml文件下载地址https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml<br>
+确保yaml文件中的镜像地址可正常下载，json文件中的网络地址与集群规划中相符合</p>
+<pre><code>[root@k8s-master-01 ~]# cat kube-flannel.yml
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: psp.flannel.unprivileged
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: docker/default
+    seccomp.security.alpha.kubernetes.io/defaultProfileName: docker/default
+    apparmor.security.beta.kubernetes.io/allowedProfileNames: runtime/default
+    apparmor.security.beta.kubernetes.io/defaultProfileName: runtime/default
+spec:
+  privileged: false
+  volumes:
+    - configMap
+    - secret
+    - emptyDir
+    - hostPath
+  allowedHostPaths:
+    - pathPrefix: &quot;/etc/cni/net.d&quot;
+    - pathPrefix: &quot;/etc/kube-flannel&quot;
+    - pathPrefix: &quot;/run/flannel&quot;
+  readOnlyRootFilesystem: false
+  # Users and groups
+  runAsUser:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  fsGroup:
+    rule: RunAsAny
+  # Privilege Escalation
+  allowPrivilegeEscalation: false
+  defaultAllowPrivilegeEscalation: false
+  # Capabilities
+  allowedCapabilities: ['NET_ADMIN']
+  defaultAddCapabilities: []
+  requiredDropCapabilities: []
+  # Host namespaces
+  hostPID: false
+  hostIPC: false
+  hostNetwork: true
+  hostPorts:
+  - min: 0
+    max: 65535
+  # SELinux
+  seLinux:
+    # SELinux is unsed in CaaSP
+    rule: 'RunAsAny'
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: flannel
+rules:
+  - apiGroups: ['extensions']
+    resources: ['podsecuritypolicies']
+    verbs: ['use']
+    resourceNames: ['psp.flannel.unprivileged']
+  - apiGroups:
+      - &quot;&quot;
+    resources:
+      - pods
+    verbs:
+      - get
+  - apiGroups:
+      - &quot;&quot;
+    resources:
+      - nodes
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - &quot;&quot;
+    resources:
+      - nodes/status
+    verbs:
+      - patch
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: flannel
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: flannel
+subjects:
+- kind: ServiceAccount
+  name: flannel
+  namespace: kube-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: flannel
+  namespace: kube-system
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: kube-flannel-cfg
+  namespace: kube-system
+  labels:
+    tier: node
+    app: flannel
+data:
+  cni-conf.json: |
+    {
+      &quot;name&quot;: &quot;cbr0&quot;,
+      &quot;cniVersion&quot;: &quot;0.3.1&quot;,
+      &quot;plugins&quot;: [
+        {
+          &quot;type&quot;: &quot;flannel&quot;,
+          &quot;delegate&quot;: {
+            &quot;hairpinMode&quot;: true,
+            &quot;isDefaultGateway&quot;: true
+          }
+        },
+        {
+          &quot;type&quot;: &quot;portmap&quot;,
+          &quot;capabilities&quot;: {
+            &quot;portMappings&quot;: true
+          }
+        }
+      ]
+    }
+  net-conf.json: |
+    {
+      &quot;Network&quot;: &quot;10.244.0.0/16&quot;,
+      &quot;Backend&quot;: {
+        &quot;Type&quot;: &quot;vxlan&quot;
+      }
+    }
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-flannel-ds-amd64
+  namespace: kube-system
+  labels:
+    tier: node
+    app: flannel
+spec:
+  selector:
+    matchLabels:
+      app: flannel
+  template:
+    metadata:
+      labels:
+        tier: node
+        app: flannel
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: beta.kubernetes.io/os
+                    operator: In
+                    values:
+                      - linux
+                  - key: beta.kubernetes.io/arch
+                    operator: In
+                    values:
+                      - amd64
+      hostNetwork: true
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
+      serviceAccountName: flannel
+      initContainers:
+      - name: install-cni
+        image: quay.io/coreos/flannel:v0.11.0-amd64
+        command:
+        - cp
+        args:
+        - -f
+        - /etc/kube-flannel/cni-conf.json
+        - /etc/cni/net.d/10-flannel.conflist
+        volumeMounts:
+        - name: cni
+          mountPath: /etc/cni/net.d
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      containers:
+      - name: kube-flannel
+        image: quay.io/coreos/flannel:v0.11.0-amd64
+        command:
+        - /opt/bin/flanneld
+        args:
+        - --ip-masq
+        - --kube-subnet-mgr
+        resources:
+          requests:
+            cpu: &quot;100m&quot;
+            memory: &quot;50Mi&quot;
+          limits:
+            cpu: &quot;100m&quot;
+            memory: &quot;50Mi&quot;
+        securityContext:
+          privileged: false
+          capabilities:
+             add: [&quot;NET_ADMIN&quot;]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: run
+          mountPath: /run/flannel
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      volumes:
+        - name: run
+          hostPath:
+            path: /run/flannel
+        - name: cni
+          hostPath:
+            path: /etc/cni/net.d
+        - name: flannel-cfg
+          configMap:
+            name: kube-flannel-cfg
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-flannel-ds-arm64
+  namespace: kube-system
+  labels:
+    tier: node
+    app: flannel
+spec:
+  selector:
+    matchLabels:
+      app: flannel
+  template:
+    metadata:
+      labels:
+        tier: node
+        app: flannel
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: beta.kubernetes.io/os
+                    operator: In
+                    values:
+                      - linux
+                  - key: beta.kubernetes.io/arch
+                    operator: In
+                    values:
+                      - arm64
+      hostNetwork: true
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
+      serviceAccountName: flannel
+      initContainers:
+      - name: install-cni
+        image: quay.io/coreos/flannel:v0.11.0-arm64
+        command:
+        - cp
+        args:
+        - -f
+        - /etc/kube-flannel/cni-conf.json
+        - /etc/cni/net.d/10-flannel.conflist
+        volumeMounts:
+        - name: cni
+          mountPath: /etc/cni/net.d
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      containers:
+      - name: kube-flannel
+        image: quay.io/coreos/flannel:v0.11.0-arm64
+        command:
+        - /opt/bin/flanneld
+        args:
+        - --ip-masq
+        - --kube-subnet-mgr
+        resources:
+          requests:
+            cpu: &quot;100m&quot;
+            memory: &quot;50Mi&quot;
+          limits:
+            cpu: &quot;100m&quot;
+            memory: &quot;50Mi&quot;
+        securityContext:
+          privileged: false
+          capabilities:
+             add: [&quot;NET_ADMIN&quot;]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: run
+          mountPath: /run/flannel
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      volumes:
+        - name: run
+          hostPath:
+            path: /run/flannel
+        - name: cni
+          hostPath:
+            path: /etc/cni/net.d
+        - name: flannel-cfg
+          configMap:
+            name: kube-flannel-cfg
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-flannel-ds-arm
+  namespace: kube-system
+  labels:
+    tier: node
+    app: flannel
+spec:
+  selector:
+    matchLabels:
+      app: flannel
+  template:
+    metadata:
+      labels:
+        tier: node
+        app: flannel
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: beta.kubernetes.io/os
+                    operator: In
+                    values:
+                      - linux
+                  - key: beta.kubernetes.io/arch
+                    operator: In
+                    values:
+                      - arm
+      hostNetwork: true
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
+      serviceAccountName: flannel
+      initContainers:
+      - name: install-cni
+        image: quay.io/coreos/flannel:v0.11.0-arm
+        command:
+        - cp
+        args:
+        - -f
+        - /etc/kube-flannel/cni-conf.json
+        - /etc/cni/net.d/10-flannel.conflist
+        volumeMounts:
+        - name: cni
+          mountPath: /etc/cni/net.d
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      containers:
+      - name: kube-flannel
+        image: quay.io/coreos/flannel:v0.11.0-arm
+        command:
+        - /opt/bin/flanneld
+        args:
+        - --ip-masq
+        - --kube-subnet-mgr
+        resources:
+          requests:
+            cpu: &quot;100m&quot;
+            memory: &quot;50Mi&quot;
+          limits:
+            cpu: &quot;100m&quot;
+            memory: &quot;50Mi&quot;
+        securityContext:
+          privileged: false
+          capabilities:
+             add: [&quot;NET_ADMIN&quot;]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: run
+          mountPath: /run/flannel
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      volumes:
+        - name: run
+          hostPath:
+            path: /run/flannel
+        - name: cni
+          hostPath:
+            path: /etc/cni/net.d
+        - name: flannel-cfg
+          configMap:
+            name: kube-flannel-cfg
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-flannel-ds-ppc64le
+  namespace: kube-system
+  labels:
+    tier: node
+    app: flannel
+spec:
+  selector:
+    matchLabels:
+      app: flannel
+  template:
+    metadata:
+      labels:
+        tier: node
+        app: flannel
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: beta.kubernetes.io/os
+                    operator: In
+                    values:
+                      - linux
+                  - key: beta.kubernetes.io/arch
+                    operator: In
+                    values:
+                      - ppc64le
+      hostNetwork: true
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
+      serviceAccountName: flannel
+      initContainers:
+      - name: install-cni
+        image: quay.io/coreos/flannel:v0.11.0-ppc64le
+        command:
+        - cp
+        args:
+        - -f
+        - /etc/kube-flannel/cni-conf.json
+        - /etc/cni/net.d/10-flannel.conflist
+        volumeMounts:
+        - name: cni
+          mountPath: /etc/cni/net.d
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      containers:
+      - name: kube-flannel
+        image: quay.io/coreos/flannel:v0.11.0-ppc64le
+        command:
+        - /opt/bin/flanneld
+        args:
+        - --ip-masq
+        - --kube-subnet-mgr
+        resources:
+          requests:
+            cpu: &quot;100m&quot;
+            memory: &quot;50Mi&quot;
+          limits:
+            cpu: &quot;100m&quot;
+            memory: &quot;50Mi&quot;
+        securityContext:
+          privileged: false
+          capabilities:
+             add: [&quot;NET_ADMIN&quot;]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: run
+          mountPath: /run/flannel
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      volumes:
+        - name: run
+          hostPath:
+            path: /run/flannel
+        - name: cni
+          hostPath:
+            path: /etc/cni/net.d
+        - name: flannel-cfg
+          configMap:
+            name: kube-flannel-cfg
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-flannel-ds-s390x
+  namespace: kube-system
+  labels:
+    tier: node
+    app: flannel
+spec:
+  selector:
+    matchLabels:
+      app: flannel
+  template:
+    metadata:
+      labels:
+        tier: node
+        app: flannel
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: beta.kubernetes.io/os
+                    operator: In
+                    values:
+                      - linux
+                  - key: beta.kubernetes.io/arch
+                    operator: In
+                    values:
+                      - s390x
+      hostNetwork: true
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
+      serviceAccountName: flannel
+      initContainers:
+      - name: install-cni
+        image: quay.io/coreos/flannel:v0.11.0-s390x
+        command:
+        - cp
+        args:
+        - -f
+        - /etc/kube-flannel/cni-conf.json
+        - /etc/cni/net.d/10-flannel.conflist
+        volumeMounts:
+        - name: cni
+          mountPath: /etc/cni/net.d
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      containers:
+      - name: kube-flannel
+        image: quay.io/coreos/flannel:v0.11.0-s390x
+        command:
+        - /opt/bin/flanneld
+        args:
+        - --ip-masq
+        - --kube-subnet-mgr
+        resources:
+          requests:
+            cpu: &quot;100m&quot;
+            memory: &quot;50Mi&quot;
+          limits:
+            cpu: &quot;100m&quot;
+            memory: &quot;50Mi&quot;
+        securityContext:
+          privileged: false
+          capabilities:
+             add: [&quot;NET_ADMIN&quot;]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: run
+          mountPath: /run/flannel
+        - name: flannel-cfg
+          mountPath: /etc/kube-flannel/
+      volumes:
+        - name: run
+          hostPath:
+            path: /run/flannel
+        - name: cni
+          hostPath:
+            path: /etc/cni/net.d
+        - name: flannel-cfg
+          configMap:
+            name: kube-flannel-cfg
+[root@k8s-master-01 ~]# kubectl apply -f kube-flannel.yml 
+podsecuritypolicy.policy/psp.flannel.unprivileged created
+clusterrole.rbac.authorization.k8s.io/flannel created
+clusterrolebinding.rbac.authorization.k8s.io/flannel created
+serviceaccount/flannel created
+configmap/kube-flannel-cfg created
+daemonset.apps/kube-flannel-ds-amd64 created
+daemonset.apps/kube-flannel-ds-arm64 created
+daemonset.apps/kube-flannel-ds-arm created
+daemonset.apps/kube-flannel-ds-ppc64le created
+daemonset.apps/kube-flannel-ds-s390x created
+[root@k8s-master-01 ~]# kubectl get pods -n kube-system
+NAME                          READY   STATUS    RESTARTS   AGE
+kube-flannel-ds-amd64-6z2f8   1/1     Running   0          32s
+kube-flannel-ds-amd64-qwb9h   1/1     Running   0          32s
+</code></pre>
+<p>创建角色绑定，授权查看日志</p>
+<pre><code>[root@k8s-master-01 ~]# kubectl create clusterrolebinding kube-apiserver:kubelet-apis --clusterrole=system:kubelet-api-admin --user kubernetes
+[root@k8s-master-01 ~]# kubectl -n kube-system logs -f kube-flannel-ds-amd64-6z2f8
+</code></pre>
+<h4 id="773-创建一个测试pod查看是否成功">7.7.3、创建一个测试pod，查看是否成功</h4>
+<pre><code>[root@k8s-master-01 ~]# kubectl create deployment test-nginx --image=nginx
+deployment.apps/test-nginx created
+[root@k8s-master-01 ~]# kubectl get pods 
+NAME                          READY   STATUS              RESTARTS   AGE
+test-nginx-7d97ffc85d-gzxrl   0/1     ContainerCreating   0          3s
+[root@k8s-master-01 ~]# kubectl get pods -o wide
+NAME                          READY   STATUS    RESTARTS   AGE   IP           NODE          NOMINATED NODE   READINESS GATES
+test-nginx-7d97ffc85d-gzxrl   1/1     Running   0          48s   10.244.1.2   k8s-node-02   &lt;none&gt;           &lt;none&gt;
+# 查看对应node上是否有cni网卡生成
+[root@k8s-node-02 ~]# ifconfig cni0
+cni0: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1450
+        inet 10.244.1.1  netmask 255.255.255.0  broadcast 10.244.1.255
+        inet6 fe80::5c7c:daff:fe3f:a6bd  prefixlen 64  scopeid 0x20&lt;link&gt;
+        ether 5e:7c:da:3f:a6:bd  txqueuelen 1000  (Ethernet)
+        RX packets 1  bytes 28 (28.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 8  bytes 656 (656.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+# 暴露服务
+[root@k8s-master-01 ~]# kubectl expose deployment test-nginx --port=80 --type=NodePort
+service/test-nginx exposed
+[root@k8s-master-01 ~]# kubectl get svc
+NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)        AGE
+kubernetes   ClusterIP   10.0.0.1     &lt;none&gt;        443/TCP        15h
+test-nginx   NodePort    10.0.0.91    &lt;none&gt;        80:32089/TCP   26s
+# 在node上通过nodeip:32089访问是否正常
+</code></pre>
+<h3 id="78-授权apiserver访问kubelet">7.8、授权apiserver访问kubelet</h3>
+<p>为提供安全性，kubelet禁止匿名访问，必须授权才可以访问</p>
+<pre><code>[root@k8s-master-01 ~]# vim apiserver-to-kubelet-rbac.yaml 
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: &quot;true&quot;
+  labels:
+    kubernetes.io/bootstrapping: rbac-defaults
+  name: system:kube-apiserver-to-kubelet
+rules:
+  - apiGroups:
+      - &quot;&quot;
+    resources:
+      - nodes/proxy
+      - nodes/stats
+      - nodes/log
+      - nodes/spec
+      - nodes/metrics
+      - pods/log
+    verbs:
+      - &quot;*&quot;
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: system:kube-apiserver
+  namespace: &quot;&quot;
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:kube-apiserver-to-kubelet
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: kubernetes
+[root@k8s-master-01 ~]# kubectl apply -f apiserver-to-kubelet-rbac.yaml
+clusterrole.rbac.authorization.k8s.io/system:kube-apiserver-to-kubelet created
+clusterrolebinding.rbac.authorization.k8s.io/system:kube-apiserver created
+</code></pre>
+<h2 id="8-部署web-uidashboard">8、部署Web UI（Dashboard）</h2>
+<h3 id="81-部署dashboard">8.1、部署dashboard</h3>
+<p>地址：https://github.com/kubernetes/dashboard<br>
+文档：https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/<br>
+部署最新版本v2.0.0-beta4，下载yaml</p>
+<pre><code>[root@k8s-master-01 ~]# wget -c https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta4/aio/deploy/recommended.yaml
+# 修改service类型为nodeport
+[root@k8s-master-01 ~]# vim recommended.yaml
+...
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    k8s-app: kubernetes-dashboard
+  name: kubernetes-dashboard
+  namespace: kubernetes-dashboard
+spec:
+  type: NodePort
+  ports:
+    - port: 443
+      targetPort: 8443
+      nodePort: 30001
+  selector:
+    k8s-app: kubernetes-dashboard
+...
+[root@k8s-master-01 ~]# kubectl apply -f recommended.yaml 
+namespace/kubernetes-dashboard created
+serviceaccount/kubernetes-dashboard created
+service/kubernetes-dashboard created
+secret/kubernetes-dashboard-certs created
+secret/kubernetes-dashboard-csrf created
+secret/kubernetes-dashboard-key-holder created
+configmap/kubernetes-dashboard-settings created
+role.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrole.rbac.authorization.k8s.io/kubernetes-dashboard created
+rolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+deployment.apps/kubernetes-dashboard created
+service/dashboard-metrics-scraper created
+deployment.apps/dashboard-metrics-scraper created
+[root@k8s-master-01 ~]# kubectl get pods -n kubernetes-dashboard
+NAME                                         READY   STATUS    RESTARTS   AGE
+dashboard-metrics-scraper-566cddb686-trqhd   1/1     Running   0          70s
+kubernetes-dashboard-7b5bf5d559-8bzbh        1/1     Running   0          70s
+[root@k8s-master-01 ~]# kubectl get svc -n kubernetes-dashboard    
+NAME                        TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)         AGE
+dashboard-metrics-scraper   ClusterIP   10.0.0.199   &lt;none&gt;        8000/TCP        81s
+kubernetes-dashboard        NodePort    10.0.0.107   &lt;none&gt;        443:30001/TCP   81s
+# 在node上通过https://nodeip:30001访问是否正常
+</code></pre>
+<h3 id="82-创建service-account并绑定默认cluster-admin管理员集群角色">8.2、创建service account并绑定默认cluster-admin管理员集群角色</h3>
+<pre><code>[root@k8s-master-01 ~]# vim dashboard-adminuser.yaml 
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kubernetes-dashboard
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kubernetes-dashboard
+[root@k8s-master-01 ~]# kubectl apply -f dashboard-adminuser.yaml
+serviceaccount/admin-user created
+clusterrolebinding.rbac.authorization.k8s.io/admin-user created
+# 获取token
+[root@k8s-master-01 ~]# kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
+Name:         admin-user-token-24qrg
+Namespace:    kubernetes-dashboard
+Labels:       &lt;none&gt;
+Annotations:  kubernetes.io/service-account.name: admin-user
+              kubernetes.io/service-account.uid: 4efbdf22-ef2b-485f-b177-28c085c71dc9
+
+Type:  kubernetes.io/service-account-token
+
+Data
+====
+ca.crt:     1359 bytes
+namespace:  20 bytes
+token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IlRMSFVUZGxOaU1zODRVdVptTkVnOV9wTEUzaGhZZDJVaVNzTndrZU9zUmsifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJhZG1pbi11c2VyLXRva2VuLTI0cXJnIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6ImFkbWluLXVzZXIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiI0ZWZiZGYyMi1lZjJiLTQ4NWYtYjE3Ny0yOGMwODVjNzFkYzkiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6a3ViZXJuZXRlcy1kYXNoYm9hcmQ6YWRtaW4tdXNlciJ9.fM9b4zU45ZI1SsWhg9_v3z3-C6Y173Y3d1xUwp9GdFyTN3FSKfxwBMQbo2lC1mDick13dnqnnHoLzE55zTamGmJdWK_9HUbEV3qDgtCNYISujiQazfbAmv-ctWPU7RoWqiJ5MztK5K4g-mFTEJWNrb0KQjs1tCVvC3S3Es2VkCHztBoM0JM3WYrW0lyruQmDf5KeXn3mw_TBlAKd4A-EUYZJ27-eKLbRyGRjbvI4I93DaOlidXbXkRq3dJXKOKjveVUaleY20cog4_hAkiQWIiUFImrHhv23h9AfCO5z7JhgWXNWMKL9aZSf1PXuDutAymdyNjIKqlHwE4tc4EVS1Q
+</code></pre>
+<h3 id="83-使用token登录到dashboard界面">8.3、使用token登录到dashboard界面</h3>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20191008-04.png" alt=""></figure>
+<h2 id="9-部署集群内部dns解析服务coredns">9、部署集群内部DNS解析服务（CoreDNS）</h2>
+<p>DNS服务监视Kubernetes API，为每一个Service创建DNS记录用于域名解析。<br>
+ClusterIP A记录格式：<service-name>.<namespace-name>.svc.cluster.local<br>
+示例：my-svc.my-namespace.svc.cluster.local<br>
+部署CoreDNS，修改官方yaml中的镜像地址，域名称cluster.local，dns的clusterip<br>
+https://github.com/kubernetes/kubernetes/tree/master/cluster/addons/dns/coredns</p>
+<h3 id="91-部署coredns">9.1、部署coredns</h3>
+<p>下载yaml，修改配置</p>
+<pre><code>[root@k8s-master-01 ~]# cat coredns.yaml
+# Warning: This is a file generated from the base underscore template file: coredns.yaml.base
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: coredns
+  namespace: kube-system
+  labels:
+      kubernetes.io/cluster-service: &quot;true&quot;
+      addonmanager.kubernetes.io/mode: Reconcile
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    kubernetes.io/bootstrapping: rbac-defaults
+    addonmanager.kubernetes.io/mode: Reconcile
+  name: system:coredns
+rules:
+- apiGroups:
+  - &quot;&quot;
+  resources:
+  - endpoints
+  - services
+  - pods
+  - namespaces
+  verbs:
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: &quot;true&quot;
+  labels:
+    kubernetes.io/bootstrapping: rbac-defaults
+    addonmanager.kubernetes.io/mode: EnsureExists
+  name: system:coredns
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:coredns
+subjects:
+- kind: ServiceAccount
+  name: coredns
+  namespace: kube-system
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns
+  namespace: kube-system
+  labels:
+      addonmanager.kubernetes.io/mode: EnsureExists
+data:
+  Corefile: |
+    .:53 {
+        errors
+        health
+        kubernetes cluster.local in-addr.arpa ip6.arpa {
+            pods insecure
+            upstream
+            fallthrough in-addr.arpa ip6.arpa
+        }
+        prometheus :9153
+        proxy . /etc/resolv.conf
+        cache 30
+        loop
+        reload
+        loadbalance
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coredns
+  namespace: kube-system
+  labels:
+    k8s-app: kube-dns
+    kubernetes.io/cluster-service: &quot;true&quot;
+    addonmanager.kubernetes.io/mode: Reconcile
+    kubernetes.io/name: &quot;CoreDNS&quot;
+spec:
+  # replicas: not specified here:
+  # 1. In order to make Addon Manager do not reconcile this replicas parameter.
+  # 2. Default is 1.
+  # 3. Will be tuned in real time if DNS horizontal auto-scaling is turned on.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      k8s-app: kube-dns
+  template:
+    metadata:
+      labels:
+        k8s-app: kube-dns
+      annotations:
+        seccomp.security.alpha.kubernetes.io/pod: 'docker/default'
+    spec:
+      serviceAccountName: coredns
+      tolerations:
+        - key: node-role.kubernetes.io/master
+          effect: NoSchedule
+        - key: &quot;CriticalAddonsOnly&quot;
+          operator: &quot;Exists&quot;
+      containers:
+      - name: coredns
+        image: lizhenliang/coredns:1.2.2
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            memory: 170Mi
+          requests:
+            cpu: 100m
+            memory: 70Mi
+        args: [ &quot;-conf&quot;, &quot;/etc/coredns/Corefile&quot; ]
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/coredns
+          readOnly: true
+        ports:
+        - containerPort: 53
+          name: dns
+          protocol: UDP
+        - containerPort: 53
+          name: dns-tcp
+          protocol: TCP
+        - containerPort: 9153
+          name: metrics
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 60
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 5
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            add:
+            - NET_BIND_SERVICE
+            drop:
+            - all
+          readOnlyRootFilesystem: true
+      dnsPolicy: Default
+      volumes:
+        - name: config-volume
+          configMap:
+            name: coredns
+            items:
+            - key: Corefile
+              path: Corefile
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kube-dns
+  namespace: kube-system
+  annotations:
+    prometheus.io/port: &quot;9153&quot;
+    prometheus.io/scrape: &quot;true&quot;
+  labels:
+    k8s-app: kube-dns
+    kubernetes.io/cluster-service: &quot;true&quot;
+    addonmanager.kubernetes.io/mode: Reconcile
+    kubernetes.io/name: &quot;CoreDNS&quot;
+spec:
+  selector:
+    k8s-app: kube-dns
+  clusterIP: 10.0.0.2 
+  ports:
+  - name: dns
+    port: 53
+    protocol: UDP
+  - name: dns-tcp
+    port: 53
+    protocol: TCP
+[root@k8s-master-01 ~]# kubectl apply -f coredns.yaml 
+serviceaccount/coredns created
+clusterrole.rbac.authorization.k8s.io/system:coredns created
+clusterrolebinding.rbac.authorization.k8s.io/system:coredns created
+configmap/coredns created
+deployment.apps/coredns created
+service/kube-dns created
+[root@k8s-master-01 ~]# kubectl get pods -n kube-system
+NAME                          READY   STATUS    RESTARTS   AGE
+coredns-6d8cfdd59d-czx9w      1/1     Running   0          7s
+kube-flannel-ds-amd64-6z2f8   1/1     Running   0          120m
+kube-flannel-ds-amd64-qwb9h   1/1     Running   0          120m
+</code></pre>
+<h3 id="92-测试dns是否可用">9.2、测试dns是否可用</h3>
+<pre><code>[root@k8s-master-01 ~]# vim bs.yaml 
+apiVersion: v1
+kind: Pod
+metadata: 
+    name: busybox
+    namespace: default
+spec:
+    containers:
+      - image: busybox:1.28.4
+        command:
+          - sleep
+          - &quot;3600&quot;
+        imagePullPolicy: IfNotPresent
+        name: busybox
+    restartPolicy: Always
+[root@k8s-master-01 ~]# kubectl apply -f bs.yaml 
+pod/busybox created
+[root@k8s-master-01 ~]# kubectl get pods
+NAME                          READY   STATUS    RESTARTS   AGE
+busybox                       1/1     Running   0          16s
+[root@k8s-master-01 YAML]# kubectl exec -it busybox sh
+/ # nslookup kubernetes
+Server:    10.0.0.2
+Address 1: 10.0.0.2 kube-dns.kube-system.svc.cluster.local
+
+Name:      kubernetes
+Address 1: 10.0.0.1 kubernetes.default.svc.cluster.local
+/ # nslookup kubernetes.default.svc.cluster.local
+Server:    10.0.0.2
+Address 1: 10.0.0.2 kube-dns.kube-system.svc.cluster.local
+
+Name:      kubernetes.default.svc.cluster.local
+Address 1: 10.0.0.1 kubernetes.default.svc.cluster.local
+/ # nslookup www.baidu.com
+Server:    10.0.0.2
+Address 1: 10.0.0.2 kube-dns.kube-system.svc.cluster.local
+
+Name:      www.baidu.com
+Address 1: 220.181.38.150
+Address 2: 220.181.38.149
+</code></pre>
+<p>至此、二进制搭建最新1.16.0版本的kubernetes集群完成。</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/ri-zhi-ju-he-gong-ju-loki">
+                  <h3 class="post-title">
+                    日志聚合工具loki
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

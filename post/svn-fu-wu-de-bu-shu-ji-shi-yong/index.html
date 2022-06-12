@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>SVN服务的部署及使用 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">SVN服务的部署及使用</h2>
+            <div class="post-date">2018-07-17</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%AE%89%E8%A3%85%E9%85%8D%E7%BD%AE">1、服务端安装配置</a></li>
+<li><a href="#2-%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%85%8D%E7%BD%AE%E5%92%8C%E4%BD%BF%E7%94%A8">2、客户端配置和使用</a>
+<ul>
+<li><a href="#21-linux%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BD%BF%E7%94%A8svn">2.1、Linux客户端使用svn</a></li>
+<li><a href="#22-windows%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BD%BF%E7%94%A8svn">2.2、windows客户端使用svn</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>SVN是Subversion的简称，是一个开放源代码的版本控制系统，相较于RCS、CVS，它采用了分支管理系统，它的设计目标就是取代CVS。svn服务器有2种运行方式：独立服务器和借助apache运行。两种方式各有利弊，用户可以自行选择。</p>
+</blockquote>
+<blockquote>
+<p>svnserve是SVN自带的一个轻型服务器，客户端通过使用以svn://或svn+ssh://为前缀的URL来访问svnserve服务器，实现远程访问SVN版本库。svnserve可以通过配置文件来设置用户和口令，以及按路径控制版本库访问权限。本文详细分析了svnserve配置文件格式，并说明如何使用配置文件控制版本库访问权限<br>
+svn的版本管理其最大的特点就是集中式，所有的项目代码文件都放在svn服务器上，客户端并不具有全部项目代码文件，因此对svn服务器的设备要求较高</p>
+</blockquote>
+<h2 id="1-服务端安装配置">1、服务端安装配置</h2>
+<pre><code>[root@svn-server ~]# yum install -y subversion
+[root@svn-server ~]# mkdir -p /application/svndata			#创建svn的版本库的根目录
+[root@svn-server ~]# mkdir -p /application/svnpasswd		#创建svn的密码权限目录
+[root@svn-server ~]# svnserve -d -r /application/svndata		#启动，指定svn的根目录（-d: 后台运行，-r:路径）
+[root@svn-server ~]# netstat -lntup|grep 3690
+tcp        0      0 0.0.0.0:3690            0.0.0.0:*               LISTEN      2231/svnserve
+</code></pre>
+<p>建立版本库(也可以理解为是一个项目，这个目录不能用mkdir来创建，因为svn有自己运行方式，会创立属于svn自己很多的文件)</p>
+<pre><code>[root@svn-server ~]# svnadmin create /application/svndata/sadoc
+</code></pre>
+<p>修改配置文件</p>
+<pre><code>[root@svn-server ~]# cd /application/svndata/sadoc/conf/
+[root@svn-server conf]# cp svnserve.conf svnserve.conf.bak
+[root@svn-server conf]# vim svnserve.conf
+[general]
+anon-access=none   	#控制非鉴权用户访问版本库的权限。取值范围为&quot;write&quot;、&quot;read&quot;和&quot;none&quot;。
+                	 	即&quot;write&quot;为可读可写，&quot;read&quot;为只读，&quot;none&quot;表示无访问权限。
+                 		缺省值：read
+auth-access=write   	#控制鉴权用户访问版本库的权限。取值范围为&quot;write&quot;、&quot;read&quot;和&quot;none&quot;。
+                 		即&quot;write&quot;为可读可写，&quot;read&quot;为只读，&quot;none&quot;表示无访问权限。
+                 		缺省值：write
+password-db = passwd  	#指定用户名口令文件名。除非指定绝对路径，否则文件位置为相对conf
+                 			目录的相对路径。
+                 			缺省值：passwd
+authz-db = authz   		#指定权限配置文件名，通过该文件可以实现以路径为基础的访问控制。
+                 			除非指定绝对路径，否则文件位置为相对conf目录的相对路径。
+                 			缺省值：authz
+realm= My First Repository		#指定版本库的认证域，即在登录时提示的认证域名称。若两个版本库的
+                 				认证域相同，建议使用相同的用户名口令数据文件。
+                				缺省值：一个UUID(Universal Unique IDentifier，全局唯一标示)
+[root@svn-server conf]# pwd
+/application/svndata/sadoc/conf	
+[root@svn-server conf]# chmod 700 *		#修改权限（原来的权限为644，任何人都可以看到， svn的密码是明文的）
+[root@svn-server conf]# vim passwd		#末行添加以下用户
+[users]
+test1 = 1111
+test2 = 2222
+test3 = 3333
+</code></pre>
+<p>用户名口令文件由svnserve.conf的配置项password-db指定，缺省为conf目录中的passwd。该文件仅由一个[users]配置段组成。<br>
+[users]配置段的配置行格式如下：<br>
+&lt;用户名&gt; = &lt;口令&gt;<br>
+注意：配置行中的口令为未经过任何处理的明文</p>
+<pre><code>[root@svn-server conf]# vim authz
+dev = test1,test2	#定义组名和组成员（在passwd里定义的）
+ops = test3		#定义组名和组成员
+[sadoc:/]		#定义项目额权限：  项目名称sadoc,表示该项目下所有内容允许谁可以有什么权限
+@dev = rw		#允许某个组dev来访问，则前面要加@这个符号来标识下
+@ops = r			#允许ops组来查看
+test3 = r		#允许用户test3来查看
+</code></pre>
+<p>权限配置文件由svnserve.conf的配置项authz-db指定，缺省为conf目录中的authz。该配置文件由一个[groups]配置段和若干个版本库路径权限段组成。<br>
+[groups]配置段中配置行格式如下：<br>
+&lt;用户组&gt; = &lt;用户列表&gt;<br>
+用户列表由若干个用户组或用户名构成，用户组或用户名之间用逗号&quot;,&quot;分隔，引用用户组时要使用前缀&quot;@&quot;(如：引用用户组&quot;all&quot;要使用字符串&quot;@all&quot;)。<br>
+版本库路径权限段的段名格式如下：<br>
+[&lt;版本库名&gt;:&lt;路径&gt;]<br>
+如版本库abc路径/tmp的版本库路径权限段的段名为&quot;[abc:/tmp]&quot;。<br>
+可省略段名中的版本库名。若省略版本库名，则该版本库路径权限段对所有版本库中相同路径的访问控制都有效。如：段名为&quot;[/tmp]&quot;的版本库路径权限段设置了所有引用该权限配置文件的版本库中目录&quot;/tmp&quot;的访问权限。<br>
+版本库路径权限段中配置行格式有如下三种：<br>
+&lt;用户名&gt; = &lt;权限&gt;<br>
+&lt;用户组&gt; = &lt;权限&gt;<br>
+* = &lt;权限&gt;<br>
+其中，&quot;*&quot;表示任何用户；权限的取值范围为''、'r'和'rw'，''表示对该版本库路径无任何权限，'r'表示具有只读权限，'rw'表示有读写权限。<br>
+注意：每行配置只能配置单个用户或用户组。<br>
+配置文件保存后就立即生效，重启或者不重启svnserve服务都可以</p>
+<pre><code>[root@svn-server conf]# pkill svnserve
+[root@svn-server conf]# svnserve -d -r /application/svndata		#重新启动svn
+[root@svn-server conf]# netstat -lntup|grep 3690
+tcp        0      0 0.0.0.0:3690            0.0.0.0:*               LISTEN      2309/svnserve
+</code></pre>
+<p>启动到svndata这个目录，所以在客户端访问的URL中末尾续接上/sadoc，假如只有1个项目时，就可以 svnserve .../application/svndata/sadoc，直接输入地址svn://xxx.xxx.xxx.xxx即可访问</p>
+<pre><code>[root@svn-server conf]# vim /etc/rc.d/rc.local		#将svn加入到开机启动
+/usr/bin/svnserve	-d -r /application/svndata
+</code></pre>
+<p><a href="https://blog.csdn.net/thinkerabc/article/details/1831025">SVN配置详细信息参考</a></p>
+<h2 id="2-客户端配置和使用">2、客户端配置和使用</h2>
+<h3 id="21-linux客户端使用svn">2.1、Linux客户端使用svn</h3>
+<pre><code>[root@svn-client ~]# yum install -y subversion
+基本操作：
+[root@svn-client ~]# svn checkout svn://10.0.0.10/sadoc	#导出
+认证领域: &lt;svn://10.0.0.10:3690&gt; My First Repository
+“root”的密码: 
+认证领域: &lt;svn://10.0.0.10:3690&gt; My First Repository
+用户名: test1
+“test1”的密码: 
+
+-----------------------------------------------------------------------
+注意!  你的密码，对于认证域:
+
+   &lt;svn://10.0.0.10:3690&gt; My First Repository
+
+只能明文保存在磁盘上!  如果可能的话，请考虑配置你的系统，让 Subversion
+可以保存加密后的密码。请参阅文档以获得详细信息。
+
+你可以通过在“/root/.subversion/servers”中设置选项“store-plaintext-passwords”为“yes”或“no”，
+来避免再次出现此警告。
+-----------------------------------------------------------------------
+保存未加密的密码(yes/no)?yes
+A    sadoc/.bash_logout
+A    sadoc/.tcshrc
+A    sadoc/.viminfo
+A    sadoc/.bash_profile
+A    sadoc/.bash_history
+A    sadoc/.subversion
+A    sadoc/.subversion/servers
+A    sadoc/.subversion/README.txt
+A    sadoc/.subversion/auth
+A    sadoc/.subversion/auth/svn.username
+A    sadoc/.subversion/auth/svn.ssl.client-passphrase
+A    sadoc/.subversion/auth/svn.ssl.server
+A    sadoc/.subversion/auth/svn.simple
+A    sadoc/.subversion/auth/svn.simple/02f30398314dca65b675ce5570f28e52
+A    sadoc/.subversion/config
+A    sadoc/anaconda-ks.cfg
+A    sadoc/.bashrc
+A    sadoc/.cshrc
+取出版本 1。
+[root@svn-client ~]# svn import /service/tools/jeesns.jsp svn://10.0.0.10/sadoc -m &quot;version1&quot;	#导入某个代码文件
+[root@svn-client ~]# svn ls svn://10.0.0.10/sadoc		#查看svn中的数据
+</code></pre>
+<p>附：常用命令（参考自https://blog.csdn.net/liuchong_lch/article/details/78192755）</p>
+<ul>
+<li>1、将文件checkout到本地</li>
+</ul>
+<pre><code>svn checkout path(path是服务器的目录)
+例如 ：svn checkout svn://192.168.1.1/pro/domain
+</code></pre>
+<ul>
+<li>2、往版本库中添加新的文件</li>
+</ul>
+<pre><code>svn add filename
+例如：svn add test.cpp
+</code></pre>
+<ul>
+<li>3、将改动的文件提交到版本库</li>
+</ul>
+<pre><code>svn commit -m &quot;注释&quot; [-N] [--no-unlock] PATH(如果选择了保持锁，就使用--no-unlock开关)
+例如：svn commit -m &quot;注释&quot; test.cpp
+简写：svn ci
+</code></pre>
+<ul>
+<li>4、加锁/解锁</li>
+</ul>
+<pre><code>svn lock -m &quot;注释&quot; path
+例如: svn lock -m &quot;注释&quot; test.cpp
+svn unlock path
+</code></pre>
+<ul>
+<li>5、更新到某个版本</li>
+</ul>
+<pre><code>svn update -r 版本号 path
+svn update 更新当前目录以及子目录下的所有文件到最新版本
+svn upate -r 200 test.cpp 将版本库中的test.cpp还原到版本200
+简写 svn up
+</code></pre>
+<ul>
+<li>6、查看文件或者目录状态</li>
+</ul>
+<pre><code>（1）svn status path （显示目录下的文件和子目录下的文件状态,正常状态不显示）
+【?:不在svn控制中;M:内容被修改;C：发生冲突;A:预定义加入到版本库;K:被锁定】
+（2）svn status -v path （显示文件和子目录状态）
+注意：svn status、svn diff和svn revert这三条命令在没有网络情况下可以执行，因为svn在本地.svn中保留了本地版本原始拷贝。
+简写： svn st
+</code></pre>
+<ul>
+<li>7、删除文件</li>
+</ul>
+<pre><code>svn delete path -m &quot;注释&quot;
+例如: svn delete svn://192.168.1.1/pro/domain/test.cpp -m &quot;delete test file&quot;
+或者直接svn delete test.php 然后再svn ci -m 'delete test file‘，推荐使用这种
+简写： svn (del、remove、rm)
+</code></pre>
+<ul>
+<li>8、查看日志</li>
+</ul>
+<pre><code>svn log path
+</code></pre>
+<ul>
+<li>9、查看文件详细信息</li>
+</ul>
+<pre><code>svn info path
+</code></pre>
+<ul>
+<li>10、比较差异</li>
+</ul>
+<pre><code>svn diff path（将修改的文件与基础版本比较）
+svn diff -r m:n （将修改的文件m版本和n版本比较）
+简写 svn di
+</code></pre>
+<ul>
+<li>11、将两个版本的文件的差异合并到当前文件</li>
+</ul>
+<pre><code>svn merge -r m:n path
+ 例如：svn
+ merge -r 20:25 test.cpp（将版本20与25之间的差异合并到当前文件，但一般会发生冲突，需要处理一下）
+</code></pre>
+<ul>
+<li>12、SVN帮助</li>
+</ul>
+<pre><code>svn help
+</code></pre>
+<p>以上为常用命令，下面为不常用命令</p>
+<ul>
+<li>13、查看版本库下的文件和列表</li>
+</ul>
+<pre><code>svn list path （显示path目录下的所属于版本的文件和目录）
+简写: svn ls
+</code></pre>
+<ul>
+<li>14、创建纳入版本控制下的新目录</li>
+</ul>
+<pre><code>svn mkdir: 创建纳入版本控制下的新目录。
+用法: 1、mkdir PATH...
+    2、mkdir URL...
+</code></pre>
+<p>创建版本控制的目录。<br>
+1、每一个以工作副本 PATH 指定的目录，都会创建在本地端，并且加入新增调度，以待下一次的提交。<br>
+2、每个以URL指定的目录，都会透过立即提交于仓库中创建。在这两个情况下，所有的中间目录都必须事先存在。</p>
+<ul>
+<li>15、恢复本地修改</li>
+</ul>
+<pre><code>svn revert：恢复原始未改变的工作副本文件（恢复大部分的本地修改）revert用法：revert path
+</code></pre>
+<p>注意：本子命令不会存储网络，并且会解除冲突的情况。但它不会恢复被创建的目录</p>
+<ul>
+<li>16、代码库URL变更</li>
+</ul>
+<pre><code>svn switch(sw): 更新工作副本到不同的URL。
+用法 
+1、switch URL [PATH]
+2、switch --relocate FROM TO [PATH]
+</code></pre>
+<p>1、更新工作副本，映射到一个新的URL，会将服务上的文件与本地文件合并。这是将工作副本对应到同一创库的某个分支或者标记的方法。<br>
+2、改写工作副本URL元数据，以反映URL的变更，创库URL变动但工作副本仍旧对映同一创库的同一目录时使用该命令更新工作副本与创库的对应关系。</p>
+<ul>
+<li>17、解决冲突</li>
+</ul>
+<pre><code>svn resolved：移除工作副本的目录或文件的“冲突”状态。
+用法 resolved path
+</code></pre>
+<p>注意：本子命令不会依语法来解决冲突或是移除冲突标记；它只是移除冲突的相关文件，然后让path可以再次提交。</p>
+<ul>
+<li>18、输出指定文件的URL内容</li>
+</ul>
+<pre><code>svn cat 目标[@版本] 如果指定了版本将从指定的版本开始查找。
+</code></pre>
+<h3 id="22-windows客户端使用svn">2.2、windows客户端使用svn</h3>
+<p>下载TortoiseSVN客户端<a href="https://tortoisesvn.net/downloads.html">下载地址</a>，这个地址也提供了语言包的下载，选择需要下载的语言包，在安装完TortoiseSVN后安装语言包即可，图形界面使用简单使用指南，这里不想多说，可以<a href="https://blog.csdn.net/maplejaw_/article/details/52874348">参考此文章</a></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/agvo7Jbvi" class="tag">
+                    svn
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/4RJKyFhlgx" class="tag">
+                    持续集成
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/tomcat-jin-jie-cao-zuo">
+                  <h3 class="post-title">
+                    Tomcat进阶操作
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

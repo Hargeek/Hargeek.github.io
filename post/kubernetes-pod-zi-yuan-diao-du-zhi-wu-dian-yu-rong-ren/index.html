@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>kubernetes Pod资源调度之污点和容忍 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">kubernetes Pod资源调度之污点和容忍</h2>
+            <div class="post-date">2020-04-24</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">1、概述</a></li>
+<li><a href="#2-%E5%AE%9A%E4%B9%89%E6%B1%A1%E7%82%B9%E5%92%8C%E5%AE%B9%E5%BF%8D%E5%BA%A6">2、定义污点和容忍度</a></li>
+<li><a href="#3-%E7%AE%A1%E7%90%86%E8%8A%82%E7%82%B9%E7%9A%84%E6%B1%A1%E7%82%B9">3、管理节点的污点</a></li>
+<li><a href="#4-pod%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%AE%B9%E5%BF%8D%E5%BA%A6">4、Pod对象的容忍度</a></li>
+<li><a href="#5-%E9%97%AE%E9%A2%98%E8%8A%82%E7%82%B9%E6%A0%87%E8%AF%86">5、问题节点标识</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-概述">1、概述</h2>
+<p>污点<code>taints</code>是定义在节点之上的键值型属性数据，用于让节点拒绝将<code>Pod</code>调度运行于其上， 除非该<code>Pod</code>对象具有接纳节点污点的容忍度。而容忍度<code>tolerations</code>是定义在 <code>Pod</code>对象上的键值型属性数据，用于配置其可容忍的节点污点，而且调度器仅能将<code>Pod</code>对象调度至其能够容忍该节点污点的节点之上，如图所示</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20200424-01.png" alt=""></figure>
+<p>节点选择器<code>nodeSelector</code>和节点亲和性<code>nodeAffinity</code>两种调度方式都是通过在 <code>Pod</code>对象上添加标签选择器来完成对特定类型节点标签的匹配，它们实现的是由<code>Pod</code>选择节点的机制。而污点和容忍度则是通过向节点添加污点信息来控制<code>Pod</code>对象的调度结果，从而赋予了节点控制何种<code>Pod</code>对象能够调度于其上的主控权。简单来说，节点亲和性使得<code>Pod</code>对象被吸引到一类特定的节点，而污点则相反，它提供了让节点排斥特定<code>Pod</code>对象的能力。</p>
+<p><code>Kubernetes</code>使用<code>PodToleratesNodeTaints</code>预选策略和 <code>TaintTolerationPriority</code>优选函数来完成此种类型的高级调度机制。</p>
+<h2 id="2-定义污点和容忍度">2、定义污点和容忍度</h2>
+<p>污点定义在节点的<code>node Spec</code>中，而容忍度则定义在<code>Pod</code>的<code>podSpec</code>中，它们都是键值型数据，但又都额外支持一个效果<code>effect</code>标记，语法格式为<code>key=value:effect</code>，其中<code>key</code>和<code>value</code>的用法及格式与资源注俯－信息相似， 而<code>effect</code>则用于定义对<code>Pod</code>对象的排斥等级，它主要包含以下三种类型</p>
+<ul>
+<li>NoSchedule<br>
+不能容忍此污点的新<code>Pod</code>对象不可调度至当前节点，属于强制型约束关系，节点上现存的<code>Pod</code>对象不受影响。</li>
+<li>PreferNoSchedule<br>
+<code>NoSchedule</code>的柔性约束版本，即不能容忍此污点的新<code>Pod</code>对象尽量不要调度至当前节点，不过无其他节点可供调度时也允许接受相应的<code>Pod</code>对象。节点上现存的<code>Pod</code>对象不受影响。</li>
+<li>NoExecute<br>
+不能容忍此污点的新<code>Pod</code>对象不可调度至当前节点，属于强制型约束关系，而且节点上现存的<code>Pod</code>对象因节点污点变动或<code>Pod</code>容忍度变动而不再满足匹配规则时，<code>Pod</code>对象将被驱逐。</li>
+</ul>
+<p>在<code>Pod</code>对象上定义容忍度时，它支持两种操作符：一种是等值比较<code>Equal</code>,表示容忍度与污点必须在<code>key</code>、<code>value</code>和<code>effect</code>三者之上完全匹配；另一种是存在性判断<code>Exists</code>，表示二者的<code>key</code>和<code>effect</code>必须完全匹配，而容忍度中的<code>value</code>字段要使用空值。</p>
+<p>一个节点可以配置使用多个污点，一个<code>Pod</code>对象也可以有多个容忍度，不过二者在进行匹配检查时应遵循如下逻辑。</p>
+<ul>
+<li>首先处理每个有着与之匹配的容忍度的污点</li>
+<li>不能匹配到的污点上，如果存在一个污点使用了<code>NoSchedule</code>效用标识，则拒绝调度<code>Pod</code>对象至此节点</li>
+<li>不能匹配到的污点上，若没有任何一个使用了<code>NoSchedule</code>效用标识，但至少有一个使用了<code>PreferNoScheduler</code>，则应尽量避免将<code>Pod</code>对象调度至此节点</li>
+<li>如果至少有一个不匹配的污点使用了<code>NoExecute</code>效用标识，则节点将立即驱逐<code>Pod</code>对象，或者不予调度至给定节点；另外，即便容忍度可以匹配到使用了 <code>NoExecute</code>效用标识的污点，若在定义容忍度时还同时使用<code>tolerationSeconds</code>属性定义了容忍时限，则超出时限后其也将被节点驱逐。</li>
+</ul>
+<p>使用<code>kubeadm</code>部署的<code>Kubernetes</code>集群，其<code>Master</code>节点将自动添加污点信息以阻止不能容忍此污点的<code>Pod</code>对象调度至此节点，因此，用户手动创建的未特意添加容忍此污点容忍度的<code>Pod</code>对象将不会被调度至此节点</p>
+<pre><code>kubectl describe nodes k8s-master-01
+Name:               k8s-master-01
+Roles:              master
+Labels:             beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/os=linux
+                    kubernetes.io/arch=amd64
+                    kubernetes.io/hostname=k8s-master-01
+                    kubernetes.io/os=linux
+                    node-role.kubernetes.io/master=
+......
+Taints:             node-role.kubernetes.io/master:NoSchedule
+Unschedulable:      false
+</code></pre>
+<p>有些系统级应用，如<code>kube-proxy</code>或者<code>kube-flannel</code>等，都在资源创建时就添加上了相应的容忍度以确保它们被<code>DaemonSet</code>控制器创建时能够调度至<code>Master</code>节点运行一个实例：</p>
+<pre><code># kubectl -n kube-system describe pods calico-node-pw5n9
+......
+Node-Selectors:  beta.kubernetes.io/os=linux
+Tolerations:     :NoSchedule
+                 :NoExecute
+                 CriticalAddonsOnly
+                 node.kubernetes.io/disk-pressure:NoSchedule
+                 node.kubernetes.io/memory-pressure:NoSchedule
+                 node.kubernetes.io/network-unavailable:NoSchedule
+                 node.kubernetes.io/not-ready:NoExecute
+                 node.kubernetes.io/pid-pressure:NoSchedule
+                 node.kubernetes.io/unreachable:NoExecute
+                 node.kubernetes.io/unschedulable:NoSchedule
+</code></pre>
+<p>这类<code>Pod</code>是构成<code>Kubernetes</code>系统的基础且关键性的组件，它们甚至还定义了更大的容忍度。从上面某<code>calico-node</code>实例的容忍度定义来看，它还能容忍那些报告了磁盘压力或内存压力的节点，以及未就绪的节点和不可达的节点，以确保它们能在任何状态下正常调度至集群节点上运行。</p>
+<h2 id="3-管理节点的污点">3、管理节点的污点</h2>
+<p>任何符合其键值规范要求的字符串均可用于定义污点信息：仅可使用字母、数字、连接符、点号和下划线，且仅能以字母或数字开头，其中键名的长度上限为<code>253</code>个字符，值最长为<code>63</code>个字符。实践中，污点通常用于描述具体的部署规划，它们的键名形如<code>node-tppe</code>、<code>node-role</code>、<code>node-project</code>或<code>node－geo</code>等，因此还可在必要时带上域名以描述其额外的信息，如<code>node-type.linux.io</code>等。使用<code>kubectl taint</code>命令即可向节点添加污点，命令的语法格式如下：</p>
+<pre><code>kubectl taint nodes &lt;node-name&gt; &lt;key&gt;=&lt;value&gt;:&lt;effect&gt; 
+</code></pre>
+<p>例如，使用<code>node-type=production:NoSchedule</code>定义节点<code>node01.linux.io</code>:</p>
+<pre><code># kubectl taint nodes node01.linux.io node-type=production:NoSchedule
+node &quot;node01.linux.io&quot; tainted
+</code></pre>
+<p>此时，<code>nodeO1</code>上已有的<code>Pod</code>对象不受影响,但新建的<code>Pod</code>若不能容忍此污点将不能再被调度至此节点。可以查看节点上的污点信息</p>
+<p>需要注意的是，即便是同一个键值数据，若其效用标识不同，则其也分属于不同的污点信息，例如，将上面命令中的效用标识定义为<code>PreferNoSchedule</code>再添加一次</p>
+<pre><code># kubectl taint nodes node01.linux.io node-type=production:PreferNoSchedule
+node &quot;node01.linux.io&quot; tainted
+</code></pre>
+<p>删除某污点，仍然通过<code>kubectl taint</code>命令进行，但要使用如下的命令格式，省略效用标识则表示删除使用指定键名的所有污点，否则就只删除指定键名上对应效用标识的污点：</p>
+<pre><code>kubectl taint nodes &lt;node-name&gt; &lt;key&gt;:[&lt;effect&gt;]- 
+</code></pre>
+<p>例如，删除<code>nodeO1</code>上<code>node-type</code>键的效用标识为<code>NoSchedule</code>的污点信息：</p>
+<pre><code># kubectl taint nodes node01.linux.io node-type:NoSchedule- 
+node &quot;node01.linux.io&quot; untainted
+</code></pre>
+<p>若要删除使用指定键名的所有污点，则在删除命令中省略效用标识即能实现，例如：</p>
+<pre><code># kubectl taint nodes node01.linux.io node-type- 
+node &quot;node01.linux.io&quot; untainted
+</code></pre>
+<p>删除节点上的全部污点信息，通过<code>kubectl patch</code>命令将节点属性<code>spec.taints</code>的值直接置空即可，例如：</p>
+<pre><code># kubectl patch nodes node01.linux.io -p '{&quot;spec&quot;:{&quot;taints&quot;:[]}}' 
+node &quot;node01.linux.io&quot; patched
+</code></pre>
+<p>节点污点的变动会影响到新建<code>Pod</code>对象的调度结果，而且使用<code>NoExecute</code>进行标识时，还会影响到节点上现有的<code>Pod</code>对象。</p>
+<h2 id="4-pod对象的容忍度">4、Pod对象的容忍度</h2>
+<p><code>Pod</code>对象的容忍度可通过其<code>spec.tolerations</code>字段进行添加，根据使用的操作符不同，主要有两种可用的形式：一种是与污点信息完全匹配的等值关系；另一种是判断污点信息存在性的匹配方式。使用<code>Equal</code>操作符的示例如下所示，其中 <code>tolerationSeconds</code>用于定义延迟驱逐当前<code>Pod</code>对象的时长</p>
+<p>注：<br>
+如果<code>operator</code>是<code>Exists</code>（此时容忍度不能指定 value）<br>
+如果<code>operator</code>是<code>Equal</code>，则它们的<code>value</code>应该相等</p>
+<pre><code>tolerations:
+- key: &quot;key1&quot;
+  operator: &quot;Equal&quot;
+  value: &quot;value1&quot;
+  effect: &quot;NoExecute&quot;
+  tolerationSeconds: 3600
+</code></pre>
+<p>使用存在性判断机制的容忍度示例如下</p>
+<pre><code>tolerations:
+- key: &quot;key1&quot;
+  operator: &quot;Exists&quot;
+  effect: &quot;NoExecute&quot;
+  tolerationSeconds: 3600
+</code></pre>
+<p>实践中，若集群中的一组机器专用于为运行非生产型的容器应用而备置，而且它们可能随时按需上下线，那么就应该为其添加污点信息，以确保仅那些能容忍此污点的非生产型<code>Pod</code>对象可以调度其上。另外，某些有着特殊硬件的节点需要专用于运行一类有着此类硬件资源需求的<code>Pod</code>对象时，例如，那些有着<code>SSD</code>或<code>GPU</code>的设备，也应该为其添加污点信息以排除其他的<code>Pod</code>对象。</p>
+<h2 id="5-问题节点标识">5、问题节点标识</h2>
+<p><code>Kubernetes</code>自<code>1.6</code>版本起支持使用污点自动标识问题节点，它通过节点控制器在特定条件下自动为节点添加污点信息实现。它们都使用<code>NoExecute</code>效用标识，因此不能容忍此类污点的现有<code>Pod</code>对象也会遭到驱逐。目前，内建使用的此类污点包含如下几个。</p>
+<ul>
+<li>node.kubernetes.io/not-ready</li>
+</ul>
+<p>节点进入<code>NotReady</code>状态时被自动添加的污点</p>
+<ul>
+<li>node.alpha.kubernetes.io/unreachable</li>
+</ul>
+<p>节点进入<code>NotReachable</code>状态时被自动添加的污点</p>
+<ul>
+<li>node.kubernetes.io/out-of-disk</li>
+</ul>
+<p>节点进入<code>OutOfDisk</code>状态时被自动添加的污点</p>
+<ul>
+<li>
+<p>node.kubernetes.io/memory-pressure<br>
+节点内存资源面临压力</p>
+</li>
+<li>
+<p>node.kubernetes.io/disk-pressure</p>
+</li>
+</ul>
+<p>节点磁盘资源面临压力</p>
+<ul>
+<li>node.kubernetes.io/network-unavailable</li>
+</ul>
+<p>节点网络不可用</p>
+<ul>
+<li>node.cloudprovider.kubernetes.io/uninitialized</li>
+</ul>
+<p><code>kubelet</code>由外部的云环境程序启动时，<br>
+它将自动为节点添加此污点，待到云控制器管理器中的控制器初始化此节点时再将其删除</p>
+<p><code>Kubernetes</code>的核心组件通常都要容忍此类的污点，以确保其相应的<code>DaemonSet</code>控制器能够无视此类污点，于节点上部署相应的关键性<code>Pod</code>对象，例如<code>kube-proxy</code>或<code>kube- flannel</code>等。</p>
+<p>文章参考来源：《kubernetes进阶实战》</p>
+<p>我的博客即将同步至腾讯云+社区，邀请大家一同入驻：https://cloud.tencent.com/developer/support-plan?invite_code=nkpmmxsut23f</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/kubernetes-pod-zi-yuan-diao-du-zhi-you-xian-qiang-zhan-diao-du">
+                  <h3 class="post-title">
+                    kubernetes Pod资源调度之优先(抢占)调度
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

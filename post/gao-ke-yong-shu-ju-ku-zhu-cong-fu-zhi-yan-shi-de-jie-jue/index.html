@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>高可用数据库主从复制延时的解决 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">高可用数据库主从复制延时的解决</h2>
+            <div class="post-date">2019-05-08</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E4%B8%80-%E5%BB%B6%E6%97%B6%E9%97%AE%E9%A2%98%E7%9A%84%E9%87%8D%E8%A6%81%E6%80%A7">一、延时问题的重要性</a></li>
+<li><a href="#%E4%BA%8C-%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E4%B8%AD%E5%BB%B6%E6%97%B6%E9%97%AE%E9%A2%98%E7%9A%84%E5%88%86%E6%9E%90%E5%8F%8A%E8%A7%A3%E5%86%B3">二、生产环境中延时问题的分析及解决</a>
+<ul>
+<li><a href="#%E6%A1%88%E4%BE%8B%E4%B8%80%E4%B8%BB%E5%BA%93dml%E8%AF%B7%E6%B1%82%E9%A2%91%E7%B9%81">案例一：主库DML请求频繁</a></li>
+<li><a href="#%E6%A1%88%E4%BE%8B%E4%BA%8C%E4%B8%BB%E5%BA%93%E6%89%A7%E8%A1%8C%E5%A4%A7%E4%BA%8B%E5%8A%A1">案例二：主库执行大事务</a></li>
+<li><a href="#%E6%A1%88%E4%BE%8B%E4%B8%89%E4%B8%BB%E5%BA%93%E5%AF%B9%E5%A4%A7%E8%A1%A8%E6%89%A7%E8%A1%8Cddl%E8%AF%AD%E5%8F%A5">案例三：主库对大表执行DDL语句</a></li>
+<li><a href="#%E6%A1%88%E4%BE%8B%E5%9B%9B%E4%B8%BB%E5%BA%93%E4%B8%8E%E4%BB%8E%E5%BA%93%E9%85%8D%E7%BD%AE%E4%B8%8D%E4%B8%80%E8%87%B4">案例四：主库与从库配置不一致</a></li>
+<li><a href="#%E6%A1%88%E4%BE%8B%E4%BA%94%E8%A1%A8%E7%BC%BA%E4%B9%8F%E4%B8%BB%E9%94%AE%E6%88%96%E5%90%88%E9%80%82%E7%B4%A2%E5%BC%95">案例五：表缺乏主键或合适索引</a></li>
+<li><a href="#%E6%A1%88%E4%BE%8B%E5%85%AD%E4%BB%8E%E5%BA%93%E8%87%AA%E8%BA%AB%E5%8E%8B%E5%8A%9B%E8%BF%87%E5%A4%A7">案例六：从库自身压力过大</a></li>
+</ul>
+</li>
+<li><a href="#%E6%80%BB%E7%BB%93">总结</a></li>
+</ul>
+</li>
+</ul>
+<br>
+高可用数据库主从复制延时的解决</p>
+<blockquote>
+<p>MySQL主从复制的延时一直是业界困扰已久的问题。延时的出现会降低主从读写分离的价值，不利于数据实时性较高的业务使用MySQL。</p>
+</blockquote>
+<h2 id="一-延时问题的重要性">一、延时问题的重要性</h2>
+<p>如果主从复制之间出现延时，就会影响主从数据的一致性。<br>
+此时发生容灾切换，且在新的主库写入了数据，那么从业务角度上，会产生意想不到的严重后果。<br>
+复制延时问题，在只读从库的场景下，若从库产生复制延时，也可能会对业务造成一定影响，比如在业务上表现为读写不一致——新增/修改数据查不到等现象。<br>
+由此可见，主从复制的延时问题在数据库运营中需要特别关注。一般来说，DBA在库上执行<code>SHOW SLAVE STATUS</code>，并且观察<br>
+<code>Seconds_Behind_Master</code>的值，就能够了解当前某个数据库和它的主库之间的数据复制延时。<br>
+<img src="https://image.ssgeek.com/20190508-01.png" alt=""></p>
+<h2 id="二-生产环境中延时问题的分析及解决">二、生产环境中延时问题的分析及解决</h2>
+<h3 id="案例一主库dml请求频繁">案例一：主库DML请求频繁</h3>
+<p>某些业务高峰期间，特别是对于数据库主库有大量的写请求操作，即大量insert、delete、update等并发操作的情况下，会出现主从复制延时问题。</p>
+<ul>
+<li>现象描述</li>
+</ul>
+<p>通过观察主库的写操作的QPS的值，会看到主库的写操作的QPS值突然升高，伴随主从复制延时的上升，可以判断是由于主库DML请求频繁原因造成的。<br>
+<img src="https://image.ssgeek.com/20190508-02.png" alt=""><br>
+如上图，可以看出，在17:58分左右QPS突增，查看控制台上的写相关QPS，也有相应提升。而QPS突增的时间，对应的延时也在逐步上升，如下图所示。<br>
+<img src="https://image.ssgeek.com/20190508-03.png" alt=""></p>
+<ul>
+<li>原因分析</li>
+</ul>
+<p>经过分析，我们认为这是由于主库大量的写请求操作，在短时间产生了大量的binlog。这些操作需要全部同步到从库，并且执行，因此产生了主从的数据复制延时。<br>
+从深层次分析原因，是因为在业务高峰期间的主库写入数据是并发写入的，而从库SQL Thread为单线程回放binlog日志，很容易造成relaylog堆积，产生延时。</p>
+<ul>
+<li>解决思路</li>
+</ul>
+<p>如果是MySQL 5.7以下的版本，可以做分片(sharding)，通过水平扩展(scale out)的方法打散写请求，提升写请求写入binlog的并行度。<br>
+如果是MySQL 5.7以上的版本，在MySQL 5.7，使用了基于逻辑时钟(Group Commit)的并行复制。而在MySQL 8.0，使用了基于Write Set的并行复制。这两种方案都能够提升回放binlog的性能，减少延时。<br>
+<img src="https://image.ssgeek.com/20190508-04.png" alt=""></p>
+<h3 id="案例二主库执行大事务">案例二：主库执行大事务</h3>
+<p>大事务指一个事务的执行，耗时非常长。常见产生大事务的语句有：<br>
+使用了大量速度很慢的导入数据语句，比如：INSERT INTO $tb、SELECT * FROM $tb、LOAD DATA INFILE等；<br>
+使用了UPDATE、DELETE语句，对于一个很大的表进行全表的UPDATE和DELETE等。<br>
+当这个事务在从库执行回放执行操作时，就有可能会产生主从复制延时。</p>
+<ul>
+<li>现象描述</li>
+</ul>
+<p>从SHOW SLAVE STATUS的结果进行分析，会发现 Exec_Master_Log_Pos 字段一直未变，且second_behinds_master持续增加，而 Slave_SQL_Running_State 字段的值为&quot;Reading event from the relay log&quot;；同时，分析主库binlog，看主库当前执行的事务，会发现有一些大事务，这样基本可以判定是执行大事务的原因导致的主从复制延时。<br>
+<img src="https://image.ssgeek.com/20190508-05.png" alt=""></p>
+<ul>
+<li>原因分析</li>
+</ul>
+<p>当大事务记录入binlog并同步到从库之后，从库执行这个事务的操作耗时也非常长，这段时间，就会产生主从复制延时。<br>
+举个例子，假如主库花费200s更新了一张大表，在主从库配置相近的情况下，从库也需要花几乎同样的时间更新这张大表，此时从库延时开始堆积，后续的events无法更新。</p>
+<ul>
+<li>解决思路</li>
+</ul>
+<p>对于这种情况引起的主从复制延时，我们的改进方法是：拆分大事务语句到若干小事务中，这样能够进行及时提交，减小主从复制延时。</p>
+<h3 id="案例三主库对大表执行ddl语句">案例三：主库对大表执行DDL语句</h3>
+<p>DDL全称为 Data Definition Language ，指一些对表结构进行修改操作的语句，比如，对表加一个字段或者加一个索引等等。当DDL对主库大表执行DDL语句的情况下，可能会产生主从复制延时。</p>
+<ul>
+<li>现象描述</li>
+</ul>
+<p>从现象上，如果从库执行SHOW SLAVE STATUS的输出中，检查Exec_Master_Log_Pos一直未动，在排除主库执行大事务的情况下，那么就有可能是在执行大表的 DDL。这一点结合分析主库binlog，看主库当前执行的事务就可以进行确认。<br>
+DDL语句的执行情况，可以进一步细分现象来更好地判断：</p>
+<ol>
+<li>DDL未开始，被阻塞，这时SHOW SLAVE STATUS的结果能检查到Slave_SQL_Running_State为waiting for table metadata lock，且Exec_Master_Log_Pos不变；<br>
+<img src="https://image.ssgeek.com/20190508-06.png" alt=""></li>
+<li>DDL正在执行，SQL Thread单线程应用导致延时增加。这种情况下观察SHOW SLAVE STATU的结果能发现Slave_SQL_Running_State为altering table，而Exec_Master_Log_Pos不变。<br>
+<img src="https://image.ssgeek.com/20190508-07.png" alt=""><br>
+如果有上述的现象，那么很有可能主库对大表执行DDL语句，同步到从库并在从库回放时，就产生了主从复制延时。</li>
+</ol>
+<ul>
+<li>原因分析</li>
+</ul>
+<p>DDL导致的主从复制延时的原因和大事务类似，也是因为从库执行DDL的binlog较慢而产生了主从复制延时。</p>
+<ul>
+<li>解决思路</li>
+</ul>
+<p>遇到这种情况，我们主要通过SHOW PROCESSLIST或对information_schema.innodb_trx做查询，来找到阻塞DDL语句，并KILL掉相关查询，让DDL正常在从库执行。<br>
+DDL本身造成的延时难以避免，建议考虑：<br>
+避免业务高峰，尽量安排在业务低峰期执行 ；<br>
+set sql_log_bin=0后，分别在主从库上手动执行DDL（此操作对于某些DDL操作会造成数据不一致，请务必严格测试）。</p>
+<h3 id="案例四主库与从库配置不一致">案例四：主库与从库配置不一致</h3>
+<p>如果主库和从库使用了不同的计算资源和存储资源，或者使用了不同的内核调教参数，可能会造成主从不一致。</p>
+<ul>
+<li>现象描述</li>
+</ul>
+<p>我们会详细比对主库和从库的性能监控数据，如果发现监控数据差异巨大，结合查看主从的各个配置情况，即可作出明确判断。</p>
+<ul>
+<li>原因分析</li>
+</ul>
+<p>各种硬件或者资源的配置差异都有可能导致主从的性能差异，从而导致主从复制延时发生：<br>
+硬件上：比如，主库实例服务器使用SSD磁盘，而从库实例服务器使用普通SAS盘，那么主库产生的写入操作在从库上不能马上消化掉，就产生了主从复制延时；<br>
+配置上：比如，RAID卡写策略不一致、OS内核参数设置不一致、MySQL落盘策略不一致等，都是可能的原因。</p>
+<ul>
+<li>解决思路</li>
+</ul>
+<p>考虑尽量统一DB机器的配置（包括硬件及选项参数）。甚至对于某些OLAP业务，从库实例硬件配置需要略高于主库。</p>
+<h3 id="案例五表缺乏主键或合适索引">案例五：表缺乏主键或合适索引</h3>
+<p>如果数据库的表缺少主键或者合适索引，在主从复制的binlog_format设置为'row'的情况下，可能会产生主从复制延时。</p>
+<ul>
+<li>现象描述</li>
+</ul>
+<p>我们进行数据库检查时，会发现：<br>
+观察SHOW SLAVE STATUS的输出，发现Slave_SQL_Running_State为Reading event from the relay log；<br>
+SHOW OPEN TABLES WHERE in_use=1的表一直存在；<br>
+观察SHOW SLAVE STATUS的Exec_Master_Log_Pos字段不变；<br>
+mysqld进程的CPU接近100%（无读业务时），IO压力不大。<br>
+这些现象出现的情况下，可以认为很可能有表缺乏主键或唯一索引。</p>
+<ul>
+<li>原因分析</li>
+</ul>
+<p>在主从复制的binlog_format设置为'row'的情况下，比如有这样的一个场景，主库更新一张500万表中的20万行数据。binlog在row格式下，记录到binlog的为20万次update操作，也就是每次操作更新1条记录。如果这条语句恰好有不好的执行计划，如发生全表扫描，那么每一条update语句需要全表扫描。此时SQL Thread重放将特别慢，造成严重的主从复制延时。</p>
+<ul>
+<li>解决思路</li>
+</ul>
+<p>这种情况下，我们会去检查表结构，保证每个表都有显式自增主键，并协助用户建立合适索引。</p>
+<h3 id="案例六从库自身压力过大">案例六：从库自身压力过大</h3>
+<p>有时候，从库性能压力很大的情况下，跟不上主库的更新速度，就产生了主从复制延时。</p>
+<ul>
+<li>现象描述</li>
+</ul>
+<p>观察数据库实例时，会发现CPU负载过高，IO利用率过高等现象，这些导致SQL Thread应用过慢。这样就可以判断是因为从库自身压力过大引起主从复制延时。</p>
+<ul>
+<li>原因分析</li>
+</ul>
+<p>部分对于数据库的主从会使用读写分离模式，读请求大部分在从库上执行。在业务有大量读请求的场景下，从库会产生比主库大得多的性能压力。有的用户甚至会在从库运行十分耗费计算资源的OLAP业务，这也对从库造成了更高的性能挑战，这些都会造成主从复制的延时。</p>
+<ul>
+<li>解决思路</li>
+</ul>
+<p>这种情况下，我们会建议用户建立更多从库，打散读请求，降低现有从库实例的压力。对于OLAP业务来说，可以专门建立一个从库来做OLAP业务，并对这个从库，允许适当的主从复制延时。</p>
+<h2 id="总结">总结</h2>
+<p>在使用<code>MySQL</code>的主从复制模式进行数据复制时，主从复制延时是一个需要考量的关键因素。它会影响数据的一致性，进而影响数据库高可用的容灾切换。<br>
+在遇到数据库之间出现主从复制延时的情况下，我们团队基于过往经验，归纳出以下方法与流程来协助排查问题：<br>
+通过<code>SHOW SLAVE STATUS</code>与<code>SHOW PROCESSLIST</code>查看现在从库的情况。（顺便也可排除在从库备份时的类似原因）；<br>
+若<code>Exec_Master_Log_Pos</code>不变，考虑大事务、DDL、无主键，检查主库对应的binlog及position即可；<br>
+若<code>Exec_Master_Log_Pos</code>变化，延时逐步增加，考虑从库机器负载，如<code>IO</code>、<code>CPU</code>等，并考虑主库写操作与从库自身压力是否过大。</p>
+<p>文章参考来源：https://mp.weixin.qq.com/s/IDPr6wPwTCIGr5yB3xeGKA</p>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/mysql-duo-shi-li">
+                  <h3 class="post-title">
+                    mysql多实例
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>ack集群Terway网络场景下的vSwitch扩容 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">ack集群Terway网络场景下的vSwitch扩容</h2>
+            <div class="post-date">2021-12-28</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-terway%E7%BD%91%E7%BB%9C%E4%BB%8B%E7%BB%8D">1、Terway网络介绍</a></li>
+<li><a href="#2-%E9%97%AE%E9%A2%98%E7%8E%B0%E8%B1%A1">2、问题现象</a></li>
+<li><a href="#3-%E6%89%A9%E5%AE%B9%E6%93%8D%E4%BD%9C">3、扩容操作</a>
+<ul>
+<li><a href="#31-%E6%96%B0%E5%A2%9E%E4%BA%A4%E6%8D%A2%E6%9C%BA%E5%B9%B6%E9%85%8D%E7%BD%AEnat">3.1 新增交换机并配置NAT</a></li>
+<li><a href="#32-%E9%85%8D%E7%BD%AE%E9%9B%86%E7%BE%A4%E7%9A%84terway">3.2 配置集群的Terway</a></li>
+<li><a href="#33-%E9%87%8D%E5%90%AFterway">3.3 重启terway</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20211228-01.png" alt=""></figure>
+<h2 id="1-terway网络介绍">1、Terway网络介绍</h2>
+<p><code>Terway</code>是阿里云开源的基于专有网络VPC的容器网络接口<code>CNI</code>（Container Network Interface）插件，支持基于<code>Kubernetes</code>标准的网络策略来定义容器间的访问策略。可以通过使用<code>Terway</code>网络插件实现<code>Kubernetes</code>集群内部的网络互通</p>
+<p><code>Terway</code>网络插件将原生的弹性网卡分配给<code>Pod</code>实现<code>Pod</code>网络，支持基于<code>Kubernetes</code>标准的网络策略（Network Policy）来定义容器间的访问策略，并兼容<code>Calico</code>的网络策略</p>
+<p>在<code>Terway</code>网络插件中，每个<code>Pod</code>都拥有自己网络栈和<code>IP</code>地址。同一台<code>ECS</code>内的<code>Pod</code>之间通信，直接通过机器内部的转发，跨<code>ECS</code>的<code>Pod</code>通信，报文通过<code>VPC</code>的弹性网卡直接转发。由于不需要使用<code>VxLAN</code>等的隧道技术封装报文，因此<code>Terway</code>模式网络具有较高的通信性能</p>
+<p>一句话总结，<code>Terway</code>最大的特点就是借助于云上<code>ECS</code>服务器的特性，将<code>pod</code>与<code>node</code>的网络进行了拉平，同时使用<code>VPC</code>下<code>vSwitch</code>中的<code>ip</code></p>
+<h2 id="2-问题现象">2、问题现象</h2>
+<p>由于使用了<code>Terway</code>网络模式，随着<code>node</code>机器和<code>pod</code>数量的增多，每分配一个<code>ip</code>出去都需要消耗掉<code>vpc</code>下<code>vsw</code>的可用<code>ip</code>。如果某短时间业务快速增长，导致<code>pod</code>大量消耗可用<code>ip</code>，这个时候就有可能因前期规划不充足导致<code>vSwitch</code>的可用<code>ip</code>不足</p>
+<p>这个时候新创建的<code>pod</code>状态为<code>ContainerCreating</code>，<code>describe</code>查看<code>pod</code>提示<code>error allocate ip...</code>，这个时候查看<code>Pod</code>所在节点的<code>Terway</code>的日志，会有下面内容</p>
+<pre><code class="language-shell">Message: The specified VSwitch &quot;vsw-xxxxx&quot; has not enough IpAddress.
+</code></pre>
+<p>提示没有足够的<code>ip</code>，这个时候基本都是由于交换机的<code>ip</code>不够用，登录到交换机的控制台可以查看到这个节点所在的交换机的可用<code>ip</code>数，如果很少甚至为<code>0</code>，就表示需要扩容了</p>
+<h2 id="3-扩容操作">3、扩容操作</h2>
+<h3 id="31-新增交换机并配置nat">3.1 新增交换机并配置NAT</h3>
+<p>在专有网络管理控制台对应的<code>VPC</code>创建新的<code>vSwitch</code>，该<code>vSwitch</code>必须与<code>IP</code>资源不足的<code>vSwitch</code>在同一个区域。这是因为<code>Terway</code>分配给<code>pod ip</code>时的策略是，分配<code>node</code>所在可用区中的<code>vSwitch</code>对应的<code>ip</code>，因此，扩容就需要扩容同一可用区的交换机</p>
+<p>在初始化集群新建交换机以及扩容交换机的时候都应该考虑，因<code>Pod</code>密度越来越大，为了满足<code>Pod</code>对<code>IP</code>地址日益增长的需求，建议创建给<code>Pod</code>使用的<code>vSwitch</code>的网络位小于等于<code>19</code>，即每个网段中至少包含<code>8192</code>个可用<code>IP</code>地址</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20211228-02.png" alt=""></figure>
+<p><code>vSwitch</code>创建完成后，需要对这个<code>vSwitch</code>配置<code>NAT</code>策略，以便访问外部网络</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20211228-03.png" alt=""></figure>
+<h3 id="32-配置集群的terway">3.2 配置集群的Terway</h3>
+<p>配置集群的<code>Terway</code>，添加上面创建的<code>vSwitch</code>到<code>Terway</code>的<code>ConfigMap</code>配置中</p>
+<pre><code class="language-shell">kubectl -n kube-system edit cm eni-config
+</code></pre>
+<p>配置样例参考<a href="https://github.com/AliyunContainerService/terway/blob/main/docs/dynamic-config.md">Terway配置参考</a>，部分内容说明如下</p>
+<pre><code class="language-yaml">
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eni-config
+  namespace: kube-system
+data:
+  10-terway.conf: |-
+    {
+      &quot;cniVersion&quot;: &quot;0.3.0&quot;,
+      &quot;name&quot;: &quot;terway&quot;,
+      &quot;type&quot;: &quot;terway&quot;
+    }
+  disable_network_policy: &quot;true&quot;
+  eni_conf: |-
+    {
+      &quot;version&quot;: &quot;1&quot;,  # 版本
+      &quot;max_pool_size&quot;: 80,  # 资源池最大水位
+      &quot;min_pool_size&quot;: 20,  # 资源池最小水位
+      &quot;credential_path&quot;: &quot;/var/addon/token-config&quot;,
+      &quot;vswitches&quot;: {&quot;cn-shanghai-f&quot;:[&quot;vsw-AAA&quot;, &quot;vsw-BBB&quot;]},  # 关联的虚拟交换机(ENI多IP模式)，添加vsw-BBB到VSwitches部分，其中vsw-AAA是已经存在的且IP资源不足的VSwitch
+      &quot;eni_tags&quot;: {&quot;ack.aliyun.com&quot;:&quot;xxxxxxxxx&quot;},
+      &quot;service_cidr&quot;: &quot;172.16.0.0/16&quot;,  # 服务CIDR
+      &quot;security_group&quot;: &quot;sg-xxxxxxx&quot;, # 安全组ID
+      &quot;vswitch_selection_policy&quot;: &quot;ordered&quot;
+    }
+</code></pre>
+<p>上面配置参数中，资源池水位的配置值。<code>Terway</code>使用底层虚拟化底层的网络资源打通容器网络，网络资源的创建和释放需要一系列的<code>API</code>调用，如果在<code>Pod</code>创建销毁时频繁调用<code>API</code>会导致<code>Pod</code>配置时间较长。 <code>Terway</code>通过池化的方式对资源进行缓存，当小于资源的池的最小水位时自动补充资源，在大于资源池最大水位时开始释放资源，这样保障了高效的资源利用和分配的效率</p>
+<p>相当于预先分配了<code>ip</code>，具体设置可以考虑到所在机器节点规格支持的最大<code>eni</code>辅助网卡个数以及最大<code>pod</code>数灵活设置</p>
+<h3 id="33-重启terway">3.3 重启terway</h3>
+<p>重启所有<code>Terway</code>的<code>pod</code>以便快速刷新缓存生效</p>
+<pre><code class="language-shell"># kubectl -n kube-system delete pod -l app=terway-eniip
+# kubectl -n kube-system get pod | grep terway
+</code></pre>
+<p>重启后检查异常的<code>pod</code>是否正常获取了<code>ip</code>即可</p>
+<p>当排查某个<code>pod</code>的<code>ip</code>分配相关问题时，也可以通过进入到所在节点的<code>terway pod</code>中，执行命令行，查看当前已分配的ip情况，以及已经从<code>vSwitch</code>分配得来后，暂时空闲的<code>ip</code>情况</p>
+<pre><code class="language-shell"># terway-cli mapping
+Status | Pod Name                                               | Res ID                           | Factory Res ID
+Normal | node-problem-detector-l5h52                            | 00:16:10:48:3e:37.10.244.18.167 | 00:16:10:48:3e:37.10.244.18.167
+...
+Idle   |                                                        | 00:16:10:48:3e:37.10.244.18.132 | 00:16:10:48:3e:37.10.244.18.132
+Idle   |                                                        | 00:16:10:48:3e:37.10.244.18.18  | 00:16:10:48:3e:37.10.244.18.18
+Idle   |                                                        | 00:16:10:48:3e:37.10.244.18.54  | 00:16:10:48:3e:37.10.244.18.54
+</code></pre>
+<p>See you ~</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/rAjiCH60jX" class="tag">
+                    k8s
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/golang-yu-dui-cheng-jia-mi">
+                  <h3 class="post-title">
+                    Golang与对称加密
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

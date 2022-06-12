@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>我的生产力工具推荐-IDE插件篇 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">我的生产力工具推荐-IDE插件篇</h2>
+            <div class="post-date">2021-05-10</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">1、概述</a></li>
+<li><a href="#2-jenkins%E6%8F%92%E4%BB%B6">2、Jenkins插件</a>
+<ul>
+<li><a href="#21-%E6%8F%92%E4%BB%B6%E5%AE%89%E8%A3%85">2.1 插件安装</a></li>
+<li><a href="#22-%E6%8F%92%E4%BB%B6%E9%85%8D%E7%BD%AE">2.2 插件配置</a></li>
+<li><a href="#23-%E6%8F%92%E4%BB%B6%E4%BD%BF%E7%94%A8">2.3 插件使用</a></li>
+</ul>
+</li>
+<li><a href="#3-kubernetes%E6%8F%92%E4%BB%B6">3、Kubernetes插件</a>
+<ul>
+<li><a href="#31-%E6%8F%92%E4%BB%B6%E5%AE%89%E8%A3%85">3.1 插件安装</a></li>
+<li><a href="#32-%E6%8F%92%E4%BB%B6%E9%85%8D%E7%BD%AE">3.2 插件配置</a></li>
+<li><a href="#33-%E6%8F%92%E4%BB%B6%E4%BD%BF%E7%94%A8">3.3 插件使用</a></li>
+</ul>
+</li>
+<li><a href="#4-%E5%B0%8F%E7%BB%93">4、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210510-01.png" alt=""></figure>
+<h2 id="1-概述">1、概述</h2>
+<p>前面分享过一篇文章 <a href="https://www.ssgeek.com/post/wo-de-sheng-chan-li-gong-ju-tui-jian-zhong-duan-01-pian/">我的生产力工具推荐-终端01篇</a>，今天来聊聊<code>IDE</code>工具</p>
+<p><code>IDE</code>一般指集成开发环境(Integrated Development Environment)</p>
+<p>基于日常工作使用和正在学习的技术栈，我常用的<code>IDE</code>主要是<code>JetBrains</code>家族的<code>DataGrip</code>、<code>PyCharm</code>、<code>GoLand</code></p>
+<p>不得不说，这些<code>IDE</code>足够强大。借助于其完备的插件库，甚至可以完美的将日常工作 “全部” 集成到<code>IDE</code>中</p>
+<p>本文要推荐的两款插件，是我日常工作中经常会使用到的</p>
+<p>在我的环境中，由于开发的应用是部署在<code>k8s</code>集群环境中，而应用部署到<code>k8s</code>的<code>CI</code>流程是通过<code>Jenkins</code>实现的</p>
+<p>借助于这两个插件，可以完美的将开发测试环境的编码(code)—&gt;部署(dev)—&gt;调试(debug)整个流程打通，进一步提高生产力</p>
+<h2 id="2-jenkins插件">2、Jenkins插件</h2>
+<h3 id="21-插件安装">2.1 插件安装</h3>
+<p>在上面列举的任意一个<code>IDE</code>中依次打开<code>Preferences</code>—&gt;<code>Plugins</code>，<br>
+搜索插件并安装，插件名称为<code>Jenkins Control</code>，安装后可能需要重启<code>IDE</code>以生效</p>
+<h3 id="22-插件配置">2.2 插件配置</h3>
+<p>打开<code>Preferences</code>，全局搜索<code>Jenkins</code>，或者直接打开<code>Tools</code>下的<code>Jenkins Plugin</code>，打开插件的配置界面</p>
+<p>配置界面主要是配置<code>Jenkins</code>服务端的相关连接信息，如下图所示</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210510-02.png" alt=""></figure>
+<p>用户名密码填写用户的用户名或密码，如果检查没有权限或其他报错，建议密码使用用户的<code>token</code>，可以通过「用户」——&gt; 「设置」——&gt; 「API Token」——&gt; 「添加新Token」来获得一个<code>api token</code>。<br>
+当然也可以通过<code>Crumb</code>操作连接<code>Jenkins</code>，关于<code>Crumb</code>在我前面的文章 <a href="https://www.ssgeek.com/post/jenkins-apipipeline-shen-du-shi-jian-zhi-input-de-zi-dong-hua/">Jenkins API+Pipeline深度实践之input的自动化</a>中有提及</p>
+<p>其他配置看字面意思即可，这里不再赘述</p>
+<h3 id="23-插件使用">2.3 插件使用</h3>
+<p>配置完成后，就可以在<code>IDE</code>工具的右侧工具栏看到一个<code>Jenkins</code>图标，点击展开，就可以看到所有的<code>Jenkins Job</code>列表，也可以选择按<code>Jenkins</code>上的视图进行分类</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210510-03.png" alt=""></figure>
+<p>找到需要操作的<code>Job</code>并右键，选择<code>Build on Jenkins</code>就可以触发构建，点击后会弹出在<code>Jenkins</code>流水线线中定义好的构建参数供选择和确认</p>
+<p>展开每个<code>Job</code>，也可以查看每个<code>Job</code>的历史构建及参数</p>
+<p>此插件也支持直接在<code>IDE</code>查看构建控制台的日志输出，包括历史日志及正在运行的<code>Job</code>构建日志，这样在触发构建后，就可以很方便的在<code>IDE</code>中查看到<code>CI</code>流程的每个步骤详细输出，和在<code>Jenkins</code>的控制台上看是一样的</p>
+<h2 id="3-kubernetes插件">3、Kubernetes插件</h2>
+<h3 id="31-插件安装">3.1 插件安装</h3>
+<p>同样的，在上面列举的任意一个<code>IDE</code>中依次打开<code>Preferences</code>—&gt;<code>Plugins</code>，<br>
+搜索插件并安装，插件名称为<code>Kubernetes</code>，安装后可能需要重启<code>IDE</code>以生效</p>
+<h3 id="32-插件配置">3.2 插件配置</h3>
+<p>打开<code>Preferences</code>，全局搜索<code>Kubernetes</code>，或者直接打开<code>Build, Execution, Deployment</code>下的<code>Kubernetes</code>，打开插件的配置界面</p>
+<p>这里配置主要是指定连接<code>k8s</code>集群的<code>kubeconfig</code>文件的位置、默认进入<code>Pod</code>的<code>bash</code>解释器，以及对<code>Pod</code>日志查看相关的全局设置</p>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20210510-04.png" alt=""></figure>
+<h3 id="33-插件使用">3.3 插件使用</h3>
+<p>配置完成后，打开插件窗口可以通过默认的快捷键<code>command</code>+<code>8</code>打开<code>Service</code>窗口或者在设置选择中找到<code>Service</code>下的<code>Kubernetes</code>为这个插件单独指定<code>Keymap</code>快捷键</p>
+<figure data-type="image" tabindex="5"><img src="https://image.ssgeek.com/20210510-05.png" alt=""></figure>
+<p>除了找到对应部署的应用<code>Pod</code>进行相关的调试外，在这个插件的窗口内还可以对集群中的大多数资源进行操作，就像通过<code>kubernetes dashboard</code>一样，前提是本地的<code>kubeconfig</code>文件要有权限，当然如果<code>kubeconfig</code>文件中关联了多个集群，插件也是支持多集群的</p>
+<h2 id="4-小结">4、小结</h2>
+<p>到这里，这篇文章简要提到的两个<code>IDE</code>插件的相关安装、配置、使用就介绍完了。关于以上两个插件的具体使用就不再记录了。此外，还可以在<code>IDE</code>中使用<code>Git</code>插件操作项目的版本控制，也可以直接使用终端进行更多操作等等</p>
+<p>借助于<code>IDE</code>及上述插件等，可以很方便的让我们对应用的生命周期进行干预，再加上一个强大的<code>Web Browser</code>，基本就不需要其他工具了</p>
+<p>See you ~</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/app" class="tag">
+                    实用程序
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/qian-tan-python-ya-zi-lei-xing">
+                  <h3 class="post-title">
+                    浅谈Python鸭子类型
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

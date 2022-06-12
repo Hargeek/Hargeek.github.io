@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>基于k8s手动部署rabbitmq集群 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">基于k8s手动部署rabbitmq集群</h2>
+            <div class="post-date">2021-02-22</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-rabbitmq%E4%BB%8B%E7%BB%8D">1、RabbitMQ介绍</a></li>
+<li><a href="#2-rabbitmq%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E5%92%8C%E9%95%9C%E5%83%8F%E9%98%9F%E5%88%97">2、RabbitMQ的持久化和镜像队列</a></li>
+<li><a href="#3-rabbitmq%E9%9B%86%E7%BE%A4%E5%9C%A8k8s%E4%B8%AD%E7%9A%84%E9%83%A8%E7%BD%B2">3、RabbitMQ集群在k8s中的部署</a>
+<ul>
+<li><a href="#31-%E7%8E%AF%E5%A2%83%E4%BB%8B%E7%BB%8D">3.1 环境介绍</a></li>
+<li><a href="#32-%E5%88%9B%E5%BB%BAconfigmap">3.2 创建configmap</a></li>
+<li><a href="#33-%E5%88%9B%E5%BB%BAservice">3.3 创建service</a></li>
+<li><a href="#34-%E5%88%9B%E5%BB%BArbac%E6%8E%88%E6%9D%83">3.4 创建rbac授权</a></li>
+<li><a href="#35-%E5%88%9B%E5%BB%BAstatefulset">3.5 创建statefulset</a></li>
+<li><a href="#36-%E9%83%A8%E7%BD%B2%E6%A3%80%E6%9F%A5">3.6 部署检查</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-rabbitmq介绍">1、RabbitMQ介绍</h2>
+<p><code>RabbitMQ</code>是实现了高级消息队列协议<code>AMQP</code>的开源消息代理软件（亦称面向消息的中间件）。<code>RabbitMQ</code>服务器是用<code>Erlang</code>语言编写的，而集群和故障转移是构建在开放电信平台框架上的。<code>AMQP</code>：<code>Advanced Message Queue</code>，高级消息队列协议。它是应用层协议的一个开放标准，为面向消息的中间件设计，基于此协议的客户端与消息中间件可传递消息，并不受产品、开发语言灯条件的限制</p>
+<p><code>AMQP</code>具有如下的特性：</p>
+<ul>
+<li>可靠性<code>Reliablity</code>：使用了一些机制来保证可靠性，比如持久化、传输确认、发布确认</li>
+<li>灵活的路由<code>Flexible Routing</code>：在消息进入队列之前，通过<code>Exchange</code>来路由消息。对于典型的路由功能，<code>Rabbit</code>已经提供了一些内置的<code>Exchange</code>来实现。针对更复杂的路由功能，可以将多个<code>Exchange</code>绑定在一起，也通过插件机制实现自己的<code>Exchange</code></li>
+<li>消息集群<code>Clustering</code>：多个<code>RabbitMQ</code>服务器可以组成一个集群，形成一个逻辑<code>Broker</code></li>
+<li>高可用<code>Highly Avaliable Queues</code>：队列可以在集群中的机器上进行镜像，使得在部分节点出问题的情况下队列仍然可用</li>
+<li>多种协议<code>Multi-protocol</code>：支持多种消息队列协议，如<code>STOMP</code>、<code>MQTT</code>等</li>
+<li>多种语言客户端<code>Many Clients</code>：几乎支持所有常用语言，比如<code>Java</code>、<code>.NET</code>、<code>Ruby</code>等</li>
+<li>管理界面<code>Management UI</code>：提供了易用的用户界面，使得用户可以监控和管理消息<code>Broker</code>的许多方面</li>
+<li>跟踪机制<code>Tracing</code>：如果消息异常，<code>RabbitMQ</code>提供了消息的跟踪机制，使用者可以找出发生了什么</li>
+<li>插件机制<code>Plugin System</code>：提供了许多插件，来从多方面进行扩展，也可以编辑自己的插件</li>
+</ul>
+<h2 id="2-rabbitmq的持久化和镜像队列">2、RabbitMQ的持久化和镜像队列</h2>
+<p><code>RabbitMQ</code>持久化分为<code>Exchange</code>、<code>Queue</code>、<code>Message</code></p>
+<ul>
+<li><code>Exchange</code>和<code>Queue</code>持久化：指持久化<code>Exchange</code>、<code>Queue</code>元数据，持久化的是自身，服务宕机<code>Exchange</code>和<code>Queue</code>自身就没有了</li>
+<li><code>Message</code>持久化：顾名思义就是把每一条消息体持久化，服务宕机，消息不丢失</li>
+</ul>
+<p><code>RabbitMQ</code>的队列<code>Queue</code>镜像，指<code>master node</code>在接受到请求后，会同步到其他节点上，以此来保证高可用。在<code>confirm</code>模式下，具体过程如下</p>
+<pre><code>clientpublisher发送消息 –&gt; master node接到消息 –&gt; master node将消息持久化到磁盘 –&gt; 将消息异步发送给其他节点 –&gt; master将ack返回给client publisher
+</code></pre>
+<h2 id="3-rabbitmq集群在k8s中的部署">3、RabbitMQ集群在k8s中的部署</h2>
+<p>将<code>RabbitMQ</code>以集群的方式部署在<code>k8s</code>中，前提是<code>RabbitMQ</code>的每个节点都能像传统方式一样进行相互的服务发现。因此<code>RabbitMQ</code>在<code>k8s</code>集群中通过<code>rabbitmq_peer_discovery_k8s plugin</code>与<code>k8s apiserver</code>进行交互，获取各个服务的<code>URL</code>，且<code>RabbitMQ</code>在<code>k8s</code>集群中必须用<code>statefulset</code>和<code>headless service</code>进行匹配</p>
+<p><strong>需要注意的是</strong>，<code>rabbitmq_peer_discovery_k8s</code>是<code>RabbitMQ</code>官方基于第三方开源项目<code>rabbitmq-autocluster</code>开发，对<code>3.7.X</code>及以上版本提供的<code>Kubernetes</code>下的对等发现插件，可实现<code>rabbitmq</code>集群在<code>k8s</code>中的自动化部署，因此低于3.7.X版本请使用<code>rabbitmq-autocluster</code></p>
+<h3 id="31-环境介绍">3.1 环境介绍</h3>
+<p>本文部署的版本是<code>3.8.3</code></p>
+<p>默认部署在<code>default</code>命名空间下，</p>
+<p>持久化存储为<code>storageclass</code>动态存储，底层为<code>nfs</code>提供</p>
+<p>镜像地址<code>rabbitmq:3.8.3-management</code></p>
+<p>以下<code>yaml</code>参考自官方示例https://github.com/rabbitmq/diy-kubernetes-examples</p>
+<h3 id="32-创建configmap">3.2 创建configmap</h3>
+<p>01-rabbitmq-configmap.yaml</p>
+<pre><code>kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: rabbitmq-cluster-config
+  namespace: default
+  labels:
+    addonmanager.kubernetes.io/mode: Reconcile
+data:
+    enabled_plugins: |
+      [rabbitmq_management,rabbitmq_peer_discovery_k8s].
+    rabbitmq.conf: |
+      default_user = admin
+      default_pass = 123!@#
+      ## Cluster formation. See https://www.rabbitmq.com/cluster-formation.html to learn more.
+      cluster_formation.peer_discovery_backend = rabbit_peer_discovery_k8s
+      cluster_formation.k8s.host = kubernetes.default.svc.cluster.local
+      ## Should RabbitMQ node name be computed from the pod's hostname or IP address?
+      ## IP addresses are not stable, so using [stable] hostnames is recommended when possible.
+      ## Set to &quot;hostname&quot; to use pod hostnames.
+      ## When this value is changed, so should the variable used to set the RABBITMQ_NODENAME
+      ## environment variable.
+      cluster_formation.k8s.address_type = hostname
+      ## How often should node cleanup checks run?
+      cluster_formation.node_cleanup.interval = 30
+      ## Set to false if automatic removal of unknown/absent nodes
+      ## is desired. This can be dangerous, see
+      ##  * https://www.rabbitmq.com/cluster-formation.html#node-health-checks-and-cleanup
+      ##  * https://groups.google.com/forum/#!msg/rabbitmq-users/wuOfzEywHXo/k8z_HWIkBgAJ
+      cluster_formation.node_cleanup.only_log_warning = true
+      cluster_partition_handling = autoheal
+      ## See https://www.rabbitmq.com/ha.html#master-migration-data-locality
+      queue_master_locator=min-masters
+      ## See https://www.rabbitmq.com/access-control.html#loopback-users
+      loopback_users.guest = false
+      cluster_formation.randomized_startup_delay_range.min = 0
+      cluster_formation.randomized_startup_delay_range.max = 2
+      # default is rabbitmq-cluster's namespace
+      # hostname_suffix
+      cluster_formation.k8s.hostname_suffix = .rabbitmq-cluster.default.svc.cluster.local
+      # memory
+      vm_memory_high_watermark.absolute = 1GB
+      # disk
+      disk_free_limit.absolute = 2GB
+</code></pre>
+<p>部分参数说明：</p>
+<ul>
+<li>enabled_plugins：声明开启的插件名</li>
+<li>default_pass/default_pass：声明用户名和密码（虽然有部分文章记录可以通过环境变量的方式声明，但是经测试，针对此版本如果指定了<code>configmap</code>即<code>rabbitmq</code>的配置文件，声明的环境变量是没有用的，都需要在配置文件中指定）</li>
+<li>cluster_formation.k8s.address_type：从<code>k8s</code>返回的<code>Pod</code>容器列表中计算对等节点列表，这里只能使用主机名，官方示例中是<code>ip</code>，但是默认情况下在<code>k8s</code>中<code>pod</code>的<code>ip</code>都是不固定的，因此可能导致节点的配置和数据丢失，后面的<code>yaml</code>中会通过引用元数据的方式固定<code>pod</code>的主机名。</li>
+</ul>
+<p>更多参数请参考官方文档，这里就不赘述了</p>
+<h3 id="33-创建service">3.3 创建service</h3>
+<p>02-rabbitmq-service.yaml</p>
+<pre><code>kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    app: rabbitmq-cluster
+  name: rabbitmq-cluster
+  namespace: default
+spec:
+  clusterIP: None
+  ports:
+  - name: rmqport
+    port: 5672
+    targetPort: 5672
+  selector:
+    app: rabbitmq-cluster
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    app: rabbitmq-cluster
+  name: rabbitmq-cluster-manage
+  namespace: default
+spec:
+  ports:
+  - name: http
+    port: 15672
+    protocol: TCP
+    targetPort: 15672
+  selector:
+    app: rabbitmq-cluster
+  type: NodePort
+
+</code></pre>
+<p>上面定义了两个<code>Service</code>，一个是<code>rabbitmq</code>的服务端口，一个是管理界面的端口，用户外部访问，这里通过<code>NodePort</code>方式进行暴露</p>
+<h3 id="34-创建rbac授权">3.4 创建rbac授权</h3>
+<p>前面的介绍中提到了<code>RabbitMQ</code>通过插件与k8s apiserver交互获得集群中节点相关信息，因此需要对其进行<code>RBAC</code>授权</p>
+<p>03-rabbitmq-rbac.yaml</p>
+<pre><code>apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rabbitmq-cluster
+  namespace: default
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: rabbitmq-cluster
+  namespace: default
+rules:
+- apiGroups: [&quot;&quot;]
+  resources: [&quot;endpoints&quot;]
+  verbs: [&quot;get&quot;]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: rabbitmq-cluster
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rabbitmq-cluster
+subjects:
+- kind: ServiceAccount
+  name: rabbitmq-cluster
+  namespace: default
+</code></pre>
+<h3 id="35-创建statefulset">3.5 创建statefulset</h3>
+<p><code>RabbitMQ</code>在<code>k8s</code>中作为一个有状态应用进行部署，因此控制器类型为<code>StatefulSet</code>，<code>yaml</code>中还定义了<code>pvc</code>相关内容</p>
+<p>04-rabbitmq-cluster-sts.yaml</p>
+<pre><code>kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  labels:
+    app: rabbitmq-cluster
+  name: rabbitmq-cluster
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: rabbitmq-cluster
+  serviceName: rabbitmq-cluster
+  template:
+    metadata:
+      labels:
+        app: rabbitmq-cluster
+    spec:
+      containers:
+      - args:
+        - -c
+        - cp -v /etc/rabbitmq/rabbitmq.conf ${RABBITMQ_CONFIG_FILE}; exec docker-entrypoint.sh
+          rabbitmq-server
+        command:
+        - sh
+        env:
+        - name: TZ
+          value: 'Asia/Shanghai'
+        - name: RABBITMQ_ERLANG_COOKIE
+          value: 'SWvCP0Hrqv43NG7GybHC95ntCJKoW8UyNFWnBEWG8TY='
+        - name: K8S_SERVICE_NAME
+          value: rabbitmq-cluster
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: RABBITMQ_USE_LONGNAME
+          value: &quot;true&quot;
+        - name: RABBITMQ_NODENAME
+          value: rabbit@$(POD_NAME).$(K8S_SERVICE_NAME).$(POD_NAMESPACE).svc.cluster.local
+        - name: RABBITMQ_CONFIG_FILE
+          value: /var/lib/rabbitmq/rabbitmq.conf
+        image: rabbitmq:3.8.3-management
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - rabbitmq-diagnostics
+            - status
+          # See https://www.rabbitmq.com/monitoring.html for monitoring frequency recommendations.
+          initialDelaySeconds: 60
+          periodSeconds: 60
+          timeoutSeconds: 15
+        name: rabbitmq
+        ports:
+        - containerPort: 15672
+          name: http
+          protocol: TCP
+        - containerPort: 5672
+          name: amqp
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - rabbitmq-diagnostics
+            - status
+          initialDelaySeconds: 20
+          periodSeconds: 60
+          timeoutSeconds: 10
+        volumeMounts:
+        - mountPath: /etc/rabbitmq
+          name: config-volume
+          readOnly: false
+        - mountPath: /var/lib/rabbitmq
+          name: rabbitmq-storage
+          readOnly: false
+        - name: timezone
+          mountPath: /etc/localtime
+          readOnly: true
+      serviceAccountName: rabbitmq-cluster
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: config-volume
+        configMap:
+          items:
+          - key: rabbitmq.conf
+            path: rabbitmq.conf
+          - key: enabled_plugins
+            path: enabled_plugins
+          name: rabbitmq-cluster-config
+      - name: timezone
+        hostPath:
+          path: /usr/share/zoneinfo/Asia/Shanghai
+  volumeClaimTemplates:
+  - metadata:
+      name: rabbitmq-storage
+    spec:
+      accessModes:
+      - ReadWriteMany
+      storageClassName: &quot;managed-nfs-storage&quot;
+      resources:
+        requests:
+          storage: 2Gi
+</code></pre>
+<h3 id="36-部署检查">3.6 部署检查</h3>
+<pre><code>➜  rabbitmq-cluster pwd
+/Users/ssgeek/Documents/k8s-manifests/rabbitmq-cluster
+➜  rabbitmq-cluster ls
+01-rabbitmq-configmap.yaml   02-rabbitmq-service.yaml     03-rabbitmq-rbac.yaml        04-rabbitmq-cluster-sts.yaml
+➜  rabbitmq-cluster kubectl apply -f .
+configmap/rabbitmq-cluster-config created
+service/rabbitmq-cluster created
+service/rabbitmq-cluster-manage created
+serviceaccount/rabbitmq-cluster created
+role.rbac.authorization.k8s.io/rabbitmq-cluster created
+rolebinding.rbac.authorization.k8s.io/rabbitmq-cluster created
+statefulset.apps/rabbitmq-cluster created
+</code></pre>
+<p>等待一段时间，查看创建的相关资源</p>
+<pre><code>➜  rabbitmq-cluster kubectl get po,sts -l app=rabbitmq-cluster
+NAME                     READY   STATUS    RESTARTS   AGE
+pod/rabbitmq-cluster-0   1/1     Running   0          3m22s
+pod/rabbitmq-cluster-1   1/1     Running   0          2m18s
+pod/rabbitmq-cluster-2   1/1     Running   0          2m23s
+
+NAME                                READY   AGE
+statefulset.apps/rabbitmq-cluster   3/3     3m25s
+</code></pre>
+<p>查看日志，从日志的最后部分观察集群建立的状态</p>
+<pre><code>➜  rabbitmq-cluster kubectl logs -f rabbitmq-cluster-0
+'/etc/rabbitmq/rabbitmq.conf' -&gt; '/var/lib/rabbitmq/rabbitmq.conf'
+2021-02-17 03:30:39.445 [info] &lt;0.9.0&gt; Feature flags: list of feature flags found:
+2021-02-17 03:30:39.445 [info] &lt;0.9.0&gt; Feature flags:   [ ] drop_unroutable_metric
+2021-02-17 03:30:39.445 [info] &lt;0.9.0&gt; Feature flags:   [ ] empty_basic_get_metric
+2021-02-17 03:30:39.445 [info] &lt;0.9.0&gt; Feature flags:   [ ] implicit_default_bindings
+2021-02-17 03:30:39.445 [info] &lt;0.9.0&gt; Feature flags:   [ ] quorum_queue
+2021-02-17 03:30:39.445 [info] &lt;0.9.0&gt; Feature flags:   [ ] virtual_host_metadata
+2021-02-17 03:30:39.445 [info] &lt;0.9.0&gt; Feature flags: feature flag states written to disk: yes
+2021-02-17 03:30:39.544 [info] &lt;0.269.0&gt; ra: meta data store initialised. 0 record(s) recovered
+2021-02-17 03:30:39.547 [info] &lt;0.274.0&gt; WAL: recovering []
+2021-02-17 03:31:10.676 [info] &lt;0.313.0&gt; 
+ Starting RabbitMQ 3.8.3 on Erlang 22.3.4.1
+ Copyright (c) 2007-2020 Pivotal Software, Inc.
+ Licensed under the MPL 1.1. Website: https://rabbitmq.com
+
+  ##  ##      RabbitMQ 3.8.3
+  ##  ##
+  ##########  Copyright (c) 2007-2020 Pivotal Software, Inc.
+  ######  ##
+  ##########  Licensed under the MPL 1.1. Website: https://rabbitmq.com
+
+  Doc guides: https://rabbitmq.com/documentation.html
+  Support:    https://rabbitmq.com/contact.html
+  Tutorials:  https://rabbitmq.com/getstarted.html
+  Monitoring: https://rabbitmq.com/monitoring.html
+
+  Logs: &lt;stdout&gt;
+
+  Config file(s): /var/lib/rabbitmq/rabbitmq.conf
+
+  Starting broker...2021-02-17 03:31:10.678 [info] &lt;0.313.0&gt; 
+ node           : rabbit@rabbitmq-cluster-0.rabbitmq-cluster.default.svc.cluster.local
+ home dir       : /var/lib/rabbitmq
+ config file(s) : /var/lib/rabbitmq/rabbitmq.conf
+ cookie hash    : H+IQL2spD4MDV4jPi7mMAg==
+ log(s)         : &lt;stdout&gt;
+ database dir   : /var/lib/rabbitmq/mnesia/rabbit@rabbitmq-cluster-0.rabbitmq-cluster.default.svc.cluster.local
+2021-02-17 03:31:10.695 [info] &lt;0.313.0&gt; Running boot step pre_boot defined by app rabbit
+
+...省略中间内容
+
+2021-02-17 03:31:13.273 [info] &lt;0.824.0&gt; Statistics database started.
+2021-02-17 03:31:13.273 [info] &lt;0.823.0&gt; Starting worker pool 'management_worker_pool' with 3 processes in it
+2021-02-17 03:31:13.467 [info] &lt;0.9.0&gt; Server startup complete; 5 plugins started.
+ * rabbitmq_peer_discovery_k8s
+ * rabbitmq_management
+ * rabbitmq_web_dispatch
+ * rabbitmq_management_agent
+ * rabbitmq_peer_discovery_common
+ completed with 5 plugins.
+2021-02-17 03:32:30.060 [info] &lt;0.566.0&gt; node 'rabbit@rabbitmq-cluster-1.rabbitmq-cluster.default.svc.cluster.local' up
+2021-02-17 03:32:31.264 [info] &lt;0.566.0&gt; rabbit on node 'rabbit@rabbitmq-cluster-1.rabbitmq-cluster.default.svc.cluster.local' up
+2021-02-17 03:33:31.280 [info] &lt;0.566.0&gt; node 'rabbit@rabbitmq-cluster-2.rabbitmq-cluster.default.svc.cluster.local' up
+2021-02-17 03:33:32.627 [info] &lt;0.566.0&gt; rabbit on node 'rabbit@rabbitmq-cluster-2.rabbitmq-cluster.default.svc.cluster.local' up
+</code></pre>
+<p>进入到<code>pod</code>中通过客户端查看集群状态</p>
+<pre><code>➜  rabbitmq-cluster kubectl exec -it rabbitmq-cluster-0 bash
+root@rabbitmq-cluster-0:/# rabbitmqctl cluster_status
+Cluster status of node rabbit@rabbitmq-cluster-0.rabbitmq-cluster.default.svc.cluster.local ...
+Basics
+
+Cluster name: rabbit@rabbitmq-cluster-0.rabbitmq-cluster.default.svc.cluster.local
+
+Disk Nodes
+
+rabbit@rabbitmq-cluster-0.rabbitmq-cluster.default.svc.cluster.local
+rabbit@rabbitmq-cluster-1.rabbitmq-cluster.default.svc.cluster.local
+rabbit@rabbitmq-cluster-2.rabbitmq-cluster.default.svc.cluster.local
+
+Running Nodes
+
+rabbit@rabbitmq-cluster-0.rabbitmq-cluster.default.svc.cluster.local
+rabbit@rabbitmq-cluster-1.rabbitmq-cluster.default.svc.cluster.local
+rabbit@rabbitmq-cluster-2.rabbitmq-cluster.default.svc.cluster.local
+
+Versions
+
+rabbit@rabbitmq-cluster-0.rabbitmq-cluster.default.svc.cluster.local: RabbitMQ 3.8.3 on Erlang 22.3.4.1
+rabbit@rabbitmq-cluster-1.rabbitmq-cluster.default.svc.cluster.local: RabbitMQ 3.8.3 on Erlang 22.3.4.1
+rabbit@rabbitmq-cluster-2.rabbitmq-cluster.default.svc.cluster.local: RabbitMQ 3.8.3 on Erlang 22.3.4.1
+
+Alarms
+
+(none)
+
+Network Partitions
+
+(none)
+
+Listeners
+
+Node: rabbit@rabbitmq-cluster-0.rabbitmq-cluster.default.svc.cluster.local, interface: [::], port: 25672, protocol: clustering, purpose: inter-node and CLI tool communication
+Node: rabbit@rabbitmq-cluster-0.rabbitmq-cluster.default.svc.cluster.local, interface: [::], port: 5672, protocol: amqp, purpose: AMQP 0-9-1 and AMQP 1.0
+Node: rabbit@rabbitmq-cluster-0.rabbitmq-cluster.default.svc.cluster.local, interface: [::], port: 15672, protocol: http, purpose: HTTP API
+Node: rabbit@rabbitmq-cluster-1.rabbitmq-cluster.default.svc.cluster.local, interface: [::], port: 25672, protocol: clustering, purpose: inter-node and CLI tool communication
+Node: rabbit@rabbitmq-cluster-1.rabbitmq-cluster.default.svc.cluster.local, interface: [::], port: 5672, protocol: amqp, purpose: AMQP 0-9-1 and AMQP 1.0
+Node: rabbit@rabbitmq-cluster-1.rabbitmq-cluster.default.svc.cluster.local, interface: [::], port: 15672, protocol: http, purpose: HTTP API
+Node: rabbit@rabbitmq-cluster-2.rabbitmq-cluster.default.svc.cluster.local, interface: [::], port: 25672, protocol: clustering, purpose: inter-node and CLI tool communication
+Node: rabbit@rabbitmq-cluster-2.rabbitmq-cluster.default.svc.cluster.local, interface: [::], port: 5672, protocol: amqp, purpose: AMQP 0-9-1 and AMQP 1.0
+Node: rabbit@rabbitmq-cluster-2.rabbitmq-cluster.default.svc.cluster.local, interface: [::], port: 15672, protocol: http, purpose: HTTP API
+
+Feature flags
+
+Flag: drop_unroutable_metric, state: enabled
+Flag: empty_basic_get_metric, state: enabled
+Flag: implicit_default_bindings, state: enabled
+Flag: quorum_queue, state: enabled
+Flag: virtual_host_metadata, state: enabled
+</code></pre>
+<p>通过<code>NodePort</code>访问管理界面</p>
+<pre><code>kubectl get svc -l app=rabbitmq-cluster
+NAME                      TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)           AGE
+rabbitmq-cluster          ClusterIP   None           &lt;none&gt;        5672/TCP          8m47s
+rabbitmq-cluster-manage   NodePort    10.1.239.191   &lt;none&gt;        15672:30888/TCP   8m47s
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210222-01.png" alt=""></figure>
+<p>到这里，在<code>k8s</code>中手动部署一个<code>RabbitMQ</code>集群就完成啦~</p>
+<blockquote>
+<p>参考：<br>
+https://www.rabbitmq.com/cluster-formation.html<br>
+https://github.com/rabbitmq/diy-kubernetes-examples</p>
+</blockquote>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/t1cT6DCOs" class="tag">
+                    rabbitmq
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/rAjiCH60jX" class="tag">
+                    k8s
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/wei-shi-me-yi-jing-yong-liao-gun-dong-geng-xin-fu-wu-huan-hui-zhong-duan">
+                  <h3 class="post-title">
+                    为什么已经用了滚动更新服务还会中断
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

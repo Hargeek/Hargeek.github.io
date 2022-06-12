@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>kubernetes Pod资源调度之优先(抢占)调度 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">kubernetes Pod资源调度之优先(抢占)调度</h2>
+            <div class="post-date">2020-04-23</div>
+            
+            <div class="post-content">
+              <p></p>
+<p>对于运行各种负载（如Service、Job）的中等规模或者大规模的集群来说，出于各种原因，我们需要尽可能提高集群的资源利用率。而提高资源利用率的常规做法是采用优先级方案，即不同类型的负载对应不同的优先级，同时允许集群中的所有负载所需的资源总量超过集群可提供的资源，在这种情况下，当发生资源不足的情况时，系统可以选择释 放一些不重要的负载（优先级最低的），保障最重要的负载能够获取足够的资源稳定运行。</p>
+<p>在<code>Kubernetes 1.8</code>版本之前，当集群的可用资源不足时，在用户提交新的<code>Pod</code>创建请求后，该<code>Pod</code>会一直处于<code>Pending</code>状态，即使这个<code>Pod</code>是一个很重要（很有身份）的<code>Pod</code>，也只能被动等待其他Pod被删除并释放资源，才能有机会被调度成功。</p>
+<p><code>Kubernetes 1.8</code>版本引入了基于<code>Pod</code>优先级 抢占<code>Pod Priority Preemption</code>的调度策略，此时<code>Kubernetes</code>会尝试释放目标节点上低优先级的<code>Pod</code>，以腾出空间（资源）安置高优先级的<code>Pod</code>，这种调度方式被称为“抢占式调度”。在<code>Kubernetes 1.11</code>版本中，该特性升级为<code>Beta</code>版本，默认开启，在后继的<code>Kubernetes 1.14</code>版本中正式<code>Release</code>。如何声明一个负载相对其他负载“更重要”？我们可以通过以下几个维度来定义：</p>
+<ul>
+<li>Priority，优先级</li>
+<li>QoS，服务质量等级</li>
+<li>系统定义的其他度量指标</li>
+</ul>
+<p>优先级抢占调度策略的核心行为分别是驱逐<code>Eviction</code>与抢占<code>Preemption</code>，这两种行为的使用场景不同，效果相同。<code>Eviction</code>是<code>kubelet</code>进程的行为，即当一个<code>Node</code>发生资源不足<code>under resource pressure</code>的情况时，该节点上的<code>kubelet</code>进程会执行驱逐动作，此时<code>Kubelet</code>会综合考虑<code>Pod</code>的优先级、资源申请量与实际使用量等信息来计算哪些<code>Pod</code>需要被驱逐；当同样优先级的<code>Pod</code>需要被驱逐时，实际使用的资源量超过申请量最大倍数的高耗能<code>Pod</code>会被首先驱逐。对于<code>QoS</code>等级为<code>Best Effort</code>的<code>Pod</code>来说，由于没有定义资源申请<code>CPU/Memory Request</code>，所以它们实际使用的资源可能非常大。<code>Preemption</code>则是<code>Scheduler</code>执行的行为，当一个新的<code>Pod</code>因为资源无法满足而不能被调度时，<code>Scheduler</code>可能（有权决定）选择驱逐部分低优先级的<code>Pod</code>实例来满足此<code>Pod</code>的调度目标，这就是<code>Preemption</code>机制。</p>
+<p>需要注意的是，<code>Scheduler</code>可能会驱逐<code>Node A</code>上的一个<code>Pod</code>以满足<code>Node B</code>上的一个新<code>Pod</code>的调度任务。比如下面的这个例子：</p>
+<blockquote>
+<p>一个低优先级的Pod A在Node A（属于机架R）上运行，此时有一个高优先级的 Pod B等待调度，目标节点是同属机架R的Node B，他们中的一个或全部都定义了antiaffinity规则，不允许在同一个机架上运行，此时Scheduler只好“丢车保帅”，驱逐低优 先级的Pod A以满足高优先级的Pod B的调度。</p>
+</blockquote>
+<p><code>Pod</code>优先级调度示例如下<br>
+首先，由集群管理员创建<code>PriorityClasses</code>，<code>PriorityClass</code>不属于任何命名空间：</p>
+<pre><code>---
+apiVersion: scheduling.k8s.io/v1beta1
+kind: PriorityClass
+metadata:
+  name: high-priority
+value: 1000000
+globalDefault: false
+description: &quot;This priority class should be used for XYZ service pods only.&quot;
+</code></pre>
+<p>上述<code>YAML</code>文件定义了一个名为<code>high-priority</code>的优先级类别，优先级为<code>100000</code>，数字越大，优先级越高，超过一亿的数字被系统保留，用于指派给系统组件。</p>
+<p>可以在任意<code>Pod</code>中引用上述<code>Pod</code>优先级类别：</p>
+<pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    env: test
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+    imagePullPolicy: IfNotPresent
+  priorityClassName: high-priority
+</code></pre>
+<p>如果发生了需要抢占的调度，高优先级<code>Pod</code>就可能抢占节点<code>N</code>，并将其低优先级<code>Pod</code>驱逐出节点<code>N</code>，高优先级<code>Pod</code>的<code>status</code>信息中的<code>nominatedNodeName</code>字段会记录目标节点<code>N</code>的名称。需要注意，高优先级<code>Pod</code>仍然无法保证最终被调度到节点<code>N</code>上，在节点<code>N</code>上低优先级<code>Pod</code>被驱逐的过程中，如果有新的节点满足高优先级<code>Pod</code>的需求，就会把它调度到新的<code>Node</code>上。而如果在等待低优先级的<code>Pod</code>退出的过程中，又出现了优先级更高的<code>Pod</code>，调度器将会调度这个更高优先级的<code>Pod</code>到节点<code>N</code>上，并重新调度之前等待的高优先级<code>Pod</code>。</p>
+<p>优先级抢占的调度方式可能会导致调度陷入“死循环”状态。当<code>Kubernetes</code>集群配置了多个调度器<code>Scheduler</code>时，这一行为可能就会发生，比如下面这个例子：</p>
+<blockquote>
+<p>Scheduler A为了调度一个（批）Pod，特地驱逐了一些Pod，因此在集群中有了空 余的空间可以用来调度，此时Scheduler B恰好抢在Scheduler A之前调度了一个新的 Pod，消耗了相应的资源，因此，当Scheduler A清理完资源后正式发起Pod的调度时， 却发现资源不足，被目标节点的kubelet进程拒绝了调度请求！这种情况的确无解，因 此最好的做法是让多个Scheduler相互协作来共同实现一个目标。</p>
+</blockquote>
+<p>最后要指出一点：使用优先级抢占的调度策略可能会导致某些<code>Pod</code>永远无法被成功调度。因此优先级调度不但增加了系统的复杂性，还可能带来额外不稳定的因素。因此，一旦发生资源紧张的局面，首先要考 虑的是集群扩容，如果无法扩容，则再考虑有监管的优先级调度特性， 比如结合基于<code>Namespace</code>的资源配额限制来约束任意优先级抢占行为。</p>
+<p>文章参考来源：《kubernetes权威指南-第4版》</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/kubernetes-pod-diao-du-zhi-qin-he-xing-diao-du">
+                  <h3 class="post-title">
+                    kubernetes Pod资源调度之亲和性调度
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

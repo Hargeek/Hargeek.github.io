@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>JenkinsPipeline语法概要 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">JenkinsPipeline语法概要</h2>
+            <div class="post-date">2020-05-09</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5">1、基本概念</a></li>
+<li><a href="#2-%E8%84%9A%E6%9C%AC%E5%BC%8F%E5%92%8C%E5%A3%B0%E6%98%8E%E5%BC%8F%E6%B5%81%E6%B0%B4%E7%BA%BF">2、脚本式和声明式流水线</a></li>
+<li><a href="#3-%E5%A3%B0%E6%98%8E%E5%BC%8Fpipeline%E8%AF%AD%E6%B3%95">3、声明式pipeline语法</a>
+<ul>
+<li><a href="#31-agent">3.1、agent</a></li>
+<li><a href="#32-post">3.2、post</a></li>
+<li><a href="#33-steps">3.3、steps</a></li>
+<li><a href="#34-environment">3.4、environment</a></li>
+<li><a href="#35-options">3.5、options</a></li>
+<li><a href="#36-parameters">3.6、parameters</a></li>
+<li><a href="#37-triggers">3.7、triggers</a></li>
+<li><a href="#38-stage">3.8、stage</a></li>
+<li><a href="#39-tools">3.9、tools</a></li>
+<li><a href="#310-input">3.10、input</a></li>
+<li><a href="#311-when">3.11、when</a></li>
+<li><a href="#312-parallel">3.12、parallel</a></li>
+</ul>
+</li>
+<li><a href="#4-%E5%85%B6%E4%BB%96">4、其他</a>
+<ul>
+<li><a href="#41-%E5%9C%A8%E5%A3%B0%E6%98%8E%E5%BC%8Fpipeline%E4%B8%AD%E4%BD%BF%E7%94%A8%E8%84%9A%E6%9C%AC">4.1、在声明式pipeline中使用脚本</a></li>
+<li><a href="#42-pipeline%E5%86%85%E7%BD%AE%E5%9F%BA%E7%A1%80%E6%AD%A5%E9%AA%A4">4.2、pipeline内置基础步骤</a>
+<ul>
+<li><a href="#421-%E6%96%87%E4%BB%B6%E7%9B%AE%E5%BD%95%E7%9B%B8%E5%85%B3%E6%AD%A5%E9%AA%A4">4.2.1、文件目录相关步骤</a></li>
+<li><a href="#422-%E5%88%B6%E5%93%81%E7%9B%B8%E5%85%B3%E6%AD%A5%E9%AA%A4">4.2.2、制品相关步骤</a></li>
+<li><a href="#423-%E5%91%BD%E4%BB%A4%E7%9B%B8%E5%85%B3%E6%AD%A5%E9%AA%A4">4.2.3、命令相关步骤</a></li>
+<li><a href="#424-%E5%85%B6%E4%BB%96%E6%AD%A5%E9%AA%A4">4.2.4、其他步骤</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>Pipeline是一套运行于jenkins上的工作流框架，将原本独立运行于单个或者多个节点的任务连接起来，实现单个任务难以完成的复杂流程编排与可视化。Pipeline通过Domain Specific Language(DSL)syntax定义Pipeline As Code并且实现持续交付的目的。</p>
+</blockquote>
+<h2 id="1-基本概念">1、基本概念</h2>
+<p><code>pipeline</code>的代码定义了整个构建过程，通常包括构建应用程序，测试然后交付应用程序的阶段，下面是<code>pipeline</code>语法中的基本概念：</p>
+<ul>
+<li>Stage<br>
+一个<code>pipeline</code>可以划分成若干个<code>stage</code>，每个<code>stage</code>代表一组操作，例如<code>build</code>、<code>deploy</code>。注意，<code>stage</code>是一个逻辑分组的概念，可以跨多个<code>node</code>或<code>agent</code></li>
+<li>Node<br>
+一个<code>node</code>就是一个<code>jenkins</code>节点，或者是<code>master</code>，或者是<code>agent</code>，是执行<code>step</code>的具体运行环境</li>
+<li>Step<br>
+<code>step</code>是最基本的操作单元，小到创建一个目录，大到构建一个<code>docker</code>镜像，由各类<code>jenkins plugin</code>提供，例如<code>sh make</code></li>
+</ul>
+<h2 id="2-脚本式和声明式流水线">2、脚本式和声明式流水线</h2>
+<p>声明式<code>Pipeline</code>是<code>Jenkins Pipeline</code>的一个相对较新的补充，它在<code>Pipeline</code>子系统之上提出了一种更为简化和有意义的语法，包括：</p>
+<ul>
+<li>提供比<code>Scripted Pipeline</code>语法更丰富的语法功能</li>
+<li>声明式<code>Pipeline</code>代码更容易编写和理解</li>
+</ul>
+<p>所有有效的声明性<code>Pipeline</code>必须包含在一个<code>pipeline</code>块内，例如：</p>
+<pre><code>pipeline {
+    /* insert Declarative Pipeline here */
+}
+</code></pre>
+<h2 id="3-声明式pipeline语法">3、声明式pipeline语法</h2>
+<h3 id="31-agent">3.1、agent</h3>
+<p><code>agent</code>部分指定整个<code>Pipeline</code>或特定阶段将在<code>Jenkins</code>环境中执行的位置，具体取决于该<code>agent</code> 部分的放置位置。该部分必须在<code>pipeline</code>块内的顶层定义 ，但阶段级使用是可选的。</p>
+<p><strong>参数</strong></p>
+<p>为了支持<code>Pipeline</code>可能拥有的各种用例，该<code>agent</code>部分支持几种不同类型的参数。这些参数可以应用于<code>pipeline</code>块的顶层，也可以应用在每个<code>stage</code>指令内。</p>
+<ul>
+<li>
+<p>any<br>
+在任何可用的代理上执行<code>Pipeline</code>。例如：<code>agent any</code></p>
+</li>
+<li>
+<p>none<br>
+当在<code>pipeline</code>块的顶层应用时，将不会为整个<code>Pipeline</code>运行分配全局代理，并且每个<code>stage</code>部分将需要包含其自己的<code>agent</code>部分。例如：<code>agent none</code></p>
+</li>
+<li>
+<p>label<br>
+使用提供的标签在<code>Jenkins</code>环境中可用的代理上执行<code>Pipeline</code>或阶段性执行。例如：<code>agent { label 'my-defined-label' }</code></p>
+</li>
+<li>
+<p>node<br>
+<code>agent { node { label 'labelName' } }</code>行为相同<code>agent { label 'labelName' }</code>，但<code>node</code>允许其他选项（如<code>customWorkspace</code>）</p>
+</li>
+<li>
+<p>docker<br>
+执行<code>Pipeline</code>，或阶段执行，用给定的容器将被动态地供应一个节点预先配置成接受基于<code>Docker-based Pipelines</code>，或匹配的任选定义的节点上<code>label</code>的参数。 <code>docker</code>还可以接受一个<code>args</code>可能包含直接传递给<code>docker run</code>调用的参数的参数。例如：<code>agent { docker 'maven:3-alpine' }</code>或</p>
+</li>
+</ul>
+<pre><code>agent {
+    docker {
+        image 'maven:3-alpine'
+        label 'my-defined-label'
+        args  '-v /tmp:/tmp'
+    }
+}
+</code></pre>
+<ul>
+<li>dockerfile<br>
+使用从<code>Dockerfile</code>源存储库中包含的容器构建容器来执行<code>Pipeline</code>或阶段性执行 。为了使用此选项，<code>Jenkinsfile</code>必须从多分支<code>Pipeline</code>或<code>Pipeline</code>从<code>SCM</code>加载。通常这是<code>Dockerfile</code>源库的根源：<code>agent { dockerfile true }</code>。如果<code>Dockerfile</code>在另一个目录中建立，请使用以下<code>dir</code>选项：<code>agent { dockerfile { dir 'someSubDir' } }</code>。您可以使用<code>docker build …</code>在该<code>additionalBuildArgs</code>选项将其他参数传递给命令，如<code>agent { dockerfile { additionalBuildArgs '--build-arg foo=bar' } }</code></li>
+</ul>
+<p><strong>常用选项</strong></p>
+<p>这些是可以应用两个或多个<code>agent</code>实现的几个选项。除非明确说明，否则不需要</p>
+<ul>
+<li>
+<p>标签<br>
+一个字符串。运行<code>Pipeline</code>或个人的标签<code>stage</code>。<br>
+此选项对于<code>node</code>，<code>docker</code>和<code>dockerfile</code>，并且是必需的<code>node</code>。</p>
+</li>
+<li>
+<p>customWorkspace<br>
+一个字符串。运行<code>Pipeline</code>或个人<code>stage</code>这<code>agent</code>是这个自定义的工作空间内的应用，而不是默认的。它可以是相对路径，在这种情况下，自定义工作区将位于节点上的工作空间根目录下，也可以是绝对路径。例如：</p>
+</li>
+</ul>
+<pre><code>agent {
+    node {
+        label 'my-defined-label'
+        customWorkspace '/some/other/path'
+    }
+}
+</code></pre>
+<p>此选项是有效的<code>node</code>，<code>docker</code>和<code>dockerfile</code>。</p>
+<ul>
+<li>reuseNode<br>
+一个布尔值，默认为<code>false</code>。如果为<code>true</code>，则在同一工作空间中，而不是完全在新节点上运行<code>Pipeline</code>顶层指定的节点上的容器。<br>
+此选项适用于<code>docker</code>和<code>dockerfile</code>，并且仅在<code>agent</code>个人使用时才有效果。<br>
+例如：</li>
+</ul>
+<pre><code>Jenkinsfile (Declarative Pipeline)
+pipeline {
+    agent { docker 'maven:3-alpine' } 
+    stages {
+        stage('Example Build') {
+            steps {
+                sh 'mvn -B clean verify'
+            }
+        }
+    }
+}
+</code></pre>
+<p>在给定名称和tag（<code>maven:3-alpine</code>）的新创建的容器中执行此<code>Pipeline</code>中定义的所有步骤。<br>
+Stage-level <code>agent</code> 部分</p>
+<pre><code>Jenkinsfile (Declarative Pipeline)
+pipeline {
+    agent none 
+    stages {
+        stage('Example Build') {
+            agent { docker 'maven:3-alpine' } 
+            steps {
+                echo 'Hello, Maven'
+                sh 'mvn --version'
+            }
+        }
+        stage('Example Test') {
+            agent { docker 'openjdk:8-jre' } 
+            steps {
+                echo 'Hello, JDK'
+                sh 'java -version'
+            }
+        }
+    }
+}
+</code></pre>
+<h3 id="32-post">3.2、post</h3>
+<p>该<code>post</code>部分定义将在<code>Pipeline</code>运行或阶段结束时运行的操作。一些<a href="https://jenkins.io/doc/book/pipeline/syntax/#post-conditions">条件后</a> 的块的内支持<code>post</code>：部分 <code>always</code>，<code>changed</code>，<code>failure</code>，<code>success</code>，<code>unstable</code>，和<code>aborted</code>。这些块允许在<code>Pipeline</code>运行或阶段结束时执行步骤，具体取决于<code>Pipeline</code>的状态。</p>
+<p><strong>条件</strong></p>
+<ul>
+<li>
+<p>always<br>
+总是运行，无论<code>Pipeline</code>运行的完成状态如何</p>
+</li>
+<li>
+<p>changed<br>
+只有当前<code>Pipeline</code>运行的状态与先前完成的<code>Pipeline</code>的状态不同时，才能运行</p>
+</li>
+<li>
+<p>failure<br>
+仅当当前<code>Pipeline</code>处于“失败”状态时才运行，通常在<code>Web UI</code>中用红色指示表示。</p>
+</li>
+<li>
+<p>success<br>
+仅当当前<code>Pipeline</code>具有“成功”状态时才运行，通常在具有蓝色或绿色指示的<code>Web UI</code>中表示。</p>
+</li>
+<li>
+<p>unstable<br>
+只有当前<code>Pipeline</code>具有“不稳定”状态，通常由测试失败，代码违例等引起，才能运行。通常在具有黄色指示的<code>Web UI</code>中表示。</p>
+</li>
+<li>
+<p>aborted<br>
+只有当前<code>Pipeline</code>处于“中止”状态时，才会运行，通常是由于<code>Pipeline</code>被手动中止。通常在具有灰色指示的<code>Web UI</code>中表示。</p>
+</li>
+</ul>
+<p>例如：</p>
+<pre><code>Jenkinsfile (Declarative Pipeline)
+pipeline {
+    agent any
+    stages {
+        stage('Example') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+    }
+    post { 
+        always { 
+            echo 'I will always say Hello again!'
+        }
+    }
+}
+</code></pre>
+<h3 id="33-steps">3.3、steps</h3>
+<p>包含一个或多个阶段指令的序列，该<code>stages</code>部分是<code>Pipeline</code>描述的大部分“工作”的位置。建议<code>stages</code>至少包含至少一个阶段指令，用于连续交付过程的每个离散部分，如构建，测试和部署。</p>
+<p>例如：</p>
+<pre><code>Jenkinsfile (Declarative Pipeline)
+pipeline {
+    agent any
+    stages {
+        stage('Example') {
+            steps { 
+                echo 'Hello World'
+            }
+        }
+    }
+}
+</code></pre>
+<h3 id="34-environment">3.4、environment</h3>
+<p>该<code>environment</code>指令指定一系列键值对，这些对值将被定义为所有步骤的环境变量或阶段特定步骤，具体取决于<code>environment</code>指令位于<code>pipeline</code>中的位置。</p>
+<p>该指令支持一种特殊的帮助方法<code>credentials()</code>，可以通过其在<code>Jenkins</code>环境中的标识符来访问预定义的凭据。对于类型为<code>Secret Text</code>的凭据，该<code>credentials()</code>方法将确保指定的环境变量包含<code>Secret Text</code>内容。对于“标准用户名和密码”类型的凭证，指定的环境变量将被设置为，<code>username:password</code>并且将自动定义两个附加的环境变量：<code>MYVARNAME_USR</code>和<code>MYVARNAME_PSW</code>相应的。</p>
+<p>例如：</p>
+<pre><code>Jenkinsfile (Declarative Pipeline)
+pipeline {
+    agent any
+    environment { 
+        CC = 'clang'
+    }
+    stages {
+        stage('Example') {
+            environment { 
+                AN_ACCESS_KEY = credentials('my-prefined-secret-text') 
+            }
+            steps {
+                sh 'printenv'
+            }
+        }
+    }
+}
+</code></pre>
+<h3 id="35-options">3.5、options</h3>
+<p>该<code>options</code>指令允许在<code>Pipeline</code>本身内配置<code>Pipeline</code>专用选项。<code>Pipeline</code>提供了许多这些选项，例如<code>buildDiscarder</code>，但它们也可能由插件提供，例如<code>timestamps</code>。</p>
+<p><strong>可用选项</strong></p>
+<ul>
+<li>
+<p>buildDiscarder<br>
+持久化工件和控制台输出，用于最近Pipeline运行的具体数量。例如：<code>options { buildDiscarder(logRotator(numToKeepStr: '1')) }</code></p>
+</li>
+<li>
+<p>disableConcurrentBuilds<br>
+不允许并行执行<code>Pipeline</code>。可用于防止同时访问共享资源等。例如：<code>options { disableConcurrentBuilds() }</code></p>
+</li>
+<li>
+<p>overrideIndexTriggers<br>
+允许覆盖分支索引触发器的默认处理。 如果分支索引触发器在多分支或组织标签中禁用, <code>options { overrideIndexTriggers(true) }</code>将只允许它们用于促工作。否则, <code>options { overrideIndexTriggers(false) }</code>只会禁用改作业的分支索引触发器。</p>
+</li>
+<li>
+<p>skipDefaultCheckout<br>
+在<code>agent</code>指令中默认跳过来自源代码控制的代码。例如：<code>options { skipDefaultCheckout() }</code></p>
+</li>
+<li>
+<p>skipStagesAfterUnstable<br>
+一旦构建状态进入了“不稳定”状态，就跳过阶段。例如：<code>options { skipStagesAfterUnstable() }</code></p>
+</li>
+<li>
+<p>checkoutToSubdirectory<br>
+在工作空间的子目录中自动地执行源代码控制检出。例如: <code>options { checkoutToSubdirectory('foo') }</code></p>
+</li>
+<li>
+<p>timeout<br>
+设置<code>Pipeline</code>运行的超时时间，之后<code>Jenkins</code>应该中止<code>Pipeline</code>。例如：<code>options { timeout(time: 1, unit: 'HOURS') }</code></p>
+</li>
+<li>
+<p>retry<br>
+失败后，重试整个<code>Pipeline</code>指定的次数。例如：<code>options { retry(3) }</code></p>
+</li>
+<li>
+<p>timestamps<br>
+预处理由<code>Pipeline</code>生成的所有控制台输出运行时间与发射线的时间。例如：<code>options { timestamps() }</code></p>
+</li>
+</ul>
+<p>例如：</p>
+<pre><code>Jenkinsfile (Declarative Pipeline)
+pipeline {
+    agent any
+    options {
+        timeout(time: 1, unit: 'HOURS') 
+    }
+    stages {
+        stage('Example') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+    }
+}
+</code></pre>
+<p>指定一个小时的全局执行超时，之后<code>Jenkins</code>将中止<code>Pipeline</code>运行。</p>
+<h3 id="36-parameters">3.6、parameters</h3>
+<p>该<code>parameters</code>指令提供用户在触发<code>Pipeline</code>时应提供的参数列表。这些用户指定的参数的值通过该<code>params</code>对象可用于<code>Pipeline</code>步骤。</p>
+<p><strong>可用参数</strong></p>
+<ul>
+<li>
+<p>string<br>
+字符串类型的参数，例如：<code>parameters { string(name: 'DEPLOY_ENV', defaultValue: 'staging', description: '') }</code></p>
+</li>
+<li>
+<p>text<br>
+文本参数，可以包含多行，例如：<code>parameters { text(name: 'DEPLOY_TEXT', defaultValue: 'One\nTwo\nThree\n', description: '') }</code></p>
+</li>
+<li>
+<p>booleanParam<br>
+布尔参数，例如：<code>parameters { booleanParam(name: 'DEBUG_BUILD', defaultValue: true, description: '') }</code></p>
+</li>
+<li>
+<p>choice<br>
+选择参数，例如：<code>parameters { choice(name: 'CHOICES', choices: ['one', 'two', 'three'], description: '') }</code></p>
+</li>
+<li>
+<p>password<br>
+密码参数，例如：<code>parameters { password(name: 'PASSWORD', defaultValue: 'SECRET', description: 'A secret password') }</code></p>
+</li>
+</ul>
+<p>例如：</p>
+<pre><code>pipeline {
+    agent any
+    parameters {
+        string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
+        text(name: 'BIOGRAPHY', defaultValue: '', description: 'Enter some information about the person')
+        booleanParam(name: 'TOGGLE', defaultValue: true, description: 'Toggle this value')
+        choice(name: 'CHOICE', choices: ['One', 'Two', 'Three'], description: 'Pick something')
+        password(name: 'PASSWORD', defaultValue: 'SECRET', description: 'Enter a password')
+    }
+    stages {
+        stage('Example') {
+            steps {
+                echo &quot;Hello ${params.PERSON}&quot;
+                echo &quot;Biography: ${params.BIOGRAPHY}&quot;
+                echo &quot;Toggle: ${params.TOGGLE}&quot;
+                echo &quot;Choice: ${params.CHOICE}&quot;
+                echo &quot;Password: ${params.PASSWORD}&quot;
+            }
+        }
+    }
+}
+</code></pre>
+<h3 id="37-triggers">3.7、triggers</h3>
+<p>该<code>triggers</code>指令定义了应重新触发的自动化方式。对于与<code>GitHub</code>或<code>BitBucket</code>之类的源集成的管道，<code>triggers</code>由于基于Webhooks的集成可能已经存在，因此可能没有必要。目前可用的触发器 <code>cron</code>，<code>pollSCM</code>和<code>upstream</code>。</p>
+<ul>
+<li>
+<p>cron<br>
+接受<code>cron</code>样式的字符串来定义应重新触发管道的常规间隔，例如：<code>triggers { cron('H */4 * * 1-5') }</code></p>
+</li>
+<li>
+<p>pollSCM<br>
+接受<code>cron</code>样式的字符串以定义<code>Jenkins</code>应检查新源更改的定期间隔。如果存在新的更改，则将重新触发管道。例如：<code>triggers { pollSCM('H */4 * * 1-5') }</code></p>
+</li>
+<li>
+<p>upstream<br>
+接受以逗号分隔的作业字符串和阈值。当字符串中的任何作业以最小阈值结束时，将重新触发管道。例如： <code>triggers { upstream(upstreamProjects: 'job1,job2', threshold: hudson.model.Result.SUCCESS) }</code></p>
+</li>
+</ul>
+<p>例如：</p>
+<pre><code>// Declarative //
+pipeline {
+    agent any
+    triggers {
+        cron('H */4 * * 1-5')
+    }
+    stages {
+        stage('Example') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+    }
+}
+</code></pre>
+<p>更多<code>jenkins cron</code>语法，可参考<a href="https://www.jenkins.io/doc/book/pipeline/syntax/#cron-syntax">官方说明</a></p>
+<h3 id="38-stage">3.8、stage</h3>
+<p>该<code>stage</code>指令位于该<code>stages</code>节中，并且应包含 <a href="https://www.jenkins.io/doc/book/pipeline/syntax/#steps">steps</a>节，可选<code>agent</code>节或其他特定于阶段的指令。实际上，管道完成的所有实际工作都将包含在一个或多个<code>stage</code>指令中。</p>
+<p>例如：</p>
+<pre><code>// Declarative //
+pipeline {
+    agent any
+    stages {
+        stage('Example') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+    }
+}
+</code></pre>
+<h3 id="39-tools">3.9、tools</h3>
+<p>定义自动安装并放在上的工具的部分<code>PATH</code>。如果<code>agent none</code>指定，则将其忽略。</p>
+<p>例如：</p>
+<pre><code>pipeline {
+    agent any
+    tools {
+        maven 'apache-maven-3.0.1' 
+    }
+    stages {
+        stage('Example') {
+            steps {
+                sh 'mvn --version'
+            }
+        }
+    }
+}
+</code></pre>
+<h3 id="310-input">3.10、input</h3>
+<p><code>input</code>指令<code>stage</code>允许使用<code>inputstep</code>提示输入。在<code>stage</code>将暂停任何后<code>options</code>已被应用，并在进入前<code>agent</code>块为<code>stage</code>或评估<code>when</code>的条件<code>stage</code>。如果<code>input</code>批准，<code>stage</code>则将继续。作为<code>input</code>提交的一部分提供的任何参数将在其余的环境中可用<code>stage</code>。</p>
+<p><strong>可选项</strong></p>
+<ul>
+<li>
+<p>message<br>
+必需的，这将在用户提交时显示给用户<code>input</code></p>
+</li>
+<li>
+<p>id<br>
+可选标识符<code>input</code>，默认为<code>stage</code>名称</p>
+</li>
+<li>
+<p>ok<br>
+<code>input</code>表单上“确定”按钮的可选文本</p>
+</li>
+<li>
+<p>submitter<br>
+可选的逗号分隔列表，这些列表允许用户提交此用户或外部组名<code>input</code>。默认为允许任何用户。</p>
+</li>
+<li>
+<p>submitterParameter<br>
+环境变量的可选名称，用该<code>submitter</code>名称设置（如果存在）</p>
+</li>
+<li>
+<p>parameters<br>
+提示提交者提供的可选参数列表。请参阅<a href="https://www.jenkins.io/doc/book/pipeline/syntax/#parameters">parameters</a>以获取更多信息</p>
+</li>
+</ul>
+<p>例如：</p>
+<pre><code>pipeline {
+    agent any
+    stages {
+        stage('Example') {
+            input {
+                message &quot;Should we continue?&quot;
+                ok &quot;Yes, we should.&quot;
+                submitter &quot;alice,bob&quot;
+                parameters {
+                    string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
+                }
+            }
+            steps {
+                echo &quot;Hello, ${PERSON}, nice to meet you.&quot;
+            }
+        }
+    }
+}
+</code></pre>
+<h3 id="311-when">3.11、when</h3>
+<p>该<code>when</code>指令允许<code>Pipeline</code>根据给定的条件确定是否执行该阶段。该<code>when</code>指令必须至少包含一个条件。如果<code>when</code>指令包含多个条件，则所有子条件必须为舞台执行返回<code>true</code>。这与子条件嵌套在一个<code>allOf</code>条件中相同。<br>
+更复杂的条件结构可使用嵌套条件建：<code>not</code>，<code>allOf</code>或<code>anyOf</code>。嵌套条件可以嵌套到任意深度。</p>
+<p><strong>内置条件</strong></p>
+<ul>
+<li>branch<br>
+当正在构建的分支与给出的分支模式匹配时执行阶段，例如：<code>when { branch 'master' }</code>。仅适用于多分支<code>Pipeline</code>。</li>
+</ul>
+<pre><code>Jenkinsfile (Declarative Pipeline)
+pipeline {
+    agent any
+    stages {
+        stage('Example Build') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+        stage('Example Deploy') {
+            when {
+                branch 'production'
+            }
+            steps {
+                echo 'Deploying'
+            }
+        }
+    }
+}
+</code></pre>
+<ul>
+<li>environment<br>
+当指定的环境变量设置为给定值时执行阶段，例如： <code>when { environment name: 'DEPLOY_TO', value: 'production' }</code></li>
+</ul>
+<pre><code>Jenkinsfile (Declarative Pipeline)
+pipeline {
+    agent any
+    stages {
+        stage('Example Build') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+        stage('Example Deploy') {
+            when {
+                branch 'production'
+                environment name: 'DEPLOY_TO', value: 'production'
+            }
+            steps {
+                echo 'Deploying'
+            }
+        }
+    }
+}
+</code></pre>
+<ul>
+<li>expression<br>
+当指定的<code>Groovy</code>表达式求值为<code>true</code>时执行阶段，例如：<code>when { expression { return params.DEBUG_BUILD } }</code></li>
+</ul>
+<pre><code>pipeline {
+    agent any
+    stages {
+        stage('Example Build') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+        stage('Example Deploy') {
+            when {
+                expression { BRANCH_NAME ==~ /(production|staging)/ }
+                anyOf {
+                    environment name: 'DEPLOY_TO', value: 'production'
+                    environment name: 'DEPLOY_TO', value: 'staging'
+                }
+            }
+            steps {
+                echo 'Deploying'
+            }
+        }
+    }
+}
+</code></pre>
+<ul>
+<li>
+<p>not<br>
+当嵌套条件为<code>false</code>时执行阶段。必须包含一个条件。例如：<code>when { not { branch 'master' } }</code></p>
+</li>
+<li>
+<p>allOf<br>
+当所有嵌套条件都为真时，执行。必须至少包含一个条件。例如：<code>when { allOf { branch 'master'; environment name: 'DEPLOY_TO', value: 'production' } }</code></p>
+</li>
+</ul>
+<pre><code>pipeline {
+    agent any
+    stages {
+        stage('Example Build') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+        stage('Example Deploy') {
+            when {
+                allOf {
+                    branch 'production'
+                    environment name: 'DEPLOY_TO', value: 'production'
+                }
+            }
+            steps {
+                echo 'Deploying'
+            }
+        }
+    }
+}
+</code></pre>
+<ul>
+<li>anyOf<br>
+当至少一个嵌套条件为真时执行。必须至少包含一个条件。例如：<code>when { anyOf { branch 'master'; branch 'staging' } }</code></li>
+</ul>
+<pre><code>pipeline {
+    agent any
+    stages {
+        stage('Example Build') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+        stage('Example Deploy') {
+            when {
+                expression { BRANCH_NAME ==~ /(production|staging)/ }
+                anyOf {
+                    environment name: 'DEPLOY_TO', value: 'production'
+                    environment name: 'DEPLOY_TO', value: 'staging'
+                }
+            }
+            steps {
+                echo 'Deploying'
+            }
+        }
+    }
+}
+</code></pre>
+<h3 id="312-parallel">3.12、parallel</h3>
+<p>声明性管道中的阶段可能有一个<code>parallel</code>部分，其中包含要并行运行的嵌套阶段的列表。需要注意的是一个阶段都必须有且只有一个<code>steps</code>，<code>stages</code>，<code>parallel</code>，或<code>matrix</code>。这是不可能的嵌套<code>parallel</code>或<code>matrix</code>块内<code>stage</code>，如果该指令<code>stage</code>指令嵌套在一个<code>parallel</code>或<code>matrix</code>阻塞本身。然而，<code>stage</code>一个内指令<code>parallel</code>或<code>matrix</code>块可以使用的所有其它的功能<code>stage</code>，包括<code>agent</code>，<code>tools</code>，<code>when</code>等。</p>
+<pre><code>pipeline {
+    agent any
+    stages {
+        stage('Non-Parallel Stage') {
+            steps {
+                echo 'This stage will be executed first.'
+            }
+        }
+        stage('Parallel Stage') {
+            when {
+                branch 'master'
+            }
+            failFast true
+            parallel {
+                stage('Branch A') {
+                    agent {
+                        label &quot;for-branch-a&quot;
+                    }
+                    steps {
+                        echo &quot;On Branch A&quot;
+                    }
+                }
+                stage('Branch B') {
+                    agent {
+                        label &quot;for-branch-b&quot;
+                    }
+                    steps {
+                        echo &quot;On Branch B&quot;
+                    }
+                }
+                stage('Branch C') {
+                    agent {
+                        label &quot;for-branch-c&quot;
+                    }
+                    stages {
+                        stage('Nested 1') {
+                            steps {
+                                echo &quot;In stage Nested 1 within Branch C&quot;
+                            }
+                        }
+                        stage('Nested 2') {
+                            steps {
+                                echo &quot;In stage Nested 2 within Branch C&quot;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<p>此外，你可以<code>parallel</code>阶段时，它们中的任何一个发生故障，所有被中止，加入<code>failFast true</code>到<code>stage</code>含有<code>parallel</code>。添加的另一个选项<code>failfast</code>是在管道定义中添加一个选项：<code>parallelsAlwaysFailFast()</code></p>
+<pre><code>pipeline {
+    agent any
+    options {
+        parallelsAlwaysFailFast()
+    }
+    stages {
+        stage('Non-Parallel Stage') {
+            steps {
+                echo 'This stage will be executed first.'
+            }
+        }
+        stage('Parallel Stage') {
+            when {
+                branch 'master'
+            }
+            parallel {
+                stage('Branch A') {
+                    agent {
+                        label &quot;for-branch-a&quot;
+                    }
+                    steps {
+                        echo &quot;On Branch A&quot;
+                    }
+                }
+                stage('Branch B') {
+                    agent {
+                        label &quot;for-branch-b&quot;
+                    }
+                    steps {
+                        echo &quot;On Branch B&quot;
+                    }
+                }
+                stage('Branch C') {
+                    agent {
+                        label &quot;for-branch-c&quot;
+                    }
+                    stages {
+                        stage('Nested 1') {
+                            steps {
+                                echo &quot;In stage Nested 1 within Branch C&quot;
+                            }
+                        }
+                        stage('Nested 2') {
+                            steps {
+                                echo &quot;In stage Nested 2 within Branch C&quot;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<h2 id="4-其他">4、其他</h2>
+<h3 id="41-在声明式pipeline中使用脚本">4.1、在声明式pipeline中使用脚本</h3>
+<p>声明式<code>pipeline</code>是不能直接在<code>steps</code>块中写<code>Groovy</code>代码。<br>
+<code>Jenkins pipeline</code>专门提供了一个<code>script</code>步骤，你能在<code>script</code>步骤中像写代码一样写<code>pipeline</code>逻辑。</p>
+<pre><code>pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                script {
+                    result = sh (script: &quot;git log -1|grep 'Release'&quot;, returnStatus: true) 
+                    echo &quot;result: ${result}&quot;
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<p>在<code>script</code>块中的其实就是<code>Groovy</code>代码。大多数时候，我们是不需要使用<code>script</code>步骤的。如果在<code>script</code>步骤中写了大量的逻辑，则说明你应该把这些逻辑拆分到不同的阶段，或者放到共享库中。共享库是一种扩展<code>Jenkins pipeline</code>的技术。</p>
+<h3 id="42-pipeline内置基础步骤">4.2、pipeline内置基础步骤</h3>
+<h4 id="421-文件目录相关步骤">4.2.1、文件目录相关步骤</h4>
+<ul>
+<li>
+<p>deleteDir<br>
+删除当前目录，它是一个无参步骤，删除的是当前工作目录。通常它与<code>dir</code>步骤一起使用，用于删除指定目录下的内容。</p>
+</li>
+<li>
+<p>dir<br>
+切换到目录。默认<code>pipeline</code>工作在工作空间目录下，<code>dir</code>步骤可以让我们切换到其它目录。例如：dir(&quot;/var/logs&quot;) { deleteDir() }</p>
+</li>
+<li>
+<p>fileExists<br>
+判断文件是否存在。<code>fileExists('/tmp/a.jar')</code>判断<code>/tmp/a.jar</code>文件是否存在。如果参数是相对路径，则判断在相对当前工作目录下，该文件是否存在。结果返回布尔类型。</p>
+</li>
+<li>
+<p>isUnix<br>
+判断是否为类<code>Unix</code>系统。如果当前<code>pipeline</code>运行在一个类<code>Unix</code>系统上，则返回<code>true</code>。</p>
+</li>
+<li>
+<p>pwd<br>
+确认当前目录。<code>pwd</code>与<code>Linux</code>的<code>pwd</code>命令一样，返回当前所在目录。它有一个布尔类型的可选参数：<code>tmp</code>，如果参数值为<code>true</code>，则返回与当前工作空间关联的临时目录。</p>
+</li>
+<li>
+<p>writeFile<br>
+将内容写入指定文件中。</p>
+</li>
+</ul>
+<p><code>writeFile</code>支持的参数有：<br>
+file：文件路径，可以是绝对路径，也可以是相对路径。<br>
+text：要写入的文件内容。<br>
+encoding（可选）：目标文件的编码。如果留空，则使用操作系统默认的编码。如果写的是<code>Base64</code>的数据，则可以使用<code>Base64</code>编码。</p>
+<ul>
+<li>readFile：读取指定文件的内容，以文本返回。</li>
+</ul>
+<p><code>readFile</code>支持的参数有：<br>
+file：路径，可以是绝对路径，也可以是相对路径。<br>
+encoding（可选）：读取文件时使用的编码。</p>
+<pre><code>script {
+    // &quot;amVua2lucyBib29r&quot; 是&quot;jenkins book&quot;进行Base64编码后的值
+    writeFile(file: &quot;base64File&quot;, text: &quot;amVua2lucyBib29r&quot;, encoding: &quot;Base64&quot;)
+    def content = readFile(file: &quot;base64File&quot;, encoding: &quot;UTF-8&quot;)
+    echo &quot;${content}&quot;
+    // 打印结果: jenkins book
+}
+</code></pre>
+<h4 id="422-制品相关步骤">4.2.2、制品相关步骤</h4>
+<ul>
+<li>stash<br>
+保存临时文件。<br>
+<code>stash</code>步骤可以将一些文件保存起来，以便被同一次构建的其他步骤或阶段使用。如果整个<code>pipeline</code>的所有阶段在同一台机器上执行，则<code>stash</code>步骤是多余的。所以，通常需要<code>stash</code>的文件都是要跨<code>Jenkins node</code>使用的。</li>
+</ul>
+<p><code>stash</code>步骤会将文件存储在<code>tar</code>文件中，对于大文件的<code>stash</code>操作将会消耗<code>Jenkins master</code>的计算资源。<code>Jenkins</code>官方文档推荐，当文件大小为<code>5∼100MB</code>时，应该考虑使用其他替代方案。</p>
+<p><code>stash</code>步骤的参数列表如下：</p>
+<ul>
+<li>
+<p>name：字符串类型，保存文件的集合的唯一标识。</p>
+</li>
+<li>
+<p>allowEmpty：布尔类型，允许<code>stash</code>内容为空。</p>
+</li>
+<li>
+<p>excludes：字符串类型，将哪些文件排除。如果排除多个文件，则使用逗号分隔。留空代表不排除任何文件。</p>
+</li>
+<li>
+<p>includes：字符串类型，<code>stash</code>哪些文件，留空代表当前文件夹下的所有文件。</p>
+</li>
+<li>
+<p>useDefaultExcludes：布尔类型，如果为<code>true</code>，则代表使用<code>Ant</code>风格路径默认排除文件列表。<br>
+除了<code>name</code>参数，其他参数都是可选的。<code>excludes</code>和<code>includes</code>使用的是<code>Ant</code>风格路径表达式。</p>
+</li>
+<li>
+<p>unstash<br>
+取出之前<code>stash</code>的文件。<br>
+<code>unstash</code>步骤只有一个<code>name</code>参数，即<code>stash</code>时的唯一标识。通常<code>stash</code>与<code>unstash</code>步骤同时使用。以下是完整示例。</p>
+</li>
+</ul>
+<pre><code>pipeline {
+    agent none
+    stages {
+        stage('stash') {
+            agent { label &quot;master&quot; }
+            steps {
+                script {
+                    writeFile file: &quot;a.txt&quot;, text: &quot;$BUILD_NUMBER&quot;
+                    stash(name: &quot;abc&quot;, include: &quot;a.txt&quot;)
+                }
+            }
+        }
+        stage(&quot;unstash&quot;) {
+            agent { label &quot;node2&quot; }
+            steps {
+                script {
+                    unstash(&quot;abc&quot;)
+                    def content = readFile(&quot;a.txt&quot;)
+                    echo &quot;${content}&quot;
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<p><code>stash</code>步骤在<code>master</code>节点上执行，而<code>unstash</code>步骤在<code>node2</code>节点上执行</p>
+<h4 id="423-命令相关步骤">4.2.3、命令相关步骤</h4>
+<p>与命令相关的步骤其实是<code>Pipeline</code>：<code>Nodes and Processes</code>插件提供的步骤。由于它是<code>Pipeline</code>插件的一个组件，所以基本不需要单独安装。</p>
+<p><strong>sh</strong><br>
+执行<code>shell</code>命令。<br>
+<code>sh</code>步骤支持的参数有：</p>
+<ul>
+<li><code>script</code>：将要执行的shell脚本，通常在类UNIX系统上可以是多行脚本。</li>
+<li><code>encoding</code>：脚本执行后输出日志的编码，默认值为脚本运行所在系统的编码。</li>
+<li><code>returnStatus</code>：布尔类型，默认脚本返回的是状态码，如果是一个非零的状态码，则会引发pipeline执行失败。如果<code>returnStatus</code>参数为<code>true</code>，则不论状态码是什么，pipeline的执行都不会受影响。</li>
+<li><code>returnStdout</code>：布尔类型，如果为<code>true</code>，则任务的标准输出将作为步骤的返回值，而不是打印到构建日志中（如果有错误，则依然会打印到日志中）。除了<code>script</code>参数，其他参数都是可选的。</li>
+</ul>
+<p><code>returnStatus</code>与<code>returnStdout</code>参数一般不会同时使用，因为返回值只能有一个。如果同时使用，则只有<code>returnStatus</code>参数生效。</p>
+<p><strong>bat、powershell</strong><br>
+<code>bat</code>步骤执行的是<code>Windows</code>的批处理命令。<code>powershell</code>步骤执行的是<code>PowerShell</code>脚本，支持3+版本。这两个步骤支持的参数与<code>sh</code>步骤的一样。</p>
+<h4 id="424-其他步骤">4.2.4、其他步骤</h4>
+<ul>
+<li>
+<p>error<br>
+主动报错，中止当前<code>pipeline</code>。<br>
+<code>error</code>步骤的执行类似于抛出一个异常。它只有一个必需参数：<code>message</code>。通常省略参数：<code>error（&quot;there's an error&quot;）</code>。</p>
+</li>
+<li>
+<p>tool<br>
+使用预定义的工具。<br>
+如果在<code>Global Tool Configuration</code>（全局工具配置）中配置了工具，那么可以通过<code>tool</code>步骤得到工具路径。<br>
+<code>tool</code>步骤支持的参数有：</p>
+<ul>
+<li>name：工具名称。</li>
+<li>type（可选）：工具类型，指该工具安装类的全路径类名。<br>
+每个插件的<code>type</code>值都不一样，而且绝大多数插件的文档根本不写<code>type</code>值。除了到该插件的源码中查找，还有一种方法可以让我们快速找到<code>type</code>值，就是前往<code>Jenkins pipeline</code>代码片段生成器中生成该<code>tool</code>步骤的代码即可。</li>
+</ul>
+</li>
+<li>
+<p>timeout<br>
+代码块超时时间。<br>
+为<code>timeout</code>步骤闭包内运行的代码设置超时时间限制。如果超时，将抛出一个<code>org.jenkinsci.plugins.workflow.steps.FlowInterruptedException</code>异常。<code>timeout</code>步骤支持如下参数：</p>
+<ul>
+<li>time：整型，超时时间。</li>
+<li>unit（可选）：时间单位，支持的值有<code>NANOSECONDS</code>、<code>MICROSECONDS</code>、<code>MILLISECONDS</code>、<code>SECONDS</code>、<code>MINUTES</code>（默认）、<code>HOURS</code>、<code>DAYS</code>。</li>
+<li>activity（可选）：布尔类型，如果值为<code>true</code>，则只有当日志没有活动后，才真正算作超时。</li>
+<li>waitUntil<br>
+等待条件满足。<br>
+不断重复<code>waitUntil</code>块内的代码，直到条件为<code>true</code>。<code>waitUntil</code>不负责处理块内代码的异常，遇到异常时直接向外抛出。<code>waitUntil</code>步骤最好与<code>timeout</code>步骤共同使用，避免死循环。示例如下：</li>
+</ul>
+</li>
+</ul>
+<pre><code>
+timeout(50) {
+    waitUntil {
+        script {
+            def r = sh script: 'curl http://example', returnStatus: true
+            retturn (r == 0)
+        }
+    }
+}
+</code></pre>
+<ul>
+<li>retry<br>
+重复执行块<br>
+执行<code>N</code>次闭包内的脚本。如果其中某次执行抛出异常，则只中止本次执行，并不会中止整个<code>retry</code>的执行。同时，在执行<code>retry</code>的过程中，用户是无法中止<code>pipeline</code>的。</li>
+</ul>
+<pre><code>steps {
+    retry(20) {
+        script {
+            sh script: 'curl http://example', returnStatus: true
+        }
+    }
+}
+</code></pre>
+<ul>
+<li>
+<p>sleep<br>
+让<code>pipeline</code>休眠一段时间。<br>
+<code>sleep</code>步骤可用于简单地暂停<code>pipeline</code>，其支持的参数有：</p>
+</li>
+<li>
+<p>time：整型，休眠时间。</p>
+</li>
+<li>
+<p>unit（可选）：时间单位，支持的值有<code>NANOSECONDS</code>、<code>MICROSECONDS</code>、<code>MILLISECONDS</code>、<code>SECONDS</code>（默认）、<code>MINUTES</code>、<code>HOURS</code>、<code>DAYS</code>。</p>
+</li>
+</ul>
+<p>参考来源：https://www.jenkins.io/doc/book/pipeline/syntax/</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/JgJeOdy01" class="tag">
+                    jenkins
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/devops" class="tag">
+                    devops
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/kubernetes-pod-zi-yuan-diao-du-zhi-wu-dian-yu-rong-ren">
+                  <h3 class="post-title">
+                    kubernetes Pod资源调度之污点和容忍
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

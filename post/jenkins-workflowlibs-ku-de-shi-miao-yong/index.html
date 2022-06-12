@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Jenkins workflowLibs库的使(妙)用 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Jenkins workflowLibs库的使(妙)用</h2>
+            <div class="post-date">2021-01-25</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E9%87%8D%E6%B8%A9%E6%A6%82%E5%BF%B5">1、重温概念</a></li>
+<li><a href="#2-%E9%9C%80%E6%B1%82%E5%BC%95%E5%85%A5">2、需求引入</a></li>
+<li><a href="#3-%E5%BC%80%E9%80%9Aworkflowlibs">3、开通workflowLibs</a>
+<ul>
+<li><a href="#31-%E5%BC%80%E9%80%9Assh%E7%AB%AF%E5%8F%A3">3.1 开通ssh端口</a></li>
+<li><a href="#32-%E9%85%8D%E7%BD%AE%E5%AF%86%E9%92%A5">3.2 配置密钥</a></li>
+<li><a href="#33-%E5%88%9D%E5%A7%8B%E5%8C%96%E5%85%8B%E9%9A%86workflowlibs%E5%BA%93">3.3 初始化克隆workflowLibs库</a></li>
+<li><a href="#34-%E9%85%8D%E7%BD%AE%E4%BD%BF%E7%94%A8workflowlibs%E5%BA%93">3.4 配置使用workflowLibs库</a></li>
+</ul>
+</li>
+<li><a href="#4-%E8%87%AA%E5%AE%9A%E4%B9%89%E4%BD%BF%E7%94%A8workflowlibs%E5%BA%93">4、自定义使用workflowLibs库</a>
+<ul>
+<li><a href="#41-%E6%96%B9%E6%B3%95%E5%AE%9A%E4%B9%89">4.1 方法定义</a></li>
+<li><a href="#42-%E6%8F%92%E4%BB%B6%E9%85%8D%E7%BD%AE">4.2 插件配置</a></li>
+<li><a href="#43-%E4%BD%BF%E7%94%A8">4.3 使用</a></li>
+</ul>
+</li>
+<li><a href="#5-%E6%80%BB%E7%BB%93">5、总结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>本文采用更为大白话的形式进行记录，实际应用在生产环境超过半年，现在整理出来分享一下</p>
+</blockquote>
+<h2 id="1-重温概念">1、重温概念</h2>
+<p>开篇介绍，要写的当然还是一些文字性内容，不管是官方原文或书籍描述，都要花心思去理解，然后顺便表达一下我自己的理解。</p>
+<ul>
+<li>可信共享库和不可信共享库</li>
+</ul>
+<p><code>Jenkins</code>的共享库形式，分为可信共享库和不可信共享库两种。</p>
+<p>可信库可以调用/使用<code>Java</code>中的任何方法、<code>Jenkins</code>的<code>API</code>、<code>Jenkins</code>插件、<code>Groovy</code>语言等。由于可信库在它们可以调用和使用的内容方面具有如此广泛的优势，所以管理可在其中添加和更改代码的权限就非常重要了。因此对可信库进行更新应该需要适当级别的源码版本控制访问和验证。出于同样的原因，可能会造成任何损害的代码应该始终被包含在受监督的可信库中。</p>
+<p>不可信库代码是被调用和使用限制的代码，调用先前列出的方法类型不允许使用相同的自由度，而且它不能像可信代码那样访问更大的内部对象集合。</p>
+<ul>
+<li>内部库和外部库</li>
+</ul>
+<p>共享库的另一个不同之处是，托管源码控制仓库的位置，不管是在<code>Jenkins</code>实例内部还是在外部源码控制系统中。</p>
+<p>在大多数情况下内部被视为一种更偏向传统的选项，但出于完整性考虑，此处也包含了相关描述。</p>
+<h2 id="2-需求引入">2、需求引入</h2>
+<p>本文标题提到的<strong>使(妙)用</strong>，就是指上面概念中提到的<strong>内部库</strong>，这个概念网上(千篇一律)很少能找到。是的，我这里将仔细分析出我的应用场景，以便于表达我的迫切需求(这也可能是很多共享库用户的需求)。</p>
+<p>在大多数共享库使用场景下，我们都是将共享库的代码提交到公共的<code>git</code>仓库服务商，例如<code>github</code>、<code>gitee</code>，或者是提交到企业内部搭建的<code>git</code>服务端，例如<code>gitlab</code>。为了能够正常使用这个外部的共享库，<code>Jenkins</code>与之的一大要求就是网络能够连通，保障能通过<code>ssh</code>或者<code>http</code>协议进行通信。</p>
+<p>但往往很多场景下，我们的<code>Jenkins</code>不能连通外网，甚至连必须的插件也需要离线下载后安装或者临时通过网络代理安装。如果网络不能连通，是不是就意味着我们的共享库不能用了呢？一开始我也这样以为，想要用到共享库方法的解决办法(未必最佳)可能有如下</p>
+<ul>
+<li>
+<p>方法一</p>
+<p>拆分共享库的方法，单独集成到<code>pipeline</code>流水线脚本中，但这样会导致每个<code>pipeline</code>的长度回归到使用共享库之前那样冗长和重复</p>
+</li>
+<li>
+<p>方法二</p>
+<p>再在<code>Jenkins</code>所在的网络环境中搭建一个轻量的<code>git</code>服务端，例如<code>git init</code>创建一个，但无法可视化，且不安全，存在于服务器的仅仅是一个目录</p>
+</li>
+</ul>
+<p>以上方法虽然能实现我们想要使用共享库方法，但都不太友好。</p>
+<p>再来聊一下内部库，在<code>Jenkins 2.0</code>时代，包含着一个<strong>内部库</strong>，可用于存储内部库或测试目的。内部库默认有一个特定的名称<code>workflowLibs</code>，这其实就是一个内置于<code>Jenkins</code>内部的<code>Git</code>仓库。那既然这个库内置了，存在于哪里呢？我们来看一下<code>Jenkins</code>的安装主目录，我这里的<code>Jenkins</code>基于<code>k8s</code>安装，并且做了数据卷的持久化，进入对应的<code>pv</code>下查看，其中的主要目录如下所示</p>
+<pre><code class="language-shell">$ tree -L 1 kube-system-jenkins-data-pvc-6866fcaf-b742-40e0-afa8-64b93e75ef52
+kube-system-jenkins-data-pvc-6866fcaf-b742-40e0-afa8-64b93e75ef52/
+├── backup
+├── jobs
+├── log
+├── logs
+├── nodes
+├── pipeline-config-history
+├── plugins
+├── secrets
+├── updates
+├── userContent
+├── users
+├── war
+├── workflow-libs  # 内部库
+└── workspace
+</code></pre>
+<p>内部库名为<code>workflow-libs</code>，这个内部库其实就是一个已经初始化且存在于<code>Jenkins</code>内部的<code>Git</code>仓库。</p>
+<p>下面记录如何使用<code>workflowLibs</code>内部库。</p>
+<h2 id="3-开通workflowlibs">3、开通workflowLibs</h2>
+<p><code>workflowLibs</code>内部库和普通的<code>git</code>仓库一样，可以通过<code>ssh</code>访问或<code>http</code>访问，本文记录的是通过<code>ssh</code>协议访问，另外一种方式类似。</p>
+<p>由于<code>Jenkins</code>部署在<code>k8s</code>中，因此我们只能通过<code>ingress</code>或者在内网环境下通过<code>nodePort</code>方式访问。在<code>k8s</code>中部署的<code>Jenkins</code>默认暴露的是<code>8080</code>端口，这个端口用于提供<code>http</code>访问。同时我这里使用到了基于<code>k8s</code>动态的<code>slave</code>模式动态构建以及管理外部的普通<code>agent</code>，相互通信需要再打开一个端口，端口号可以在<code>Jenkins</code>的系统配置—&gt;全局安全配置—&gt;代理中指定。</p>
+<h3 id="31-开通ssh端口">3.1 开通ssh端口</h3>
+<p>这里需要再为<code>Jenkins</code>开放一个<code>ssh</code>协议的端口，用于共享库的开发者和<code>workflowLibs</code>内部库通信，由于不想暴露给外部，我这里还是通过<code>nodePort</code>方式去访问，<code>Jenkins</code> <code>Service</code>声明如下</p>
+<pre><code class="language-yaml">apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins
+  namespace: kube-system
+spec:
+  type: NodePort
+  selector:
+    name: jenkins
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+    protocol: TCP
+    nodePort: 30009
+  - name: agent
+    port: 35555
+    targetPort: 35555
+    protocol: TCP
+    nodePort: 35555
+  - name: jenkinsssh  # Jenkins ssh
+    port: 22222
+    targetPort: 22222
+    protocol: TCP
+    nodePort: 32222
+</code></pre>
+<p>重新应用资源清单</p>
+<pre><code class="language-shell">$ kubectl apply -f jenkins-svc.yaml
+</code></pre>
+<p>登录到<code>Jenkins</code>，系统配置—&gt;全局安全配置—&gt;<code>SSH Server</code>，设置<code>ssh</code>端口，这个端口与上面<code>Service</code>中指定的端口对应</p>
+<img src="https://image.ssgeek.com/20210125-01.png" style="zoom:80%;" />
+<h3 id="32-配置密钥">3.2 配置密钥</h3>
+<p>在<code>http://&lt;jenkins-url&gt;/user/&lt;userid&gt;/configure</code>页面的<code>SSH</code>公钥字段中添加用户的<code>SSH</code>公钥，这个公钥在我们能够和<code>Jenkins Server</code>进行<code>ssh</code>通信的机器上生成即可，生成后在当前用户的设置界面下进行添加</p>
+<img src="https://image.ssgeek.com/20210125-02.png" style="zoom:67%;" />
+<h3 id="33-初始化克隆workflowlibs库">3.3 初始化克隆workflowLibs库</h3>
+<p>上面的操作完成后，就可以在共享库代码的开发机器(<code>ssh</code>客户端)上进行克隆了</p>
+<pre><code class="language-shell">➜  ~ git clone ssh://ssgeek@192.168.12.82:32222/workflowLibs.git
+Cloning into 'workflowLibs'...
+warning: You appear to have cloned an empty repository.
+➜  ~ cd workflowLibs
+➜  workflowLibs git checkout -b master
+Switched to a new branch 'master'
+</code></pre>
+<h3 id="34-配置使用workflowlibs库">3.4 配置使用workflowLibs库</h3>
+<p>要提到的是，与配置其他的共享库不一样，内部库在使用前并不需要在<code>Jenkins</code>上单独配置使用共享库<code>workflowLibs</code>内部库，内部库只要提交代码，就能直接在<code>pipeline</code>中导入和使用。</p>
+<h2 id="4-自定义使用workflowlibs库">4、自定义使用workflowLibs库</h2>
+<p>这里以我生产使用的<code>workflowLibs</code>库中的其中一个方法为例，即上线通知，我把它称为“上线小喇叭”。</p>
+<h3 id="41-方法定义">4.1 方法定义</h3>
+<p>使用这个功能时，我关注到<code>Jenkins</code>最新的钉钉插件已经更新，这次的上线通知借助了此插件，如果是不想通过插件，更为灵活的自定义钉钉通知，可以参考我之前的文章<a href="https://www.ssgeek.com/post/jenkinssharelibrary-shi-jian-zhi-zi-ding-yi-tong-zhi-qi/">JenkinsShareLibrary实践之自定义通知器</a>，两种方式具体选择哪个，根据自己的需求合理定制即可。</p>
+<p>我把关于钉钉插件和共享库使用的方法命名为<code>dingtalk.groovy</code>，为了减少在<code>pipeline</code>中的引用操作，将这个文件放在了共享库目录的全局方法目录中，对<code>pipeline</code>来说，直接调用。</p>
+<p>整个<code>workflowLibs</code>库的目录结构如下</p>
+<pre><code class="language-shell">[root@dev workflowLibs]# tree -L 2
+.
+├── README.md
+└── vars
+    └── dingtalk.groovy
+
+1 directory, 2 files
+</code></pre>
+<p>方法如下，其中的消息内容需要按照<a href="https://jenkinsci.github.io/dingtalk-plugin/">插件说明</a>编写固定的格式</p>
+<pre><code class="language-groovy">/* dingtalk.groovy
+   ##################################################
+   # Created by SSgeek                              #
+   #                                                #
+   # A Part of the Project jenkins workflowLibs     #
+   # https://www.ssgeek.com                         #
+   ##################################################
+*/
+
+// post步骤
+def dingTalk(BasicEnv,ImageTag,ReleaseMess){
+    wrap([$class: 'BuildUser']){
+        dingTalk (
+            // 机器人 id
+            robot: 'eb5e68bb-1ad7-4638-8008-9d0d1072d319',
+            // 消息类型
+            type: 'ACTION_CARD',
+            // 需要 @ 的手机号码
+            at:[],
+            // 是否 @ 全部
+            atAll: true,
+            // 消息标题
+            title: '生产上线小喇叭',
+            // 消息内容主体
+            text: [
+                &quot;[${env.JOB_NAME}](${env.JOB_URL})\n&quot;,
+                '---',
+                &quot;- 任务编号：[${env.BUILD_ID}](${env.BUILD_URL})&quot;,
+                &quot;- 上线版本：**${ImageTag}**&quot;,
+                &quot;- 上线环境：**${BasicEnv}**&quot;,
+                // &quot;- 上线结果：**☆${currentBuild.currentResult}☆**&quot;,
+                &quot;- 上线结果：**👉☆${currentBuild.currentResult}☆👈**&quot;,
+                &quot;- 上线发起：**${env.BUILD_USER}**&quot;,
+                &quot;- 上线描述：**${ReleaseMess}**&quot;,
+                &quot;- 持续时间：${currentBuild.durationString}\n&quot;,
+            ],
+            // 点击消息跳转的 URL
+            messageUrl: '',
+            // 图片 URL
+            picUrl:'',
+            // 单个按钮的方案，设置此项和 singleUrl 后 btns 无效
+            // singleTitle:'',
+            // singleUrl:'',
+            // 自定义按钮组
+            btns: [
+                [
+                    title: '发布日志',
+                    actionUrl: &quot;${env.BUILD_URL}/console&quot;
+                ],
+                [
+                    title: '控制台',
+                    actionUrl: &quot;https://jenkins.ssgeek.com&quot;
+                ]
+            ],
+            // 按钮的排列方式：horizotal水平排列H、vertical垂直排列V
+            btnLayout: 'H',
+            // 是否隐藏发消息者头像
+            hideAvatar: true
+        )
+    }
+}
+</code></pre>
+<h3 id="42-插件配置">4.2 插件配置</h3>
+<p>插件需要在<code>Jenkins</code>中配置钉钉机器人的<code>hook</code>地址，配置完成会生成一个<code>id</code>，和上面方法中的<code>robot</code>对应</p>
+<img src="https://image.ssgeek.com/20210125-03.png" style="zoom:67%;" />
+<h3 id="43-使用">4.3 使用</h3>
+<p>在<code>pipeline</code>中使用，部分内容如下</p>
+<pre><code class="language-groovy">post{
+  always{
+    script{
+      dingtalk.dingTalk(BasicEnv,ImageTag,ReleaseMess)
+    }
+  }
+}
+</code></pre>
+<p>效果这里就不贴图啦，查看钉钉插件的文档即可。</p>
+<h2 id="5-总结">5、总结</h2>
+<p>本文通过<code>workflowLibs</code>库的灵活使用，实现了在无外网共享库环境下，独立的<code>Jenkins</code>使用共享库的需求</p>
+<p>希望能帮助到大家，See you ~</p>
+<p>部分描述内容参考自<a href="https://www.jenkins.io/doc/book/">官方文档</a></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/JgJeOdy01" class="tag">
+                    jenkins
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/requests-yuan-ma-yue-du">
+                  <h3 class="post-title">
+                    requests源码阅读
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

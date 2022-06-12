@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Golang接口类型-下篇 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Golang接口类型-下篇</h2>
+            <div class="post-date">2021-10-28</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%8E%A5%E5%8F%A3%E5%B5%8C%E5%85%A5">1、接口嵌入</a>
+<ul>
+<li><a href="#11-%E5%AE%9A%E4%B9%89">1.1 定义</a></li>
+<li><a href="#12-%E5%AE%9E%E7%8E%B0">1.2 实现</a></li>
+<li><a href="#13-%E4%BD%BF%E7%94%A8">1.3 使用</a></li>
+</ul>
+</li>
+<li><a href="#2-%E5%8C%BF%E5%90%8D%E6%8E%A5%E5%8F%A3%E5%92%8C%E7%A9%BA%E6%8E%A5%E5%8F%A3">2、匿名接口和空接口</a>
+<ul>
+<li><a href="#21-%E5%8C%BF%E5%90%8D%E6%8E%A5%E5%8F%A3">2.1 匿名接口</a></li>
+<li><a href="#22-%E7%A9%BA%E6%8E%A5%E5%8F%A3">2.2 空接口</a></li>
+<li><a href="#23-%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF">2.3 使用场景</a></li>
+</ul>
+</li>
+<li><a href="#3-%E6%8E%A5%E5%8F%A3%E6%96%AD%E8%A8%80%E5%92%8C%E6%9F%A5%E8%AF%A2">3、接口断言和查询</a>
+<ul>
+<li><a href="#31-%E6%96%AD%E8%A8%80">3.1 断言</a></li>
+<li><a href="#32-%E6%9F%A5%E8%AF%A2">3.2 查询</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/golang.png" alt=""></figure>
+<p>本文是<a href="https://www.ssgeek.com/post/golang-jie-kou-lei-xing-shang-pian/">Golang接口类型-上篇</a>的续篇内容</p>
+<h2 id="1-接口嵌入">1、接口嵌入</h2>
+<p>和结构体<code>struct</code>一样，接口之中也可以嵌入已存在的接口，从而实现接口的扩展</p>
+<h3 id="11-定义">1.1 定义</h3>
+<pre><code class="language-go">// Sender 定义Sender接口
+type Sender interface {
+	Send(msg string) error
+}
+
+// Receiver 定义Receiver接口
+type Receiver interface {
+	Receive() (string, error)
+}
+
+// Client Client，由Sender和Receiver组合
+type Client interface {
+	Sender  // 匿名嵌入
+	Receiver  // 匿名嵌入
+	Open() error
+	Close() error
+}
+</code></pre>
+<h3 id="12-实现">1.2 实现</h3>
+<pre><code class="language-go">// MSNClient 定义MSNClient结构体，并实现Client接口中Open/Send/Receive/Close方法
+type MSNClient struct{
+}
+
+func (c MSNClient) Open() error {
+	fmt.Println(&quot;Open&quot;)
+	return nil
+}
+
+func (c MSNClient) Close() error {
+	fmt.Println(&quot;Close&quot;)
+	return nil
+}
+
+func (c MSNClient) Send(msg string) error {
+	fmt.Println(&quot;send:&quot;, msg)
+	return nil
+}
+
+func (c MSNClient) Receive() (string, error) {
+	fmt.Println(&quot;Receive&quot;)
+	return &quot;&quot;, nil
+}
+</code></pre>
+<h3 id="13-使用">1.3 使用</h3>
+<pre><code class="language-go">func main() {
+	//msn := MSNClient{}
+	//var s Sender = msn
+	//var r Receiver = msn
+	//var c Client = msn
+	//s.Send(&quot;1&quot;)
+	//r.Receive()
+	//c.Open()
+	//defer c.Close()
+	//c.Send(&quot;2&quot;)
+	//c.Receive()
+	var client Client = MSNClient{}
+	client.Open()
+	client.Send(&quot;Hi&quot;)
+	msg,_ := client.Receive()
+	fmt.Printf(&quot;%q\n&quot;, msg)
+	client.Close()
+}
+</code></pre>
+<h2 id="2-匿名接口和空接口">2、匿名接口和空接口</h2>
+<h3 id="21-匿名接口">2.1 匿名接口</h3>
+<p>在定义变量时将类型指定为接口的函数签名的接口，此时叫匿名接口，匿名接口常用于初始化一次接口变量的场景</p>
+<pre><code class="language-go">//通过匿名接口声明接口变量
+var closer interface {
+	Close() error
+}
+closer = msn
+closer.Close()
+</code></pre>
+<h3 id="22-空接口">2.2 空接口</h3>
+<p>不包含任何函数签名的接口叫做空接口，空接口声明的变量可以赋值为任何类型的变量（任意接口）</p>
+<ul>
+<li>空接口类型用<code>interface{}</code>表示，注意有<code>{}</code></li>
+<li>空接口没有定义任何方法，因此任意类型都实现了空接口</li>
+<li><code>func square(x interface{}){}</code>该函数可以接收任意数据类型</li>
+<li><code>slice</code>的元素、<code>map</code>的<code>key</code>和<code>value</code>都可以是空接口类型</li>
+</ul>
+<p>定义语法：<code>interface{}</code></p>
+<pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+type EStruct struct {
+}
+
+type Empty interface {
+}
+
+func main() {
+	es := EStruct{}
+	var e interface{} = 1
+	fmt.Println(es, e)  // {} 1
+	e = &quot;test&quot;
+	fmt.Println(e)  // test
+	e = true
+	fmt.Println(e)  // true
+	e = es
+	fmt.Println(e)  // {}
+}
+</code></pre>
+<h3 id="23-使用场景">2.3 使用场景</h3>
+<p>声明函数参数类型为<code>interface{}</code>，用于接收任意类型的变量</p>
+<pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+type EStruct struct{
+}
+
+func printType(args ...interface{}) {
+	fmt.Println(&quot;------------------------&quot;)
+	for _, arg := range args {
+		//fmt.Println(arg)
+		switch v := arg.(type) {
+		case int:
+			fmt.Printf(&quot;Int: %T %v\n&quot;, v, v)
+		case string:
+			fmt.Printf(&quot;String: %T %v\n&quot;, v, v)
+		default:
+			fmt.Printf(&quot;Other: %T %v\n&quot;, v, v)
+		}
+	}
+}
+
+func main() {
+	es := EStruct{}
+	printType(1, &quot;test&quot;, true, es)
+	/*
+	Int: int 1
+	String: string test
+	Other: bool true
+	Other: main.EStruct {}
+	 */
+}
+</code></pre>
+<h2 id="3-接口断言和查询">3、接口断言和查询</h2>
+<p>类型赋值成了接口类型，能否通过某种方式转换成当时赋值的类型呢？</p>
+<p>当父集接口或者类型对象赋值给接口变量后，需要将接口变量重新转换为原来的类型，需要使用类型断言/查询</p>
+<h3 id="31-断言">3.1 断言</h3>
+<p>语法：<code>接口变量.(Type)</code><br>
+判断一个接口能否转换成具体类型</p>
+<pre><code class="language-go">// 使用类型断言信息转换
+sender01, ok := ssender.(Sender)
+fmt.Printf(&quot;%T, %#v, %v\n&quot;, sender01, sender01, ok)  // *main.WechatSender, &amp;main.WechatSender{ID:&quot;&quot;}, true
+sender01.SendAll([]string{&quot;张三&quot;, &quot;李四&quot;},&quot;你好&quot;)
+if sender02, ok := ssender.(*WechatSender); ok {
+	fmt.Printf(&quot;%T, %#v, %v\n&quot;, sender02, sender02, ok)  // *main.WechatSender, &amp;main.WechatSender{ID:&quot;&quot;}, true
+	fmt.Println(sender02.ID)
+}
+if sender03, ok := ssender.(*EmailSender); !ok {
+	fmt.Printf(&quot;%T, %#v, %v\n&quot;, sender03, sender03, false)  // *main.EmailSender, (*main.EmailSender)(nil), false
+}
+</code></pre>
+<h3 id="32-查询">3.2 查询</h3>
+<p>可以通过<code>switch-case</code>+<code>接口变量.(type)</code>查询变量类型，并选择对应的分支块</p>
+<pre><code class="language-go">// 使用类型查询
+sender = &amp;EmailSender{&quot;test&quot;}
+switch v := sender.(type) {
+case EmailSender:
+	fmt.Println(&quot;EmailSender&quot;, v.SmtpAddr)
+case *EmailSender:
+	fmt.Println(&quot;*EmailSender&quot;, v.SmtpAddr)  // *EmailSender test
+case *SmsSender:
+	fmt.Println(&quot;*SmsSender&quot;, v.SmsAPI)
+case *WechatSender:
+	fmt.Println(&quot;*WechatSender&quot;, v.ID)
+default:
+	fmt.Printf(&quot;error, %#v\n&quot;, v)
+}
+</code></pre>
+<p>利用断言判断数据类型</p>
+<pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+func assert(i interface{})  {
+	switch v := i.(type) {
+	case int:  // v已被转为int类型
+		//v := i.(int)
+		fmt.Printf(&quot;%d\n&quot;, v)
+		// 在 Type Switch语句的case子句中不能使用fallthrough
+	case float64:  // v已被转为float64类型
+		fmt.Printf(&quot;%f\n&quot;, v)
+	case byte, uint16, string:  // 如果case后面跟多种type，则v还是interface{}类型
+		fmt.Printf(&quot;%T %v\n&quot;, i, i)
+	}
+}
+
+func main()  {
+	var i interface{}
+	var a int
+	var b float64
+	var c byte
+	i = a
+	assert(i)  // 0
+	i = b
+	assert(i)  // 0.000000
+	i = c
+	assert(i)  // uint8 0
+}
+</code></pre>
+<p>See you ~</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/golang" class="tag">
+                    golang
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/golang-jie-kou-lei-xing-shang-pian">
+                  <h3 class="post-title">
+                    Golang接口类型-上篇
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

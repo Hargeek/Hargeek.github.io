@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>使用kubeadm搭建高可用k8s v1.16.3集群 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">使用kubeadm搭建高可用k8s v1.16.3集群</h2>
+            <div class="post-date">2019-11-27</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E9%83%A8%E7%BD%B2%E7%8E%AF%E5%A2%83%E8%AF%B4%E6%98%8E">1、部署环境说明</a></li>
+<li><a href="#2-%E9%9B%86%E7%BE%A4%E6%9E%B6%E6%9E%84%E5%8F%8A%E9%83%A8%E7%BD%B2%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C">2、集群架构及部署准备工作</a>
+<ul>
+<li><a href="#21-%E9%9B%86%E7%BE%A4%E6%9E%B6%E6%9E%84%E8%AF%B4%E6%98%8E">2.1、集群架构说明</a></li>
+<li><a href="#22-%E4%BF%AE%E6%94%B9hosts%E5%8F%8Ahostname">2.2、修改hosts及hostname</a></li>
+<li><a href="#23-%E5%85%B6%E4%BB%96%E5%87%86%E5%A4%87">2.3、其他准备</a></li>
+</ul>
+</li>
+<li><a href="#3-%E9%83%A8%E7%BD%B2keepalived">3、部署keepalived</a>
+<ul>
+<li><a href="#31-%E5%AE%89%E8%A3%85">3.1、安装</a></li>
+<li><a href="#32-%E9%85%8D%E7%BD%AE">3.2、配置</a></li>
+<li><a href="#33-%E5%90%AF%E5%8A%A8%E5%92%8C%E6%A3%80%E6%9F%A5">3.3、启动和检查</a></li>
+</ul>
+</li>
+<li><a href="#4-%E9%83%A8%E7%BD%B2haproxy">4、部署haproxy</a>
+<ul>
+<li><a href="#41-%E5%AE%89%E8%A3%85">4.1、安装</a></li>
+<li><a href="#42-%E9%85%8D%E7%BD%AE">4.2、配置</a></li>
+<li><a href="#43-%E5%90%AF%E5%8A%A8%E5%92%8C%E6%A3%80%E6%9F%A5">4.3、启动和检查</a></li>
+</ul>
+</li>
+<li><a href="#5-%E5%AE%89%E8%A3%85docker">5、安装docker</a>
+<ul>
+<li><a href="#51-%E5%AE%89%E8%A3%85">5.1、安装</a></li>
+<li><a href="#52-%E9%85%8D%E7%BD%AE">5.2、配置</a></li>
+<li><a href="#53-%E5%90%AF%E5%8A%A8">5.3、启动</a></li>
+</ul>
+</li>
+<li><a href="#6-%E5%AE%89%E8%A3%85kubeadmkubelet%E5%92%8Ckubectl">6、安装kubeadm，kubelet和kubectl</a>
+<ul>
+<li><a href="#61-%E6%B7%BB%E5%8A%A0%E9%98%BF%E9%87%8C%E4%BA%91k8s%E7%9A%84yum%E6%BA%90">6.1、添加阿里云k8s的yum源</a></li>
+<li><a href="#62-%E5%AE%89%E8%A3%85">6.2、安装</a></li>
+<li><a href="#63-%E9%85%8D%E7%BD%AEkubectl%E8%87%AA%E5%8A%A8%E8%A1%A5%E5%85%A8">6.3、配置kubectl自动补全</a></li>
+</ul>
+</li>
+<li><a href="#7-%E5%AE%89%E8%A3%85master">7、安装master</a>
+<ul>
+<li><a href="#71-%E5%88%9B%E5%BB%BAkubeadm%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">7.1、创建kubeadm配置文件</a></li>
+<li><a href="#72-%E5%88%9D%E5%A7%8B%E5%8C%96master%E8%8A%82%E7%82%B9">7.2、初始化master节点</a></li>
+<li><a href="#73-%E6%8C%89%E7%85%A7%E6%8F%90%E7%A4%BA%E9%85%8D%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F">7.3、按照提示配置环境变量</a></li>
+<li><a href="#74-%E6%9F%A5%E7%9C%8B%E9%9B%86%E7%BE%A4%E7%8A%B6%E6%80%81">7.4、查看集群状态</a></li>
+</ul>
+</li>
+<li><a href="#8-%E5%AE%89%E8%A3%85%E9%9B%86%E7%BE%A4%E7%BD%91%E7%BB%9C">8、安装集群网络</a>
+<ul>
+<li><a href="#81-%E8%8E%B7%E5%8F%96yaml">8.1、获取yaml</a></li>
+<li><a href="#82-%E5%AE%89%E8%A3%85">8.2、安装</a></li>
+<li><a href="#83-%E6%A3%80%E6%9F%A5">8.3、检查</a></li>
+</ul>
+</li>
+<li><a href="#9-%E5%85%B6%E4%BB%96%E8%8A%82%E7%82%B9%E5%8A%A0%E5%85%A5%E9%9B%86%E7%BE%A4">9、其他节点加入集群</a>
+<ul>
+<li><a href="#91-master%E5%8A%A0%E5%85%A5%E9%9B%86%E7%BE%A4">9.1、master加入集群</a>
+<ul>
+<li><a href="#911-%E5%A4%8D%E5%88%B6%E5%AF%86%E9%92%A5%E5%8F%8A%E7%9B%B8%E5%85%B3%E6%96%87%E4%BB%B6">9.1.1、复制密钥及相关文件</a></li>
+<li><a href="#912-master%E5%8A%A0%E5%85%A5%E9%9B%86%E7%BE%A4">9.1.2、master加入集群</a></li>
+<li><a href="#913-%E6%A3%80%E6%9F%A5">9.1.3、检查</a></li>
+</ul>
+</li>
+<li><a href="#92-node%E5%8A%A0%E5%85%A5%E9%9B%86%E7%BE%A4">9.2、node加入集群</a>
+<ul>
+<li><a href="#921-node%E5%8A%A0%E5%85%A5%E9%9B%86%E7%BE%A4">9.2.1、node加入集群</a></li>
+<li><a href="#922-%E6%A3%80%E6%9F%A5">9.2.2、检查</a></li>
+</ul>
+</li>
+<li><a href="#93-%E9%9B%86%E7%BE%A4%E5%90%8E%E7%BB%AD%E6%89%A9%E5%AE%B9">9.3、集群后续扩容</a></li>
+</ul>
+</li>
+<li><a href="#10-%E9%9B%86%E7%BE%A4%E7%BC%A9%E5%AE%B9">10、集群缩容</a></li>
+<li><a href="#11-%E5%AE%89%E8%A3%85dashboard">11、安装dashboard</a>
+<ul>
+<li><a href="#111-%E9%83%A8%E7%BD%B2dashboard">11.1、部署dashboard</a></li>
+<li><a href="#112-%E5%88%9B%E5%BB%BAservice-account%E5%B9%B6%E7%BB%91%E5%AE%9A%E9%BB%98%E8%AE%A4cluster-admin%E7%AE%A1%E7%90%86%E5%91%98%E9%9B%86%E7%BE%A4%E8%A7%92%E8%89%B2">11.2、创建service account并绑定默认cluster-admin管理员集群角色</a></li>
+<li><a href="#113-%E4%BD%BF%E7%94%A8token%E7%99%BB%E5%BD%95%E5%88%B0dashboard%E7%95%8C%E9%9D%A2">11.3、使用token登录到dashboard界面</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-部署环境说明">1、部署环境说明</h2>
+<p>本文通过kubeadm搭建一个高可用的k8s集群，kubeadm可以帮助我们快速的搭建k8s集群，高可用主要体现在对master节点组件及etcd存储的高可用，文中使用到的服务器ip及角色对应如下：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">主机名称</th>
+<th style="text-align:center">ip地址</th>
+<th style="text-align:center">角色</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">-</td>
+<td style="text-align:center">192.168.9.80</td>
+<td style="text-align:center">虚拟ip(vip)</td>
+</tr>
+<tr>
+<td style="text-align:center">k8s-master-01</td>
+<td style="text-align:center">192.168.9.81</td>
+<td style="text-align:center">master</td>
+</tr>
+<tr>
+<td style="text-align:center">K8s-master-02</td>
+<td style="text-align:center">192.168.9.82</td>
+<td style="text-align:center">master</td>
+</tr>
+<tr>
+<td style="text-align:center">K8s-master-03</td>
+<td style="text-align:center">192.168.9.83</td>
+<td style="text-align:center">master</td>
+</tr>
+<tr>
+<td style="text-align:center">k8s-node-01</td>
+<td style="text-align:center">192.168.9.84</td>
+<td style="text-align:center">node</td>
+</tr>
+<tr>
+<td style="text-align:center">K8s-node-02</td>
+<td style="text-align:center">192.168.9.85</td>
+<td style="text-align:center">node</td>
+</tr>
+<tr>
+<td style="text-align:center">K8s-node-03</td>
+<td style="text-align:center">192.168.9.79</td>
+<td style="text-align:center">node</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-集群架构及部署准备工作">2、集群架构及部署准备工作</h2>
+<h3 id="21-集群架构说明">2.1、集群架构说明</h3>
+<p>前面提到高可用主要体现在master相关组件及etcd，master中apiserver是集群的入口，搭建三个master通过keepalived提供一个vip实现高可用，并且添加haproxy来为apiserver提供反向代理的作用，这样来自haproxy的所有请求都将轮询转发到后端的master节点上。如果仅仅使用keepalived，当集群正常工作时，所有流量还是会到具有vip的那台master上，因此加上了haproxy使整个集群的master都能参与进来，集群的健壮性更强。对应架构图如下所示：<br>
+<img src="https://image.ssgeek.com/20191127-01.jpg" alt=""></p>
+<h3 id="22-修改hosts及hostname">2.2、修改hosts及hostname</h3>
+<p>所有节点修改主机名和hosts文件，文件内容如下</p>
+<pre><code>192.168.9.80    master.k8s.io   k8s-vip
+192.168.9.81    master01.k8s.io k8s-master-01
+192.168.9.82    master02.k8s.io k8s-master-02
+192.168.9.83    master03.k8s.io k8s-master-03
+192.168.9.84    node01.k8s.io   k8s-node-01
+192.168.9.85    node02.k8s.io   k8s-node-02
+192.168.9.79    node03.k8s.io   k8s-node-03
+</code></pre>
+<h3 id="23-其他准备">2.3、其他准备</h3>
+<p>所有节点操作</p>
+<ul>
+<li>
+<p>主机时间同步<br>
+时间同步可以通过<code>chrony</code>或者<code>ntp</code>来实现，这里不再赘述</p>
+</li>
+<li>
+<p>关闭防火墙<br>
+关闭<code>centos7</code>自带的<code>firewalld</code>防火墙服务</p>
+</li>
+<li>
+<p>关闭selinux</p>
+</li>
+<li>
+<p>禁用swap<br>
+<code>kubeadm</code>会检查当前主机是否禁用了<code>swap</code>，如果启动了 <code>swap</code>将导致安装不能正常进行，所以需要禁用所有的<code>swap</code>。</p>
+</li>
+</ul>
+<pre><code># 临时关闭
+$ swapoff -a &amp;&amp; sysctl -w vm.swappiness=0
+# 永久关闭，在文件中添加注释
+$ vim /etc/fstab
+...
+UUID=7bf41652-e6e9-415c-8dd9-e112641b220e /boot                   xfs     defaults        0 0
+#/dev/mapper/centos-swap swap                    swap    defaults        0 0
+# 或者利用sed命令完事儿
+$ sed -ri '/^[^#]*swap/s@^@#@' /etc/fstab
+</code></pre>
+<ul>
+<li>设置系统其它参数</li>
+</ul>
+<p>开启路由转发</p>
+<pre><code>$ vim /etc/sysctl.d/k8s.conf
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+$ modprobe br_netfilter
+$ sysctl -p /etc/sysctl.d/k8s.conf
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+</code></pre>
+<p>设置资源配置文件</p>
+<pre><code>$ echo &quot;* soft nofile 65536&quot; &gt;&gt; /etc/security/limits.conf
+$ echo &quot;* hard nofile 65536&quot; &gt;&gt; /etc/security/limits.conf
+$ echo &quot;* soft nproc 65536&quot;  &gt;&gt; /etc/security/limits.conf
+$ echo &quot;* hard nproc 65536&quot;  &gt;&gt; /etc/security/limits.conf
+$ echo &quot;* soft  memlock  unlimited&quot;  &gt;&gt; /etc/security/limits.conf
+$ echo &quot;* hard memlock  unlimited&quot;  &gt;&gt; /etc/security/limits.conf
+</code></pre>
+<ul>
+<li>安装相关包</li>
+</ul>
+<pre><code>$ yum install -y conntrack-tools libseccomp libtool-ltdl
+</code></pre>
+<h2 id="3-部署keepalived">3、部署keepalived</h2>
+<p>在三台master操作</p>
+<h3 id="31-安装">3.1、安装</h3>
+<pre><code>$ yum install -y keepalived
+</code></pre>
+<h3 id="32-配置">3.2、配置</h3>
+<p>默认的<code>keepalived</code>配置较复杂，这里用更为简明的方式进行配置，另外的两台master配置和上面类似，只需要修改对应的state配置为BACKUP，priority权重值不同即可，配置中的其他字段这里不做说明。</p>
+<p><code>k8s-master-01</code>的配置：</p>
+<pre><code>cat &gt; /etc/keepalived/keepalived.conf &lt;&lt;EOF 
+! Configuration File for keepalived
+
+global_defs {
+   router_id k8s
+}
+
+vrrp_script check_haproxy {
+    script &quot;killall -0 haproxy&quot;
+    interval 3
+    weight -2
+    fall 10
+    rise 2
+}
+
+vrrp_instance VI_1 {
+    state MASTER 
+    interface eth0 
+    virtual_router_id 51
+    priority 250
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass ceb1b3ec013d66163d6ab
+    }
+    virtual_ipaddress {
+        192.168.9.80
+    }
+    track_script {
+        check_haproxy
+    }
+
+}
+EOF
+</code></pre>
+<p><code>k8s-master-02</code>的配置：</p>
+<pre><code>cat &gt; /etc/keepalived/keepalived.conf &lt;&lt;EOF 
+! Configuration File for keepalived
+
+global_defs {
+   router_id k8s
+}
+
+vrrp_script check_haproxy {
+    script &quot;killall -0 haproxy&quot;
+    interval 3
+    weight -2
+    fall 10
+    rise 2
+}
+
+vrrp_instance VI_1 {
+    state BACKUP 
+    interface eth0 
+    virtual_router_id 51
+    priority 200
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass ceb1b3ec013d66163d6ab
+    }
+    virtual_ipaddress {
+        192.168.9.80
+    }
+    track_script {
+        check_haproxy
+    }
+
+}
+EOF
+</code></pre>
+<p><code>k8s-master-03</code>的配置：</p>
+<pre><code>cat &gt; /etc/keepalived/keepalived.conf &lt;&lt;EOF 
+! Configuration File for keepalived
+
+global_defs {
+   router_id k8s
+}
+
+vrrp_script check_haproxy {
+    script &quot;killall -0 haproxy&quot;
+    interval 3
+    weight -2
+    fall 10
+    rise 2
+}
+
+vrrp_instance VI_1 {
+    state BACKUP 
+    interface eth0 
+    virtual_router_id 51
+    priority 150
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass ceb1b3ec013d66163d6ab
+    }
+    virtual_ipaddress {
+        192.168.9.80
+    }
+    track_script {
+        check_haproxy
+    }
+
+}
+EOF
+</code></pre>
+<h3 id="33-启动和检查">3.3、启动和检查</h3>
+<p>在三台<code>master</code>节点都启动服务</p>
+<pre><code># 设置开机启动
+$ systemctl enable keepalived.service
+# 启动keepalived
+$ systemctl start keepalived.service
+# 查看启动状态
+$ systemctl status keepalived.service
+</code></pre>
+<p>启动后查看<code>k8s-master-01</code>的网卡信息</p>
+<pre><code>[root@k8s-master-01 ~]# ip a s eth0
+2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 00:0c:29:84:45:8a brd ff:ff:ff:ff:ff:ff
+    inet 192.168.9.81/24 brd 192.168.9.255 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet 192.168.9.80/32 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::20c:29ff:fe84:458a/64 scope link 
+       valid_lft forever preferred_lft forever
+</code></pre>
+<p>尝试停掉<code>k8s-master-01</code>的<code>keepalived</code>服务，查看<code>vip</code>是否能漂移到其他的<code>master</code>，并且重新启动<code>k8s-master-01</code>的<code>keepalived</code>服务，查看<code>vip</code>是否能正常漂移回来，证明配置没有问题。</p>
+<h2 id="4-部署haproxy">4、部署haproxy</h2>
+<p>在三台master操作</p>
+<h3 id="41-安装">4.1、安装</h3>
+<pre><code>$ yum install -y haproxy
+</code></pre>
+<h3 id="42-配置">4.2、配置</h3>
+<p>三台master节点的配置均相同，配置中声明了后端代理的三个master节点服务器，指定了haproxy运行的端口为16443等，因此16443端口为集群的入口，其他的配置不做赘述。</p>
+<pre><code>cat &gt; /etc/haproxy/haproxy.cfg &lt;&lt; EOF
+#---------------------------------------------------------------------
+# Global settings
+#---------------------------------------------------------------------
+global
+    # to have these messages end up in /var/log/haproxy.log you will
+    # need to:
+    # 1) configure syslog to accept network log events.  This is done
+    #    by adding the '-r' option to the SYSLOGD_OPTIONS in
+    #    /etc/sysconfig/syslog
+    # 2) configure local2 events to go to the /var/log/haproxy.log
+    #   file. A line like the following can be added to
+    #   /etc/sysconfig/syslog
+    #
+    #    local2.*                       /var/log/haproxy.log
+    #
+    log         127.0.0.1 local2
+    
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    user        haproxy
+    group       haproxy
+    daemon 
+       
+    # turn on stats unix socket
+    stats socket /var/lib/haproxy/stats
+#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------  
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+#---------------------------------------------------------------------
+# kubernetes apiserver frontend which proxys to the backends
+#--------------------------------------------------------------------- 
+frontend kubernetes-apiserver
+    mode                 tcp
+    bind                 *:16443
+    option               tcplog
+    default_backend      kubernetes-apiserver    
+#---------------------------------------------------------------------
+# round robin balancing between the various backends
+#---------------------------------------------------------------------
+backend kubernetes-apiserver
+    mode        tcp
+    balance     roundrobin
+    server      master01.k8s.io   192.168.9.81:6443 check
+    server      master02.k8s.io   192.168.9.82:6443 check
+    server      master03.k8s.io   192.168.9.83:6443 check
+#---------------------------------------------------------------------
+# collection haproxy statistics message
+#---------------------------------------------------------------------
+listen stats
+    bind                 *:1080
+    stats auth           admin:awesomePassword
+    stats refresh        5s
+    stats realm          HAProxy\ Statistics
+    stats uri            /admin?stats
+EOF
+</code></pre>
+<h3 id="43-启动和检查">4.3、启动和检查</h3>
+<p>在三台<code>master</code>节点都启动服务</p>
+<pre><code># 设置开机启动
+$ systemctl enable haproxy
+# 开启haproxy
+$ systemctl start haproxy
+# 查看启动状态
+$ systemctl status haproxy
+</code></pre>
+<p>检查端口</p>
+<pre><code>[root@k8s-master-01 ~]# netstat -lntup|grep haproxy
+tcp        0      0 0.0.0.0:1080            0.0.0.0:*               LISTEN      7067/haproxy        
+tcp        0      0 0.0.0.0:16443           0.0.0.0:*               LISTEN      7067/haproxy        
+udp        0      0 0.0.0.0:47041           0.0.0.0:*                           7066/haproxy 
+</code></pre>
+<h2 id="5-安装docker">5、安装docker</h2>
+<p>所有节点操作，使用yum安装，参考<a href="https://developer.aliyun.com/mirror/docker-ce?spm=a2c6h.13651102.0.0.53322f70ZDikrA">阿里云镜像站指导</a><br>
+今天查看阿里云镜像站时，发现已经全新改版上线了，企业免费做国内开源镜像站，点个赞<br>
+<img src="https://image.ssgeek.com/20191127-02.png" alt=""></p>
+<h3 id="51-安装">5.1、安装</h3>
+<pre><code># step 1: 安装必要的一些系统工具
+$ yum install -y yum-utils device-mapper-persistent-data lvm2
+# Step 2: 添加软件源信息
+$ sudo yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+# Step 3: 查找Docker-CE的版本:
+$ yum list docker-ce.x86_64 --showduplicates | sort -r
+# Step 4: 安装指定版本的Docker-CE
+$ yum makecache fast
+$ yum install -y docker-ce-18.09.9
+</code></pre>
+<h3 id="52-配置">5.2、配置</h3>
+<p>修改docker的配置文件，目前k8s推荐使用的docker文件驱动是systemd，按照<a href="https://kubernetes.io/docs/setup/production-environment/container-runtimes/">k8s官方文档</a>可查看如何配置</p>
+<pre><code>$ vim /etc/docker/daemon.json
+{
+  &quot;exec-opts&quot;: [&quot;native.cgroupdriver=systemd&quot;],
+  &quot;log-driver&quot;: &quot;json-file&quot;,
+  &quot;log-opts&quot;: {
+    &quot;max-size&quot;: &quot;100m&quot;
+  },
+  &quot;storage-driver&quot;: &quot;overlay2&quot;,
+  &quot;storage-opts&quot;: [
+    &quot;overlay2.override_kernel_check=true&quot;
+  ]
+}
+</code></pre>
+<p>修改docker的服务配置文件，指定docker的数据目录为外挂的磁盘<code>--graph /data/docker</code></p>
+<pre><code>$ vim /lib/systemd/system/docker.service
+ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock --graph /data/docker
+</code></pre>
+<h3 id="53-启动">5.3、启动</h3>
+<p>启动docker服务</p>
+<pre><code>$ systemctl daemon-reload
+$ systemctl start docker.service
+$ systemctl enable docker.service
+$ systemctl status docker.service
+</code></pre>
+<p>检查docker信息</p>
+<pre><code>$ docker version
+Client: Docker Engine - Community
+ Version:           19.03.5
+ API version:       1.39 (downgraded from 1.40)
+ Go version:        go1.12.12
+ Git commit:        633a0ea
+ Built:             Wed Nov 13 07:25:41 2019
+ OS/Arch:           linux/amd64
+ Experimental:      false
+
+Server: Docker Engine - Community
+ Engine:
+  Version:          18.09.9
+  API version:      1.39 (minimum version 1.12)
+  Go version:       go1.11.13
+  Git commit:       039a7df
+  Built:            Wed Sep  4 16:22:32 2019
+  OS/Arch:          linux/amd64
+  Experimental:     false
+</code></pre>
+<h2 id="6-安装kubeadmkubelet和kubectl">6、安装kubeadm，kubelet和kubectl</h2>
+<p>所有节点操作</p>
+<h3 id="61-添加阿里云k8s的yum源">6.1、添加阿里云k8s的yum源</h3>
+<pre><code>cat &lt;&lt;EOF &gt; /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
+EOF
+</code></pre>
+<h3 id="62-安装">6.2、安装</h3>
+<pre><code>$ yum install -y kubelet-1.16.3 kubeadm-1.16.3 kubectl-1.16.3
+$ systemctl enable kubelet
+</code></pre>
+<h3 id="63-配置kubectl自动补全">6.3、配置kubectl自动补全</h3>
+<pre><code>[root@k8s-master-01 ~]# source &lt;(kubectl completion bash)
+[root@k8s-master-01 ~]# echo &quot;source &lt;(kubectl completion bash)&quot; &gt;&gt; ~/.bashrc
+</code></pre>
+<h2 id="7-安装master">7、安装master</h2>
+<p>在具有vip的master上操作，这里为k8s-master-01</p>
+<h3 id="71-创建kubeadm配置文件">7.1、创建kubeadm配置文件</h3>
+<pre><code>[root@k8s-master-01 ~]# mkdir /usr/local/kubernetes/manifests -p
+[root@k8s-master-01 ~]# cd /usr/local/kubernetes/manifests/
+[root@k8s-master-01 manifests]# vim kubeadm-config.yaml
+apiServer:
+  certSANs:
+    - k8s-master-01
+    - k8s-master-02
+    - k8s-master-03
+    - master.k8s.io
+    - 192.168.9.80
+    - 192.168.9.81
+    - 192.168.9.82
+    - 192.168.9.83
+    - 127.0.0.1
+  extraArgs:
+    authorization-mode: Node,RBAC
+  timeoutForControlPlane: 4m0s
+apiVersion: kubeadm.k8s.io/v1beta1
+certificatesDir: /etc/kubernetes/pki
+clusterName: kubernetes
+controlPlaneEndpoint: &quot;master.k8s.io:16443&quot;
+controllerManager: {}
+dns: 
+  type: CoreDNS
+etcd:
+  local:    
+    dataDir: /var/lib/etcd
+imageRepository: registry.aliyuncs.com/google_containers
+kind: ClusterConfiguration
+kubernetesVersion: v1.16.3
+networking: 
+  dnsDomain: cluster.local  
+  podSubnet: 10.244.0.0/16
+  serviceSubnet: 10.1.0.0/16
+scheduler: {}
+</code></pre>
+<h3 id="72-初始化master节点">7.2、初始化master节点</h3>
+<pre><code>[root@k8s-master-01 manifests]# kubeadm init --config kubeadm-config.yaml 
+[init] Using Kubernetes version: v1.16.3
+[preflight] Running pre-flight checks
+[preflight] Pulling images required for setting up a Kubernetes cluster
+[preflight] This might take a minute or two, depending on the speed of your internet connection
+[preflight] You can also perform this action in beforehand using 'kubeadm config images pull'
+[kubelet-start] Writing kubelet environment file with flags to file &quot;/var/lib/kubelet/kubeadm-flags.env&quot;
+[kubelet-start] Writing kubelet configuration to file &quot;/var/lib/kubelet/config.yaml&quot;
+[kubelet-start] Activating the kubelet service
+[certs] Using certificateDir folder &quot;/etc/kubernetes/pki&quot;
+[certs] Generating &quot;ca&quot; certificate and key
+[certs] Generating &quot;apiserver&quot; certificate and key
+[certs] apiserver serving cert is signed for DNS names [k8s-master-01 kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local master.k8s.io k8s-master-01 k8s-master-02 k8s-master-03 master.k8s.io] and IPs [10.1.0.1 192.168.9.81 192.168.9.80 192.168.9.81 192.168.9.82 192.168.9.83 127.0.0.1]
+[certs] Generating &quot;apiserver-kubelet-client&quot; certificate and key
+[certs] Generating &quot;front-proxy-ca&quot; certificate and key
+[certs] Generating &quot;front-proxy-client&quot; certificate and key
+[certs] Generating &quot;etcd/ca&quot; certificate and key
+[certs] Generating &quot;etcd/server&quot; certificate and key
+[certs] etcd/server serving cert is signed for DNS names [k8s-master-01 localhost] and IPs [192.168.9.81 127.0.0.1 ::1]
+[certs] Generating &quot;etcd/peer&quot; certificate and key
+[certs] etcd/peer serving cert is signed for DNS names [k8s-master-01 localhost] and IPs [192.168.9.81 127.0.0.1 ::1]
+[certs] Generating &quot;etcd/healthcheck-client&quot; certificate and key
+[certs] Generating &quot;apiserver-etcd-client&quot; certificate and key
+[certs] Generating &quot;sa&quot; key and public key
+[kubeconfig] Using kubeconfig folder &quot;/etc/kubernetes&quot;
+[endpoint] WARNING: port specified in controlPlaneEndpoint overrides bindPort in the controlplane address
+[kubeconfig] Writing &quot;admin.conf&quot; kubeconfig file
+[endpoint] WARNING: port specified in controlPlaneEndpoint overrides bindPort in the controlplane address
+[kubeconfig] Writing &quot;kubelet.conf&quot; kubeconfig file
+[endpoint] WARNING: port specified in controlPlaneEndpoint overrides bindPort in the controlplane address
+[kubeconfig] Writing &quot;controller-manager.conf&quot; kubeconfig file
+[endpoint] WARNING: port specified in controlPlaneEndpoint overrides bindPort in the controlplane address
+[kubeconfig] Writing &quot;scheduler.conf&quot; kubeconfig file
+[control-plane] Using manifest folder &quot;/etc/kubernetes/manifests&quot;
+[control-plane] Creating static Pod manifest for &quot;kube-apiserver&quot;
+[control-plane] Creating static Pod manifest for &quot;kube-controller-manager&quot;
+[control-plane] Creating static Pod manifest for &quot;kube-scheduler&quot;
+[etcd] Creating static Pod manifest for local etcd in &quot;/etc/kubernetes/manifests&quot;
+[wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory &quot;/etc/kubernetes/manifests&quot;. This can take up to 4m0s
+[apiclient] All control plane components are healthy after 21.505682 seconds
+[upload-config] Storing the configuration used in ConfigMap &quot;kubeadm-config&quot; in the &quot;kube-system&quot; Namespace
+[kubelet] Creating a ConfigMap &quot;kubelet-config-1.16&quot; in namespace kube-system with the configuration for the kubelets in the cluster
+[upload-certs] Skipping phase. Please see --upload-certs
+[mark-control-plane] Marking the node k8s-master-01 as control-plane by adding the label &quot;node-role.kubernetes.io/master=''&quot;
+[mark-control-plane] Marking the node k8s-master-01 as control-plane by adding the taints [node-role.kubernetes.io/master:NoSchedule]
+[bootstrap-token] Using token: jv5z7n.3y1zi95p952y9p65
+[bootstrap-token] Configuring bootstrap tokens, cluster-info ConfigMap, RBAC Roles
+[bootstrap-token] configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials
+[bootstrap-token] configured RBAC rules to allow the csrapprover controller automatically approve CSRs from a Node Bootstrap Token
+[bootstrap-token] configured RBAC rules to allow certificate rotation for all node client certificates in the cluster
+[bootstrap-token] Creating the &quot;cluster-info&quot; ConfigMap in the &quot;kube-public&quot; namespace
+[addons] Applied essential addon: CoreDNS
+[endpoint] WARNING: port specified in controlPlaneEndpoint overrides bindPort in the controlplane address
+[addons] Applied essential addon: kube-proxy
+
+Your Kubernetes control-plane has initialized successfully!
+
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+You should now deploy a pod network to the cluster.
+Run &quot;kubectl apply -f [podnetwork].yaml&quot; with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+You can now join any number of control-plane nodes by copying certificate authorities 
+and service account keys on each node and then running the following as root:
+
+  kubeadm join master.k8s.io:16443 --token jv5z7n.3y1zi95p952y9p65 \
+    --discovery-token-ca-cert-hash sha256:403bca185c2f3a4791685013499e7ce58f9848e2213e27194b75a2e3293d8812 \
+    --control-plane       
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join master.k8s.io:16443 --token jv5z7n.3y1zi95p952y9p65 \
+    --discovery-token-ca-cert-hash sha256:403bca185c2f3a4791685013499e7ce58f9848e2213e27194b75a2e3293d8812
+</code></pre>
+<h3 id="73-按照提示配置环境变量">7.3、按照提示配置环境变量</h3>
+<pre><code>[root@k8s-master-01 manifests]# mkdir -p $HOME/.kube
+[root@k8s-master-01 manifests]# sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+[root@k8s-master-01 manifests]# sudo chown $(id -u):$(id -g) $HOME/.kube/config
+</code></pre>
+<h3 id="74-查看集群状态">7.4、查看集群状态</h3>
+<pre><code>[root@k8s-master-01 manifests]# kubectl get cs
+NAME                 AGE
+scheduler            &lt;unknown&gt;
+controller-manager   &lt;unknown&gt;
+etcd-0               &lt;unknown&gt;
+[root@k8s-master-01 manifests]# kubectl get pods -n kube-system
+NAME                                    READY   STATUS    RESTARTS   AGE
+coredns-58cc8c89f4-56n7g                0/1     Pending   0          87s
+coredns-58cc8c89f4-zclz7                0/1     Pending   0          87s
+etcd-k8s-master-01                      1/1     Running   0          18s
+kube-apiserver-k8s-master-01            1/1     Running   0          21s
+kube-controller-manager-k8s-master-01   1/1     Running   0          33s
+kube-proxy-ptjjn                        1/1     Running   0          87s
+kube-scheduler-k8s-master-01            1/1     Running   0          25s
+</code></pre>
+<p>执行<code>kubectl get cs</code>显示<code>&lt;unknown&gt;</code>是一个<code>1.16</code>版本已知的<code>bug</code>，后续官方应该会解决处理，有大佬分析了源码并且提交了pr，可<a href="https://segmentfault.com/a/1190000020912684">点此参考</a><br>
+集群默认也把<code>coredns</code>安装了，这里处于<code>pending</code>状态的原因是因为还没有安装网络组件</p>
+<h2 id="8-安装集群网络">8、安装集群网络</h2>
+<p>master节点操作</p>
+<h3 id="81-获取yaml">8.1、获取yaml</h3>
+<p>从官方地址获取到flannel的yaml</p>
+<pre><code>[root@k8s-master-01 manifests]# mkdir flannel
+[root@k8s-master-01 manifests]# cd flannel
+[root@k8s-master-01 flannel]# wget -c https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+</code></pre>
+<p>确保yaml中的pod子网与前面执行kubeadm初始化时相同，yaml中的镜像如果无法获取，可以使用微软中国镜像源代替，例如</p>
+<pre><code>quay.io/coreos/flannel:v0.11.0-amd64  # 源地址
+quay.azk8s.cn/coreos/flannel:v0.11.0-amd64  # 代替
+</code></pre>
+<h3 id="82-安装">8.2、安装</h3>
+<pre><code>[root@k8s-master-01 flannel]# kubectl apply -f kube-flannel.yml 
+podsecuritypolicy.policy/psp.flannel.unprivileged created
+clusterrole.rbac.authorization.k8s.io/flannel created
+clusterrolebinding.rbac.authorization.k8s.io/flannel created
+serviceaccount/flannel created
+configmap/kube-flannel-cfg created
+daemonset.apps/kube-flannel-ds-amd64 created
+daemonset.apps/kube-flannel-ds-arm64 created
+daemonset.apps/kube-flannel-ds-arm created
+daemonset.apps/kube-flannel-ds-ppc64le created
+daemonset.apps/kube-flannel-ds-s390x created
+</code></pre>
+<h3 id="83-检查">8.3、检查</h3>
+<pre><code>[root@k8s-master-01 flannel]# kubectl get pods -n kube-system
+NAME                                    READY   STATUS    RESTARTS   AGE
+coredns-58cc8c89f4-56n7g                1/1     Running   0          20m
+coredns-58cc8c89f4-zclz7                1/1     Running   0          20m
+etcd-k8s-master-01                      1/1     Running   0          19m
+kube-apiserver-k8s-master-01            1/1     Running   0          19m
+kube-controller-manager-k8s-master-01   1/1     Running   0          19m
+kube-flannel-ds-amd64-8d8bc             1/1     Running   0          51s
+kube-proxy-ptjjn                        1/1     Running   0          20m
+kube-scheduler-k8s-master-01            1/1     Running   0          19m
+</code></pre>
+<h2 id="9-其他节点加入集群">9、其他节点加入集群</h2>
+<h3 id="91-master加入集群">9.1、master加入集群</h3>
+<h4 id="911-复制密钥及相关文件">9.1.1、复制密钥及相关文件</h4>
+<p>在第一次执行<code>init</code>的机器，此处为<code>k8s-master-01</code>上操作<br>
+复制文件到<code>k8s-master-02</code></p>
+<pre><code>[root@k8s-master-01 ~]# ssh root@192.168.9.82 mkdir -p /etc/kubernetes/pki/etcd
+[root@k8s-master-01 ~]# scp /etc/kubernetes/admin.conf root@192.168.9.82:/etc/kubernetes
+admin.conf                                                                                                                                        100% 5454   465.7KB/s   00:00    
+[root@k8s-master-01 ~]# scp /etc/kubernetes/pki/{ca.*,sa.*,front-proxy-ca.*} root@192.168.9.82:/etc/kubernetes/pki
+ca.crt                                                                                                                                            100% 1025    89.2KB/s   00:00    
+ca.key                                                                                                                                            100% 1675   212.1KB/s   00:00    
+sa.key                                                                                                                                            100% 1679   210.1KB/s   00:00    
+sa.pub                                                                                                                                            100%  451    56.5KB/s   00:00    
+front-proxy-ca.crt                                                                                                                                100% 1038   131.9KB/s   00:00    
+front-proxy-ca.key                                                                                                                                100% 1679   208.3KB/s   00:00    
+[root@k8s-master-01 ~]# scp /etc/kubernetes/pki/etcd/ca.* root@192.168.9.82:/etc/kubernetes/pki/etcd
+ca.crt                                                                                                                                            100% 1017   138.8KB/s   00:00    
+ca.key
+</code></pre>
+<p>复制文件到<code>k8s-master-03</code></p>
+<pre><code>[root@k8s-master-01 ~]# ssh root@192.168.9.83 mkdir -p /etc/kubernetes/pki/etcd
+[root@k8s-master-01 ~]# scp /etc/kubernetes/admin.conf root@192.168.9.83:/etc/kubernetes
+admin.conf                                                                                                                                        100% 5454   824.2KB/s   00:00    
+[root@k8s-master-01 ~]# scp /etc/kubernetes/pki/{ca.*,sa.*,front-proxy-ca.*} root@192.168.9.83:/etc/kubernetes/pki
+ca.crt                                                                                                                                            100% 1025   144.6KB/s   00:00    
+ca.key                                                                                                                                            100% 1675   218.0KB/s   00:00    
+sa.key                                                                                                                                            100% 1679   245.7KB/s   00:00    
+sa.pub                                                                                                                                            100%  451    57.3KB/s   00:00    
+front-proxy-ca.crt                                                                                                                                100% 1038   132.6KB/s   00:00    
+front-proxy-ca.key                                                                                                                                100% 1679   213.4KB/s   00:00    
+[root@k8s-master-01 ~]# scp /etc/kubernetes/pki/etcd/ca.* root@192.168.9.83:/etc/kubernetes/pki/etcd
+ca.crt                                                                                                                                            100% 1017    55.0KB/s   00:00    
+ca.key
+</code></pre>
+<h4 id="912-master加入集群">9.1.2、master加入集群</h4>
+<p>分别在其他两台master上操作，执行在<code>k8s-master-01</code>上init后输出的join命令，如果找不到了，可以在master01上执行以下命令输出</p>
+<pre><code>[root@k8s-master-01 ~]# kubeadm token create --print-join-command
+kubeadm join master.k8s.io:16443 --token ckf7bs.30576l0okocepg8b     --discovery-token-ca-cert-hash sha256:19afac8b11182f61073e254fb57b9f19ab4d798b70501036fc69ebef46094aba
+</code></pre>
+<p>在<code>k8s-master-02</code>上执行join命令，需要带上参数<code>--control-plane</code>表示把master控制节点加入集群</p>
+<pre><code>[root@k8s-master-02 ~]# kubeadm join master.k8s.io:16443 --token ckf7bs.30576l0okocepg8b     --discovery-token-ca-cert-hash sha256:19afac8b11182f61073e254fb57b9f19ab4d798b70501036fc69ebef46094aba --control-plane
+[preflight] Running pre-flight checks
+[preflight] Reading configuration from the cluster...
+[preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -oyaml'
+[preflight] Running pre-flight checks before initializing the new control plane instance
+[preflight] Pulling images required for setting up a Kubernetes cluster
+[preflight] This might take a minute or two, depending on the speed of your internet connection
+[preflight] You can also perform this action in beforehand using 'kubeadm config images pull'
+[certs] Using certificateDir folder &quot;/etc/kubernetes/pki&quot;
+[certs] Generating &quot;apiserver&quot; certificate and key
+[certs] apiserver serving cert is signed for DNS names [k8s-master-02 kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local master.k8s.io k8s-master-01 k8s-master-02 k8s-master-03 master.k8s.io] and IPs [10.1.0.1 192.168.9.82 192.168.9.80 192.168.9.81 192.168.9.82 192.168.9.83 127.0.0.1]
+[certs] Generating &quot;apiserver-kubelet-client&quot; certificate and key
+[certs] Generating &quot;etcd/peer&quot; certificate and key
+[certs] etcd/peer serving cert is signed for DNS names [k8s-master-02 localhost] and IPs [192.168.9.82 127.0.0.1 ::1]
+[certs] Generating &quot;etcd/healthcheck-client&quot; certificate and key
+[certs] Generating &quot;apiserver-etcd-client&quot; certificate and key
+[certs] Generating &quot;etcd/server&quot; certificate and key
+[certs] etcd/server serving cert is signed for DNS names [k8s-master-02 localhost] and IPs [192.168.9.82 127.0.0.1 ::1]
+[certs] Generating &quot;front-proxy-client&quot; certificate and key
+[certs] Valid certificates and keys now exist in &quot;/etc/kubernetes/pki&quot;
+[certs] Using the existing &quot;sa&quot; key
+[kubeconfig] Generating kubeconfig files
+[kubeconfig] Using kubeconfig folder &quot;/etc/kubernetes&quot;
+[endpoint] WARNING: port specified in controlPlaneEndpoint overrides bindPort in the controlplane address
+[kubeconfig] Using existing kubeconfig file: &quot;/etc/kubernetes/admin.conf&quot;
+[kubeconfig] Writing &quot;controller-manager.conf&quot; kubeconfig file
+[kubeconfig] Writing &quot;scheduler.conf&quot; kubeconfig file
+[control-plane] Using manifest folder &quot;/etc/kubernetes/manifests&quot;
+[control-plane] Creating static Pod manifest for &quot;kube-apiserver&quot;
+[control-plane] Creating static Pod manifest for &quot;kube-controller-manager&quot;
+[control-plane] Creating static Pod manifest for &quot;kube-scheduler&quot;
+[check-etcd] Checking that the etcd cluster is healthy
+[kubelet-start] Downloading configuration for the kubelet from the &quot;kubelet-config-1.16&quot; ConfigMap in the kube-system namespace
+[kubelet-start] Writing kubelet configuration to file &quot;/var/lib/kubelet/config.yaml&quot;
+[kubelet-start] Writing kubelet environment file with flags to file &quot;/var/lib/kubelet/kubeadm-flags.env&quot;
+[kubelet-start] Activating the kubelet service
+[kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap...
+[etcd] Announced new etcd member joining to the existing etcd cluster
+[etcd] Creating static Pod manifest for &quot;etcd&quot;
+[etcd] Waiting for the new etcd member to join the cluster. This can take up to 40s
+{&quot;level&quot;:&quot;warn&quot;,&quot;ts&quot;:&quot;2019-11-27T13:33:59.913+0800&quot;,&quot;caller&quot;:&quot;clientv3/retry_interceptor.go:61&quot;,&quot;msg&quot;:&quot;retrying of unary invoker failed&quot;,&quot;target&quot;:&quot;passthrough:///https://192.168.9.82:2379&quot;,&quot;attempt&quot;:0,&quot;error&quot;:&quot;rpc error: code = DeadlineExceeded desc = context deadline exceeded&quot;}
+[upload-config] Storing the configuration used in ConfigMap &quot;kubeadm-config&quot; in the &quot;kube-system&quot; Namespace
+[mark-control-plane] Marking the node k8s-master-02 as control-plane by adding the label &quot;node-role.kubernetes.io/master=''&quot;
+[mark-control-plane] Marking the node k8s-master-02 as control-plane by adding the taints [node-role.kubernetes.io/master:NoSchedule]
+
+This node has joined the cluster and a new control plane instance was created:
+
+* Certificate signing request was sent to apiserver and approval was received.
+* The Kubelet was informed of the new secure connection details.
+* Control plane (master) label and taint were applied to the new node.
+* The Kubernetes control plane instances scaled up.
+* A new etcd member was added to the local/stacked etcd cluster.
+
+To start administering your cluster from this node, you need to run the following as a regular user:
+
+        mkdir -p $HOME/.kube
+        sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+        sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Run 'kubectl get nodes' to see this node join the cluster.
+
+[root@k8s-master-02 ~]# mkdir -p $HOME/.kube
+[root@k8s-master-02 ~]# sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+[root@k8s-master-02 ~]# sudo chown $(id -u):$(id -g) $HOME/.kube/config
+</code></pre>
+<p>同样的，在<code>k8s-master-03</code>上执行join命令，输出及后续相关的步骤同上</p>
+<pre><code>[root@k8s-master-03 ~]# kubeadm join master.k8s.io:16443 --token ckf7bs.30576l0okocepg8b     --discovery-token-ca-cert-hash sha256:19afac8b11182f61073e254fb57b9f19ab4d798b70501036fc69ebef46094aba --control-plane
+[root@k8s-master-03 ~]# mkdir -p $HOME/.kube
+[root@k8s-master-03 ~]# sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+[root@k8s-master-03 ~]# sudo chown $(id -u):$(id -g) $HOME/.kube/config
+</code></pre>
+<h4 id="913-检查">9.1.3、检查</h4>
+<p>在其中一台master上执行命令检查集群及pod状态</p>
+<pre><code>[root@k8s-master-01 ~]# kubectl get node
+NAME            STATUS   ROLES    AGE     VERSION
+k8s-master-01   Ready    master   36m     v1.16.3
+k8s-master-02   Ready    master   3m20s   v1.16.3
+k8s-master-03   Ready    master   21s     v1.16.3
+[root@k8s-master-01 ~]# kubectl get pods --all-namespaces
+NAMESPACE     NAME                                    READY   STATUS    RESTARTS   AGE
+kube-system   coredns-58cc8c89f4-56n7g                1/1     Running   0          36m
+kube-system   coredns-58cc8c89f4-zclz7                1/1     Running   0          36m
+kube-system   etcd-k8s-master-01                      1/1     Running   0          35m
+kube-system   etcd-k8s-master-02                      1/1     Running   0          3m55s
+kube-system   etcd-k8s-master-03                      1/1     Running   0          56s
+kube-system   kube-apiserver-k8s-master-01            1/1     Running   0          35m
+kube-system   kube-apiserver-k8s-master-02            1/1     Running   0          3m55s
+kube-system   kube-apiserver-k8s-master-03            1/1     Running   0          57s
+kube-system   kube-controller-manager-k8s-master-01   1/1     Running   1          35m
+kube-system   kube-controller-manager-k8s-master-02   1/1     Running   0          3m55s
+kube-system   kube-controller-manager-k8s-master-03   1/1     Running   0          57s
+kube-system   kube-flannel-ds-amd64-7hnhl             1/1     Running   1          3m56s
+kube-system   kube-flannel-ds-amd64-8d8bc             1/1     Running   0          17m
+kube-system   kube-flannel-ds-amd64-fp2rb             1/1     Running   0          57s
+kube-system   kube-proxy-gzswt                        1/1     Running   0          3m56s
+kube-system   kube-proxy-hdrq7                        1/1     Running   0          57s
+kube-system   kube-proxy-ptjjn                        1/1     Running   0          36m
+kube-system   kube-scheduler-k8s-master-01            1/1     Running   1          35m
+kube-system   kube-scheduler-k8s-master-02            1/1     Running   0          3m55s
+kube-system   kube-scheduler-k8s-master-03            1/1     Running   0          57s
+</code></pre>
+<h3 id="92-node加入集群">9.2、node加入集群</h3>
+<h4 id="921-node加入集群">9.2.1、node加入集群</h4>
+<p>分别在其他三台node节点上操作，执行<code>join</code>命令<br>
+在<code>k8s-node-01</code>上操作</p>
+<pre><code>[root@k8s-node-02 ~]# kubeadm join master.k8s.io:16443 --token ckf7bs.30576l0okocepg8b     --discovery-token-ca-cert-hash sha256:19afac8b11182f61073e254fb57b9f19ab4d798b70501036fc69ebef46094aba
+[preflight] Running pre-flight checks
+[preflight] Reading configuration from the cluster...
+[preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -oyaml'
+[kubelet-start] Downloading configuration for the kubelet from the &quot;kubelet-config-1.16&quot; ConfigMap in the kube-system namespace
+[kubelet-start] Writing kubelet configuration to file &quot;/var/lib/kubelet/config.yaml&quot;
+[kubelet-start] Writing kubelet environment file with flags to file &quot;/var/lib/kubelet/kubeadm-flags.env&quot;
+[kubelet-start] Activating the kubelet service
+[kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap...
+
+This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+
+Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
+</code></pre>
+<p>同理</p>
+<pre><code>[root@k8s-node-02 ~]# kubeadm join master.k8s.io:16443 --token ckf7bs.30576l0okocepg8b     --discovery-token-ca-cert-hash sha256:19afac8b11182f61073e254fb57b9f19ab4d798b70501036fc69ebef46094aba
+[root@k8s-node-03 ~]# kubeadm join master.k8s.io:16443 --token ckf7bs.30576l0okocepg8b     --discovery-token-ca-cert-hash sha256:19afac8b11182f61073e254fb57b9f19ab4d798b70501036fc69ebef46094aba
+</code></pre>
+<h4 id="922-检查">9.2.2、检查</h4>
+<pre><code>[root@k8s-master-01 ~]# kubectl get node
+NAME            STATUS   ROLES    AGE    VERSION
+k8s-master-01   Ready    master   42m    v1.16.3
+k8s-master-02   Ready    master   9m3s   v1.16.3
+k8s-master-03   Ready    master   6m4s   v1.16.3
+k8s-node-01     Ready    &lt;none&gt;   31s    v1.16.3
+k8s-node-02     Ready    &lt;none&gt;   28s    v1.16.3
+k8s-node-03     Ready    &lt;none&gt;   38s    v1.16.3
+[root@k8s-master-01 ~]# kubectl get pods --all-namespaces
+NAMESPACE     NAME                                    READY   STATUS    RESTARTS   AGE
+kube-system   coredns-58cc8c89f4-56n7g                1/1     Running   0          41m
+kube-system   coredns-58cc8c89f4-zclz7                1/1     Running   0          41m
+kube-system   etcd-k8s-master-01                      1/1     Running   0          40m
+kube-system   etcd-k8s-master-02                      1/1     Running   0          9m4s
+kube-system   etcd-k8s-master-03                      1/1     Running   0          6m5s
+kube-system   kube-apiserver-k8s-master-01            1/1     Running   0          40m
+kube-system   kube-apiserver-k8s-master-02            1/1     Running   0          9m4s
+kube-system   kube-apiserver-k8s-master-03            1/1     Running   0          6m6s
+kube-system   kube-controller-manager-k8s-master-01   1/1     Running   1          40m
+kube-system   kube-controller-manager-k8s-master-02   1/1     Running   0          9m4s
+kube-system   kube-controller-manager-k8s-master-03   1/1     Running   0          6m6s
+kube-system   kube-flannel-ds-amd64-7hnhl             1/1     Running   1          9m5s
+kube-system   kube-flannel-ds-amd64-8d8bc             1/1     Running   0          22m
+kube-system   kube-flannel-ds-amd64-bwwlx             1/1     Running   0          33s
+kube-system   kube-flannel-ds-amd64-fp2rb             1/1     Running   0          6m6s
+kube-system   kube-flannel-ds-amd64-g9vdj             1/1     Running   0          40s
+kube-system   kube-flannel-ds-amd64-xcbfr             1/1     Running   0          30s
+kube-system   kube-proxy-485dl                        1/1     Running   0          30s
+kube-system   kube-proxy-8p688                        1/1     Running   0          40s
+kube-system   kube-proxy-fdq7c                        1/1     Running   0          33s
+kube-system   kube-proxy-gzswt                        1/1     Running   0          9m5s
+kube-system   kube-proxy-hdrq7                        1/1     Running   0          6m6s
+kube-system   kube-proxy-ptjjn                        1/1     Running   0          41m
+kube-system   kube-scheduler-k8s-master-01            1/1     Running   1          40m
+kube-system   kube-scheduler-k8s-master-02            1/1     Running   0          9m4s
+kube-system   kube-scheduler-k8s-master-03            1/1     Running   0          6m6s
+</code></pre>
+<h3 id="93-集群后续扩容">9.3、集群后续扩容</h3>
+<p>默认情况下加入集群的<code>token</code>是<code>24</code>小时过期，<code>24</code>小时后如果是想要新的<code>node</code>加入到集群，需要重新生成一个<code>token</code>，命令如下</p>
+<pre><code># 显示获取token列表
+$ kubeadm token list
+# 生成新的token
+$ kubeadm token create
+</code></pre>
+<p>除<code>token</code>外，<code>join</code>命令还需要一个<code>sha256</code>的值，通过以下方法计算</p>
+<pre><code>openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2&gt;/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
+</code></pre>
+<p>用上面输出的<code>token</code>和<code>sha256</code>的值或者是利用<code>kubeadm token create --print-join-command</code>拼接<code>join</code>命令即可</p>
+<h2 id="10-集群缩容">10、集群缩容</h2>
+<p>master节点</p>
+<pre><code>kubectl drain &lt;node name&gt; --delete-local-data --force --ignore-daemonsets
+kubectl delete node &lt;node name&gt;
+</code></pre>
+<p>node节点</p>
+<pre><code>kubeadm reset
+</code></pre>
+<h2 id="11-安装dashboard">11、安装dashboard</h2>
+<h3 id="111-部署dashboard">11.1、部署dashboard</h3>
+<p>地址：https://github.com/kubernetes/dashboard<br>
+文档：https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/<br>
+部署最新版本v2.0.0-beta6，下载yaml</p>
+<pre><code>[root@k8s-master-01 manifests]# cd /usr/local/kubernetes/manifests/
+[root@k8s-master-01 manifests]# mkdir dashboard
+[root@k8s-master-01 manifests]# cd dashboard/
+[root@k8s-master-01 dashboard]# wget -c https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta6/aio/deploy/recommended.yaml
+# 修改service类型为nodeport
+[root@k8s-master-01 dashboard]# vim recommended.yaml
+...
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    k8s-app: kubernetes-dashboard
+  name: kubernetes-dashboard
+  namespace: kubernetes-dashboard
+spec:
+  type: NodePort
+  ports:
+    - port: 443
+      targetPort: 8443
+      nodePort: 30001
+  selector:
+    k8s-app: kubernetes-dashboard
+...
+[root@k8s-master-01 dashboard]# kubectl apply -f recommended.yaml 
+namespace/kubernetes-dashboard created
+serviceaccount/kubernetes-dashboard created
+service/kubernetes-dashboard created
+secret/kubernetes-dashboard-certs created
+secret/kubernetes-dashboard-csrf created
+secret/kubernetes-dashboard-key-holder created
+configmap/kubernetes-dashboard-settings created
+role.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrole.rbac.authorization.k8s.io/kubernetes-dashboard created
+rolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+deployment.apps/kubernetes-dashboard created
+service/dashboard-metrics-scraper created
+deployment.apps/dashboard-metrics-scraper created
+[root@k8s-master-01 dashboard]# kubectl get pods -n kubernetes-dashboard 
+NAME                                         READY   STATUS    RESTARTS   AGE
+dashboard-metrics-scraper-76585494d8-62vp9   1/1     Running   0          6m47s
+kubernetes-dashboard-b65488c4-5t57x          1/1     Running   0          6m48s
+[root@k8s-master-01 dashboard]# kubectl get svc -n kubernetes-dashboard
+NAME                        TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)         AGE
+dashboard-metrics-scraper   ClusterIP   10.1.207.27    &lt;none&gt;        8000/TCP        7m6s
+kubernetes-dashboard        NodePort    10.1.207.168   &lt;none&gt;        443:30001/TCP   7m7s
+# 在node上通过https://nodeip:30001访问是否正常
+</code></pre>
+<h3 id="112-创建service-account并绑定默认cluster-admin管理员集群角色">11.2、创建service account并绑定默认cluster-admin管理员集群角色</h3>
+<pre><code>[root@k8s-master-01 dashboard]# vim dashboard-adminuser.yaml 
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kubernetes-dashboard
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kubernetes-dashboard
+[root@k8s-master-01 dashboard]# kubectl apply -f dashboard-adminuser.yaml 
+serviceaccount/admin-user created
+clusterrolebinding.rbac.authorization.k8s.io/admin-user created
+</code></pre>
+<p>获取token</p>
+<pre><code>[root@k8s-master-01 dashboard]# kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
+Name:         admin-user-token-hb5vs
+Namespace:    kubernetes-dashboard
+Labels:       &lt;none&gt;
+Annotations:  kubernetes.io/service-account.name: admin-user
+              kubernetes.io/service-account.uid: d699cd10-82cb-48ac-af7e-e8eea540b46e
+
+Type:  kubernetes.io/service-account-token
+
+Data
+====
+ca.crt:     1025 bytes
+namespace:  20 bytes
+token:      eyJhbGciOiJSUzI1NiIsImtpZCI6Ing5T2gwbFR2Wk56SG9rR2xVck5BOFhVRnRWVE0wdHhSdndyOXZ3Uk5vYkUifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJhZG1pbi11c2VyLXRva2VuLWhiNXZzIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6ImFkbWluLXVzZXIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiJkNjk5Y2QxMC04MmNiLTQ4YWMtYWY3ZS1lOGVlYTU0MGI0NmUiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6a3ViZXJuZXRlcy1kYXNoYm9hcmQ6YWRtaW4tdXNlciJ9.OkhaAJ5wLhQA2oR8wNIvEW9UYYtwEOuGQIMa281f42SD5UrJzHBxk1_YeNbTQFKMJHcgeRpLxCy7PyZotLq7S_x_lhrVtg82MPbagu3ofDjlXLKc3pU9R9DqCHyid1rGXA94muNJRRWuI4Vq4DaPEnZ0xjfkep4AVPiOjFTlHXuBa68qRc-XK4dhs95BozVIHwir1W2CWhlNdfgTEY2QYJX0N1WqBQu_UWi3ay3NDLQR6pn1OcsG4xCemHjjsMmrKElZthAAc3r1aUQdCV7YNpSBajCPSSyfbMiU3mOjy1xLipEijFditif3HGXpKyYLkbuOY4dYtZHocWK7bfgGDQ
+</code></pre>
+<h3 id="113-使用token登录到dashboard界面">11.3、使用token登录到dashboard界面</h3>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20191127-03.png" alt=""></figure>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/-pmakobGD" class="tag">
+                    kubeadm
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/kubernetes-cun-chu-zhi-glusterfs">
+                  <h3 class="post-title">
+                    kubernetes存储之GlusterFS
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

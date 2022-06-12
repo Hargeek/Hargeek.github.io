@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Golang数据类型之切片 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Golang数据类型之切片</h2>
+            <div class="post-date">2021-06-29</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%88%87%E7%89%87%E4%BB%8B%E7%BB%8D">1、切片介绍</a></li>
+<li><a href="#2-%E5%A3%B0%E6%98%8E%E5%92%8C%E5%88%9D%E5%A7%8B%E5%8C%96">2、声明和初始化</a>
+<ul>
+<li><a href="#21-make%E5%88%9B%E5%BB%BA">2.1 make创建</a></li>
+<li><a href="#22-%E5%AD%97%E9%9D%A2%E9%87%8F%E5%88%9B%E5%BB%BA">2.2 字面量创建</a></li>
+<li><a href="#23-%E5%88%9B%E5%BB%BA%E6%95%B0%E7%BB%84%E5%92%8C%E5%88%87%E7%89%87%E7%9A%84%E5%8C%BA%E5%88%AB">2.3 创建数组和切片的区别</a></li>
+<li><a href="#24-%E5%88%9B%E5%BB%BA%E5%88%87%E7%89%87%E7%9A%84%E6%9C%AC%E8%B4%A8">2.4 创建切片的本质</a></li>
+</ul>
+</li>
+<li><a href="#3-%E5%88%87%E7%89%87%E8%AE%BF%E9%97%AE">3、切片访问</a></li>
+<li><a href="#4-nil%E5%92%8C%E7%A9%BA%E5%88%87%E7%89%87">4、nil和空切片</a></li>
+<li><a href="#5-%E5%88%87%E7%89%87%E4%B8%AD%E6%B7%BB%E5%8A%A0%E5%85%83%E7%B4%A0">5、切片中添加元素</a></li>
+<li><a href="#6-%E9%80%9A%E8%BF%87%E5%88%87%E7%89%87%E5%88%9B%E5%BB%BA%E5%88%87%E7%89%87">6、通过切片创建切片</a></li>
+<li><a href="#7-%E5%88%87%E7%89%87%E9%81%8D%E5%8E%86">7、切片遍历</a></li>
+<li><a href="#8-%E5%88%87%E7%89%87%E6%8B%B7%E8%B4%9D">8、切片拷贝</a></li>
+<li><a href="#9-%E5%88%87%E7%89%87%E4%BD%9C%E4%B8%BA%E5%87%BD%E6%95%B0%E5%8F%82%E6%95%B0">9、切片作为函数参数</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/golang.png" alt=""></figure>
+<h2 id="1-切片介绍">1、切片介绍</h2>
+<p><code>Go</code>中的切片<code>slice</code>依赖于数组，它的底层就是数组，所以数组具有的优点，<code>slice</code>都有。 且<code>slice</code>支持可以通过<code>append</code>向<code>slice</code>中追加元素，长度不够时会动态扩展，通过再次<code>slice</code>切片，可以得到得到更小的<code>slice</code>结构，可以迭代、遍历等</p>
+<pre><code class="language-go">// runtime/slice.go
+type slice struct {
+    array unsafe.Pointer // 数组指针
+    len   int // 长度 
+    cap   int // 容量
+}
+</code></pre>
+<p>每一个<code>slice</code>结构都由3部分组成：</p>
+<ul>
+<li>容量(capacity)：即底层数组的长度，表示这个<code>slice</code>目前最多能扩展到的长度</li>
+<li>长度(length)：表示<code>slice</code>当前的长度，即当前容纳的元素个数</li>
+<li>数组指针(array)：指向底层数组的指针</li>
+</ul>
+<p>比如创建一个长度为<code>3</code>，容量为<code>5</code>，<code>int</code>类型的切片</p>
+<pre><code class="language-go">s := make([]int, 3, 4)
+fmt.Println(a, len(s), cap(s)) // [0 0 0] 3 5
+</code></pre>
+<h2 id="2-声明和初始化">2、声明和初始化</h2>
+<p>在<code>Go</code>中可以通过多种方式创建和初始化切片</p>
+<p>是否提前知道切片所需的容量通常会决定如何创建切片</p>
+<h3 id="21-make创建">2.1 make创建</h3>
+<pre><code class="language-go">// 创建一个整型切片, 其长度为 3 个元素，容量为 5 个元素
+slice := make([]int, 3, 5)
+
+// 我们也可以省略容量, 默认长度==容量
+// 创建一个整型切片 其长度和容量都是 5 个元素
+slice := make([]int, 5)
+
+// 但是长度不能小于容量, 否则编译器过不了
+// a := make([]int, 5, 3)
+</code></pre>
+<h3 id="22-字面量创建">2.2 字面量创建</h3>
+<pre><code class="language-go">// 这种方法和创建数组类似，只是不需要指定[]运算符里的值。初始的长度和容量会基于初始化时提供的元素的个数确定
+slice := []int{1,2,3}
+
+// 和数组一样也可以通过指定索引初始化, 比如index 4 值为100
+slice := []int{3: 100}
+</code></pre>
+<h3 id="23-创建数组和切片的区别">2.3 创建数组和切片的区别</h3>
+<p>如果在<code>[]</code>运算符里指定了一个值，那么创建的就是数组而不是切片，比如</p>
+<pre><code class="language-go">a := [3]int{1,2,3}
+b := []int{1,2,3}
+</code></pre>
+<p>虽然他们声明时只要这一点点区别，但是他们的数据结构区差别却很大，一个是引用类型一个是值类型</p>
+<h3 id="24-创建切片的本质">2.4 创建切片的本质</h3>
+<p>切片相关源码放置位置: src/runtime/slice.go, 我们使用<code>make</code>时, 实际上是调用的<code>makeslice</code>函数</p>
+<pre><code class="language-go">// 这里一波操作过后返回的是slice的pointer
+func makeslice(et *_type, len, cap int) unsafe.Pointer {}
+</code></pre>
+<h2 id="3-切片访问">3、切片访问</h2>
+<p>对切片里某个索引指向的元素赋值和对数组里某个索引指向的元素赋值的方法完全一样。使<br>
+用<code>[]</code>操作符就可以改变某个元素的值，下面是使用切片字面量来声明切片</p>
+<pre><code class="language-go">s := []int{1,2,3}
+s[0]
+
+// 但是不能越界访问, 比如
+s[3] // panic: runtime error: index out of range [3] with length 3
+</code></pre>
+<p>查看切片长度: <code>len</code></p>
+<p>查看切片容量: <code>cap</code></p>
+<h2 id="4-nil和空切片">4、nil和空切片</h2>
+<p>声明未初始化的切片为<code>nil</code></p>
+<pre><code class="language-go">var s []int
+var s1 []int
+fmt.Printf(&quot;%p\n&quot;, s1)  // 0x0
+</code></pre>
+<p><code>make</code>初始化的是一个空切片</p>
+<pre><code class="language-go">s := make([]int,0)
+// unsafe.Pointer ——&gt; *slice
+s2 := make([]int, 0)
+fmt.Printf(&quot;%p\n&quot;, s2)  // 0x126c9
+</code></pre>
+<p>所以<code>nil</code>切片直接赋值是要报错的</p>
+<pre><code class="language-go">var s []int
+s[0] = 1 // panic: runtime error: index out of range [0] with length 0
+</code></pre>
+<h2 id="5-切片中添加元素">5、切片中添加元素</h2>
+<p>通过<code>append</code>函数往切片中追加元素, 比如</p>
+<pre><code class="language-go">s := make([]int, 0, 4)
+s = append(s, 10, 20, 30, 40)
+</code></pre>
+<p>现在底层数组已经满了，再往里面追加元素会如何？</p>
+<pre><code class="language-go">s = append(s,50)
+</code></pre>
+<p>函数<code>append()</code>会智能地处理底层数组的容量增长。在切片的容量小于<code>1024</code>个元素时，总是会成倍地增加容量。一旦元素个数超过<code>1024</code>，容量的增长因子会设为<code>1.25</code>，也就是会每次增加<code>25%</code>的容量(随着语言的演化，这种增长算法可能会有所改变)</p>
+<p>因此扩容对于切片来说是一个比较消耗成本的事情，会开辟新的内存空间</p>
+<p>扩容时是新创建一个切片数组，若原数据没有继续使用，会被<code>gc</code></p>
+<pre><code class="language-go">s1 := make([]int, 0, 4)
+s1 = append(s1, 10, 20, 30, 40) // 10, 20, 30, 40
+fmt.Println(s1, len(s1), cap(s1))  // [10 20 30 40] 4 4
+s1 = append(s1, 50)
+fmt.Println(s1, len(s1), cap(s1))  // [10 20 30 40 50] 5 8
+</code></pre>
+<h2 id="6-通过切片创建切片">6、通过切片创建切片</h2>
+<p>切片之所以被称为切片，是因为创建一个新的切片，也就是把底层数组切出一部分。通过切片创建新切片的语法如下, 详情请参考: <a href="https://golang.org/ref/spec#Slice_expressions">切片的语法</a></p>
+<pre><code class="language-go">slice[low : high]
+slice[low : high : max]
+</code></pre>
+<ul>
+<li>low : 表示从<code>slic</code>的第几个元素开始切</li>
+<li>high : 控制切片的长度<code>high-low</code></li>
+<li>max : 控制切片的容量<code>max-low</code></li>
+</ul>
+<p>比如</p>
+<pre><code class="language-go">s1 := []int{1, 2, 3, 4}
+s2 := s1[2:4:4]  // [index2, index4) 左闭右开区间, 容量 4-2
+fmt.Println(s2, len(s2), cap(s2)) // [3 4] 2 2
+</code></pre>
+<p>如果<code>high == max</code>也可以省略<code>max</code>，比如:</p>
+<pre><code class="language-go">s3 := s1[2:4]
+</code></pre>
+<p>再次基础上还要几种省略写法:</p>
+<ul>
+<li>省略low：表示从<code>index 0</code>开始</li>
+<li>省略high：表示到结尾<code>len</code></li>
+<li>省略max ：表示到结尾<code>len</code></li>
+<li>都省略：等于复制</li>
+</ul>
+<pre><code class="language-go">slice[i:]  // 从 i 切到最尾部
+slice[:j]  // 从最开头切到 j(不包含 j)
+slice[:]   // 从头切到尾，等价于复制整个 slice
+</code></pre>
+<p>注意: 通过切片创建出来的切片是共享底层数据结构的(数组)</p>
+<p>共享底层数组会导致相互影响， 比如修改原切片会影响多所有复制出来的切片</p>
+<pre><code class="language-go">s1 := []int{10, 20, 30, 40}
+s2 := s1[1:3]
+fmt.Println(s2, len(s2), cap(s2))
+
+fmt.Println(s1[1], s2[0])
+s1[1] = 200
+fmt.Println(s1[1], s2[0])
+</code></pre>
+<p>有扩容的原理也可以知道，当扩容后，就不共享底层数组了，比如:</p>
+<pre><code class="language-go">s1 := []int{10, 20, 30, 40}
+s2 := s1[1:3:3]
+fmt.Println(s2, len(s2), cap(s2))
+
+fmt.Println(s1[1], s2[0])
+s2 = append(s2, 30)   // s2 扩容
+s1[1] = 200           // 修改s1
+fmt.Println(s1[1], s2[0]) // s1修改并不会影响s2
+</code></pre>
+<p>因此，一般不要修改切片，如果要修改请使用后面的深拷贝复制一个全新的切片</p>
+<h2 id="7-切片遍历">7、切片遍历</h2>
+<p>切片是一个集合，可以迭代其中的元素。<code>Go</code>有个特殊的关键字<code>range</code>，它可以配合关键字<code>for</code>来迭代切片里的元素</p>
+<pre><code class="language-go">func TestSliceAppend1(t *testing.T) {
+	s := make([]int, 0, 4)
+	s = append(s, 10, 20, 30, 40)
+	for i, v := range s {
+		fmt.Println(i, v)
+	}
+	/*
+	0 10
+	1 20
+	2 30
+	3 40
+	 */
+}
+</code></pre>
+<p>这种方式底层的实现，也是拷贝一份切片提供给循环使用，因此同样会带来开销</p>
+<p>当迭代切片时，关键字<code>range</code>会返回两个值。第一个值是当前迭代到的索引位置，第二个值是该位置对应元素值的一份副本。需要强调的是，<code>range</code>创建了每个元素的副本，而不是直接返回对该元素的引用。要想获取每个元素的地址，可以使用切片变量和索引值</p>
+<h2 id="8-切片拷贝">8、切片拷贝</h2>
+<p>不能像数组一样直接使用赋值语句来拷贝一个切片，因为数组是值，而切片是指针， 真正的数据维护在底层数组里面</p>
+<pre><code class="language-go">a1 := [2]{1,2}
+a2 := a1    // 值拷贝, a1, a2 互不影响
+
+s1 := []{1, 2}
+s2 := s1   // 指针拷贝 s1, s2 指向同一*slice结构体, 就是一个东西，等于没拷贝
+</code></pre>
+<p><code>Go</code>内置的<code>copy()</code>函数可以将一个切片中的元素拷贝到另一个切片中，其函数声明为</p>
+<pre><code class="language-go">func copy(dst, src []Type) int
+</code></pre>
+<p>它表示把切片<code>src</code>中的元素拷贝到切片<code>dst</code>中，返回值为拷贝成功的元素个数。如果<code>src</code>比<code>dst</code>长，就截断；如果<code>src</code>比<code>dst</code>短，则只拷贝<code>src</code>那部分</p>
+<pre><code class="language-go">s1 := []int{10, 20, 30, 40}
+s2 := make([]int, 5)
+num := copy(s2, s1)   // 这时候s1 和 s2 就是2个切片，包含底层数据, 互不影响
+fmt.Println(num)  // 4
+fmt.Println(s1, s2)  // [10 20 30 40] [10 20 30 40 0]
+s1[0] = 100
+fmt.Println(s1[0], s2[0])  // 100 10
+</code></pre>
+<h2 id="9-切片作为函数参数">9、切片作为函数参数</h2>
+<p>函数在调用传参时，都是值拷贝</p>
+<p>切片的本质是指针，如果是切片作为函数的参数调用，则拷贝的是指针的地址</p>
+<p>因此切片作为函数的参数时，最大的好处是传递效率高</p>
+<p>因此切片的用法远多于数组，数组用来定义底层的数据结构</p>
+<pre><code class="language-go">func TestSliceMain2(t *testing.T) {
+	s1 := make([]int, 0, 4)
+	s1 = append(s1, 10, 20, 30, 40) // 10, 20, 30, 40
+	fmt.Println(Sum1(s1))  // 100
+}
+
+func Sum1(args []int) int {
+	sum := 0
+	for _, v := range args {
+		sum += v
+	}
+	return sum
+}
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/golang" class="tag">
+                    golang
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/golang-shu-ju-lei-xing-zhi-shu-zu">
+                  <h3 class="post-title">
+                    Golang数据类型之数组
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>在k8s中解决pod资源的正确识别 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">在k8s中解决pod资源的正确识别</h2>
+            <div class="post-date">2021-03-29</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%AE%B9%E5%99%A8%E8%B5%84%E6%BA%90%E9%99%90%E5%88%B6%E6%A6%82%E8%BF%B0">1、容器资源限制概述</a></li>
+<li><a href="#2-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF">2、问题背景</a></li>
+<li><a href="#3-%E5%BC%95%E5%85%A5lxcfs">3、引入lxcfs</a>
+<ul>
+<li><a href="#31-%E5%9C%A8k8s%E4%B8%AD%E9%83%A8%E7%BD%B2lxcfs">3.1 在k8s中部署lxcfs</a></li>
+<li><a href="#32-%E5%BC%80%E5%90%AF%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E6%B3%A8%E5%85%A5">3.2 开启命名空间注入</a></li>
+<li><a href="#33-%E8%BF%98%E5%8E%9F">3.3 还原</a></li>
+</ul>
+</li>
+<li><a href="#4-%E6%B5%8B%E8%AF%95">4、测试</a></li>
+<li><a href="#5-%E5%B0%8F%E7%BB%93">5、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210329-01.png" alt=""></figure>
+<h2 id="1-容器资源限制概述">1、容器资源限制概述</h2>
+<p>在使用<code>docker</code>作为容器引擎的时候，可以通过添加<code>--memory</code>、<code>--cpus</code>及更多参数来限制容器可用的<code>cpu</code>和内存，具体参数可以参考<a href="https://docs.docker.com/config/containers/resource_constraints/">docker资源限制</a>，<code>docker</code>对容器进行限制的原理实际上是利用<code>Linux</code>内核的<code>cgroups</code>实现的，<code>cgroups</code>可以限制、记录、隔离进程组所使用的物理资源（包括：<code>CPU</code>、<code>memory</code>、<code>IO</code> 等），为容器实现虚拟化提供了基本保证，是构建<code>Docker</code>等一系列虚拟化管理工具的基石</p>
+<p>关于<code>cgroups</code>资源限制实现可以参考<a href="https://www.infoq.cn/article/docker-kernel-knowledge-cgroups-resource-isolation/">Docker背后的内核知识-cgroups资源限制</a></p>
+<h2 id="2-问题背景">2、问题背景</h2>
+<p>对于某些容器中运行的服务，通常会自动对当前环境的可用资源数量进行检测，接着根据这些数据来合理分配相应资源</p>
+<p>例如<code>nginx</code>容器，<code>nginx</code>通过在配置文件中指定<a href="http://nginx.org/en/docs/ngx_core_module.html#worker_processes"><code>nginx worker_processes</code></a>选项，默认这个选项参数的值为<code>1</code>，表示<code>nginx</code>仅启动1个<code>worker</code>进程</p>
+<p>如果需要在大并发环境下优化<code>nginx</code>性能，可以将这个值手动设置成对应环境的<code>cpu</code>核数，或者直接配置成<code>auto</code>让其自动设置，两种设置方法中前者需要将配置文件进行挂载并手动变更配置，后者更为灵活但在容器环境下会有一定问题，因为不管是通过<code>docker</code>直接运行的容器还是通过<code>k8s</code>运行的最小化单元<code>Pod</code>中的容器，识别到的<code>cpu</code>和内存都是所在<code>node</code>节点机器的资源信息，因此对<code>nginx</code>来说并不能直接通过<code>auto</code>参数对<code>cpu</code>进行正确的自动识别，例如我这里的一台<code>node</code>节点及节点上的<code>pod</code>资源信息</p>
+<pre><code class="language-shell"># kubectl describe nodes k8s-node-07|grep -A 5 &quot;Capacity&quot;
+Capacity:
+  cpu:                16
+  ephemeral-storage:  74408452Ki
+  hugepages-2Mi:      0
+  memory:             16430184Ki
+  pods:               110
+# docker info|grep -A 6 &quot;Kernel&quot;
+Kernel Version: 4.4.247-1.el7.elrepo.x86_64
+Operating System: CentOS Linux 7 (Core)
+OSType: linux
+Architecture: x86_64
+CPUs: 16
+Total Memory: 15.67GiB
+Name: k8s-node-07
+# kubectl exec -it test-pod-5dff4b89fd-bsh6b -- bash
+root@test-pod-5dff4b89fd-bsh6b:/# free -m
+              total        used        free      shared  buff/cache   available
+Mem:          16045        7915        2354        1002        5775        6222
+Swap:             0           0           0
+root@test-pod-5dff4b89fd-bsh6b:/# head -2 /proc/meminfo
+MemTotal:       16430184 kB
+MemFree:         2374064 kB
+</code></pre>
+<p>如果在<code>k8s</code>中通过<code>resources</code>限制了<code>Pod</code>的<code>cpu</code>和内存，例如</p>
+<pre><code class="language-yaml">        resources:
+          limits:
+            cpu: &quot;1&quot;
+            memory: 2Gi
+          requests:
+            cpu: 200m
+            memory: 512Mi
+</code></pre>
+<p>可以在创建出来的<code>pod</code>所在节点机器上通过<code>docker</code>命令查看具体的资源信息</p>
+<pre><code class="language-shell"># docker inspect b1f4bfb53a2c|grep -i cgroup
+            &quot;Cgroup&quot;: &quot;&quot;,
+            &quot;CgroupParent&quot;: &quot;/kubepods/burstable/podc4a25564-225b-4562-afee-fab8cc5d694f&quot;,
+            &quot;DeviceCgroupRules&quot;: null,
+# cat /sys/fs/cgroup/cpu/kubepods/burstable/podc4a25564-225b-4562-afee-fab8cc5d694f/cpu.cfs_quota_us
+100000
+# cat /sys/fs/cgroup/cpu/kubepods/burstable/podc4a25564-225b-4562-afee-fab8cc5d694f/cpu.cfs_period_us
+100000
+</code></pre>
+<p>通过查找相关资料得知，对<code>nginx</code>来说，获取<code>CPU</code>核心数是通过系统调用<code>sysconf(_SC_NPROCESSORS_ONLN)</code>来获取的，实际上是通过读取文件<code>/sys/devices/system/cpu/online</code>来获取的，而默认情况下<code>pod</code>中的这个文件信息和宿主机是一样的，因此<code>nginx</code>的<code>worker_processes</code>参数如果设置成<code>auto</code>，那么最终启动的worker进程数将会是<code>16</code>个，而<code>nginx</code>所在的<code>Pod</code>本身的<code>cpu</code>限制配置较小时，导致每个<code>worker</code>分配的时间片比较少，这会带来明显的响应慢的问题</p>
+<pre><code class="language-shell"># kubectl exec -it test-pod-5dff4b89fd-bsh6b -- cat /sys/devices/system/cpu/online
+0-15
+</code></pre>
+<h2 id="3-引入lxcfs">3、引入lxcfs</h2>
+<p><a href="https://github.com/lxc/lxcfs"><code>lxcfs</code></a>是一个的小型<code>FUSE</code>文件系统，旨在使<code>Linux</code>容器更像一个虚拟机，能够帮助容器正确的识别自身资源，处理对以下文件的信息</p>
+<pre><code class="language-shell">/proc/cpuinfo
+/proc/diskstats
+/proc/meminfo
+/proc/stat
+/proc/swaps
+/proc/uptime
+/sys/devices/system/cpu/online
+</code></pre>
+<p>当容器启动时，容器中的<code>/proc/xxx</code>会被挂载成<code>host</code>上<code>lxcfs</code>的目录。例如当容器内的应用如果需要读取<code>/proc/meminfo</code>的信息时，请求就会被导向<code>lxcfs</code>，而<code>lxcfs</code>又会通过<code>cgroup</code>的信息来返回正确的值最终使得容器内的应用正确识别</p>
+<h3 id="31-在k8s中部署lxcfs">3.1 在k8s中部署lxcfs</h3>
+<p>基于<code>k8s</code>部署的<code>lxcfs</code>文件系统的项目地址：https://github.com/denverdino/lxcfs-admission-webhook</p>
+<p>其最终利用的原理是基于<code>k8s</code>的<a href="https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#admission-webhooks">动态准入控制AdmissionWebhook</a></p>
+<p>我这里的<code>k8s</code>集群版本如下</p>
+<pre><code class="language-shell"># kubectl version -o yaml
+clientVersion:
+  buildDate: &quot;2020-12-08T17:59:43Z&quot;
+  compiler: gc
+  gitCommit: af46c47ce925f4c4ad5cc8d1fca46c7b77d13b38
+  gitTreeState: clean
+  gitVersion: v1.20.0
+  goVersion: go1.15.5
+  major: &quot;1&quot;
+  minor: &quot;20&quot;
+  platform: darwin/amd64
+serverVersion:
+  buildDate: &quot;2019-06-19T16:32:14Z&quot;
+  compiler: gc
+  gitCommit: e8462b5b5dc2584fdcd18e6bcfe9f1e4d970a529
+  gitTreeState: clean
+  gitVersion: v1.15.0
+  goVersion: go1.12.5
+  major: &quot;1&quot;
+  minor: &quot;15&quot;
+  platform: linux/amd64
+</code></pre>
+<p>首先获取资源清单并通过脚本一键部署</p>
+<pre><code class="language-shell"># git clone https://github.com/denverdino/lxcfs-admission-webhook.git
+# cd lxcfs-admission-webhook
+# ls deployment 
+deployment.yaml                lxcfs-daemonset.yaml           mutatingwebhook.yaml           uninstall.sh                   web.yaml                       webhook-patch-ca-bundle.sh
+install.sh                     mutatingwebhook-ca-bundle.yaml service.yaml                   validatingwebhook.yaml         webhook-create-signed-cert.sh
+# kubectl apply -f deployment/lxcfs-daemonset.yaml                    
+daemonset.apps/lxcfs created
+# ./deployment/install.sh  
+creating certs in tmpdir /var/folders/8n/11ndbfq95jv79gds8wqj2scc0000gn/T/tmp.c6OKXi4L 
+Generating RSA private key, 2048 bit long modulus
+.......................................+++
+...............+++
+e is 65537 (0x10001)
+certificatesigningrequest.certificates.k8s.io/lxcfs-admission-webhook-svc.default created
+NAME                                  AGE   REQUESTOR   CONDITION
+lxcfs-admission-webhook-svc.default   0s    admin       Pending
+certificatesigningrequest.certificates.k8s.io/lxcfs-admission-webhook-svc.default approved
+W0327 16:35:14.764281    8953 helpers.go:553] --dry-run is deprecated and can be replaced with --dry-run=client.
+secret/lxcfs-admission-webhook-certs created
+NAME                            TYPE     DATA   AGE
+lxcfs-admission-webhook-certs   Opaque   2      0s
+deployment.apps/lxcfs-admission-webhook-deployment created
+service/lxcfs-admission-webhook-svc created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/mutating-lxcfs-admission-webhook-cfg created
+</code></pre>
+<p>查看部署结果，会运行一个名为<code>lxcfs-admission-webhook-deployment</code>的<code>pod</code>，以及在所有节点上以<code>ds</code>的方式运行一个<code>lxcfs</code>的<code>pod</code></p>
+<pre><code class="language-shell">kubectl get pods -o wide|grep lxcfs
+lxcfs-admission-webhook-deployment-6896958c4c-56k54   1/1     Running   0          80s     172.20.7.51    172.16.1.111   &lt;none&gt;           &lt;none&gt;
+lxcfs-67cgk                                           1/1     Running   0          94s     172.20.0.25    172.16.1.100   &lt;none&gt;           &lt;none&gt;
+lxcfs-c4lkx                                           1/1     Running   0          93s     172.20.1.25    172.16.1.101   &lt;none&gt;           &lt;none&gt;
+...
+</code></pre>
+<h3 id="32-开启命名空间注入">3.2 开启命名空间注入</h3>
+<pre><code class="language-shell"># kubectl label namespace default lxcfs-admission-webhook=enabled
+</code></pre>
+<p>为指定的命名空间开启<code>lxcfs</code>注入，开启后该命名空间下所有新创建的<code>Pod</code>都将被注入<code>lxcfs</code></p>
+<h3 id="33-还原">3.3 还原</h3>
+<p>如果是要还原安装的环境，执行目录中的卸载脚本即可</p>
+<pre><code class="language-shell"># ./deployment/uninstall.sh 
+mutatingwebhookconfiguration.admissionregistration.k8s.io &quot;mutating-lxcfs-admission-webhook-cfg&quot; deleted
+service &quot;lxcfs-admission-webhook-svc&quot; deleted
+deployment.apps &quot;lxcfs-admission-webhook-deployment&quot; deleted
+secret &quot;lxcfs-admission-webhook-certs&quot; deleted
+# kubectl delete -f deployment/lxcfs-daemonset.yaml        
+daemonset.apps &quot;lxcfs&quot; deleted
+</code></pre>
+<h2 id="4-测试">4、测试</h2>
+<p>克隆下来的代码中提供了一个用于测试的<code>httpd pod</code>的<code>yaml</code>，可以直接部署</p>
+<pre><code class="language-shell"># kubectl apply -f deployment/web.yaml 
+deployment.apps/web created
+# kubectl get pods -l app=web
+NAME                   READY   STATUS    RESTARTS   AGE
+web-5ff5cd75f8-74pr6   1/1     Running   0          27s
+web-5ff5cd75f8-bcm2x   1/1     Running   0          27s
+</code></pre>
+<p>进入容器查看资源</p>
+<pre><code class="language-shell">kubectl exec -it web-5ff5cd75f8-74pr6 -- bash
+root@web-5ff5cd75f8-74pr6:/usr/local/apache2# free -m
+             total       used       free     shared    buffers     cached
+Mem:           256         15        240          0          0          0
+-/+ buffers/cache:         14        241
+Swap:            0          0          0
+root@web-5ff5cd75f8-74pr6:/usr/local/apache2# cat /proc/cpuinfo| grep &quot;processor&quot;| wc -l
+1
+</code></pre>
+<p>实际上通过<code>lxcfs</code>+动态准入控制，在创建新的<code>pod</code>时自动挂载了主机的相关文件，可以通过下面的方式查看</p>
+<pre><code class="language-shell"># kubectl describe pods web-5ff5cd75f8-74pr6
+...
+    Mounts:
+      /proc/cpuinfo from lxcfs-proc-cpuinfo (rw)
+      /proc/diskstats from lxcfs-proc-diskstats (rw)
+      /proc/loadavg from lxcfs-proc-loadavg (rw)
+      /proc/meminfo from lxcfs-proc-meminfo (rw)
+      /proc/stat from lxcfs-proc-stat (rw)
+      /proc/swaps from lxcfs-proc-swaps (rw)
+      /proc/uptime from lxcfs-proc-uptime (rw)
+      /sys/devices/system/cpu/online from lxcfs-sys-devices-system-cpu-online (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-jtj98 (ro)
+...
+</code></pre>
+<h2 id="5-小结">5、小结</h2>
+<p>容器中的<code>pod</code>已经能正确的读取到<code>cpu</code>及内存的限制值了，如果是自身应用要读取所在环境的资源配置，如果出现问题，一定要从底层弄清楚是如何获取到的环境资源</p>
+<p>通过上面的测试可以看到<code>lxcfs</code>也自动挂载了<code>nginx</code>需要的<code>/sys/devices/system/cpu/online</code>文件到<code>pod</code>中了，因此<code>nginx</code>容器中<code>worker process</code>自动设置的问题经过测试验证也已得到了解决</p>
+<blockquote>
+<p>参考：</p>
+<p>https://github.com/denverdino/lxcfs-admission-webhook</p>
+</blockquote>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/skywalking-lian-lu-zhui-zong-xi-tong-jie-ru-pian">
+                  <h3 class="post-title">
+                    SkyWalking链路追踪系统-接入篇
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

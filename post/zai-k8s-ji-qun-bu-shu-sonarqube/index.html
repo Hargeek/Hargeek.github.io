@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>在k8s集群部署SonarQube | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">在k8s集群部署SonarQube</h2>
+            <div class="post-date">2019-12-02</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E7%8E%AF%E5%A2%83%E4%BB%8B%E7%BB%8D">1、环境介绍</a>
+<ul>
+<li><a href="#11-kubernetes%E9%9B%86%E7%BE%A4%E7%8E%AF%E5%A2%83">1.1、kubernetes集群环境</a></li>
+<li><a href="#12-%E5%AD%98%E5%82%A8%E7%8E%AF%E5%A2%83">1.2、存储环境</a></li>
+<li><a href="#13-sonarqube%E7%89%88%E6%9C%AC">1.3、sonarqube版本</a></li>
+</ul>
+</li>
+<li><a href="#2-%E9%83%A8%E7%BD%B2sonarqube">2、部署sonarqube</a>
+<ul>
+<li><a href="#21-%E9%83%A8%E7%BD%B2postgresql">2.1、部署PostgreSQL</a></li>
+<li><a href="#22-%E9%83%A8%E7%BD%B2sonarqube">2.2、部署SonarQube</a></li>
+<li><a href="#23-%E8%AE%BF%E9%97%AE%E6%A3%80%E6%9F%A5">2.3、访问检查</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>SonarQube 是一款用于代码质量管理的开源工具，它主要用于管理源代码的质量。 通过插件形式，可以支持众多计算机语言，比如 java, C#, go，C/C++, PL/SQL, Cobol, JavaScrip, Groovy 等。sonar可以通过PMD,CheckStyle,Findbugs等等代码规则检测工具来检测你的代码，帮助你发现代码的漏洞，Bug，异味等信息。<br>
+Sonar 不仅提供了对 IDE 的支持，可以在 Eclipse和 IntelliJ IDEA 这些工具里联机查看结果；同时 Sonar 还对大量的持续集成工具提供了接口支持，可以很方便地在持续集成中使用 Sonar。</p>
+</blockquote>
+<p>Sonar可以从以下七个维度检测代码质量，而作为开发人员至少需要处理前5种代码质量问题。</p>
+<ol>
+<li>
+<p>不遵循代码标准<br>
+sonar可以通过PMD,CheckStyle,Findbugs等等代码规则检测工具规范代码编写。</p>
+</li>
+<li>
+<p>潜在的缺陷<br>
+sonar可以通过PMD,CheckStyle,Findbugs等等代码规则检测工具检 测出潜在的缺陷。</p>
+</li>
+<li>
+<p>糟糕的复杂度分布<br>
+文件、类、方法等，如果复杂度过高将难以改变，这会使得开发人员 难以理解它们, 且如果没有自动化的单元测试，对于程序中的任何组件的改变都将可能导致需要全面的回归测试。</p>
+</li>
+<li>
+<p>重复<br>
+显然程序中包含大量复制粘贴的代码是质量低下的，sonar可以展示 源码中重复严重的地方。</p>
+</li>
+<li>
+<p>注释不足或者过多<br>
+没有注释将使代码可读性变差，特别是当不可避免地出现人员变动 时，程序的可读性将大幅下降 而过多的注释又会使得开发人员将精力过多地花费在阅读注释上，亦违背初衷。</p>
+</li>
+<li>
+<p>缺乏单元测试<br>
+sonar可以很方便地统计并展示单元测试覆盖率。</p>
+</li>
+<li>
+<p>糟糕的设计<br>
+通过sonar可以找出循环，展示包与包、类与类之间的相互依赖关系，可以检测自定义的架构规则 通过sonar可以管理第三方的jar包，可以利用LCOM4检测单个任务规则的应用情况， 检测耦合。</p>
+</li>
+</ol>
+<h2 id="1-环境介绍">1、环境介绍</h2>
+<h3 id="11-kubernetes集群环境">1.1、kubernetes集群环境</h3>
+<pre><code>[root@k8s-master-01 ~]# kubectl version
+Client Version: version.Info{Major:&quot;1&quot;, Minor:&quot;16&quot;, GitVersion:&quot;v1.16.3&quot;, GitCommit:&quot;b3cbbae08ec52a7fc73d334838e18d17e8512749&quot;, GitTreeState:&quot;clean&quot;, BuildDate:&quot;2019-11-13T11:23:11Z&quot;, GoVersion:&quot;go1.12.12&quot;, Compiler:&quot;gc&quot;, Platform:&quot;linux/amd64&quot;}
+Server Version: version.Info{Major:&quot;1&quot;, Minor:&quot;16&quot;, GitVersion:&quot;v1.16.3&quot;, GitCommit:&quot;b3cbbae08ec52a7fc73d334838e18d17e8512749&quot;, GitTreeState:&quot;clean&quot;, BuildDate:&quot;2019-11-13T11:13:49Z&quot;, GoVersion:&quot;go1.12.12&quot;, Compiler:&quot;gc&quot;, Platform:&quot;linux/amd64&quot;}
+[root@k8s-master-01 ~]# kubectl get nodes
+NAME            STATUS   ROLES    AGE    VERSION
+k8s-master-01   Ready    master   5d5h   v1.16.3
+k8s-master-02   Ready    master   5d4h   v1.16.3
+k8s-master-03   Ready    master   5d4h   v1.16.3
+k8s-node-01     Ready    &lt;none&gt;   5d4h   v1.16.3
+k8s-node-02     Ready    &lt;none&gt;   5d4h   v1.16.3
+k8s-node-03     Ready    &lt;none&gt;   5d4h   v1.16.3
+</code></pre>
+<h3 id="12-存储环境">1.2、存储环境</h3>
+<p>本集群中kubernetes底层存储使用的是glusterfs，并且以glusterfs作为存储创建了storageclass便于动态创建pv</p>
+<pre><code>[root@k8s-master-01 ~]# kubectl get sc
+NAME             PROVISIONER               AGE
+gluster-heketi   kubernetes.io/glusterfs   4d22h
+</code></pre>
+<h3 id="13-sonarqube版本">1.3、sonarqube版本</h3>
+<p>SonarQube版本：7.9.1</p>
+<h2 id="2-部署sonarqube">2、部署sonarqube</h2>
+<p><code>SonarQube</code>需要依赖数据库存储数据，且<code>SonarQube7.9</code>及其以后版本将不再支持<code>Mysql</code>，所以这里推荐设置<code>PostgreSQL</code>作为<code>SonarQube</code>的数据库。</p>
+<h3 id="21-部署postgresql">2.1、部署PostgreSQL</h3>
+<p>在<code>k8s</code>集群部署<code>PostgreSQL</code>，需要将数据库的数据文件持久化，因此需要创建对应的<code>pv</code>，本次安装通过<code>storageclass</code>创建<code>pv</code>。由于<code>postgre</code>只需要集群内部连接，因此采用<code>Headless service</code>来创建数据库对应的<code>svc</code>，数据库的端口是<code>5432</code>，最终的yaml如下</p>
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-sonar
+  labels:
+    app: postgres-sonar
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-sonar
+  template:
+    metadata:
+      labels:
+        app: postgres-sonar
+    spec:
+      containers:
+      - name: postgres-sonar
+        image: postgres:11.4
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: &quot;sonarDB&quot;
+        - name: POSTGRES_USER
+          value: &quot;sonarUser&quot;
+        - name: POSTGRES_PASSWORD 
+          value: &quot;123456&quot;
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 2048Mi
+          requests:
+            cpu: 500m
+            memory: 1024Mi
+        volumeMounts:
+          - name: data
+            mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-data
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data 
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: &quot;gluster-heketi&quot;
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-sonar
+  labels:
+    app: postgres-sonar
+spec:
+  clusterIP: None
+  ports:
+  - port: 5432
+    protocol: TCP
+    targetPort: 5432
+  selector:
+    app: postgres-sonar
+</code></pre>
+<p>执行<code>kubectl apply</code>创建资源，并检查对应的pv，pvc以及日志</p>
+<pre><code>[root@k8s-master-01 ~]# kubectl get pv,pvc
+NAME                                                        CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                    STORAGECLASS     REASON   AGE
+persistentvolume/pvc-f0157e05-427b-45af-8c09-9803b11f7036   1Gi        RWX            Retain           Bound    default/postgres-data    gluster-heketi            133m
+
+NAME                                   STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS     AGE
+persistentvolumeclaim/postgres-data    Bound    pvc-f0157e05-427b-45af-8c09-9803b11f7036   1Gi        RWX            gluster-heketi   133m
+[root@k8s-master-01 ~]# kubectl get pods
+NAME                               READY   STATUS    RESTARTS   AGE
+[root@k8s-master-01 ~]# kubectl get pods|grep postgres
+postgres-sonar-75d7f8d99-sxdnn     1/1     Running   0          136m
+</code></pre>
+<h3 id="22-部署sonarqube">2.2、部署SonarQube</h3>
+<p>先看看yaml，后面附上说明：</p>
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarqube
+  labels:
+    app: sonarqube
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonarqube
+  template:
+    metadata:
+      labels:
+        app: sonarqube
+    spec:
+      initContainers:
+      - name: init-sysctl
+        image: busybox
+        imagePullPolicy: IfNotPresent
+        command: [&quot;sysctl&quot;, &quot;-w&quot;, &quot;vm.max_map_count=262144&quot;]
+        securityContext:
+          privileged: true
+      containers:
+      - name: sonarqube
+        image: sonarqube:lts
+        ports:
+        - containerPort: 9000
+        env:
+        - name: SONARQUBE_JDBC_USERNAME
+          value: &quot;sonarUser&quot;
+        - name: SONARQUBE_JDBC_PASSWORD
+          value: &quot;123456&quot;
+        - name: SONARQUBE_JDBC_URL
+          value: &quot;jdbc:postgresql://postgres-sonar:5432/sonarDB&quot;
+        livenessProbe:
+          httpGet:
+            path: /sessions/new
+            port: 9000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /sessions/new
+            port: 9000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          failureThreshold: 6
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 2048Mi
+          requests:
+            cpu: 1000m
+            memory: 1024Mi
+        volumeMounts:
+        - mountPath: /opt/sonarqube/conf
+          name: data
+          subPath: conf
+        - mountPath: /opt/sonarqube/data
+          name: data
+          subPath: data
+        - mountPath: /opt/sonarqube/extensions
+          name: data
+          subPath: extensions
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: sonarqube-data  
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sonarqube-data 
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: &quot;gluster-heketi&quot;
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarqube
+  labels:
+    app: sonarqube
+spec:
+  type: NodePort
+  ports:
+    - name: sonarqube
+      port: 9000
+      targetPort: 9000
+      nodePort: 30003
+      protocol: TCP
+  selector:
+    app: sonarqube
+</code></pre>
+<ul>
+<li>通过官方的<code>sonar</code>镜像部署，通过环境变量指定连接数据库的地址信息，同样通过<code>storageclass</code>来提供存储卷，通过<code>NodePort</code>方式暴露服务。</li>
+<li>与常规部署不同的是，这里对<code>sonar</code>通过<code>init container</code>进行了初始化，执行修改了容器的<code>vm.max_map_count</code>大小。修改这里的原因可以参考<a href="https://docs.sonarqube.org/latest/requirements/requirements/">官方文档</a><br>
+<img src="https://image.ssgeek.com/20191202-01.png" alt=""></li>
+</ul>
+<p>修改此权限需要授权能执行系统命令</p>
+<pre><code>securityContext:
+  privileged: true
+</code></pre>
+<h3 id="23-访问检查">2.3、访问检查</h3>
+<p>上述部署完成后，检查控制器创建的<code>pod</code>是否正常，并通过nodeport方式访问即可，默认登录的用户名和密码是admin/admin<br>
+中文插件名称：Chinese Pack，安装过程在界面操作，这里省略<br>
+<img src="https://image.ssgeek.com/20191202-02.png" alt=""></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/Ipj4mMoY4" class="tag">
+                    sonar
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/rAjiCH60jX" class="tag">
+                    k8s
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/shi-yong-kubeadm-da-jian-gao-ke-yong-k8s-v1163-ji-qun">
+                  <h3 class="post-title">
+                    使用kubeadm搭建高可用k8s v1.16.3集群
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

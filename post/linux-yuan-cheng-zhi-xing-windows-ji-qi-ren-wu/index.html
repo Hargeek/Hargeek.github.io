@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Linux远程执行Windows机器任务 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Linux远程执行Windows机器任务</h2>
+            <div class="post-date">2019-03-01</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E8%83%8C%E6%99%AF">1、背景</a></li>
+<li><a href="#2-%E5%AE%89%E8%A3%85cygwin">2、安装Cygwin</a></li>
+<li><a href="#3-%E5%AE%89%E8%A3%85ssh">3、安装SSH</a></li>
+<li><a href="#4-%E5%9C%A8cygwin%E9%87%8C%E9%85%8D%E7%BD%AEopenssh">4、在Cygwin里配置OpenSSH</a></li>
+<li><a href="#5-ssh%E7%9A%84%E7%94%A8%E6%88%B7%E9%85%8D%E7%BD%AE">5、SSH的用户配置</a></li>
+<li><a href="#6-%E9%85%8D%E7%BD%AE%E5%AF%86%E9%92%A5%E6%96%B9%E5%BC%8F%E7%99%BB%E5%BD%95">6、配置密钥方式登录</a></li>
+<li><a href="#7-%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1">7、启动服务</a></li>
+<li><a href="#8-%E6%B5%8B%E8%AF%95%E8%BF%9E%E6%8E%A5%E4%BD%BF%E7%94%A8">8、测试连接使用</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-背景">1、背景</h2>
+<p>近期测试人员提出需求需要在Linux下调用Windows系统下的cmd的命令完成自动构建和测试并生成测试报告。</p>
+<blockquote>
+<p>环境：<br>
+Windows Server2012 R2		ip：172.16.1.12<br>
+CentOS 7.2		ip：xxx.xxx.xxx.xxx</p>
+</blockquote>
+<h2 id="2-安装cygwin">2、安装Cygwin</h2>
+<p>软件下载地址：https://cygwin.com/install.html<br>
+下载到Windows系统后，双击进行安装<br>
+<img src="https://image.ssgeek.com/20190301-01.png" alt=""><br>
+选择或添加可用的镜像地址（阿里云镜像）<br>
+阿里云镜像站官方帮助说明<br>
+<img src="https://image.ssgeek.com/20190301-02.png" alt=""><br>
+新增地址<br>
+<img src="https://image.ssgeek.com/20190301-03.png" alt=""></p>
+<h2 id="3-安装ssh">3、安装SSH</h2>
+<p>打开Cygwin Setup-Select Packages程序，搜索open<br>
+<img src="https://image.ssgeek.com/20190301-04.png" alt=""><br>
+勾选openssh并选择一个可安装的版本，然后点击下一步——&gt;下一步<br>
+<img src="https://image.ssgeek.com/20190301-05.png" alt=""></p>
+<h2 id="4-在cygwin里配置openssh">4、在Cygwin里配置OpenSSH</h2>
+<p>使用管理员方式打开Cygwin，在打开的终端输入ssh-host-config<br>
+询问是否使用严格模式，输入no<br>
+<img src="https://image.ssgeek.com/20190301-06.png" alt=""><br>
+询问是否创建新的本地sshd账户，输入yes<br>
+<img src="https://image.ssgeek.com/20190301-07.png" alt=""><br>
+询问是否以服务的方式安装sshd，输入yes<br>
+输入守护进程的值来运行Cygwin，直接回车<br>
+<img src="https://image.ssgeek.com/20190301-08.png" alt=""><br>
+创建cyg_server用户账号和密码<br>
+<img src="https://image.ssgeek.com/20190301-09.png" alt=""></p>
+<h2 id="5-ssh的用户配置">5、SSH的用户配置</h2>
+<p>在打开的终端输入ssh-user-config<br>
+询问是否一个SSH2 RSA身份文件，输入yes<br>
+输入密码，如果没有密码则为空，直接回车<br>
+询问要使用此标识登录到计算机吗，输入yes<br>
+询问是否创建SSH2 ECDSA身份文件，输入no<br>
+询问是否创建SSH1 RSA身份文件，输入yes<br>
+<img src="https://image.ssgeek.com/20190301-10.png" alt=""></p>
+<h2 id="6-配置密钥方式登录">6、配置密钥方式登录</h2>
+<p>在Windows终端查看当前的用户名<br>
+<img src="https://image.ssgeek.com/20190301-11.png" alt=""><br>
+终端执行ssh-copy-id发送本机的公钥到Windows服务器<br>
+<img src="https://image.ssgeek.com/20190301-12.png" alt=""></p>
+<h2 id="7-启动服务">7、启动服务</h2>
+<p>在打开的终端执行cygrunsrv.exe --start sshd或者在系统服务中找到CYGWIN sshd并启动<br>
+<img src="https://image.ssgeek.com/20190301-13.png" alt=""><br>
+最后在防火墙配置添加入站规则端口例外或者关闭防火墙</p>
+<h2 id="8-测试连接使用">8、测试连接使用</h2>
+<p>在Linux上执行ssh免密钥登录<br>
+<img src="https://image.ssgeek.com/20190301-14.png" alt=""><br>
+一条命令执行想要的命令（中文乱码暂不处理）<br>
+<img src="https://image.ssgeek.com/20190301-15.png" alt=""><br>
+至此，Linux免密钥方式通过ssh远程执行Windows cmd命令完成，开始使用吧</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/app" class="tag">
+                    实用程序
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/linux" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/shi-yong-kubeadm-bu-shu-kubernetes-v1133">
+                  <h3 class="post-title">
+                    使用kubeadm部署Kubernetes v1.13.3
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

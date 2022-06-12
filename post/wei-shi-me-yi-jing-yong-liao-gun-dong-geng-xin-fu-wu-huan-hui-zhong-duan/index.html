@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>为什么已经用了滚动更新服务还会中断 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">为什么已经用了滚动更新服务还会中断</h2>
+            <div class="post-date">2021-02-09</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%BB%9A%E5%8A%A8%E6%9B%B4%E6%96%B0%E7%9A%84%E5%8E%9F%E7%90%86">1、滚动更新的原理</a></li>
+<li><a href="#2-%E5%93%AA%E4%BA%9B%E9%97%AE%E9%A2%98%E4%BC%9A%E5%AF%BC%E8%87%B4%E6%BB%9A%E5%8A%A8%E6%9B%B4%E6%96%B0%E6%97%B6%E7%9A%84%E6%9C%8D%E5%8A%A1%E4%B8%AD%E6%96%AD">2、哪些问题会导致滚动更新时的服务中断</a>
+<ul>
+<li><a href="#21-%E5%B7%B2%E6%9C%89pod%E8%BF%87%E6%97%A9%E7%BB%88%E6%AD%A2">2.1 已有Pod过早终止</a></li>
+<li><a href="#22-%E6%96%B0pod%E6%9C%AA%E5%88%9D%E5%A7%8B%E5%8C%96%E5%AE%8C%E6%88%90%E5%B0%B1%E6%94%B6%E5%88%B0%E5%A4%96%E9%83%A8%E8%AF%B7%E6%B1%82">2.2 新Pod未初始化完成就收到外部请求</a></li>
+<li><a href="#23-%E5%BC%82%E6%AD%A5%E6%93%8D%E4%BD%9C%E5%BB%B6%E8%BF%9F%E5%AF%BC%E8%87%B4iptables%E4%B8%AD%E6%B2%A1%E6%9C%89%E5%81%A5%E5%BA%B7endpoint">2.3 异步操作延迟导致iptables中没有健康Endpoint</a></li>
+<li><a href="#24-%E9%9B%86%E7%BE%A4%E7%BB%B4%E6%8A%A4%E5%AF%BC%E8%87%B4%E6%89%80%E6%9C%89pod%E5%90%8C%E6%97%B6%E5%88%A0%E9%99%A4">2.4 集群维护导致所有Pod同时删除</a></li>
+<li><a href="#25-%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E5%99%A8%E5%81%A5%E5%BA%B7%E6%A3%80%E6%B5%8B%E5%BB%B6%E8%BF%9F">2.5 负载均衡器健康检测延迟</a></li>
+</ul>
+</li>
+<li><a href="#3-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5">3、最佳实践</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>滚动更新作为一个最佳实践，是每个服务在变更时都会采纳的方案。但在 Kubernetes 实践中，即便使用了滚动更新，也并不一定能够保证服务在更新和维护时总是可用的。</p>
+</blockquote>
+<h2 id="1-滚动更新的原理">1、滚动更新的原理</h2>
+<p>在 Kubernetes 中，我们一般通过 Deployment、Daemonset 等控制器管理 Pod，并且把他们放到 Service 后面，使用 Service 的虚拟 IP 或者负载均衡器 IP 去访问。在 Pod 配置变更（如更新镜像）时，这些控制器默认就会采用滚动更新的方式逐步用新 Pod 替换已有的 Pod。下图所示就是一个典型的<strong>滚动更新</strong>[1]过程：</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210209-01.gif" alt=""></figure>
+<p>由于新的 Pod Ready 之后才会去删除旧的 Pod，在滚动更新中新的连接过来会自动路由到健康的 Pod 上，所以一般来说，新连接不会出问题，容易出问题的是旧连接。</p>
+<p>这儿最容易想到的就是长连接。由于旧 Pod 最终会被删除，已有的长连接总是需要关闭。对这种长连接问题，想要解决，最好的方法是客户端在连接断开后重新建立连接。</p>
+<p>而对短连接来说，是不是说就一定没问题呢？其实并不一定。</p>
+<h2 id="2-哪些问题会导致滚动更新时的服务中断">2、哪些问题会导致滚动更新时的服务中断</h2>
+<h3 id="21-已有pod过早终止">2.1 已有Pod过早终止</h3>
+<p>如果 Pod2 在终止的时候还有未处理完成的连接，那这些连接势必会失败。所以，在终止 Pod2 的时候，需要采用优雅关闭的方式，等待已有连接处理完成之后再终止。</p>
+<p>比如，对 Nginx Pod 来说，可以这么做</p>
+<pre><code class="language-yaml">lifecycle:
+  preStop:
+    exec:
+      command: [
+        # Gracefully shutdown nginx
+        &quot;/usr/sbin/nginx&quot;, &quot;-s&quot;, &quot;quit&quot;
+      ]
+</code></pre>
+<h3 id="22-新pod未初始化完成就收到外部请求">2.2 新Pod未初始化完成就收到外部请求</h3>
+<p>很多容器启动时都有一个初始化的过程，虽然 Pod 处于 Running 状态了，但实际上进程还在初始化过程中，不能处理外部过来的请求。所以，在 Pod 启动过程中，需要一种机制，等着容器进程初始化完成之后再接收外部过来的请求。</p>
+<p>这个问题比较好解决，Kubernetes 已经提供了 Readiness 探针，只需要应用提供一个探针接口即可。比如</p>
+<pre><code class="language-yaml">        readinessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          httpGet:
+            port: 80
+            path: /
+</code></pre>
+<h3 id="23-异步操作延迟导致iptables中没有健康endpoint">2.3 异步操作延迟导致iptables中没有健康Endpoint</h3>
+<p>滚动更新涉及到 kube-apiserver、kubelet、kube-controller-manager（包括 endpoint controller、service controller 和 cloud provider）以及 CNI 插件等。假设新建Pod的名字为Pod2，而旧的Pod名字为Pod1，这些组件在滚动更新过程中的典型过程如下图所示</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210209-02.png" alt=""></figure>
+<p>注意 Endpoints 更新（加入新 Pod2 IP 和删除旧 Pod1 IP）以及以后的步骤都是异步的。如果 Pod1 的 IP 摘除时间过早，Pod2 的 IP 还没有更新到 iptables 中，那么新的连接进来就会因为没有健康 Pod 而无法连接。</p>
+<p>要解决这个问题不容易，但有一个简单的方法可以绕过去，即在 <strong>Zero Downtime Server Updates For Your Kubernetes Cluster</strong>[2] 中提到的利用 PreStop Hook 主动等一段时间之后再执行优雅关闭。</p>
+<pre><code class="language-yaml">        lifecycle:
+          preStop:
+            exec:
+              command: [
+                &quot;sh&quot;, &quot;-c&quot;,
+                # Introduce a delay to the shutdown sequence to wait for the
+                # pod eviction event to propagate. Then, gracefully shutdown
+                # nginx.
+                &quot;sleep 15 &amp;&amp; /usr/sbin/nginx -s quit&quot;,
+              ]
+</code></pre>
+<h3 id="24-集群维护导致所有pod同时删除">2.4 集群维护导致所有Pod同时删除</h3>
+<p>在集群常规或者异常维护过程中，管理员经常需要驱逐一个或多个异常节点，把这些节点之上的 Pod 迁移到其他节点上面去。如果一个应用的所有 Pod 刚好在这些节点上，那就有可能所有 Pod 都被同时驱逐了，导致一段时间内没有任何健康的容器在运行。</p>
+<p>Kubernetes 也为这个问题提供了一种很好的解决方法，即使用 <strong>PodDisruptionBudget</strong>[3] 给应用设置中断预算，避免所有 Pod 被同时重启。</p>
+<pre><code class="language-yaml">apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: nginx
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: nginx
+</code></pre>
+<h3 id="25-负载均衡器健康检测延迟">2.5 负载均衡器健康检测延迟</h3>
+<p>使用负载均衡器访问 Service 并且设置了 externalTrafficPolicy 为 Local（为了保留请求原始地址）时，除了上述提到的这些因素，负载均衡器本身提供的健康检测机制也可能会导致新连接短时间内的超时问题。</p>
+<p>比如，在执行 kubectl drain node 的同时，对服务进行压力测试，就会发现部分连接断开（下面的例子成功率只有 97.27%）：</p>
+<pre><code class="language-yaml">Requests      [total, rate, throughput]         299988, 4999.56, 4856.10
+Duration      [total, attack, wait]             1m0s, 1m0s, 87.815ms
+Latencies     [min, mean, 50, 90, 95, 99, max]  65.523ms, 866.673ms, 80.412ms, 2.409s, 5.066s, 10.003s, 10.367s
+Bytes In      [total, mean]                     178585272, 595.31
+Bytes Out     [total, mean]                     0, 0.00
+Success       [ratio]                           97.27%
+Status Codes  [code:count]                      0:8182  200:291806
+Error Set:
+context deadline exceeded (Client.Timeout or context cancellation while reading body)
+</code></pre>
+<p>这是为什么呢？</p>
+<ul>
+<li>通常，负载均衡器后端放置的是所有的 Node，利用每个 Service 的 NodePort 来访问 Service。</li>
+<li>当一个 Pod 被标记为 Terminating 状态时，Pod IP 会被 kube-controller-manager 立刻从 Endpoints 中摘除。</li>
+<li>这之后，kube-proxy 就会把相应的 IP 从 iptables 中摘除掉，而负载均衡器此时还会继续把新请求发送到该 Pod 所在节点上。</li>
+<li>由于 Pod IP 已经从 iptables 中清除了，新转发过来的请求就会失败。</li>
+</ul>
+<p>对这个问题，一个最简单的方法就是把新的 Pod 调度到已有 Pod 所在节点上，确保 iptables 之后总是有健康的 Pod。</p>
+<p>但这个方法不适用于节点驱逐的场景，毕竟节点驱逐之后不允许任何 Pod 继续运行了。所以，在节点驱逐的场景中，应该先从负载均衡器中把节点摘除，确保没有任何请求转发到节点之后，再去执行驱逐操作。</p>
+<h2 id="3-最佳实践">3、最佳实践</h2>
+<ul>
+<li>所有应用都使用控制器管理，并且必须多副本运行，尽量将副本分散到不同节点上。</li>
+<li>为所有 Pod 添加 livenessProbe 和 readinessProbe。</li>
+<li>容器进程在收到 SIGTERM 信号后优雅终止，比如持久化数据、清理网络连接等。</li>
+<li>终止之前利用 preStop 稍等一会，等待各个组件异步操作完成。</li>
+<li>必要时才设置 externalTrafficPolicy 为 Local，保留请求原始 IP。</li>
+<li>使用 PodDiscruptionBudget 为应用设置中断预算，并总是使用 Eviction API（比如 kubectl drain）来清理 Pod，以确保遵循 PodDiscruptionBudget 的配置。</li>
+</ul>
+<p>基于这些最佳实践，一个简单的 Nginx 配置就如下所示：</p>
+<pre><code class="language-yaml">apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: nginx
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: nginx
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx
+  name: nginx
+spec:
+  ...
+  template:
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+      - image: nginx
+        name: nginx
+        readinessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          httpGet:
+            port: 80
+            path: /
+        lifecycle:
+          preStop:
+            exec:
+              command: [
+                &quot;sh&quot;, &quot;-c&quot;,
+                # Introduce a delay to the shutdown sequence to wait for the
+                # pod eviction event to propagate. Then, gracefully shutdown
+                # nginx.
+                &quot;sleep 15 &amp;&amp; /usr/sbin/nginx -s quit&quot;,
+              ]
+</code></pre>
+<p>完整的 Nginx 示例以及压力测试步骤请参考 <strong>Kubernetes Handbook</strong>[4]。</p>
+<p>参考资料：</p>
+<blockquote>
+<p>[1]滚动更新: https://kubernetes.io/docs/tutorials/kubernetes-basics/update/update-intro/<br>
+[2]Zero Downtime Server Updates For Your Kubernetes Cluster: https://blog.gruntwork.io/zero-downtime-server-updates-for-your-kubernetes-cluster-902009df5b33<br>
+[3]PodDisruptionBudget: <em>https://kubernetes.io/docs/tasks/run-application/configure-pdb/</em><br>
+[4]Kubernetes Handbook: <em>https://github.com/feiskyer/kubernetes-handbook/tree/master/examples/nginx-ha</em></p>
+</blockquote>
+<p>转载自：https://mp.weixin.qq.com/s/Nl-_HJ5DOesgLT09qzsg1A</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/vuedrfdi-san-fang-hua-dong-yan-zheng-ma-de-jie-ru-shi-xian">
+                  <h3 class="post-title">
+                    vue+drf+第三方滑动验证码的接入实现
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

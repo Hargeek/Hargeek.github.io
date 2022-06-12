@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>使用git-svn迁移SVN至GitLab | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">使用git-svn迁移SVN至GitLab</h2>
+            <div class="post-date">2018-10-22</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%AE%89%E8%A3%85git%E5%92%8Cgit-svn">1、安装git和git-svn</a></li>
+<li><a href="#2-%E5%BB%BA%E7%AB%8Bsvn%E7%94%A8%E6%88%B7%E5%88%B0git%E7%94%A8%E6%88%B7%E7%9A%84%E6%98%A0%E5%B0%84%E6%96%87%E4%BB%B6">2、建立SVN用户到git用户的映射文件</a></li>
+<li><a href="#3-%E5%85%8B%E9%9A%86%E7%89%88%E6%9C%AC%E5%BA%93">3、克隆版本库</a></li>
+<li><a href="#4-%E6%9F%A5%E7%9C%8B%E9%A1%B9%E7%9B%AE%E6%8F%90%E4%BA%A4%E5%8E%86%E5%8F%B2">4、查看项目提交历史</a></li>
+<li><a href="#5-%E6%8F%90%E4%BA%A4%E4%BB%A3%E7%A0%81%E5%88%B0gitlab%E4%BB%93%E5%BA%93">5、提交代码到gitlab仓库</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-安装git和git-svn">1、安装git和git-svn</h2>
+<p>后面的步骤中对<code>git</code>版本有一定要求，通过<code>yum</code>安装的<code>git</code>版本较低，这里进行编译安装</p>
+<pre><code>[root@DevTest ~]# yum install curl-devel expat-devel gettext-devel openssl-devel zlib-devel -y
+[root@DevTest ~]# wget -c https://www.kernel.org/pub/software/scm/git/git-2.9.5.tar.gz
+[root@DevTest ~]# tar xf git-2.9.5.tar.gz
+[root@DevTest ~]# cd git-2.9.5
+[root@DevTest git-2.9.5]# ./configure --prefix=/usr/local/git
+</code></pre>
+<p>出现报错<br>
+<img src="https://image.ssgeek.com/20181022-01.png" alt=""><br>
+解决方法为</p>
+<pre><code>[root@DevTest git-2.9.5]# yum install perl-ExtUtils-CBuilder perl-ExtUtils-MakeMaker -y
+[root@DevTest git-2.9.5]# ./configure --prefix=/usr/local/git		#再次编译
+[root@DevTest git-2.9.5]# make &amp;&amp; make install
+</code></pre>
+<p>将编译好的<code>git</code>的<code>bin</code>目录添加到<code>bashrc</code>中，相当于添加全局变量</p>
+<pre><code>[root@DevTest git]# vim /etc/profile
+export GIT_HOME=/usr/local/git
+export PATH=$GIT_HOME/bin:$PATH
+[root@DevTest git]# git --version
+git version 2.9.5
+[root@DevTest git]# yum install git-svn -y #安装git-svn
+</code></pre>
+<h2 id="2-建立svn用户到git用户的映射文件">2、建立SVN用户到git用户的映射文件</h2>
+<p>(可选）准备作者文件，以便将<code>SVN</code>作者映射到<code>Git</code>作者。如果您选择不创建<code>authors</code>文件，那么提交将不会归因于正确的<code>GitLab</code>用户。有些用户可能不认为这是一个大问题，而其他用户则希望确保他们完成此步骤。如果您选择映射作者，则需要映射<code>SVN</code>存储库中更改中存在的每个作者。如果不这样做，转换将失败，必须相应地更新作者文件。以下命令将搜索存储库并输出作者列表。</p>
+<pre><code>[root@DevTest ~]# svn log  svn://192.168.1.20/hyhy --quiet | grep -E &quot;r[0-9]+ \| .+ \|&quot; | cut -d'|' -f2 | sed 's/ //g' | sort | uniq  &gt;/svnauthor/authors.txt
+</code></pre>
+<p>使用最后一条命令的输出来构建作者文件。创建一个名为的文件，<code>authors.txt</code>并为每行添加一个映射</p>
+<pre><code>vim /svnauthor/authors.txt
+janedoe = Jane Doe &lt;janedoe@example.com&gt;
+johndoe = John Doe &lt;johndoe@example.com&gt;
+alexdoe = Alex Doe &lt;alexdoe@example.com&gt;
+</code></pre>
+<h2 id="3-克隆版本库">3、克隆版本库</h2>
+<p>通过<code>git svn clone</code>克隆一个<code>git</code>版本库,<code>SVN</code>里面包含<code>trunk,branches和tags</code></p>
+<pre><code>[root@DevTest ~]# mkdir /data
+[root@DevTest ~]# cd /data
+[root@DevTest data]# git svn clone svn://192.168.1.20/hyhy --no-metadata --authors-file /svnauthor/authors.txt hyhy
+</code></pre>
+<p>可选参数及含义<br>
+参数<code>--no-metadata</code>表示阻止<code>git</code>导出<code>SVN</code>包含的一些无用信息<br>
+参数<code>--authors-file</code>表示<code>SVN</code>账号映射到<code>git</code>账号文件，所有<code>svn</code>作者都要做映射<br>
+参数<code>--trunkmobile</code>表示主开发项目<br>
+参数<code>--branches</code>表示分支项目，<code>--ignore-refs</code>表示不包含后面的分支项目<br>
+参数<code>hyhy</code>表示<code>git</code>项目名称</p>
+<h2 id="4-查看项目提交历史">4、查看项目提交历史</h2>
+<p>通过<code>git log</code>查看项目提交的历史记录，包括作者，日志，和提交注释信息等</p>
+<pre><code>[root@DevTest data]# cd hyhy
+[root@DevTest hyhy]# git log
+</code></pre>
+<h2 id="5-提交代码到gitlab仓库">5、提交代码到gitlab仓库</h2>
+<pre><code>[root@DevTest hyhy]# rm -rf .git/  # 无需保留提交记录时操作此步骤
+[root@DevTest hyhy]# git init	#初始化仓库(创建一个名为 .git 的子目录,这个子目录含有你初始化的 Git 仓库中所有的必须文件,这些文件是 Git 仓库的骨干)
+[root@DevTest hyhy]# git remote add origin git@git.xxx.cn:java/hyhy.git	#添加远程项目地址（可从项目主页复制）
+[root@DevTest hyhy]# git add . #将修改保存到索引区
+[root@DevTest hyhy]# git commit -m &quot;commit code&quot;	#提交所有代码到本地版本库
+[root@DevTest hyhy]# git push --all origin	#将本地的更改提交到远程服务器
+[root@DevTest hyhy]# git push origin –tags	#推送标签
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/app" class="tag">
+                    实用程序
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/git" class="tag">
+                    git
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/windows-huan-jing-xia-git-pei-zhi-ji-shi-yong">
+                  <h3 class="post-title">
+                    Windows环境下Git配置及使用
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

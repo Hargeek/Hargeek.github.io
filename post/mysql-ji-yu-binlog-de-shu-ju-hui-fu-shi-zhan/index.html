@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>MySQL基于Binlog的数据恢复实战 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">MySQL基于Binlog的数据恢复实战</h2>
+            <div class="post-date">2021-09-28</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E7%8E%AF%E5%A2%83%E7%8A%B6%E6%80%81%E8%AF%B4%E6%98%8E">1、环境状态说明</a></li>
+<li><a href="#2-%E6%81%A2%E5%A4%8D%E6%B5%81%E7%A8%8B%E8%AF%B4%E6%98%8E">2、恢复流程说明</a>
+<ul>
+<li><a href="#21-%E6%AD%A3%E5%90%91%E6%81%A2%E5%A4%8D">2.1 正向恢复</a></li>
+<li><a href="#22-%E5%8F%8D%E5%90%91%E6%81%A2%E5%A4%8D">2.2 反向恢复</a></li>
+</ul>
+</li>
+<li><a href="#3-%E6%95%B0%E6%8D%AE%E5%87%86%E5%A4%87">3、数据准备</a>
+<ul>
+<li><a href="#31-%E6%9F%A5%E8%AF%A2%E5%BD%93%E5%89%8Dbinlog%E6%95%B0%E6%8D%AE%E7%8A%B6%E6%80%81">3.1 查询当前binlog数据状态</a></li>
+<li><a href="#32-%E6%9F%A5%E6%89%BE%E6%81%A2%E5%A4%8Dposition%E5%8C%BA%E9%97%B4">3.2 查找恢复position区间</a></li>
+<li><a href="#33-position%E7%82%B9%E7%A1%AE%E8%AE%A4">3.3 position点确认</a></li>
+</ul>
+</li>
+<li><a href="#4-%E6%93%8D%E4%BD%9C%E6%81%A2%E5%A4%8D">4、操作恢复</a>
+<ul>
+<li><a href="#41-%E6%AD%A3%E5%90%91%E6%81%A2%E5%A4%8D">4.1 正向恢复</a>
+<ul>
+<li><a href="#411-%E6%81%A2%E5%A4%8D%E5%A4%87%E4%BB%BD%E6%95%B0%E6%8D%AE">4.1.1 恢复备份数据</a></li>
+<li><a href="#412-%E6%81%A2%E5%A4%8Dbinlog%E6%97%A5%E5%BF%97">4.1.2 恢复binlog日志</a></li>
+<li><a href="#413-%E6%A3%80%E6%9F%A5%E6%95%B0%E6%8D%AE%E6%81%A2%E5%A4%8D%E7%8A%B6%E6%80%81">4.1.3 检查数据恢复状态</a></li>
+</ul>
+</li>
+<li><a href="#42-%E5%8F%8D%E5%90%91%E6%81%A2%E5%A4%8D">4.2 反向恢复</a>
+<ul>
+<li><a href="#421-%E5%AE%89%E8%A3%85binlog2sql">4.2.1 安装binlog2sql</a></li>
+<li><a href="#422-%E7%94%9F%E6%88%90%E5%8F%8D%E8%BD%ACsql">4.2.2 生成反转sql</a></li>
+<li><a href="#423-%E8%A7%A3%E5%86%B3sql%E8%99%9A%E6%8B%9F%E5%AD%97%E6%AE%B5%E9%97%AE%E9%A2%98%E5%A6%82%E6%9E%9C%E6%9C%89">4.2.3 解决sql虚拟字段问题（如果有）</a></li>
+<li><a href="#424-%E5%86%99%E5%85%A5%E5%8F%8D%E5%90%91sql">4.2.4 写入反向sql</a></li>
+<li><a href="#425-%E6%A3%80%E6%9F%A5%E6%95%B0%E6%8D%AE%E6%81%A2%E5%A4%8D%E7%8A%B6%E6%80%81">4.2.5 检查数据恢复状态</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210928-01.png" alt=""></figure>
+<blockquote>
+<p>作者：AshesCat</p>
+</blockquote>
+<h2 id="1-环境状态说明">1、环境状态说明</h2>
+<p>操作系统：<code>CentOS 7.7</code><br>
+<code>MySQL</code>版本：<code>5.7.30</code>，搭建主从<br>
+开启<code>binlog</code>，<code>binlog_format=row</code><br>
+备份情况：每天<code>00:00</code>对数据库进行全量备份<br>
+恢复原因：某日<code>22:00</code>左右，执行了批量<code>update</code>语句，需要回滚</p>
+<h2 id="2-恢复流程说明">2、恢复流程说明</h2>
+<p>按照正反两种方式分别进行测试恢复</p>
+<h3 id="21-正向恢复">2.1 正向恢复</h3>
+<p>主要思路</p>
+<ul>
+<li>通过全量备份恢复当日<code>0:00</code>时间点的数据</li>
+<li>通过<code>binlog</code>恢复当日<code>0:00-22:00</code>错误语句之前的全部语句</li>
+</ul>
+<h3 id="22-反向恢复">2.2 反向恢复</h3>
+<p>主要思路</p>
+<ul>
+<li>使用<code>binlog2sql</code>从<code>binlog</code>日志中提取错误语句的反向语句</li>
+<li>在当前已经执行了错误语句的数据库执行反向语句，将数据恢复至错误语句执行前的状态</li>
+</ul>
+<h2 id="3-数据准备">3、数据准备</h2>
+<h3 id="31-查询当前binlog数据状态">3.1 查询当前binlog数据状态</h3>
+<pre><code class="language-sql">mysql&gt; show master status;
++------------------+-----------+--------------+------------------+
+| File             | Position  | Binlog_Do_DB | Binlog_Ignore_DB |
++------------------+-----------+--------------+------------------+
+| mysql-bin.000027 | 851010973 |              |                  |
++------------------+-----------+--------------+------------------+
+1 row in set (0.00 sec)
+</code></pre>
+<pre><code class="language-shell">[root@mysql-01 ~]# ll /data/mysql5730/mysql-bin.*
+-rw-r----- 1 mysql mysql 1073741880 9月   6 03:02 /data/mysql5730/mysql-bin.000023
+-rw-r----- 1 mysql mysql 1073900114 9月   8 16:31 /data/mysql5730/mysql-bin.000024
+-rw-r----- 1 mysql mysql 1074333543 9月   9 12:07 /data/mysql5730/mysql-bin.000025
+-rw-r----- 1 mysql mysql 1094225409 9月  13 22:01 /data/mysql5730/mysql-bin.000026
+-rw-r----- 1 mysql mysql  690570884 9月  14 00:42 /data/mysql5730/mysql-bin.000027
+</code></pre>
+<p>通过以上查询可以得知，当前使用的binlog日志文件为<code>mysql-bin.000027</code>，最后更新时间为<code>9</code>月<code>14</code>日<code>0:42</code>，上一个<code>binlog</code>文件<code>mysql-bin.000026</code>是<code>9</code>月<code>9</code>日<code>12:07</code>左右创建，最后更新时间为<code>9</code>月<code>13</code>日<code>22:01</code>。可以确定出错<code>update</code>语句应该按照时间应该记录在<code>26</code>的结尾和<code>27</code>开始的位置</p>
+<h3 id="32-查找恢复position区间">3.2 查找恢复position区间</h3>
+<p>正向恢复开始的<code>position</code>点，会记录在每天<code>0</code>点备份的备份文件内。</p>
+<pre><code class="language-shell">[root@mysql-01 ~]# grep &quot;CHANGE MASTER&quot; /tmp/service_platform_2021-09-13.sql
+-- CHANGE MASTER TO MASTER_LOG_FILE='mysql-bin.000026', MASTER_LOG_POS=890333336;
+</code></pre>
+<p>结束的<code>position</code>点，应该选取错误<code>update</code>语句执行前的一个事务结束点。<br>
+按照大概时间截取<code>2021-09-13 21:55:00-2021-09-13 22:05</code>的<code>26</code>和<code>27</code>两个文件的<code>binlog</code>日志</p>
+<pre><code class="language-shell">[root@mysql-01 ~]# mysqlbinlog --start-datetime='2021-09-13 21:55:00' --stop-datetime='2021-09-13 22:05'  /data/mysql5730/mysql-bin.000026  &gt; /tmp/bin26.sq
+[root@mysql-01 ~]# mysqlbinlog --start-datetime='2021-09-13 21:55:00' --stop-datetime='2021-09-13 22:05'  /data/mysql5730/mysql-bin.000027  &gt; /tmp/bin27.sql
+</code></pre>
+<p>完整一条<code>binlog</code>事务记录</p>
+<pre><code class="language-shell">BEGIN                 # 事务开始
+/*!*/;
+# at 918610296        # 事务开始position
+#210913 22:01:05 server id 120  end_log_pos 918610654 CRC32 0x1488200a 	Table_map: `service_platform`.`student` mapped to number 24404
+# at 918610654
+#210913 22:01:05 server id 120  end_log_pos 918611652 CRC32 0xf4a9a8c3 	Update_rows: table id 24404 flags: STMT_END_F
+
+BINLOG '              # 具体执行的sql（base64编码）
+oQ/GYBN4AAAAZgEAAN7iwDYAAFRfAAAAAAEAGWVudHJhbmNlX3NlcnZpY2VfcGxhdGZvcm0AB3N0
+dWRlbnQAogMDAwMPDwMPDwMPAwMIAw8DAw8DAwMDAwMPDw8IDwMDDwMPDw8DAw8DDw8PAwMIDwMD
+AwMPDwMICAMDAwMDAwQDAwgDAwMDDw8DDwMPDwMDDwMPAwMPAwMPDw8PAwMPAwMDDw8DAwMDAw8P
+DwMDAwMDAwMDAw8PDw8PDwMDAwMDDwMPAwMDAwMDAwMPCA8DAwMDAwMDAwMDAwMDDwMDDxEDA2qA
+AEAAAAEAAYAAGAAABAAgAARAAIAAgAAABAABgACAAAAEAAFAAEAAAAQABAQABAABgAAAAgAEgAAA
+BAAEAAGQAQABAAEoAAABAAEoAAACQAAAAQABgAAAAgABAAEgAEAAQAAAAUAAQAAA/v//////////
+//////////////8DCiCIFA==
+oQ/GYB94AAAA5gMAAMTmwDYAAFRfAAAAAAEAAgCi////////////////////////////////////
+////////////////////BgEBHwBoif//3v3z//////5//jX/3VsIAOqlAQAIMjE5OTI0MjAGNDgw
+NDYxAAAAAAkA6YOt5qCp5a2cQR99ABIxMTAxMTYyMDA5MDUxMjE4MjYqWIkAG1yJAIBLCEoAAAAA
+2o6JAAMxNTYkrgEAKgDmgIDmn5TljLrov47lrr7ljJfot681NeWPt+alvDLljZXlhYM2MDHlrqQk
+rgEAJK4BAKKOAQAkngEAJK4BAAnliJjpgrHlrZBaAS4AQR99ABIxMTAyMjcxOTg3MDUxNjA2MjK4
+........................................MzQwNzE2MAAAAAAIMjE5OTI0MjCa3AEAAAAA
+ACoA5oCA5p+U5Yy66L+O5a6+5YyX6LevNTXlj7fmpbwy5Y2V5YWDNjAx5a6kFQDvvKcxMTAxMTYy
+MDA5MDUxMjE4MjaC4AEABgA5NTgxMzAGADEzMDAwMAAAAAADADE1NgMAMTU2BuWksei0pQIAAAAB
+AAAAJK4BAAbkuqznsY0G5Lqs57GNYMYPocOoqfQ=
+'/*!*/;
+# at 918611652
+#210913 22:01:05 server id 120  end_log_pos 918611683 CRC32 0xda6fdc6e 	Xid = 154913465
+COMMIT/*!*/;          # 事务结束 结束position 918611683
+</code></pre>
+<p>经过确认，在<code>22:00:53</code>时，有一个大事务执行，基本可以确定是这个事务，事务开始<code>position</code>是<code>918611748</code>，结束<code>position</code>是<code>1094225331</code>。</p>
+<pre><code class="language-shell"># at 918611748
+#210913 22:00:53 server id 120  end_log_pos 918611841 CRC32 0xa4f84b66 	Query	thread_id=419432	exec_time=0	error_code=0
+SET TIMESTAMP=1623592853/*!*/;
+BEGIN
+/*!*/;
+# at 918611841
+#210913 22:00:53 server id 120  end_log_pos 918612199 CRC32 0xc4e1a859 	Table_map: `service_platform`.`student` mapped to number 24404
+# at 918612199
+#210913 22:00:53 server id 120  end_log_pos 918619761 CRC32 0xdea1bb51 	Update_rows: table id 24404
+# at 918619761
+#210913 22:00:53 server id 120  end_log_pos 918627679 CRC32 0xad1ba65d 	Update_rows: table id 24404
+# at 918627679
+#210913 22:00:53 server id 120  end_log_pos 918635509 CRC32 0xf55f5800 	Update_rows: table id 24404
+# at 918635509
+#210913 22:00:53 server id 120  end_log_pos 918643369 CRC32 0x484ffffc 	Update_rows: table id 24404
+# at 918643369
+#210913 22:00:53 server id 120  end_log_pos 918651107 CRC32 0xab13fd26 	Update_rows: table id 24404
+# at 918651107
+#210913 22:00:53 server id 120  end_log_pos 918658547 CRC32 0xbc4b489c 	Update_rows: table id 24404
+.....
+
+'/*!*/;
+# at 1094225331
+#210913 22:00:53 server id 120  end_log_pos 1094225362 CRC32 0x175cc5e4 	Xid = 154913333
+COMMIT/*!*/;
+</code></pre>
+<h3 id="33-position点确认">3.3 position点确认</h3>
+<p>当日当天<code>0:00</code>到执行错误语句前的<code>position</code>区间为<code>890333336 - 918611748</code>，正向恢复使用<br>
+当日执行的错误语句事务的<code>position</code>区间为<code>918611748 - 1094225331</code>，反向恢复使用</p>
+<h2 id="4-操作恢复">4、操作恢复</h2>
+<h3 id="41-正向恢复">4.1 正向恢复</h3>
+<h4 id="411-恢复备份数据">4.1.1 恢复备份数据</h4>
+<p>将<code>2021-09-13 00:00:00</code>的全备数据恢复至数据库。</p>
+<pre><code class="language-shell">[root@localhost ~]# mysql -uroot -p &lt; service_platform_2021-09-13.sql
+Enter password: 
+</code></pre>
+<p>查看当前数据状态，此字段的<code>new_id</code>在当日日当天被修改。</p>
+<pre><code class="language-shell">mysql&gt; use service_platform;
+Database changed
+mysql&gt; select new_id, town_id from student where id = '15132600';
++-------------+---------+
+| new_id | town_id |
++-------------+---------+
+| 108    |     105 |      # new_id = 108
++-------------+---------+
+1 row in set (0.01 sec)
+</code></pre>
+<h4 id="412-恢复binlog日志">4.1.2 恢复binlog日志</h4>
+<p>截取当日当天<code>binlog</code>日志</p>
+<pre><code class="language-shell">[root@localhost ~]# mysqlbinlog   --start-position=890333336 --stop-position=918611748  mysql-bin.000026 &gt; /tmp/a.sql
+[root@localhost ~]# ll -h /tmp/a.sql 
+-rw-r--r-- 1 root root 51M 9 15 15:48 /tmp/a.sql
+</code></pre>
+<p>重写<code>binlog</code>日志</p>
+<pre><code class="language-shell">mysql&gt; source /tmp/a.sql
+
+Query OK, 0 rows affected (0.00 sec)
+
+....
+
+Query OK, 0 rows affected (0.00 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
+mysql&gt; 
+</code></pre>
+<h4 id="413-检查数据恢复状态">4.1.3 检查数据恢复状态</h4>
+<pre><code class="language-mysql">mysql&gt; use service_platform;
+Database changed
+mysql&gt; select new_id, town_id from student where id = '15132600';
++-------------+---------+
+| new_id | town_id |
++-------------+---------+
+|    105 |     105 |
++-------------+---------+
+1 row in set (0.00 sec)
+</code></pre>
+<p>至此，正向恢复数据完成</p>
+<h3 id="42-反向恢复">4.2 反向恢复</h3>
+<p>反向恢复时通过<code>binlog2sql</code>，将错误执行的<code>update</code>语句反转，再<code>update</code>回来</p>
+<h4 id="421-安装binlog2sql">4.2.1 安装binlog2sql</h4>
+<p>项目地址：<br>
+https://github.com/danfengcao/binlog2sql</p>
+<pre><code class="language-shell"># 安装epel源
+wget http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm   
+rpm -ivh epel-release-latest-7.noarch.rpm
+
+# 安装git pip
+yum -y install git python-pip 
+
+# git下载binlog2sql
+[root@localhost ~]# git clone https://github.com/danfengcao/binlog2sql.git &amp;&amp; cd binlog2sql
+Cloning into 'binlog2sql'...
+remote: Enumerating objects: 323, done.
+remote: Total 323 (delta 0), reused 0 (delta 0), pack-reused 323
+Receiving objects: 100% (323/323), 153.26 KiB | 0 bytes/s, done.
+Resolving deltas: 100% (170/170), done.
+[root@localhost binlog2sql]# pip install -r requirements.txt
+
+</code></pre>
+<h4 id="422-生成反转sql">4.2.2 生成反转sql</h4>
+<p>根据错误语句的<code>position</code>区间<code>918611748 - 1094225331</code>，生成反向语句。<br>
+<strong>注意</strong>：此语句必须在原库执行，数据库必须是当前错误状态，且数据库执行此错误语句后这些数据未发生其它更改，<code>binlog</code>日志也可正常使用。</p>
+<pre><code class="language-shell">[root@localhost mysql]# python /root/binlog2sql/binlog2sql/binlog2sql.py -h 127.0.0.1  -u root -p -d service_platform -t student --start-file='mysql-bin.000026' --start-position=918611748 --stop-position=1094225331 -B &gt;/tmp/b.sql
+[root@localhost mysql]# ll -h /tmp/b.sql 
+-rw-r--r-- 1 root root 1.2G 9 15 16:31 /tmp/b.sql
+</code></pre>
+<p>参数说明</p>
+<pre><code class="language-shell">-h                      # 主机ip
+-P                      # 端口号，这里的P是大写
+-u                      # 用户名为root
+-p                      # 密码
+-d                      # 指定过滤数据库（可忽略）
+-t                      # 指定过滤表（可忽略）
+–-start-file            # 开始binlog文件
+--stop-file             # 结束binlog文件，可忽略，忽略默认为start-file
+-B                      # 生成反向sql，不加是生成正向sql
+--start-position        # 开始position位置点
+--stop-position         # 结束position位置点（可忽略，忽略默认为binlog文件末尾）
+</code></pre>
+<h4 id="423-解决sql虚拟字段问题如果有">4.2.3 解决sql虚拟字段问题（如果有）</h4>
+<p><code>binlog</code>内存储的<code>update</code>语句是针对所有列操作的，如果其中存在虚拟列，则需要先进行删除。<br>
+可通过<code>vim</code>或者<code>sed</code>对文件进行操作，将虚拟列相关数据变更为空值。<br>
+相关报错如下：</p>
+<pre><code>ERROR 3105 (HY000): The value specified for generated column 'student_kind' in table 'student' is not allowed.
+</code></pre>
+<p>具体需替换内容联系开发索取</p>
+<pre><code class="language-shell">[root@localhost mysql]# sed -i s#`student_kind`='AAA',##g /tmp/b.sql
+[root@localhost mysql]# sed -i s#`student_kind`='BBB',##g /tmp/b.sql
+[root@localhost mysql]# sed -i s#`student_kind`='CCC',##g /tmp/b.sql
+[root@localhost mysql]# sed -i s#`student_kind`='DDD',##g /tmp/b.sql
+[root@localhost mysql]# sed -i s#`student_kind`='EEE',##g /tmp/b.sql
+[root@localhost mysql]# sed -i s#`student_kind`='FFF',##g /tmp/b.sql
+[root@localhost mysql]# sed -i s#\`new_id\`=\d\{6\},##g /tmp/b.sql
+</code></pre>
+<h4 id="424-写入反向sql">4.2.4 写入反向sql</h4>
+<pre><code class="language-mysql">mysql&gt; source /tmp/b.sql
+</code></pre>
+<h4 id="425-检查数据恢复状态">4.2.5 检查数据恢复状态</h4>
+<pre><code class="language-sql">mysql&gt; use service_platform;
+Database changed
+mysql&gt; select new_id, town_id from student where id = '15132600';
++-------------+---------+
+| new_id | town_id |
++-------------+---------+
+|    105 |     105 |
++-------------+---------+
+1 row in set (0.00 sec)
+</code></pre>
+<p>至此，反向恢复数据完成</p>
+<p>See you ~</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/M29o-BG-i" class="tag">
+                    mysql
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/golang-wen-jian-cao-zuo-xia-pian">
+                  <h3 class="post-title">
+                    Golang文件操作-下篇
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

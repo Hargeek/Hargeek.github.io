@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>SkyWalking链路追踪系统-接入篇 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">SkyWalking链路追踪系统-接入篇</h2>
+            <div class="post-date">2021-03-26</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E4%BB%8B%E7%BB%8D">1、介绍</a>
+<ul>
+<li><a href="#11-%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84">1.1 整体架构</a></li>
+<li><a href="#12-%E4%B8%BB%E8%A6%81%E6%A6%82%E5%BF%B5">1.2 主要概念</a></li>
+</ul>
+</li>
+<li><a href="#2-%E5%87%86%E5%A4%87agent%E5%8C%85">2、准备agent包</a></li>
+<li><a href="#3-%E6%89%93%E5%8C%85%E5%88%B6%E4%BD%9C%E9%95%9C%E5%83%8F">3、打包制作镜像</a></li>
+<li><a href="#4-%E6%B3%A8%E5%85%A5%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F">4、注入环境变量</a></li>
+<li><a href="#5-%E9%83%A8%E7%BD%B2%E5%90%AF%E5%8A%A8%E5%B9%B6%E6%9F%A5%E7%9C%8Bui">5、部署启动并查看ui</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-介绍">1、介绍</h2>
+<p>在前面的文章中讲到<a href="https://www.ssgeek.com/post/skywalking-lian-lu-zhui-zong-xi-tong-bu-shu-pian/">SkyWalking链路追踪系统-部署篇</a>，接下来在正式接入<code>Skywalking</code>探针<code>agent</code>之前，先来接着了解一下<code>Skywalking</code>的整体架构和主要概念(内容主要汇总自官方文档或网络)</p>
+<h3 id="11-整体架构">1.1 整体架构</h3>
+<p>以下是来自<code>Skywalking</code>官方<code>Github</code>库上的一张架构图</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210319-01.jpeg" alt=""></figure>
+<p>整体架构包含如下三个组成部分：</p>
+<ol>
+<li>探针(<code>agent</code>)负责进行数据的收集，包含了<code>Tracing</code>和<code>Metrics</code>的数据，<code>agent</code>会被安装到服务所在的服务器上，以方便数据的获取。</li>
+<li>可观测性分析平台<code>OAP</code>(Observability Analysis Platform)，接收探针发送的数据，并在内存中使用分析引擎（<code>Analysis Core</code>)进行数据的整合运算，然后将数据存储到对应的存储介质上，比如 <code>Elasticsearch</code>、<code>MySQL</code>数据库、<code>H2</code>数据库等。同时<code>OAP</code>还使用查询引擎(<code>Query Core</code>)提供<code>HTTP</code>查询接口。</li>
+<li><code>Skywalking</code>提供单独的<code>UI</code>进行数据的查看，此时<code>UI</code>会调用<code>OAP</code>提供的接口，获取对应的数据然后进行展示。</li>
+</ol>
+<p><code>Skywalking</code>提供<code>Tracing</code>和<code>Metrics</code>数据的获取和聚合：</p>
+<p><code>Metric</code>的特点是，它是可累加的：他们具有原子性，每个都是一个逻辑计量单元，或者一个时间 段内的柱状图。 例如：队列的当前深度可以被定义为一个计量单元，在写入或读取时被更新统 计； 输入<code>HTTP</code>请求的数量可以被定义为一个计数器，用于简单累加； 请求的执行时间可以被定 义为一个柱状图，在指定时间片上更新和统计汇总。</p>
+<p><code>Tracing</code>的最大特点就是，它在单次请求的范围内，处理信息。 任何的数据、元数据信息都被绑定 到系统中的单个事务上。 例如：一次调用远程服务的<code>RPC</code>执行过程；一次实际的<code>SQL</code>查询语句； 一次<code>HTTP</code>请求的业务性<code>ID</code>。</p>
+<p>总结，<code>Metric</code>主要用来进行数据的统计，比如<code>HTTP</code>请求数的计算。<code>Tracing</code>主要包含了某一次请求的链路数据。</p>
+<p>详细的内容可以查看<code>Skywalking</code>开发者吴晟翻译的文章，<a href="http://blog.oneapm.com/apm-tech/811.html">Metrics , tracing 和 logging 的关系</a></p>
+<h3 id="12-主要概念">1.2 主要概念</h3>
+<p><code>Skywalking</code>主要概念包含：</p>
+<ul>
+<li>服务(Service) ：用户服务就是<code>Skywalking</code>的服务<code>Service</code>，用户服务其实就是一个独立的应用<code>Application</code>，在<code>6.0</code>版本之后的<code>Skywalking</code>将应用更名为服务<code>Service</code></li>
+<li>端点(Endpoint) ：用户服务对外提供的<code>HTTP</code>接口例如<code>/usr/list</code>就是一个端点，端点就是对外提供的接口</li>
+<li>实例(Instance)：相同服务部署的节点就是实例，实例指同一服务可以部署多个，例如多台虚拟机或多个容器</li>
+</ul>
+<h2 id="2-准备agent包">2、准备agent包</h2>
+<p><code>Skywalking</code>目前支持很多语言的链路追踪，本文以常见的<code>java</code>应用为例进行记录</p>
+<p>下载官方和<code>server</code>版本相同的发行版本包，并获取<code>agent</code></p>
+<p>我这里对应前面安装的服务端下载地址：https://www.apache.org/dyn/closer.cgi/skywalking/8.4.0/apache-skywalking-apm-8.4.0.tar.gz</p>
+<p>下载后解压提取<code>agent</code>目录，结构如下</p>
+<pre><code class="language-shell">+-- agent
+    +-- activations
+         apm-toolkit-log4j-1.x-activation.jar
+         apm-toolkit-log4j-2.x-activation.jar
+         apm-toolkit-logback-1.x-activation.jar
+         ...
+    +-- config   # 配置文件目录
+         agent.config  
+    +-- plugins  # 主要插件目录
+         apm-dubbo-plugin.jar
+         apm-feign-default-http-9.x.jar
+         apm-httpClient-4.x-plugin.jar
+         .....
+    +-- optional-plugins  # 可选插件目录
+         apm-gson-2.x-plugin.jar
+         .....
+    +-- bootstrap-plugins
+         jdk-http-plugin.jar
+         .....
+    +-- logs     # 默认日志目录
+    skywalking-agent.jar
+</code></pre>
+<p>整个<code>agent</code>目录大概是<code>30MB</code>左右，很多插件都是可选的，在启动时启用了插件的话，具有更为强大的功能。部分插件在使用上会影响整体的性能或者由于其他原因放置于可选插件包中，不会直接加载，如果需要使用，将可选插件中的<code>jar</code>包拷贝到<code>plugins</code>目录下</p>
+<p>最终基于容器环境配置<code>skywalking agent</code>的方式一种是创建<code>ConfigMap</code>，然后通过 <code>ConfigMap</code> 挂载到容器里进行覆盖；另一种是在默认配置里引用各种变量，在容器启动时通过环境变量注入</p>
+<p>因此这里修改<code>agent</code>的配置文件<code>config/agent.config</code>，打开其中某些配置项的注释，但不进行具体配置修改，通过环境变量进行注入以使用</p>
+<pre><code class="language-shell"># grep -Ev '^$|#' agent/config/agent.config 
+agent.namespace=${SW_AGENT_NAMESPACE:default-namespace}
+agent.service_name=${SW_AGENT_NAME:Your_ApplicationName}
+agent.is_cache_enhanced_class = ${SW_AGENT_CACHE_CLASS:false}
+collector.backend_service=${SW_AGENT_COLLECTOR_BACKEND_SERVICES:127.0.0.1:11800}
+logging.file_name=${SW_LOGGING_FILE_NAME:skywalking-api.log}
+logging.level=${SW_LOGGING_LEVEL:INFO}
+logging.max_file_size=${SW_LOGGING_MAX_FILE_SIZE:314572800}
+logging.max_history_files=${SW_LOGGING_MAX_HISTORY_FILES:-1}
+plugin.mount=${SW_MOUNT_FOLDERS:plugins,activations}
+plugin.mysql.trace_sql_parameters=${SW_MYSQL_TRACE_SQL_PARAMETERS:false}
+</code></pre>
+<p>对应配置说明：</p>
+<ul>
+<li><code>agent.namespace</code>：命名空间，可通过此参数实现隔离</li>
+<li><code>agent.service_name</code>：在链路追踪 <code>UI</code> 中展示的应用名，如果是微服务架构，可以和注册中心中的应用名一致</li>
+<li><code>agent.is_cache_enhanced_class</code>：如果为<code>true</code>，则<code>SkyWalking</code>代理会将所有检测到的类文件缓存到内存或磁盘文件中（由类缓存模式决定）</li>
+<li><code>collector.backend_service</code>：后端<code>Collector</code>收集器的地址</li>
+<li><code>logging.file_name</code>：日志文件名</li>
+<li><code>logging.level</code>：日志等级</li>
+<li><code>logging.max_file_size</code>：日志文件大小控制</li>
+<li><code>logging.max_history_files</code>：历史日志文件个数控制</li>
+<li><code>plugin.mount</code>：挂载插件的文件夹名</li>
+<li><code>plugin.mysql.trace_sql_parameters</code>：收集<code>sql</code>的参数</li>
+</ul>
+<p>除了上面的参数外，还有一个常用参数<code>agent.ignore_suffix</code>，表示对请求追踪进行忽略，多个路径用逗号分隔，在实际的生产环境中某些请求是不需要被追踪的，例如心跳检查<code>/health</code>，监控指标<code>/metrics</code>等等，我们需要将对应的插件<code>jar</code>包<code>apm-trace-ignore-plugin-8.4.0.jar</code>拷贝到<code>plugins</code>目录下并进行对应的配置，配置文件内容部分如下</p>
+<pre><code class="language-shell"># If the operation name of the first span is included in this set, this segment should be ignored. Multiple values should be separated by `,`.
+# agent.ignore_suffix=${SW_AGENT_IGNORE_SUFFIX:.jpg,.jpeg,.js,.css,.png,.bmp,.gif,.ico,.mp3,.mp4,.html,.svg}
+</code></pre>
+<p>更多的配置项可以参考<a href="https://github.com/apache/skywalking/tree/master/docs/en/setup/service-agent/java-agent">官方配置说明</a></p>
+<h2 id="3-打包制作镜像">3、打包制作镜像</h2>
+<p>官方给出了在<code>java</code>应用的不同运行环境中<a href="https://github.com/apache/skywalking/tree/master/docs/en/setup/service-agent/java-agent#install-javaagent-faqs">java agent配置示例</a>：</p>
+<ul>
+<li>
+<p>Tomcat</p>
+<ul>
+<li>
+<p>Linux环境</p>
+<p>修改<code>tomcat/bin/catalina.sh</code></p>
+<pre><code class="language-shell">CATALINA_OPTS=&quot;$CATALINA_OPTS -javaagent:/path/to/skywalking-agent/skywalking-agent.jar&quot;; export CATALINA_OPTS
+</code></pre>
+</li>
+<li>
+<p>Windows环境</p>
+<p>修改<code>tomcat/bin/catalina.bat</code></p>
+<pre><code class="language-shell">set &quot;CATALINA_OPTS=-javaagent:/path/to/skywalking-agent/skywalking-agent.jar&quot;
+</code></pre>
+</li>
+</ul>
+</li>
+<li>
+<p>Jar包运行</p>
+<p>在启动参数中添加<code>-javaagent</code></p>
+<pre><code class="language-shell">java -javaagent:/path/to/skywalking-agent/skywalking-agent.jar -jar yourApp.jar
+</code></pre>
+</li>
+<li>
+<p>Jetty</p>
+<p>修改<code>jetty.sh</code>，在启动参数中添加<code>-javaagent</code></p>
+<pre><code class="language-shell">export JAVA_OPTIONS=&quot;${JAVA_OPTIONS} -javaagent:/path/to/skywalking-agent/skywalking-agent.jar&quot;
+</code></pre>
+</li>
+</ul>
+<p>本文以<code>spring boot</code>应用<code>jar</code>包运行的方式为例，首先修改基础<code>java</code>镜像的<code>Dockerfile</code>，将<code>agent</code>包打入镜像</p>
+<p>（一个小<code>Tips</code>：踩了很多坑，最终自己做<code>oracle jdk</code>的镜像，而不是用中央仓库的<code>openjdk</code>，基础镜像基于<code>centos</code>，为了减小镜像体积这里可以再进行优化）</p>
+<p>修改<code>Dockerfile</code></p>
+<pre><code class="language-shell">FROM centos:7.6.1810
+LABEL maintainer ssgeek@ssgeek.com
+
+ENV LANG &quot;en_US.UTF-8&quot;
+ENV JDK_VERSION 1.8.0_191
+ENV SW_VERSION 8.4.0
+
+ADD jdk-8u191-linux-x64.tar.gz /usr/local
+ADD agent /skywalking/agent
+
+ENV JAVA_HOME /usr/local/jdk1.8.0_191
+ENV CLASSPATH $JAVA_HOME/lib;$JAVA_HOME/jre/lib
+ENV PATH $PATH:$JAVA_HOME/bin
+
+RUN set -x &amp;&amp; \
+    ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+</code></pre>
+<p>打包镜像并上传到仓库</p>
+<pre><code class="language-shell"># docker build -t hub.ssgeek.com/basic_image/jdk_8u191:skywalking_v1.0
+# docker push hub.ssgeek.com/basic_image/jdk_8u191:skywalking_v1.0
+</code></pre>
+<p>修改业务应用的<code>Dockerfile</code>，引用加入了<code>agent</code>包的基础镜像并修改启动参数</p>
+<pre><code class="language-shell">FROM hub.ssgeek.com/basic_image/jdk_8u191:skywalking_v1.0
+LABEL maintainer ssgeek@ssgeek.com
+
+RUN mkdir /app
+WORKDIR /app
+COPY target/*.jar /app/app.jar
+EXPOSE 8080
+CMD java -Djava.security.egd=file:/dev/./urandom -javaagent:/skywalking/agent/skywalking-agent.jar -jar ${JAVA_OPTS} /app/app.jar
+</code></pre>
+<h2 id="4-注入环境变量">4、注入环境变量</h2>
+<p>这里的<code>java</code>应用运行在<code>k8s</code>容器化环境中，因此对配置变量的注入可以通过在部署清单的<code>yaml</code>中以环境变量的形式注入，这样配置更为轻量和灵活</p>
+<p>其中部分参数的环境变量取值，通过在<code>Pod</code>中使用环境变量把自己的信息呈现给<code>Pod</code>中运行的容器，可以参考</p>
+<p><a href="https://kubernetes.io/zh/docs/tasks/inject-data-application/environment-variable-expose-pod-information/">通过环境变量将 Pod 信息呈现给容器</a></p>
+<pre><code class="language-yaml">...
+    spec:
+      imagePullSecrets:
+      - name: registry-pull-secret
+      containers:
+      - name: java
+        image: hub.ssgeek.com/java/xxx:tag
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: JAVA_OPTS
+          value: 'JVM参数'
+        - name: SW_AGENT_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        - name: SW_AGENT_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: SW_AGENT_CACHE_CLASS
+          value: 'true'
+        - name: SW_MYSQL_TRACE_SQL_PARAMETERS
+          value: 'true'
+        - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
+          value: 'skywalking-oap.monitoring.svc:11800'
+        ports:
+        - containerPort: 8080
+          name: AppName
+          protocol: TCP
+</code></pre>
+<p>网络上有文章的操作方式大多都是添加一个<code>initContainer</code>将<code>agent</code>拷贝到应用<code>Pod</code>中，我个人认为会浪费系统资源且每次启动都需要执行，这必然会增加应用的启动时间，还不如修改基础<code>java</code>镜像，一劳永逸。</p>
+<h2 id="5-部署启动并查看ui">5、部署启动并查看ui</h2>
+<p>按照上面的操作对<code>Pod</code>应用注入了<code>Skywalking agent</code>相关配置，如果应用启动后会有如下的日志提示，表示<code>agent</code>注入启动成功了</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210326-01.png" alt=""></figure>
+<p>当应用启动完成，正常接收流量后，服务端就可以采集并展示相关数据了，这里我展示一个微服务项目测试环境接入<code>Skywalking</code>后的仪表盘页面</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210326-02.png" alt=""></figure>
+<p>拓扑图</p>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20210326-03.png" alt=""></figure>
+<p>see you ~</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/8-ErRCfFU" class="tag">
+                    skywalking
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/rAjiCH60jX" class="tag">
+                    k8s
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/jenkins-apipipeline-shen-du-shi-jian-zhi-input-de-zi-dong-hua">
+                  <h3 class="post-title">
+                    Jenkins API+Pipeline深度实践之input的自动化
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

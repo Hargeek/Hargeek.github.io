@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Jenkins连接k8s的多种姿势 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Jenkins连接k8s的多种姿势</h2>
+            <div class="post-date">2021-08-05</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">1、概述</a></li>
+<li><a href="#2-%E5%90%8C%E9%9B%86%E7%BE%A4">2、同集群</a></li>
+<li><a href="#3-%E8%B7%A8%E9%9B%86%E7%BE%A4">3、跨集群</a>
+<ul>
+<li><a href="#31-%E7%AB%AF%E5%8F%A3%E6%9C%89%E4%BB%80%E4%B9%88">3.1 端口有什么</a></li>
+<li><a href="#32-%E7%BD%91%E7%BB%9C%E7%AD%96%E7%95%A5%E6%89%93%E9%80%9A">3.2 网络策略打通</a></li>
+<li><a href="#33-%E8%AF%81%E4%B9%A6%E7%9A%84%E7%94%9F%E6%88%90%E5%92%8C%E9%85%8D%E7%BD%AE">3.3 证书的生成和配置</a>
+<ul>
+<li><a href="#331-kubeconfig%E6%96%87%E4%BB%B6">3.3.1 kubeconfig文件</a></li>
+<li><a href="#332-%E7%94%9F%E6%88%90%E8%AF%81%E4%B9%A6">3.3.2 生成证书</a></li>
+<li><a href="#333-%E5%AF%BC%E5%85%A5%E8%AF%81%E4%B9%A6">3.3.3 导入证书</a></li>
+</ul>
+</li>
+<li><a href="#34-%E9%85%8D%E7%BD%AE%E8%BF%9E%E6%8E%A5%E5%A4%96%E9%83%A8%E7%9A%84k8s%E9%9B%86%E7%BE%A4">3.4 配置连接外部的k8s集群</a></li>
+</ul>
+</li>
+<li><a href="#4-%E6%B5%8B%E8%AF%95%E9%AA%8C%E8%AF%81">4、测试验证</a>
+<ul>
+<li><a href="#41-%E9%85%8D%E7%BD%AEpod-template">4.1 配置pod template</a></li>
+<li><a href="#42-%E8%87%AA%E7%94%B1%E9%A3%8E%E6%A0%BC%E6%9E%84%E5%BB%BA%E6%B5%8B%E8%AF%95">4.2 自由风格构建测试</a></li>
+<li><a href="#43-%E6%B5%81%E6%B0%B4%E7%BA%BF%E6%9E%84%E5%BB%BA%E6%B5%8B%E8%AF%95">4.3 流水线构建测试</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210805-01.png" alt=""></figure>
+<h2 id="1-概述">1、概述</h2>
+<p>本文分享的是基于<code>k8s</code>环境与<code>jenkins</code>实现<code>CI/CD</code>其中的一个配置具体实现</p>
+<p>即：<strong>不同环境下jenkins与k8s集群连接的问题</strong></p>
+<p>为什么会有不同的环境？我总结的原因如下：</p>
+<p>a、在实际生产环境中，由于某些历史原因我们或许不能完美的实现所谓的一切皆“云原生”，例如有传统的<code>jenkins</code>和执行专有任务的<code>slave</code>节点</p>
+<p>b、存在多集群共一个<code>jenkins</code>服务端的情况，例如<code>k8s</code>中集群<code>A</code>用作基础设施集群（包含日志、存储、<code>devops</code>平台），集群<code>B</code>、<code>C</code>、<code>D</code>用作不同业务线集群</p>
+<p>因此，我们可以将<strong>不同环境</strong>定义为如下两种情况：</p>
+<ul>
+<li>
+<p>同集群：指<code>k8s</code>集群内部的<code>jenkins</code>连接本集群</p>
+</li>
+<li>
+<p>跨集群：指外部的<code>jenkins</code>连接<code>k8s</code>集群，或者是<code>jenkins</code>连接外部的<code>k8s</code>集群</p>
+</li>
+</ul>
+<h2 id="2-同集群">2、同集群</h2>
+<p>同集群下，<code>k8s</code>集群内部的<code>jenkins</code>连接所在的<code>k8s</code>集群。这是原生的方式：我们的环境都是全新的，全新的机器、全新安装的集群、全新的<code>jenkins</code>，总之一切都是新的，没有任何历史问题</p>
+<p>由于在<code>k8s</code>集群内部部署<code>jenkins</code>时，已经对<code>jenkins</code>做了以下相关的角色授权绑定</p>
+<pre><code class="language-yaml">---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jenkins
+  namespace: kube-system
+
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: jenkins
+  namespace: kube-system
+rules:
+- apiGroups: [&quot;&quot;]
+  resources: [&quot;pods&quot;]
+  verbs: [&quot;create&quot;,&quot;delete&quot;,&quot;get&quot;,&quot;list&quot;,&quot;patch&quot;,&quot;update&quot;,&quot;watch&quot;]
+- apiGroups: [&quot;&quot;]
+  resources: [&quot;pods/exec&quot;]
+  verbs: [&quot;create&quot;,&quot;delete&quot;,&quot;get&quot;,&quot;list&quot;,&quot;patch&quot;,&quot;update&quot;,&quot;watch&quot;]
+- apiGroups: [&quot;&quot;]
+  resources: [&quot;pods/log&quot;]
+  verbs: [&quot;get&quot;,&quot;list&quot;,&quot;watch&quot;]
+- apiGroups: [&quot;&quot;]
+  resources: [&quot;secrets&quot;]
+  verbs: [&quot;get&quot;]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  name: jenkins
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: jenkins
+subjects:
+- kind: ServiceAccount
+  name: jenkins
+  namespace: kube-system
+</code></pre>
+<p>因此只需要在<code>jenkins</code>中配置相应的连接地址就可以了</p>
+<p>在<code>jenkins</code>中安装好<code>k8s</code>插件后，打开<code>jenkins</code>——&gt;系统管理——&gt;系统配置——&gt;新增一个<code>kubernetes</code>云</p>
+<p>配置名称，即这个云的别名</p>
+<p><code>Kubernetes</code>地址，即在集群内部暴露的<code>k8s service</code>名称</p>
+<p><code>Kubernetes</code>命名空间，这个配置就填写<code>jenkins</code>所属的<code>namespace</code></p>
+<p><code>Jenkins</code>地址，填写<code>jenkins svc</code>的名称</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210805-02.png" alt=""></figure>
+<p>配置完成后点击测试连接成功</p>
+<p>后面配置<code>pod template</code>这里不做介绍，这里配置的<code>pod template</code>是默认情况下<code>jenkins slave</code>的<code>pod</code>模板，当然也可以在每个流水线中单独指定</p>
+<p>配置完成后的动态创建<code>jenkins slave pod</code>测试在本文后面一并给出</p>
+<h2 id="3-跨集群">3、跨集群</h2>
+<p>一个实际场景：<code>jenkins</code>部署在<code>A</code>集群或部署在传统<code>VM</code>的环境下，想通过<code>jenkins</code>连接<code>B</code>集群，动态创建<code>pod</code>用以执行构建任务</p>
+<h3 id="31-端口有什么">3.1 端口有什么</h3>
+<p>既然是跨集群，那么首先需要考虑的就是网络问题，网络是否可达？需要开通哪些端口的安全组策略？</p>
+<p>在这之前，就需要先了解一下<code>jenkins</code>的运行机制及端口有哪些？</p>
+<ul>
+<li>
+<p>http端口：默认<code>8080</code>，如果在<code>jenkins</code>前面做了反向代理并配置了域名，那么可能是常见的<code>80/443</code>端口，我这里通过域名+<code>https</code>的方式访问<code>jenkins</code></p>
+</li>
+<li>
+<p>Agent Port：基于<code>JNLP</code>的<code>Jenkins</code>代理通过<code>TCP</code>默认端口<code>50000</code>与<code>Jenkins</code>进行通信</p>
+</li>
+<li>
+<p>SSH port：<code>jenkins</code>作为<code>ssh</code>服务器，这个一般不会使用，具体使用可参考我之前的文章<a href="https://www.ssgeek.com/post/jenkins-workflowlibs-ku-de-shi-miao-yong/">Jenkins workflowLibs库的使(妙)用</a></p>
+</li>
+</ul>
+<h3 id="32-网络策略打通">3.2 网络策略打通</h3>
+<p>由上面知道了有哪些端口之后，因此需要打通的网络策略包括</p>
+<ul>
+<li>B集群节点连接<code>jenkins</code>暴露的<code>http port</code>和<code>Agent port</code></li>
+<li>A集群节点（即<code>jenkins server</code>）连接<code>B</code>集群<code>kube-apiserver</code>暴露的端口</li>
+</ul>
+<p>除网络策略之外，如果<code>jenkins UI</code>的地址，例如通过<code>ingress</code>设置了白名单限制访问，还需要将<code>B</code>集群的相关源<code>ip</code>设置为白名单</p>
+<h3 id="33-证书的生成和配置">3.3 证书的生成和配置</h3>
+<h4 id="331-kubeconfig文件">3.3.1 kubeconfig文件</h4>
+<p>由于这里<code>A</code>集群中的<code>jenkins</code>并没有对<code>B</code>集群的操作权限，因此需要配置授权，即发起对<code>B</code>集群的<code>kube apiserver</code>的请求，和<code>kubectl</code>一样利用<code>config</code>文件用作请求的鉴权，默认在<code>~/.kube/config</code>下，当然我们也可以单独严格指定权限细节，生成一个<code>jenkins</code>专用的<code>config</code>文件，这里就不再延伸了，<code>kubeconfig</code>文件的组成如下</p>
+<pre><code class="language-yaml">apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: xxx
+    server: https://&lt;master-ip&gt;:6443
+  name: cluster1
+contexts:
+- context:
+    cluster: cluster1
+    user: admin
+  name: context-cluster1-admin
+current-context: context-cluster1-admin
+kind: Config
+preferences: {}
+users:
+- name: admin
+  user:
+    client-certificate-data: xxx
+    client-key-data: xxx
+</code></pre>
+<p>其中包含了<code>3</code>段证书相关的内容，也就是我们常见的证书组成格式：<code>ca.crt</code>、<code>client.crt</code>、<code>client.key</code></p>
+<h4 id="332-生成证书">3.3.2 生成证书</h4>
+<p>在<code>jenkins</code>中能够识别的证书文件为<code>PKCS#12 certificate</code>，因此需要先将<code>kubeconfig</code>文件中的证书转换生成<code>PKCS#12</code>格式的<code>pfx</code>证书文件</p>
+<p>首先，使用<code>yq</code>命令行工具来解析<code>yaml</code>并通过<code>base 64</code>解码生成各个证书文件</p>
+<p>服务端证书：</p>
+<p><code>certificate-authority-data</code>——&gt;<code>base 64</code>解码——&gt;<code>ca.crt</code></p>
+<pre><code class="language-shell">yq e '.clusters[0].cluster.certificate-authority-data' .kube/config | base64 -d &gt; ca.crt
+</code></pre>
+<p>客户端证书</p>
+<p><code>client-certificate-data</code>——&gt;<code>base 64</code>解码——&gt;<code>client.crt</code></p>
+<pre><code class="language-shell">yq e '.users[0].user.client-certificate-data' .kube/config | base64 -d &gt; client.crt
+</code></pre>
+<p><code>client-key-data</code>——&gt;<code>base 64</code>解码——&gt;<code>client.key</code></p>
+<pre><code class="language-shell">yq e '.users[0].user.client-key-data' .kube/config | base64 -d &gt; client.key
+</code></pre>
+<p>然后，通过<code>openssl</code>进行证书格式的转换，生成<code>Client P12</code>认证文件<code>cert.pfx</code></p>
+<pre><code class="language-shell">openssl pkcs12 -export -out cert.pfx -inkey client.key -in client.crt -certfile ca.crt
+Enter Export Password:  # 输入密码加密
+Verifying - Enter Export Password:
+</code></pre>
+<p>通过<strong>踩坑</strong>证明，这里必须输入密码，不然在后面添加<code>jenkins</code>相关配置后验证会报错</p>
+<h4 id="333-导入证书">3.3.3 导入证书</h4>
+<p>生成文件后，打开<code>jenkins</code>的<code>web</code>界面</p>
+<p>添加全局凭据，凭据的类型选择<code>Certificate</code>，选择<code>Upload PKCS#12 certificate</code></p>
+<p>上传刚才生成的<code>cert.pfx</code>证书文件</p>
+<p>输入通过<code>openssl</code>生成证书文件时输入的密码</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210805-03.png" alt=""></figure>
+<p>检查上传的证书文件，此时可以查看到，<code>jenkins</code>已经成功加载了证书文件并读取了证书文件的相关信息</p>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20210805-04.png" alt=""></figure>
+<h3 id="34-配置连接外部的k8s集群">3.4 配置连接外部的k8s集群</h3>
+<p>在<code>jenkins</code>中新增<code>kubernetes</code>云配置</p>
+<p>同样的，打开<code>jenkins</code>——&gt;系统管理——&gt;系统配置——&gt;新增一个<code>kubernetes</code>云</p>
+<p>配置名称，即这个云的别名，为外部的k8s集群起一个别名</p>
+<p><code>Kubernetes</code>地址，这里需要填写的是外部集群的<code>kube-apiserver</code>地址，即<code>https://&lt;master ip&gt;:6443</code></p>
+<p><code>Kubernetes</code>服务证书<code>key</code>,填写上面服务端证书<code>base64</code>解码后的内容</p>
+<p><code>Kubernetes</code>命名空间，填写<code>jenkins</code>所属的<code>namespace</code></p>
+<p>凭据选择上面导入的证书文件作为凭据</p>
+<p><code>Jenkins</code>地址，填写<code>A</code>集群现有<code>jenkins UI</code>域名(访问地址和端口)</p>
+<figure data-type="image" tabindex="5"><img src="https://image.ssgeek.com/20210805-05.png" alt=""></figure>
+<p>配置完成后点击测试连接成功，到这里跨集群的<code>jenkins</code>连接<code>k8s</code>就成功了</p>
+<h2 id="4-测试验证">4、测试验证</h2>
+<h3 id="41-配置pod-template">4.1 配置pod template</h3>
+<p>这里以跨集群的环境下进行测试验证<code>A</code>集群的<code>jenkins</code>执行构建任务，在<code>B</code>集群中动态创建<code>slave</code>的预期结果</p>
+<p>在<code>jenkins</code>系统配置中，除了配置关联外部集群外，这里再配置一下相应的<code>pod template</code>，以便于在<code>B</code>集群中创建默认的<code>slave pod</code>，如图</p>
+<figure data-type="image" tabindex="6"><img src="https://image.ssgeek.com/20210805-06.png" alt=""></figure>
+<h3 id="42-自由风格构建测试">4.2 自由风格构建测试</h3>
+<p>在自由风格中限制项目的运行节点，标签为上面配置的<code>pod template</code>标签即<code>k8s-test-cluster</code>，执行<code>shell</code>命令进行测试，查看控制台输出</p>
+<figure data-type="image" tabindex="7"><img src="https://image.ssgeek.com/20210805-07.png" alt=""></figure>
+<h3 id="43-流水线构建测试">4.3 流水线构建测试</h3>
+<p>编写测试的<code>pipeline</code>流水线，同样指定标签为上面配置的<code>pod template</code>标签即<code>k8s-test-cluster</code></p>
+<pre><code class="language-groovy">pipeline{
+    agent{
+        node {
+            label 'k8s-test-cluster-jnlp-slave'
+        }
+    }
+    stages{
+        stage('Deploy to Kubernetes'){
+            steps{           
+                script{
+                  sh &quot;&quot;&quot;
+                      kubectl version
+                      kubectl get cs
+                  &quot;&quot;&quot;
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<p>构建后查看控制台输出</p>
+<figure data-type="image" tabindex="8"><img src="https://image.ssgeek.com/20210805-08.png" alt=""></figure>
+<p>到这里，基于不同基础环境下<code>jenkins</code>与<code>k8s</code>连接配置的相关操作就分享完啦</p>
+<p>See you ~</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/JgJeOdy01" class="tag">
+                    jenkins
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/rAjiCH60jX" class="tag">
+                    k8s
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/devops" class="tag">
+                    devops
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/golang-shu-ju-lei-xing-zhi-zhi-zhen">
+                  <h3 class="post-title">
+                    Golang数据类型之指针
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

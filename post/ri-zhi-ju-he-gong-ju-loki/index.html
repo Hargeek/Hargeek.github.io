@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>日志聚合工具loki | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">日志聚合工具loki</h2>
+            <div class="post-date">2019-09-25</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-loki%E6%98%AF%E4%BB%80%E4%B9%88">1、loki是什么</a></li>
+<li><a href="#2-loki%E7%89%B9%E7%82%B9">2、loki特点</a></li>
+<li><a href="#3-loki%E7%BB%84%E6%88%90">3、loki组成</a></li>
+<li><a href="#4-loki%E5%AE%89%E8%A3%85">4、loki安装</a>
+<ul>
+<li><a href="#41-%E6%B7%BB%E5%8A%A0helm%E7%9A%84chart%E5%BA%93">4.1、添加helm的chart库</a></li>
+<li><a href="#42-%E5%AE%89%E8%A3%85loki%E5%8F%8Apromtail">4.2、安装loki及promtail</a></li>
+<li><a href="#43-%E5%AE%89%E8%A3%85grafana">4.3、安装grafana</a></li>
+</ul>
+</li>
+<li><a href="#5-%E9%85%8D%E7%BD%AE%E5%92%8C%E4%BD%BF%E7%94%A8">5、配置和使用</a></li>
+<li><a href="#6-%E6%97%A5%E5%BF%97%E9%80%89%E6%8B%A9%E5%92%8C%E8%BF%87%E6%BB%A4">6、日志选择和过滤</a>
+<ul>
+<li><a href="#61-%E6%97%A5%E5%BF%97%E9%80%89%E6%8B%A9%E5%99%A8">6.1、日志选择器</a></li>
+<li><a href="#62-%E6%97%A5%E5%BF%97%E8%BF%87%E6%BB%A4%E5%99%A8">6.2、日志过滤器</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+😇封面图片来自于<a href="https://grafana.com/oss/loki#about">loki官网</a></p>
+<h2 id="1-loki是什么">1、loki是什么</h2>
+<p><a href="https://github.com/grafana/loki">Loki</a>是一个水平可扩展，高可用性，多租户的日志聚合系统，受到Prometheus的启发。它的设计非常经济高效且易于操作，因为它不会为日志内容编制索引，而是为每个日志流编制一组标签。官方介绍说到：Like Prometheus, but for logs.</p>
+<h2 id="2-loki特点">2、loki特点</h2>
+<p>与其他日志聚合系统相比，<code>Loki</code>：</p>
+<ul>
+<li>不对日志进行全文索引。通过存储压缩的非结构化日志和仅索引元数据，<code>Loki</code>操作更简单，运行更便宜。</li>
+<li>索引和组使用与<code>Prometheus</code>已使用的相同标签记录流，使您可以使用与<code>Prometheus</code>已使用的相同标签在指标和日志之间无缝切换。</li>
+<li>特别适合存放<code>Kubernetes Pod</code>日志; 诸如<code>Pod</code>标签之类的元数据会被自动删除和编入索引。</li>
+<li>在<code>Grafana</code>有本机支持（已经包含在Grafana 6.0或更新版本中）。</li>
+</ul>
+<h2 id="3-loki组成">3、loki组成</h2>
+<p>Loki由3个组成部分组成：</p>
+<ul>
+<li>loki 是主服务器，负责存储日志和处理查询。</li>
+<li>promtail 是代理，负责收集日志并将其发送给loki。</li>
+<li>用户界面的Grafana。</li>
+</ul>
+<h2 id="4-loki安装">4、loki安装</h2>
+<p><code>loki</code>的安装方式包含如下：使用官方的<code>docker</code>镜像单独运行、使用<code>helm</code>工具在<code>kubernetes</code>上安装、使用源码构建。<br>
+本文采用的方法是基于<code>kubernetes</code>环境使用<code>helm</code>安装。所以前提是需要有一个<code>kubernetes</code>环境并且安装好了<code>helm</code>。</p>
+<pre><code>[root@k8s-qa-master-01 ~]# helm version  
+Client: &amp;version.Version{SemVer:&quot;v2.14.3&quot;, GitCommit:&quot;0e7f3b6637f7af8fcfddb3d2941fcc7cbebb0085&quot;, GitTreeState:&quot;clean&quot;}
+Server: &amp;version.Version{SemVer:&quot;v2.14.3&quot;, GitCommit:&quot;0e7f3b6637f7af8fcfddb3d2941fcc7cbebb0085&quot;, GitTreeState:&quot;clean&quot;}
+[root@k8s-qa-master-01 ~]# helm repo list
+NAME    URL                                                   
+stable  https://kubernetes.oss-cn-hangzhou.aliyuncs.com/charts
+local   http://127.0.0.1:8879/charts
+</code></pre>
+<h3 id="41-添加helm的chart库">4.1、添加helm的chart库</h3>
+<pre><code>[root@k8s-qa-master-01 ~]# helm repo add loki https://grafana.github.io/loki/charts
+&quot;loki&quot; has been added to your repositories
+[root@k8s-qa-master-01 ~]# helm repo update
+Hang tight while we grab the latest from your chart repositories...
+...Skip local chart repository
+...Successfully got an update from the &quot;stable&quot; chart repository
+...Successfully got an update from the &quot;loki&quot; chart repository
+Update Complete.
+[root@k8s-qa-master-01 ~]# helm repo list
+NAME    URL                                                   
+stable  https://kubernetes.oss-cn-hangzhou.aliyuncs.com/charts
+local   http://127.0.0.1:8879/charts                          
+loki    https://grafana.github.io/loki/charts
+</code></pre>
+<h3 id="42-安装loki及promtail">4.2、安装loki及promtail</h3>
+<p>分为以下多种安装方式：</p>
+<ul>
+<li>默认安装</li>
+</ul>
+<pre><code>helm upgrade --install loki loki/loki-stack
+</code></pre>
+<ul>
+<li>自定义<code>namespaces</code>安装</li>
+</ul>
+<pre><code>helm upgrade --install loki --namespace=loki-stack loki/loki-stack
+</code></pre>
+<ul>
+<li>选择安装，只安装<code>loki</code>或只安装<code>promtail</code></li>
+</ul>
+<pre><code>helm upgrade --install loki loki/loki
+helm upgrade --install promtail loki/promtail --set &quot;loki.serviceName=loki&quot;
+</code></pre>
+<ul>
+<li>自定义配置安装</li>
+</ul>
+<p>方法一：在<code>helm</code>命令中使用<code>--set</code>参数覆盖默认<code>chart</code>中的配置或者是<code>chart</code>中子<code>chart</code>的配置。</p>
+<pre><code>helm upgrade --install loki loki/loki-stack --set &quot;key1=val1,key2=val2,...&quot;
+</code></pre>
+<p>方法二：只下载相应的<code>chart</code>包，下载后修改默认配置再安装。默认下载的<code>chart</code>包在~/.helm/cache/archive目录下，例如修改默认promtail收集日志的目录</p>
+<pre><code>[root@k8s-qa-master-01 archive]# pwd
+/root/.helm/cache/archive
+[root@k8s-qa-master-01 archive]# ls
+loki-stack-0.16.3.tgz
+[root@k8s-qa-master-01 archive]# tar xf loki-stack-0.16.3.tgz 
+[root@k8s-qa-master-01 archive]# vim loki-stack/charts/promtail/values.yaml
+···
+# Extra volumes to scrape logs from
+volumes:
+- name: docker
+  hostPath:
+    path: /data/docker/containers
+- name: pods
+  hostPath:
+    path: /var/log/pods
+
+volumeMounts:
+- name: docker
+  mountPath: /data/docker/containers
+  readOnly: false
+- name: pods
+  mountPath: /var/log/pods
+  readOnly: false
+···
+</code></pre>
+<p>修改完配置后进行安装</p>
+<pre><code>[root@k8s-qa-master-01 archive]# helm install ./loki-stack --name=loki --namespace=kube-system
+NAME:   loki
+LAST DEPLOYED: Wed Sep 25 14:29:07 2019
+NAMESPACE: kube-system
+STATUS: DEPLOYED
+
+RESOURCES:
+==&gt; v1/ClusterRole
+NAME                       AGE
+loki-promtail-clusterrole  42s
+
+==&gt; v1/ClusterRoleBinding
+NAME                              AGE
+loki-promtail-clusterrolebinding  42s
+
+==&gt; v1/ConfigMap
+NAME                  DATA  AGE
+loki-loki-stack-test  1     44s
+loki-promtail         1     44s
+
+==&gt; v1/DaemonSet
+NAME           DESIRED  CURRENT  READY  UP-TO-DATE  AVAILABLE  NODE SELECTOR  AGE
+loki-promtail  5        5        0      5           0          &lt;none&gt;         39s
+
+==&gt; v1/Pod(related)
+NAME                 READY  STATUS             RESTARTS  AGE
+loki-0               0/1    Running            0         37s
+loki-promtail-2lqzz  0/1    Running            0         36s
+loki-promtail-8rpdj  0/1    ContainerCreating  0         37s
+loki-promtail-h4lrm  0/1    Running            0         37s
+loki-promtail-mbjws  0/1    Running            0         37s
+loki-promtail-nj7k4  0/1    Running            0         36s
+
+==&gt; v1/Role
+NAME           AGE
+loki           41s
+loki-promtail  41s
+
+==&gt; v1/RoleBinding
+NAME           AGE
+loki           40s
+loki-promtail  40s
+
+==&gt; v1/Secret
+NAME  TYPE    DATA  AGE
+loki  Opaque  1     44s
+
+==&gt; v1/Service
+NAME           TYPE       CLUSTER-IP  EXTERNAL-IP  PORT(S)   AGE
+loki           ClusterIP  10.68.3.79  &lt;none&gt;       3100/TCP  39s
+loki-headless  ClusterIP  None        &lt;none&gt;       3100/TCP  40s
+
+==&gt; v1/ServiceAccount
+NAME           SECRETS  AGE
+loki           1        43s
+loki-promtail  1        42s
+
+==&gt; v1/StatefulSet
+NAME  READY  AGE
+loki  0/1    39s
+
+==&gt; v1beta1/PodSecurityPolicy
+NAME           PRIV   CAPS      SELINUX           RUNASUSER  FSGROUP    SUPGROUP  READONLYROOTFS  VOLUMES
+loki           false  RunAsAny  MustRunAsNonRoot  MustRunAs  MustRunAs  true      configMap,emptyDir,persistentVolumeClaim,secret
+loki-promtail  false  RunAsAny  RunAsAny          RunAsAny   RunAsAny   true      secret,configMap,hostPath
+
+
+NOTES:
+The Loki stack has been deployed to your cluster. Loki can now be added as a datasource in Grafana.
+
+See http://docs.grafana.org/features/datasources/loki/ for more detail.
+[root@k8s-qa-master-01 archive]# kubectl get pods -n kube-system|grep loki
+loki-0                                   1/1     Running   0          2m11s
+loki-promtail-2lqzz                      1/1     Running   0          2m10s
+loki-promtail-8rpdj                      1/1     Running   0          2m11s
+loki-promtail-h4lrm                      1/1     Running   0          2m11s
+loki-promtail-mbjws                      1/1     Running   0          2m11s
+loki-promtail-nj7k4                      1/1     Running   0          2m10s
+</code></pre>
+<h3 id="43-安装grafana">4.3、安装grafana</h3>
+<p>本步骤的前提是还没有安装<code>grafana</code>，如果在安装<code>loki</code>前已经安装好，此步骤可忽略<br>
+安装</p>
+<pre><code>helm install stable/grafana -n loki-grafana
+</code></pre>
+<p>获取<code>grafana</code>密码</p>
+<pre><code>kubectl get secret --namespace &lt;YOUR-NAMESPACE&gt; loki-grafana -o jsonpath=&quot;{.data.admin-password}&quot; | base64 --decode ; echo
+</code></pre>
+<p>访问<code>grafana</code>，开启端口转发</p>
+<pre><code>kubectl port-forward --namespace &lt;YOUR-NAMESPACE&gt; service/loki-grafana 3000:80
+</code></pre>
+<p>如果将Loki和Promtail部署在不同的群集上，则可以在Loki前面添加一个Ingress。通过添加证书，您可以创建一个https端点。为了提高安全性，请在Ingress上启用基本身份验证,可参考<a href="https://github.com/grafana/loki/tree/master/production/helm#run-loki-behind-https-ingress">地址</a></p>
+<h2 id="5-配置和使用">5、配置和使用</h2>
+<p>登录到<code>gfafana</code>,配置<code>loki</code>的数据源<br>
+<img src="https://image.ssgeek.com/20190925-02.png" alt=""><br>
+切换到<code>grafana</code>左侧区域的<code>Explore</code>，即可进入到<code>loki</code>的页面<br>
+<img src="https://image.ssgeek.com/20190925-03.png" alt=""><br>
+点击<code>Log labels</code>就可以把当前系统采集的日志标签给显示出来，可以根据这些标签进行日志的过滤查询,也可直接输入过滤表达式，如图所示，过滤出<code>container</code>名称为<code>jenkins</code>的日志<br>
+<img src="https://image.ssgeek.com/20190925-04.png" alt=""></p>
+<h2 id="6-日志选择和过滤">6、日志选择和过滤</h2>
+<h3 id="61-日志选择器">6.1、日志选择器</h3>
+<p>对于查询表达式的标签部分，将其用大括号括起来{}，然后使用键值语法选择标签。多个标签表达式用逗号分隔：</p>
+<pre><code>{app=&quot;mysql&quot;,name=&quot;mysql-backup&quot;}
+</code></pre>
+<p>当前支持以下标签匹配运算符：</p>
+<ul>
+<li>= 完全相等。</li>
+<li>!= 不相等。</li>
+<li>=~ 正则表达式匹配。</li>
+<li>!~ 不进行正则表达式匹配。</li>
+</ul>
+<p>例子：</p>
+<pre><code>{name=~&quot;mysql.+&quot;}
+{name!~&quot;mysql.+&quot;}
+</code></pre>
+<h3 id="62-日志过滤器">6.2、日志过滤器</h3>
+<p>编写日志流选择器后，您可以通过编写搜索表达式来进一步过滤结果。搜索表达式可以只是文本或正则表达式。<br>
+查询示例：</p>
+<pre><code>{job=&quot;mysql&quot;} |= &quot;error&quot;
+{name=&quot;kafka&quot;} |~ &quot;tsdb-ops.*io:2003&quot;
+{instance=~&quot;kafka-[23]&quot;,name=&quot;kafka&quot;} != kafka.server:type=ReplicaManager
+</code></pre>
+<p>过滤器运算符可以被链接，并将顺序过滤表达式-结果日志行将满足每个过滤器。例如：</p>
+<pre><code>{job=&quot;mysql&quot;} |= &quot;error&quot; != &quot;timeout&quot;
+</code></pre>
+<p>已实现以下过滤器类型：</p>
+<ul>
+<li>|= 行包含字符串。</li>
+<li>!= 行不包含字符串。</li>
+<li>|~ 行匹配正则表达式。</li>
+<li>!~ 行与正则表达式不匹配。<br>
+regex表达式接受RE2语法。默认情况下，匹配项区分大小写，并且可以将regex切换为不区分大小写的前缀(?i)。</li>
+</ul>
+<p>🙄更多内容可参考<a href="https://github.com/grafana/loki/blob/master/docs/querying.md#grafana">官方说明</a></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/51cdo70zQ" class="tag">
+                    日志
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/R79CtfP7Sj" class="tag">
+                    loki
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/P0QnFz0Xgz" class="tag">
+                    grafana
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/k8s-bao-guan-li-gong-ju-helm-jie-shao-he-an-zhuang">
+                  <h3 class="post-title">
+                    k8s包管理工具helm - 介绍和安装
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

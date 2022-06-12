@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Jenkins API+Pipeline深度实践之input的自动化 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Jenkins API+Pipeline深度实践之input的自动化</h2>
+            <div class="post-date">2021-03-24</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-pipeline-input%E6%A6%82%E8%BF%B0">1、pipeline input概述</a></li>
+<li><a href="#2-%E8%83%8C%E6%99%AF%E6%A6%82%E8%BF%B0">2、背景概述</a></li>
+<li><a href="#3-%E6%8E%A8%E7%90%86%E5%8F%8A%E6%B5%8B%E8%AF%95">3、推理及测试</a>
+<ul>
+<li><a href="#31-%E9%80%9A%E8%BF%87crumb%E5%AE%89%E5%85%A8%E6%93%8D%E4%BD%9Cjenkins">3.1 通过Crumb安全操作Jenkins</a></li>
+<li><a href="#32-%E9%80%9A%E8%BF%87token%E5%AE%89%E5%85%A8%E6%93%8D%E4%BD%9Cjenkins">3.2 通过Token安全操作Jenkins</a></li>
+<li><a href="#33-api%E6%93%8D%E4%BD%9C">3.3 API操作</a></li>
+<li><a href="#34-input%E7%9A%84%E6%94%B9%E9%80%A0">3.4 input的改造</a></li>
+</ul>
+</li>
+<li><a href="#4-%E8%87%AA%E5%8A%A8%E5%8C%96input%E7%9A%84%E6%9C%80%E7%BB%88%E5%AE%9E%E7%8E%B0">4、自动化input的最终实现</a></li>
+<li><a href="#5-%E5%B0%8F%E7%BB%93">5、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210324-02.jpg" alt=""></figure>
+<blockquote>
+<p>本文分享的小<code>Tips</code>是在我前面的文章<a href="https://www.ssgeek.com/post/devops-jian-she-zhi-ji-yu-ding-ding-oa-shen-pi-liu-de-zi-dong-hua-shang-xian/">DevOps建设之基于钉钉OA审批流的自动化上线</a>中提到的，当通过<code>API</code>自动触发<code>Jenkins Pipeline</code>流水线执行时，如果原来的流水线中定义了在构建正式开始后还需要接收用户<code>input</code>的步骤，想要自动绕过或自动执行<code>input</code>的方法</p>
+</blockquote>
+<h2 id="1-pipeline-input概述">1、pipeline input概述</h2>
+<p>首先回过头再来看看<code>pipeline input</code>的语法及功能，参考我之前总结的<a href="https://www.ssgeek.com/post/jenkinspipeline-yu-fa-gai-yao/#310-input"><code>pipeline input</code>语法</a></p>
+<p><code>input</code>指令<code>stage</code>允许使用<code>input step</code>提示输入。在<code>stage</code>将暂停任何后<code>options</code>已被应用，并在进入前<code>agent</code>块为<code>stage</code>或评估<code>when</code>的条件<code>stage</code>。如果<code>input</code>批准，<code>stage</code>则将继续。作为<code>input</code>提交的一部分提供的任何参数将在其余的环境中可用<code>stage</code>。</p>
+<p><strong>可选项</strong></p>
+<ul>
+<li>message<br>
+必需的，这将在用户提交时显示给用户<code>input</code></li>
+<li>id<br>
+可选标识符<code>input</code>，默认为<code>stage</code>名称</li>
+<li>ok<br>
+<code>input</code>表单上“确定”按钮的可选文本</li>
+<li>submitter<br>
+可选的逗号分隔列表，这些列表允许用户提交此用户或外部组名<code>input</code>。默认为允许任何用户。</li>
+<li>submitterParameter<br>
+环境变量的可选名称，用该<code>submitter</code>名称设置（如果存在）</li>
+<li>parameters<br>
+提示提交者提供的可选参数列表。请参阅<a href="https://www.jenkins.io/doc/book/pipeline/syntax/#parameters">Pipeline parameters</a>以获取更多信息</li>
+</ul>
+<h2 id="2-背景概述">2、背景概述</h2>
+<p>基于上面的语法描述，我这里线上发布流水线中<code>input</code>的功能仅仅是需要用户进行确认，所以没有传递任何参数，通过这种简单的<code>input</code>控制及<code>timeout</code>超时机制，实现了用户选择参数并点击开始构建后需要在60秒内二次确认的功能，流水线的部分内容如下</p>
+<pre><code class="language-groovy">stage('Deploy to prod'){
+    when {
+        environment name: 'PerformType', value: 'Deploy'
+    }
+    steps{
+        timeout(time:60, unit:'SECONDS') {
+        input &quot;确认要部署到线上环境吗？&quot;              
+            script{
+                try {
+                    ...
+                }
+                catch (exc) {
+                    ...
+                    throw(exc)
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<p>到这里问题就产生了，<code>input</code>的过程是在流水线运行过程中动态出现的，如果是想要在钉钉<code>OA</code>审批通过后自动通过调用<code>jenkins api</code>并传入参数让整个流水线自动执行，并且自动进行<code>input</code>的确认操作或者绕过<code>input</code>，应该怎么做呢？</p>
+<h2 id="3-推理及测试">3、推理及测试</h2>
+<p>刚开始没有任何思路，唯一想到的办法就是把<code>input</code>的过程从<code>pipeline</code>中去除掉，这样就没有任何烦恼了</p>
+<p>但是为了保留原有<code>pipeline</code>设计的完整性，显然这种做法不够友好，只是避开了这个难点，是不可取的</p>
+<p>通过查找发现这方面的资料很少，最终有用的资料如下</p>
+<ul>
+<li><a href="https://www.jenkins.io/doc/pipeline/steps/pipeline-input-step/">input官方说明</a></li>
+</ul>
+<p><code>input</code>语法中可选字段包含<code>id</code>，每个<code>input</code>步骤都有一个唯一的<code>ID</code>。在生成的<code>URL</code>中可以使用它来继续或中止</p>
+<p>例如，可以使用特定的<code>ID</code>来机械地响应来自某些外部过程/工具的输入</p>
+<ul>
+<li>https://www.thinbug.com/q/48799442</li>
+</ul>
+<p>这篇文章中讲到了如何通过<code>Jenkins REST API</code>恢复暂停的管道？作为参考起到了一定帮助</p>
+<p>为了完成整个自动化<code>input</code>的过程，具体的演进流程如下</p>
+<h3 id="31-通过crumb安全操作jenkins">3.1 通过Crumb安全操作Jenkins</h3>
+<p><code>Crumb</code>指的是<code>Jenkins</code>的<code>CSRF token</code>，<code>Jenkins</code>服务器为了阻止不安全的跨域请求，默认开启了<code>CSRF</code>保护，参考<a href="https://www.jenkins.io/doc/book/using/remote-access-api/"><code>Jenkins</code>远程<code>API</code>访问</a></p>
+<p><a href="https://www.jenkins.io/doc/book/managing/security/#cross-site-request-forgery"><code>Jenkins</code>的<code>CSRF</code>配置</a>可以在「系统管理」——&gt; 「全局安全配置」——&gt; 「CSRF Protection」相关配置中关闭此保护，跨站请求伪造这是一个很常见的安全问题，为了安全起见建议不关闭。如果关闭，这里的内容可以略过。</p>
+<p>当<code>Jenkins</code>开启<code>CSRF</code>保护后，可以通过固定的接口获得一个安全的<code>Crumb</code>以便于通过<code>API</code>操作<code>Jenkins</code>，以<code>curl</code>请求为例，请求的可选方式一般是两种，如下</p>
+<pre><code class="language-shell">方法一：
+curl -u &lt;username&gt;:&lt;password&gt; 'https://jenkins.ssgeek.com/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,&quot;:&quot;,//crumb)'
+Jenkins-Crumb:dc78dfb9615fb56bbf2001fb99c64dbd3331c5e14c8d4edd54722e7ca790529e%
+
+方法二：
+curl -u &lt;username&gt;:&lt;password&gt; 'https://jenkins.ssgeek.com/crumbIssuer/api/json'
+{&quot;_class&quot;:&quot;hudson.security.csrf.DefaultCrumbIssuer&quot;,&quot;crumb&quot;:&quot;52d605f43328f15303c2e68eb492b9656e229ce124c2f5f2e39b6f552f54e4ac&quot;,&quot;crumbRequestField&quot;:&quot;Jenkins-Crumb&quot;}%
+</code></pre>
+<p>以上两种方式都可以获取一个<code>Crumb</code>，然后就能带着它去请求<code>Jenkins</code>的<code>API</code>了</p>
+<pre><code class="language-shell">curl -u &lt;username&gt;:&lt;password&gt; -X POST -H &quot;Jenkins-Crumb:b220147dbdf3cfebbeba4c29048c2e33&quot; -d &lt;data&gt; 'https://jenkins.ssgeek.com/&lt;jenkins api url&gt;'
+</code></pre>
+<h3 id="32-通过token安全操作jenkins">3.2 通过Token安全操作Jenkins</h3>
+<p>在官方文档的描述中有这样一句话：API tokens are preferred instead of crumbs for CSRF protection.</p>
+<p>意为在开启了<code>CSRF</code>的情况下，首选的是通过<code>API token</code>操作而不是<code>crumb</code>，这里的<code>API token</code>指的就是<code>Jenkins</code>中用户的<code>API token</code></p>
+<p>可以通过「用户」——&gt; 「设置」——&gt; 「API Token」——&gt; 「添加新Token」来获得一个<code>api token</code>，有了这个<code>Token</code>之后，以<code>curl</code>请求为例操作<code>Jenkins</code>的<code>API</code>方式如下</p>
+<pre><code class="language-shell">curl -u user_id:user_api_token -X POST -d &lt;data&gt; 'https://jenkins.ssgeek.com/&lt;jenkins api url&gt;'
+</code></pre>
+<h3 id="33-api操作">3.3 API操作</h3>
+<p>参考上面的文档资料<a href="https://www.thinbug.com/q/48799442">使用Jenkins REST API恢复暂停的管道</a></p>
+<p>对于<code>input</code>有这样的<code>api</code>接口地址可以使用，用于将输入发送到等待的输入步骤。<code>url</code>格式如下</p>
+<pre><code class="language-shell">http://&lt;JenkinsURL&gt;/&lt;JobURL&gt;/&lt;Build＃&gt;/input/&lt;InputID&gt;/submit
+</code></pre>
+<p>需要满足的条件</p>
+<ul>
+<li>
+<p>如果<code>Jenkins</code>启用了<code>CSRF</code>保护，则您需要使用<code>Crumb</code>或<code>API Token</code></p>
+</li>
+<li>
+<p>请求通过<code>POST</code>方式发送</p>
+</li>
+<li>
+<p>需要提供参数名为<code>proceed</code>的值，并且以<code>OK</code>作为参数值</p>
+</li>
+<li>
+<p>为了提供数据，需要带有<code>json</code>格式的参数，这些参数就是在<code>input</code>阶段需要接收的参数，格式为</p>
+<pre><code class="language-json">{
+    &quot;parameter&quot;:[
+        {
+            &quot;name&quot;:&quot;param1&quot;,
+            &quot;value&quot;:&quot;valueOfParam1&quot;
+        },
+        {
+            &quot;name&quot;:&quot;param2&quot;,
+            &quot;value&quot;:&quot;valueOfParam2&quot;
+        }
+    ]
+}
+</code></pre>
+<p>如果没有发送有效的<code>json</code>参数，则流水线也将继续进行，只是不会获得任何参数（这也可能导致流水线最终执行失败），如果成功则返回<code>302</code>状态码并重定向到用户界面</p>
+</li>
+<li>
+<p>必须填写<code>input id</code>，因此要从外部连接到的<code>input</code>步骤配置唯一的<code>id</code></p>
+</li>
+<li>
+<p>也可以使用下面的url，如果流水线成功，则返回状态码为<code>200</code>且响应为空</p>
+<pre><code class="language-shell">http://&lt;Jenkins URL&gt;/job/&lt;YOUR_PROJECT&gt;/&lt;BUILD_NUMBER&gt;/wfapi/inputSubmit
+</code></pre>
+</li>
+</ul>
+<p>其他可用的<code>api</code>接口地址以及作用</p>
+<ul>
+<li>用于中止流水线</li>
+</ul>
+<pre><code class="language-shell">http://&lt;Jenkins URL&gt;/job/&lt;YOUR_PROJECT&gt;/&lt;BUILD_NUMBER&gt;/input/&lt;INPUT_ID&gt;/abort
+</code></pre>
+<ul>
+<li>不传入任何参数并继续进行流水线</li>
+</ul>
+<pre><code class="language-shell">http://&lt;Jenkins URL&gt;/job/&lt;YOUR_PROJECT&gt;/&lt;BUILD_NUMBER&gt;/input/&lt;INPUT_ID&gt;/proceedEmpty
+</code></pre>
+<p>对于本文中我的需求，只需要在<code>input</code>执行时自动确认且无需传入任何参数即可，因此使用的接口地址为上面的最后一种（其余接口地址未测试）</p>
+<h3 id="34-input的改造">3.4 input的改造</h3>
+<p>为了实现在<code>input</code>执行时自动确认，需要对流水线的<code>input</code>部分进行改造，加入一个固定的<code>id</code>即可</p>
+<p>由于定义的<code>id</code>都是固定的，因此可以利用脚本对所有的流水线涉及到这种<code>input</code>的部分批量更新，这里就不列出具体方法了</p>
+<p>最终我的流水线调整如下</p>
+<pre><code class="language-groovy">stage('Deploy to prod'){
+    when {
+        beforeInput true
+        environment name: 'PerformType', value: 'Deploy'
+    }
+    options {
+        timeout(time:60, unit:'SECONDS')
+    }
+    input {
+        message &quot;确认要部署到线上环境吗？&quot;
+        id &quot;CustomId&quot;
+    }
+    steps{
+        script{
+            try {
+                ...
+            }
+            catch (exc) {
+                ...
+                throw(exc)
+            }
+        }
+    }
+}
+</code></pre>
+<h2 id="4-自动化input的最终实现">4、自动化input的最终实现</h2>
+<p>经过上面的推理和测试，解决了通过<code>API</code>自动执行<code>input</code>进行流水线确认的问题</p>
+<p>这里还剩下最后一个问题，通过测试发现，想要自动执行<code>input</code>过程，其接口对应的<code>url</code>地址并不是一直存在的，而是在流水线执行开始后到达<code>input</code>的时候才会出现，出现时通过浏览器访问查看如下</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210324-01.png" alt=""></figure>
+<p>而其余时间发送请求都会返回<code>404</code>状态码，此时是无法接收<code>post</code>请求的，因此想要自动化执行<code>input</code>并不只是简单的向接口发送<code>POST</code>请求了</p>
+<p><strong>我这里的解决思路</strong>：</p>
+<p>在发送流水线开始执行的请求后，立即通过代码循环请求并判断接口地址返回的状态码是否是<code>200</code></p>
+<p>如果不是，那么表示流水线还没执行到这里；如果是，就可以完美的向这个地址发送自动执行的请求了</p>
+<p>以<code>python</code>语言调用<code>Jenkins api</code>为例，用到了<code>python-jenkins</code>这个包，在触发构建时使用<code>build_job</code>这个方法，这个方法返回值刚好是<code>job</code>任务的<code>build number</code>，这恰好是接口地址组成中需要的一部分</p>
+<p>好了，上最终的部分代码</p>
+<pre><code class="language-python">def auto_job_input(self, server_url, job_name, build_number):
+    &quot;&quot;&quot;
+    根据input阶段生成的url http状态码，判断当前job流水线运行的stage否进行到了input步骤
+    自动执行input or 继续判断
+    :param job_name:
+    :param build_number:
+    :return:
+    &quot;&quot;&quot;
+    # https://jenkins.ssgeek.com/job/input-demo/64/input
+    get_url = server_url + &quot;/job/&quot; + job_name + &quot;/&quot; + str(build_number) + &quot;/input&quot;
+    # https://jenkins.ssgeek.com/job/input-demo/64/input/CustomId/proceedEmpty
+    post_url = get_url + &quot;/CustomId/proceedEmpty&quot;
+    s = requests.Session()
+    res_code_get = s.get(url=get_url, auth=('user_id', 'user_token')).status_code
+    while res_code_get != 200:
+        res_code_get = s.get(url=get_url, auth=('user_id', 'user_token')).status_code
+    res_code_post = s.post(url=post_url, auth=('user_id', 'user_token'), data=None).status_code
+    return res_code_post
+</code></pre>
+<p>关键部分代码量很少，利用<code>request</code>并且携带认证参数进行请求，如果有大佬有更好的方案欢迎与我交流</p>
+<h2 id="5-小结">5、小结</h2>
+<p>到这里，通过一步步推理演进，在流水线中<code>input</code>的自动化执行就完美实现了，最终既实现了调用<code>api</code>触发自动构建并执行<code>input</code>进行自动确认，同时也保留了原流水线的<code>input</code>设计，对原有流水线只需要做很小的调整。</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/JgJeOdy01" class="tag">
+                    jenkins
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/vhKLQmmvn" class="tag">
+                    python
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/devops" class="tag">
+                    devops
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/skywalking-lian-lu-zhui-zong-xi-tong-bu-shu-pian">
+                  <h3 class="post-title">
+                    SkyWalking链路追踪系统-部署篇
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

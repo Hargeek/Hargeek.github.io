@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>基于k8s Ingress Nginx+OAuth2+Gitlab无代码侵入实现自定义服务的外部验证 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">基于k8s Ingress Nginx+OAuth2+Gitlab无代码侵入实现自定义服务的外部验证</h2>
+            <div class="post-date">2021-01-27</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-oauth%E5%92%8Coauth20%E4%BB%8B%E7%BB%8D">1、OAuth和OAuth2.0介绍</a></li>
+<li><a href="#2-%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF">2、应用场景</a></li>
+<li><a href="#3-oauth2-proxy%E4%BB%8B%E7%BB%8D">3、oauth2 proxy介绍</a></li>
+<li><a href="#4-%E5%85%B7%E4%BD%93%E5%AE%9E%E7%8E%B0">4、具体实现</a>
+<ul>
+<li><a href="#41-%E5%9C%A8gitlab%E9%85%8D%E7%BD%AEopenid%E5%BA%94%E7%94%A8">4.1 在Gitlab配置OpenID应用</a></li>
+<li><a href="#42-%E7%94%9F%E6%88%90cookie%E5%AF%86%E9%92%A5">4.2 生成Cookie密钥</a></li>
+<li><a href="#43-%E9%83%A8%E7%BD%B2oauth2-proxy">4.3 部署oauth2-proxy</a></li>
+<li><a href="#44-%E5%88%9B%E5%BB%BA%E6%B5%8B%E8%AF%95%E5%BA%94%E7%94%A8%E5%B9%B6%E9%85%8D%E7%BD%AEingress">4.4 创建测试应用并配置Ingress</a></li>
+<li><a href="#45-%E6%B5%8B%E8%AF%95%E5%A4%96%E9%83%A8%E8%AE%A4%E8%AF%81">4.5 测试外部认证</a></li>
+<li><a href="#46-%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90">4.6 流程分析</a></li>
+</ul>
+</li>
+<li><a href="#5-%E6%80%BB%E7%BB%93">5、总结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-oauth和oauth20介绍">1、OAuth和OAuth2.0介绍</h2>
+<p><code>OAuth</code>是一种授权机制。数据的所有者告诉系统，同意授权第三方应用进入系统，获取这些数据。系统从而产生一个短期的进入令牌<code>token</code>，用来代替密码，供第三方应用使用。</p>
+<p><code>OAuth 2.0</code>是用于授权的行业标准协议。<code>OAuth 2.0</code>致力于简化客户端开发人员的工作，同时为<code>Web</code>应用程序，桌面应用程序，移动电话和客厅设备提供特定的授权流程。</p>
+<p><code>OAuth 2.0</code>是目前最流行的授权机制，用来授权第三方应用，获取用户数据。</p>
+<h2 id="2-应用场景">2、应用场景</h2>
+<p>很多情况下，许多应用程序不提供内置的身份验证或开箱即用的访问控制。由于这些应用程序处理的敏感数据，这可能是一个主要问题，通常有必要提供某种类型的安全性。基于<code>k8s</code>部署的一些服务，并没有自身的访问认证控制机制。例如我们部署一个用于公司内部使用的<code>web</code>应用，又不想做基于统一账号<code>SSO</code>的认证功能的开发，但是又想在用户访问时加上一层认证功能。这类情况的解决思路一般是在访问入口，例如<code>Ingress</code>上添加一层访问认证，可以借助于<code>basic auth</code>实现此功能，但<code>basic auth</code>存在过于简单、账号权限不好控制、需要手动维护等诸多问题。</p>
+<p>于是另外一种相对更为成功的解决办法是使<code>Ingress</code>通过<code>OAuth</code>对接到能够提供支持<code>oauth</code>认证的外部服务，例如<code>github</code>、<code>gitlab</code>。这种方式没有对应用程序的代码侵入，仅仅在应用入口添加了配置。</p>
+<p>除了上述我描述的这个应用场景，还有很多可以利用<code>oauth</code>轻松实现认证的场景。</p>
+<h2 id="3-oauth2-proxy介绍">3、oauth2 proxy介绍</h2>
+<p><code>oauth2 proxy</code>是一个反向代理和静态文件服务器，使用提供程序（<code>Google</code>，<code>GitHub</code>和其他提供商）提供身份验证，以通过电子邮件，域或组验证帐户。</p>
+<p>项目地址：https://github.com/oauth2-proxy/oauth2-proxy</p>
+<p>认证过程的流程如下</p>
+<img src="https://image.ssgeek.com/20210127-01.png" style="zoom:67%;" />
+<h2 id="4-具体实现">4、具体实现</h2>
+<p>实验环境：</p>
+<ul>
+<li>k8s 1.15.0</li>
+<li>Ingress nginx 0.25.0</li>
+<li>gitlab 13.7.4</li>
+</ul>
+<h3 id="41-在gitlab配置openid应用">4.1 在Gitlab配置OpenID应用</h3>
+<p>登录到<code>Gitlab</code>—&gt;管理中心—&gt;应用，创建一个应用</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210127-02.png" alt=""></figure>
+<p>参数：</p>
+<ul>
+<li>回调URL：指<code>GitLab</code>在用户通过身份验证后应将其发送到的端点，对于<code>oauth2-proxy</code>应该是<code>https://&lt;应用域名&gt;/oauth2/callback</code></li>
+<li>范围：应用程序对<code>GitLab</code>用户配置文件的访问级别。对于大多数应用程序，选择<code>openid</code>，<code>profile</code>和<code>email</code>即可。</li>
+</ul>
+<p>创建完应用后，会生成一对<code>ID</code>和密钥，这个在后面会用到。</p>
+<h3 id="42-生成cookie密钥">4.2 生成Cookie密钥</h3>
+<p>生成<code>Cookie</code>密钥。该<a href="https://oauth2-proxy.github.io/oauth2-proxy/docs/configuration/overview/">Cookie密钥</a>作为种子字符串以产生<a href="https://en.wikipedia.org/wiki/Secure_cookie">安全的cookie</a>。</p>
+<p>参考官方说明，使用<code>base64</code>编码，可利用以下的<code>python</code>脚本生成字符串。</p>
+<pre><code class="language-python">import secrets
+import base64
+
+print(base64.b64encode(base64.b64encode(secrets.token_bytes(16))))
+</code></pre>
+<h3 id="43-部署oauth2-proxy">4.3 部署oauth2-proxy</h3>
+<p>在<code>k8s</code>中部署<code>oauth-proxy</code>，资源清单<code>oauth2-gitlab.yaml</code>和相关参数说明如下。更多的配置参数，可以参考<a href="https://oauth2-proxy.github.io/oauth2-proxy/docs/configuration/overview">官方文档</a></p>
+<pre><code class="language-yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    k8s-app: oauth2-proxy
+  name: oauth2-proxy
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: oauth2-proxy
+  template:
+    metadata:
+      labels:
+        k8s-app: oauth2-proxy
+    spec:
+      containers:
+      - name: oauth2-proxy
+        image: quay.io/oauth2-proxy/oauth2-proxy:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 4180
+          protocol: TCP
+        args:
+        # OAuth提供者
+        - --provider=gitlab
+        # 上游端点的http网址
+        - --upstream=file:///dev/null
+        # 对具有指定域的电子邮件进行身份验证，可以多次给出，使用*验证任何电子邮件
+        - --email-domain=*
+        # 监听的地址
+        - --http-address=0.0.0.0:4180
+        # 设置安全（仅HTTPS）cookie标志
+        - --cookie-secure=false
+        # OAuth重定向URL
+        - --redirect-url=https://nginx-test.ssgeek.com/oauth2/callback
+        # 跳过登录页面直接进入下一步
+        - --skip-provider-button=false
+        # 设置X-Auth-Request-User，X-Auth-Request-Email和X-Auth-Request-Preferred-Username响应头（在Nginx auth_request模式下有用）。与结合使用时--pass-access-token，会将X-Auth-Request-Access-Token添加到响应标头中
+        - --set-xauthrequest=true
+        # 跳过OPTIONS请求的身份验证
+        - --skip-auth-preflight=false
+        # 绕过OIDC端点发现
+        - --skip-oidc-discovery
+        # OpenID Connect发行者url，这里是gitlab的url
+        - --oidc-issuer-url=https://gitlab.ssgeek.com
+        # 认证url
+        - --login-url=https://gitlab.ssgeek.com/oauth/authorize
+        # token url
+        - --redeem-url=https://gitlab.ssgeek.com/oauth/token
+        # 用于令牌验证的url
+        - --oidc-jwks-url=https://gitlab.ssgeek.com/oauth/discovery/keys
+        env:
+        - name: OAUTH2_PROXY_CLIENT_ID
+          value: '85945b7195ab109377183837b9221bd299bc64b31fe272304a1c777e8e241d83'
+        - name: OAUTH2_PROXY_CLIENT_SECRET
+          value: '2f9782928b493686f387d18db9138e92607448cef045c81319967cc3e5ce4ba1'
+         # 安全cookie的种子字符串，可通过python脚本生成
+        - name: OAUTH2_PROXY_COOKIE_SECRET
+          value: 'VGlYNVBVOGw4UFgyRURzbERxVTRiZz09'
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    k8s-app: oauth2-proxy
+  name: oauth2-proxy
+  namespace: kube-system
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 4180
+    protocol: TCP
+    targetPort: 4180
+    nodePort: 30020
+  selector:
+    k8s-app: oauth2-proxy
+</code></pre>
+<p>应用上面的资源清单，创建<code>deployment</code>和<code>service</code></p>
+<pre><code class="language-shell">$ kubectl apply -f oauth2-gitlab.yaml
+$ kubectl -n kube-system get pods -l k8s-app=oauth2-proxy 
+NAME                           READY   STATUS    RESTARTS   AGE
+oauth2-proxy-884695869-bkwns   1/1     Running   0          113s
+</code></pre>
+<p>上面通过<code>nodeport</code>单独暴露了<code>oauth2-proxy</code>应用，可以访问检查以确保浏览器可以正常打开</p>
+<img src="https://image.ssgeek.com/20210127-04.png" style="zoom:67%;" />
+<h3 id="44-创建测试应用并配置ingress">4.4 创建测试应用并配置Ingress</h3>
+<p>资源清单文件<code>nginx.yaml</code>如下，其中为该<code>nginx</code>应用配置了<code>https</code>证书</p>
+<pre><code class="language-yaml">apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - image: nginx:1.15
+        imagePullPolicy: IfNotPresent
+        name: nginx
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  namespace: kube-system
+spec:
+  selector:
+    app: nginx
+  ports:
+  - name: nginx
+    port: 80
+    targetPort: 80
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nginx
+  namespace: kube-system
+  annotations:
+    kubernetes.io/ingress.class: &quot;nginx&quot;
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    # 指定外部认证url
+    nginx.ingress.kubernetes.io/auth-url: &quot;https://$host/oauth2/auth&quot;
+    # 指定外部认证重定向的地址
+    nginx.ingress.kubernetes.io/auth-signin: &quot;https://$host/oauth2/start?rd=$escaped_request_uri&quot;
+    nginx.ingress.kubernetes.io/force-ssl-redirect: &quot;true&quot;
+    nginx.ingress.kubernetes.io/secure-backends: &quot;true&quot;
+    nginx.ingress.kubernetes.io/ssl-passthrough: &quot;true&quot;
+    nginx.ingress.kubernetes.io/ssl-redirect: &quot;true&quot;
+spec:
+  tls:
+  - hosts:
+    - nginx-test.ssgeek.com
+    secretName: nginx-test
+  rules:
+    - host: nginx-test.ssgeek.com
+      http:
+        paths:
+        - path: /
+          backend:
+            serviceName: nginx
+            servicePort: 80
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: &quot;nginx&quot;
+    # 将nginx应用的访问请求跳转到oauth2-proxy组件url
+    nginx.ingress.kubernetes.io/rewrite-target: &quot;/oauth2&quot;
+    nginx.ingress.kubernetes.io/force-ssl-redirect: &quot;true&quot;
+    nginx.ingress.kubernetes.io/secure-backends: &quot;true&quot;
+    nginx.ingress.kubernetes.io/ssl-passthrough: &quot;true&quot;
+    nginx.ingress.kubernetes.io/ssl-redirect: &quot;true&quot;
+  name: nginx-oauth2
+  namespace: kube-system
+spec:
+  tls:
+  - hosts:
+    - nginx-test.ssgeek.com
+    secretName: nginx-test
+  rules:
+  - host: nginx-test.ssgeek.com
+    http:
+      paths:
+      - path: /oauth2
+        backend:
+          serviceName: oauth2-proxy
+          servicePort: 4180
+</code></pre>
+<p>应用上面的资源清单，创建相应资源</p>
+<pre><code class="language-shell">$ kubectl apply -f other/nginx.yaml
+deployment.extensions/nginx unchanged
+service/nginx unchanged
+ingress.extensions/nginx unchanged
+ingress.extensions/nginx-oauth2 unchanged
+$ kubectl -n kube-system get po,svc,ing |grep nginx                        
+pod/nginx-5ddcc6cb74-rnjlx                    1/1     Running   0          3m
+
+service/nginx                     ClusterIP   10.68.199.62    &lt;none&gt;        80/TCP                      3m
+
+ingress.extensions/nginx               nginx-test.ssgeek.com             80, 443   3m
+ingress.extensions/nginx-oauth2        nginx-test.ssgeek.com             80, 443   3m
+</code></pre>
+<h3 id="45-测试外部认证">4.5 测试外部认证</h3>
+<p>通过访问上面部署的<code>nginx</code>应用，在浏览器中进行测试，会被重定向到<code>Gitlab</code>登录页面；</p>
+<p>输入账号，正确登录后，会被重定向回<code>nginx</code>应用。</p>
+<img src="https://image.ssgeek.com/20210127-03.gif" style="zoom:67%;" />
+<h3 id="46-流程分析">4.6 流程分析</h3>
+<p>在请求登录外部认证的过程中查看<code>oauth2-proxy</code>的日志如下</p>
+<pre><code class="language-shell">172.16.1.110:49976 - - [2021/01/23 17:28:23] nginx-test.ssgeek.com GET - &quot;/oauth2/auth&quot; HTTP/1.1 &quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.2 Safari/605.1.15&quot; 401 21 0.000
+172.16.1.110:9991 - - [2021/01/23 17:28:23] nginx-test.ssgeek.com GET - &quot;/oauth2/start?rd=%2F&quot; HTTP/1.1 &quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.2 Safari/605.1.15&quot; 302 341 0.000
+172.16.1.110:9991 - admin@example.com [2021/01/23 17:28:32] [AuthSuccess] Authenticated via OAuth2: Session{email:admin@example.com user:root PreferredUsername: token:true id_token:true created:2021-01-23 17:28:32.440915913 +0000 UTC m=+2248.944621207 expires:2021-01-23 17:30:32 +0000 UTC refresh_token:true}
+172.16.1.110:9991 - - [2021/01/23 17:28:32] nginx-test.ssgeek.com GET - &quot;/oauth2/callback?code=9b7f5425d48a41f213065a4ff5b3d20d76e6d241ba753c5cd63d1a405f48818e&amp;state=5d868b96b1f539a28da2291404152b7c%3A%2F&quot; HTTP/1.1 &quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.2 Safari/605.1.15&quot; 302 24 0.381
+172.16.1.110:5610 - admin@example.com [2021/01/23 17:28:32] nginx-test.ssgeek.com GET - &quot;/oauth2/auth&quot; HTTP/1.1 &quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.2 Safari/605.1.15&quot; 202 0 0.000
+</code></pre>
+<ul>
+<li>
+<p>访问<code>nginx</code>应用的时候，<code>Ingress nginx controller</code>会向定义的<code>auth-url</code>发起认证，该认证由<code>Ingress nginx controller</code>发起，所以<code>Ingress nginx controller</code>对应的<code>pod</code>必须能够访问<code>auth-url</code>。</p>
+</li>
+<li>
+<p>如果认证没有通过，<code>Ingress nginx controller</code>将客户端重定向到<code>auth-signin</code>。<code>auth-signin</code>是目标应用的 <code>oauth2</code>登录页面即<code>oauth2-proxy</code>。</p>
+</li>
+<li>
+<p>客户端被重定向到<code>oauth2</code>登录页面后，自动进入<code>Gitlab</code>的登录页面，</p>
+<p>用户登录<code>Gitlab</code>后，<code>Gitlab</code>再将客户端重定向到在<code>Gitlab</code>中配置的应用回调地址。</p>
+</li>
+<li>
+<p>客户端访问回调地址后，<code>oauth2_proxy</code>在客户端设置<code>cookie</code>，并将客户端重定向到最初的访问地址。</p>
+</li>
+<li>
+<p>带有<code>cookie</code>的客户端再次访问目标应用时，通过了<code>auth-url</code>的认证，成功访问到目标服务即<code>nginx</code>应用。</p>
+</li>
+</ul>
+<h2 id="5-总结">5、总结</h2>
+<p>本文以基于<code>k8s</code>部署的<code>nginx</code>服务为例，记录如何通过<code>ingress</code>和<code>oauth2 proxy</code>对接<code>gitlab</code>实现对应用没有代码侵入的外部认证。</p>
+<p>最后，还要提到的一点是，我这里一开始使用的<code>Gitlab</code>是已有的<code>10.8.4</code>版本，调试了关于<code>Oauth2-proxy</code>的很多参数一直不成功，也没有找到解决办法，但是按照官方的配置与<code>github</code>对接时却没有报任何异常。最终通过提交<code>issue</code>得到了可能原因，即<code>Gitlab</code>的<code>API</code>版本可能不兼容，<code>oauth2-proxy</code>的开发测试成功版本的<code>Gitlab</code>在<code>12.x</code>版本以上。详情可参考我提交的<a href="https://github.com/oauth2-proxy/oauth2-proxy/issues/994">issue</a>。</p>
+<p>See you ~</p>
+<p>参考文档：</p>
+<blockquote>
+<p>https://oauth.net/2/</p>
+<p>https://kubernetes.github.io/ingress-nginx/examples/auth/oauth-external-auth/</p>
+<p>https://oauth2-proxy.github.io/oauth2-proxy/docs/</p>
+</blockquote>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/vc0wdkGoK" class="tag">
+                    ingress
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/UbW18jYN8" class="tag">
+                    gitlab
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/jenkins-workflowlibs-ku-de-shi-miao-yong">
+                  <h3 class="post-title">
+                    Jenkins workflowLibs库的使(妙)用
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

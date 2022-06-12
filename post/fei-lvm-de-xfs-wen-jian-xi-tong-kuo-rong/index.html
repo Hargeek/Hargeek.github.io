@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>非LVM的xfs文件系统扩容 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">非LVM的xfs文件系统扩容</h2>
+            <div class="post-date">2021-05-21</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-lvm%E7%9A%84%E7%94%B1%E6%9D%A5">1、LVM的由来</a></li>
+<li><a href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E7%94%A8lvm">2、为什么不用LVM</a></li>
+<li><a href="#3-%E6%89%A9%E5%AE%B9%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B">3、扩容操作流程</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-lvm的由来">1、LVM的由来</h2>
+<p><code>LVM</code>（Logical Volume Manager），即逻辑卷管理，它是<code>Linux</code>环境下对磁盘分区进行管理的一种机制</p>
+<p>一般来说，物理磁盘或分区之间是分隔的，数据无法跨盘或分区，而各磁盘或分区的大小固定，重新调整比较麻烦。<code>LVM</code>的出现就是将这些底层的物理磁盘或分区整合起来，抽象成容量资源池，以划分成逻辑卷的方式供上层使用，其最主要的功能即是可以在无需关机、无需重新格式化的情况下弹性调整逻辑卷的大小（准确地说，原来的部分无需格式化，只格式化新增的部分）</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210521-01.png" alt=""></figure>
+<p>由此可见，<code>LVM</code>给磁盘管理带来了很大的便利性</p>
+<h2 id="2-为什么不用lvm">2、为什么不用LVM</h2>
+<p>现如今，在虚拟化、公有云盛行的时代，有了更强大的底层平台支持，就不需要再基于每一块硬盘去操作维护<code>LVM</code>了，因为有了虚拟化、公有云、分布式存储等等多种可对底层存储硬盘操作的方式，例如公有云服务器如果想扩容，只需要在用户控制台界面上直接扩容云硬盘即可。虚拟化平台也是一样，只需要在虚拟机配置界面增加硬盘大小即可。至于底层由多少块硬盘、总共有多大的存储池，一般是不需要关心的</p>
+<p>因此，如果基于私有云自建虚拟化平台、或是公有云平台创建的服务器再去做<code>LVM</code>，就没有必要了</p>
+<p>另外一方面，存储扩容方便时，对挂载的硬盘做逻辑分区也是没有必要的了</p>
+<p>我们只需要</p>
+<pre><code class="language-shell">添加硬盘——&gt;格式化文件系统——&gt;挂载到服务器挂载点
+
+or
+
+扩容硬盘——&gt;扩容服务器磁盘
+</code></pre>
+<h2 id="3-扩容操作流程">3、扩容操作流程</h2>
+<p>本文记录的是<code>CentOS 7</code>非<code>LVM</code>的<code>xfs</code>文件系统下对硬盘扩容的操作流程，底层虚拟化平台是<code>VMware ESXi</code>，具体操作如下</p>
+<p>查看当前磁盘大小，<code>/dev/sdb</code>的存储总量是<code>20G</code>，是直接挂载的一块数据盘</p>
+<pre><code class="language-shell"># df -h
+Filesystem               Size  Used Avail Use% Mounted on
+...
+/dev/sdb                  20G   33M   20G   1% /mnt
+</code></pre>
+<p>首先停掉对挂载点<code>/mnt</code>有读写的服务或程序，卸载磁盘</p>
+<pre><code class="language-shell"># umount /mnt
+</code></pre>
+<p>关机扩容，扩容后再重新开机（新加磁盘时可以热添加新磁盘，这里是扩容操作，由于已有数据为了降低风险关机后进行操作）</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210521-02.png" alt=""></figure>
+<p>开机后，可以对磁盘设备进行一下文件系统的修复</p>
+<pre><code class="language-shell"># xfs_repair /dev/sdb 
+Phase 1 - find and verify superblock...
+Phase 2 - using internal log
+        - zero log...
+        - scan filesystem freespace and inode maps...
+        - found root inode chunk
+Phase 3 - for each AG...
+        - scan and clear agi unlinked lists...
+        - process known inodes and perform inode discovery...
+        - agno = 0
+        - agno = 1
+        - agno = 2
+        - agno = 3
+        - process newly discovered inodes...
+Phase 4 - check for duplicate blocks...
+        - setting up duplicate extent list...
+        - check for inodes claiming duplicate blocks...
+        - agno = 0
+        - agno = 2
+        - agno = 3
+        - agno = 1
+Phase 5 - rebuild AG headers and trees...
+        - reset superblock...
+Phase 6 - check inode connectivity...
+        - resetting contents of realtime bitmap and summary inodes
+        - traversing filesystem ...
+        - traversal finished ...
+        - moving disconnected inodes to lost+found ...
+Phase 7 - verify and correct link counts...
+done
+</code></pre>
+<p>扩容磁盘，<code>xfs_growfs</code>针对<code>xfs</code>文件系统，<code>resize2fs</code>针对<code>ext2</code>、<code>ext3</code>、<code>ext4</code> 文件系统</p>
+<pre><code class="language-shell"># xfs_growfs /dev/sdb 
+meta-data=/dev/sdb               isize=512    agcount=4, agsize=1310720 blks
+         =                       sectsz=512   attr=2, projid32bit=1
+         =                       crc=1        finobt=0 spinodes=0
+data     =                       bsize=4096   blocks=5242880, imaxpct=25
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0 ftype=1
+log      =internal               bsize=4096   blocks=2560, version=2
+         =                       sectsz=512   sunit=0 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+data blocks changed from 5242880 to 13107200
+</code></pre>
+<p>重新挂载</p>
+<pre><code class="language-shell"># mount /dev/sdb /mnt/
+</code></pre>
+<p>检查</p>
+<pre><code class="language-shell"># lsblk /dev/sdb
+NAME MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
+sdb    8:16   0  50G  0 disk /mnt
+# df -h|grep /mnt    
+/dev/sdb                  50G   33M   50G   1% /mnt
+</code></pre>
+<p>查看目录下原有的数据，没有问题，至此扩容完成</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/linux" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/k8s-sheng-chan-shi-jian-zhi-huo-qu-ke-hu-duan-zhen-shi-ip">
+                  <h3 class="post-title">
+                    k8s生产实践之获取客户端真实IP
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

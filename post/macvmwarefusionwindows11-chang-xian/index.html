@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Mac + VMware Fusion + Windows 11尝鲜 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Mac + VMware Fusion + Windows 11尝鲜</h2>
+            <div class="post-date">2021-10-29</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E9%97%B2%E8%81%8A%E7%AF%87">1、闲聊篇</a></li>
+<li><a href="#2-%E8%BD%AF%E4%BB%B6%E7%89%88%E6%9C%AC%E8%AF%B4%E6%98%8E">2、软件版本说明</a></li>
+<li><a href="#3-%E5%AE%89%E8%A3%85vmware-fusion">3、安装VMware Fusion</a></li>
+<li><a href="#4-%E5%AE%89%E8%A3%85windows-11">4、安装Windows 11</a>
+<ul>
+<li><a href="#41-%E6%96%B0%E5%BB%BA%E8%99%9A%E6%8B%9F%E6%9C%BA">4.1 新建虚拟机</a></li>
+<li><a href="#42-%E8%99%9A%E6%8B%9F%E6%9C%BA%E8%AE%BE%E7%BD%AE">4.2 虚拟机设置</a></li>
+<li><a href="#43-%E5%AE%89%E8%A3%85%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F">4.3 安装操作系统</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20211029-01.png" alt=""></figure>
+<h2 id="1-闲聊篇">1、闲聊篇</h2>
+<p>从有印象接触所谓 “<strong>操作系统</strong>” 的概念开始，大一就将属于我的第一台电脑（联想<code>G510</code>）换成了<code>Windows 10</code>操作系统，如今<code>Windows 10</code>已经和<code>Windows 7</code>一样，都已成为或将成为过去式了</p>
+<p><code>Windows 11</code>于<code>10</code>月<code>5</code>日正式推出，因此即使在成为果粉之后，仍旧怀着好奇的心情，当然也是要安装来玩一玩的</p>
+<p><code>VMware Fusion</code>和<code>Parallel Desktop</code>都是<code>macOS</code>下成熟的虚拟化方案。出于对<code>VMware</code>系列产品<code>Workstation</code>、<code>Fusion</code>、<code>Hypervisor(ESXi)</code>、<code>vSphere</code>、<code>VCSA</code>、<code>vCenter</code>、<code>Tanzu</code>等多个产品的使用，我选择的是更熟悉的<code>VMware Fusion</code>。相比之下，前者面向个人用户可以免费使用</p>
+<h2 id="2-软件版本说明">2、软件版本说明</h2>
+<p>我采用的硬件及软件说明如下</p>
+<ul>
+<li>
+<p>硬件及操作系统：Mac mini (2018)</p>
+<ul>
+<li>CPU：Intel i7-8700B 6 cores (12 threads)</li>
+<li>Memory：32GB DDR4</li>
+<li>mac操作系统：macOS Monterey 12.0.1 正式版（目前最新）</li>
+</ul>
+</li>
+<li>
+<p>虚拟化软件：VMware Fusion 12.2.0专业版（目前最新）</p>
+</li>
+<li>
+<p>Windows操作系统：Win11官网的纯净版Win11_Chinese(Simplified)_x64（目前最新）</p>
+<p>下载地址：<a href="https://www.microsoft.com/zh-cn/software-download/windows11">https://www.microsoft.com/zh-cn/software-download/windows11</a></p>
+</li>
+</ul>
+<h2 id="3-安装vmware-fusion">3、安装VMware Fusion</h2>
+<p>首先需要安装虚拟化软件<code>VMware Fusion</code>，安装过程这里就省略了</p>
+<img src="https://image.ssgeek.com/20211029-02.png" style="zoom: 33%;" />
+<p>安装完成后配置一块用来设置静态网卡的虚拟网卡，用于给虚拟机设置静态<code>ip</code>，当然也可以选择默认的动态<code>dhcp</code>模式</p>
+<img src="https://image.ssgeek.com/20211029-03.png" style="zoom: 33%;" />
+<h2 id="4-安装windows-11">4、安装Windows 11</h2>
+<h3 id="41-新建虚拟机">4.1 新建虚拟机</h3>
+<p>打开<code>VMware Fusion</code>，选择新建虚拟机并选择下载好的<code>Win 11</code>的镜像<code>ISO</code>文件</p>
+<img src="https://image.ssgeek.com/20211029-04.png" style="zoom: 33%;" />
+<p>选择操作系统，选择<code>Windows 10</code>及更高版本<code>64</code>位</p>
+<p>指定引导固件，选择传统<code>UEFI</code></p>
+<h3 id="42-虚拟机设置">4.2 虚拟机设置</h3>
+<p>接着自定义虚拟机设置，这里为虚拟机设置<code>4</code>核<code>CPU</code>和<code>8GB</code>内存，虚拟磁盘大小设置为默认的<code>60GB</code></p>
+<img src="https://image.ssgeek.com/20211029-05.png" style="zoom: 33%;" />
+<p>关于硬件要求，在官网有相应的<a href="https://www.microsoft.com/zh-cn/windows/windows-11-specifications">Windows 11系统要求说明</a></p>
+<img src="https://image.ssgeek.com/20211029-06.png" style="zoom: 50%;" />
+<p>这里要提到的是，除了常规的要求说明之外，这里要求<strong>受信任的平台模块TPM</strong>为<code>2.0</code>版本，可以参考<a href="https://docs.microsoft.com/zh-cn/windows/security/information-protection/tpm/trusted-platform-module-overview">受信任的平台模块技术</a></p>
+<p>简单来说，受信任的平台模块 (<code>TPM</code>) 技术设计用于提供基于硬件的安全性相关的功能。 <code>TPM</code>芯片是一个安全的加密处理器，有助于执行生成、存储和限制加密密钥的使用等操作。 它包含多个物理安全机制来使其无法篡改，恶意软件无法篡改 TPM 的安全功能。而这也是<code>Windows</code>系列操作系统的必须要求</p>
+<p>启用加密，对加密虚拟机硬盘做<code>TPM 2.0</code>支持。点击启用加密，输入密码即可</p>
+<img src="https://image.ssgeek.com/20211029-07.png" style="zoom: 33%;" />
+<p>添加可信平台模块，以便<code>Win11</code>将<code>Mac</code>视为可接受的硬件，在设置界面的右上角点击添加设备，点击添加可信平台模块</p>
+<p>可信平台模块只能添加到使用<code>UEFI</code>固件的虚拟机中，因此如果在开始新建虚拟机设置引导时就不能选择传统<code>BIOS</code></p>
+<img src="https://image.ssgeek.com/20211029-08.png" style="zoom: 33%;" />
+<h3 id="43-安装操作系统">4.3 安装操作系统</h3>
+<p>上述准备工作完成后，开始正式安装操作系统，如果不满足要求，在引导安装时会进行硬件检查，提示环境不足以支持<code>Windows 11</code>的安装，这也是有文章写到 “<strong>Win11面世，你的电脑准备好了吗？</strong>”表示对硬件要求是较高的，很多设备可能都不支持安装了</p>
+<ul>
+<li>安装系统</li>
+</ul>
+<p>开启虚拟机电源，开机安装操作系统，和常规安装<code>Windows</code>操作系统一样，就没什么特别之处了</p>
+<p>在选择要安装的操作系统上，选择<code>Windows 11</code>专业版本即可</p>
+<ul>
+<li>安装VMware Tools</li>
+</ul>
+<p>安装完操作系统之后，安装<code>VMware Tools</code>增强工具，使用户通过虚拟机操作系统进行无缝交互</p>
+<ul>
+<li>激活</li>
+</ul>
+<p>利用<code>kms server</code>方式激活操作系统</p>
+<pre><code class="language-shell">slmgr /upk
+slmgr /ipk W269N-WFGWX-YVC9B-4J6C9-T83GX
+slmgr /skms 172.16.0.100
+slmgr /ato
+</code></pre>
+<ul>
+<li>关机重启，并卸载掉镜像盘</li>
+</ul>
+<p>最后，大功告成，来张主页图吧~</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20211029-09.png" alt=""></figure>
+<p>See you ~</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/os" class="tag">
+                    os
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/golang-jie-kou-lei-xing-xia-pian">
+                  <h3 class="post-title">
+                    Golang接口类型-下篇
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

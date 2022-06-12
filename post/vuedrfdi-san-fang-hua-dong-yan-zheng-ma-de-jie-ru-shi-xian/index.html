@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>vue+drf+第三方滑动验证码的接入实现 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">vue+drf+第三方滑动验证码的接入实现</h2>
+            <div class="post-date">2021-02-03</div>
+            
+            <div class="post-content">
+              <figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210203-04.png" alt=""></figure>
+<p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E8%83%8C%E6%99%AF">1、背景</a></li>
+<li><a href="#2-%E9%AA%8C%E8%AF%81%E6%B5%81%E7%A8%8B">2、验证流程</a></li>
+<li><a href="#3-%E5%88%9B%E5%BB%BA%E9%AA%8C%E8%AF%81">3、创建验证</a></li>
+<li><a href="#4-%E5%89%8D%E7%AB%AF%E4%BB%A3%E7%A0%81">4、前端代码</a>
+<ul>
+<li><a href="#41-%E6%B7%BB%E5%8A%A0%E6%A0%B8%E5%BF%83js%E6%96%87%E4%BB%B6">4.1 添加核心js文件</a></li>
+<li><a href="#42-%E6%B7%BB%E5%8A%A0%E9%85%8D%E7%BD%AE">4.2 添加配置</a></li>
+<li><a href="#43-%E7%BB%84%E4%BB%B6%E4%BF%AE%E6%94%B9">4.3 组件修改</a></li>
+</ul>
+</li>
+<li><a href="#5-%E5%90%8E%E7%AB%AF%E4%BB%A3%E7%A0%81">5、后端代码</a>
+<ul>
+<li><a href="#51-%E6%B7%BB%E5%8A%A0%E9%85%8D%E7%BD%AE">5.1 添加配置</a></li>
+<li><a href="#52-%E6%8E%A5%E6%94%B6%E9%AA%8C%E8%AF%81%E5%B9%B6%E8%BF%94%E5%9B%9E">5.2 接收验证并返回</a></li>
+<li><a href="#53-%E6%B7%BB%E5%8A%A0url%E8%B7%AF%E7%94%B1">5.3 添加url路由</a></li>
+</ul>
+</li>
+<li><a href="#6-%E8%BF%90%E8%A1%8C%E6%B5%8B%E8%AF%95">6、运行测试</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-背景">1、背景</h2>
+<p>近期在项目开发练习中用到了登录功能 + 验证码的需求，验证码一般分为三种类型：图片验证码、短信验证码、滑动验证码，相关实现思路如下</p>
+<ul>
+<li>图片验证码</li>
+</ul>
+<p>对于图片验证码的实现可以借助<code>python</code>中的第三方模块<code>pillow</code>的相关方法进行实现（有时间会写文章）</p>
+<ul>
+<li>短信验证码</li>
+</ul>
+<p>短信验证码的主要思路是通过调用第三方短信接口向手机发送短信，接收用户输入并与系统生成的随机数串比对</p>
+<ul>
+<li>滑动验证码</li>
+</ul>
+<p>滑动验证码一般是利用第三方的验证码服务提供商，例如<a href="https://007.qq.com/">腾讯防水墙</a>、<a href="http://www.geetest.com/">极验验证</a>等。和我们自己实现验证码的思路相比较，第三方验证码更为安全可靠</p>
+<p>本文以<strong>腾讯防水墙</strong>为例，记录在<code>vue</code>和<code>drf</code>组合的前后端分离项目中接入第三方滑动验证码服务</p>
+<h2 id="2-验证流程">2、验证流程</h2>
+<p>验证的前后端调用时序图如下（图片来源于腾讯验证码官方文档）</p>
+<img src="https://image.ssgeek.com/20210203-02.png" style="zoom:67%;" />
+<h2 id="3-创建验证">3、创建验证</h2>
+<p>首先登陆到腾讯云控制台创建一个<a href="https://console.cloud.tencent.com/cam/capi">云 API 密钥</a>，在左侧导航栏选择【访问管理】&gt;【API 密钥管理】，进入 API 密钥管理页面，单击【新建密钥】创建密钥。</p>
+<p>然后进入<a href="https://console.cloud.tencent.com/captcha">验证码控制台</a>，单击【新建验证】，根据需求输入验证名称、验证所属域名、验证渠道（Web 端或小程序插件）及验证场景，填写完成后，单击【确定】完成验证创建。</p>
+<p>领取免费包，单击【领取免费包】，即可完成免费包(20000次验证)领取。</p>
+<p>最后，查看申请到的资源信息</p>
+<img src="https://image.ssgeek.com/20210203-01.png" style="zoom:90%;" />
+<h2 id="4-前端代码">4、前端代码</h2>
+<h3 id="41-添加核心js文件">4.1 添加核心js文件</h3>
+<p>把防水墙的前端核心<code>js</code>文件在项目根目录下<code>index.html</code>中使用<code>script</code>标签引入</p>
+<p><code>index.html</code></p>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1.0&quot;&gt;
+    &lt;script src=&quot;https://ssl.captcha.qq.com/TCaptcha.js&quot;&gt;&lt;/script&gt;
+    &lt;title&gt;opsweb&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;div id=&quot;app&quot;&gt;&lt;/div&gt;
+    &lt;!-- built files will be auto injected --&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>或者在<code>src/main.js</code>中通过<code>import</code>引入，导入前需要将上面的核心<code>js</code>文件下载到项目静态文件目录中</p>
+<pre><code class="language-js">// 导入防水墙验证码的核心js文件
+import &quot;../static/js/TCaptcha&quot;;
+</code></pre>
+<h3 id="42-添加配置">4.2 添加配置</h3>
+<p>在<code>src/settings.js</code>中添加配置</p>
+<pre><code class="language-js">export default {
+  HOST: 'http://opsapi.ssgeek.com:8000',  // 后端api地址
+  TC_captcha:{
+    app_id: &quot;2020427221&quot;,  // 腾讯防水墙APPID配置
+  },
+}
+</code></pre>
+<h3 id="43-组件修改">4.3 组件修改</h3>
+<p>修改登录页面<code>vue</code>组件<code>Login.vue</code>，将登录按钮绑定到验证码显示的自定义方法上，先触发验证码请求再触发登录</p>
+<p><code>template</code>部分</p>
+<pre><code class="language-vue">&lt;template&gt;
+&lt;!--登录内容开始--&gt;
+&lt;div class=&quot;inp&quot; v-if=&quot;login_type==0&quot;&gt;
+  &lt;input v-model=&quot;username&quot; type=&quot;text&quot; placeholder=&quot;用户名&quot; class=&quot;user&quot;&gt;
+  &lt;input v-model=&quot;password&quot; type=&quot;password&quot; name=&quot;&quot; class=&quot;pwd&quot; placeholder=&quot;密码&quot;&gt;
+  &lt;div class=&quot;rember&quot;&gt;
+    &lt;p&gt;
+      &lt;input v-model=&quot;remember_me&quot; type=&quot;checkbox&quot; class=&quot;no&quot; name=&quot;a&quot;/&gt;
+      &lt;span&gt;记住密码&lt;/span&gt;
+    &lt;/p&gt;
+  &lt;/div&gt;
+  &lt;button class=&quot;login_btn&quot; @click=&quot;show_captcha&quot;&gt;登录&lt;/button&gt;
+&lt;!--登录内容结束--&gt;
+&lt;/div&gt;
+&lt;/template&gt;
+</code></pre>
+<p><code>script</code>部分</p>
+<pre><code class="language-js">&lt;script&gt;
+export default {
+  name: 'Login',
+  data() {
+    return {
+      login_type: 0,
+      remember_me: false,
+      username: &quot;&quot;,
+      password: &quot;&quot;,
+    }
+  },
+  methods: {
+    show_captcha() {
+      var captcha1 = new TencentCaptcha(this.$settings.TC_captcha.app_id, res=&gt; {
+        /*
+        res:
+        appid: &quot;2020427221&quot;  # 验证码的APPID
+        randstr: &quot;@GCV&quot;      # 随机字符串，防止重复
+        ret: 0               # 0表示用户操作成功，2表示用户主动关闭验证码窗口
+        ticket: &quot;&quot;           # 验证通过以后的票据，提供给后端，将来到验证码服务器中进行
+        */
+        // console.log(res);
+        this.$axios.get(`${this.$settings.HOST}/users/captcha/`,{
+          params:{
+            ticket: res.ticket,
+            randstr: res.randstr,
+          }
+        }).then(response=&gt;{
+          if(response.data.detail){
+            // 继续进行登录处理
+            this.login();
+          }
+        }).catch(error=&gt;{
+          this.$message.error(&quot;对不起，验证码校验不通过！&quot;);
+        });
+      });
+      captcha1.show();
+    },
+    login() {
+      // 判断用户是否输入用户名或密码，否则提示用户输入
+      if (!this.username) {
+        this.$message.error('请输入用户名！')
+      } else if (!this.password) {
+        this.$message.error('请输入密码！')
+      } else {
+        // 携带用户名和密码，提交post请求
+        this.$axios.post(`${this.$settings.HOST}/users/login/`, {
+          username: this.username,
+          password: this.password,
+        }).then((res) =&gt; {
+          // 存储token
+          if (this.remember_me) {
+            localStorage.token = res.data.token;
+            sessionStorage.removeItem('token')
+          } else {
+            sessionStorage.token = res.data.token;
+            localStorage.removeItem('token')
+          }
+          // 跳转到首页
+          this.$router.push('/hippo/showcenter')
+        }).catch((error) =&gt; {  // 捕获请求返回的错误，4xx,5xx
+          this.$message.error('用户名或者密码有误，请重新输入！')
+        })
+      }
+    },
+  },
+};
+</code></pre>
+<h2 id="5-后端代码">5、后端代码</h2>
+<p>相关操作指引可以参考官方示例：https://007.qq.com/python-access.html</p>
+<h3 id="51-添加配置">5.1 添加配置</h3>
+<p>将腾讯验证码控制台查看到的验证信息配置到<code>drf</code>后端代码的配置文件中</p>
+<pre><code class="language-python"># 腾讯防水墙配置
+TENCENT_CAPTCHA = {
+    &quot;GATEWAY&quot;: &quot;https://ssl.captcha.qq.com/ticket/verify&quot;,  # 验证码验证地址
+    &quot;APPID&quot;: &quot;2020427221&quot;,  # 验证码应用的APPID
+    &quot;App_Secret_Key&quot;: &quot;0mnAr1EpNTjm63fQgKPU87w**&quot;,  # 验证码应用的AppSecretKey
+}
+</code></pre>
+<h3 id="52-接收验证并返回">5.2 接收验证并返回</h3>
+<p>在用户<code>app</code>下编写用户验证码的普通类视图<code>view</code></p>
+<pre><code class="language-python">from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.conf import settings
+from urllib.parse import urlencode
+from urllib.request import urlopen
+import json
+import ssl
+
+
+# Create your views here.
+class CaptchaAPIView(APIView):
+    &quot;&quot;&quot;验证码&quot;&quot;&quot;
+    ssl._create_default_https_context = ssl._create_unverified_context
+
+    def get(self, request):
+        &quot;&quot;&quot;接收客户端提交的验证码相关信息&quot;&quot;&quot;
+        params = {
+            &quot;aid&quot;: settings.TENCENT_CAPTCHA.get(&quot;APPID&quot;),
+            &quot;AppSecretKey&quot;: settings.TENCENT_CAPTCHA.get(&quot;App_Secret_Key&quot;),
+            &quot;Ticket&quot;: request.query_params.get(&quot;ticket&quot;),
+            &quot;Randstr&quot;: request.query_params.get(&quot;randstr&quot;),
+            &quot;UserIP&quot;: request._request.META.get(&quot;REMOTE_ADDR&quot;)
+        }
+        # 把字典数据转换成地址栏的查询字符串格式
+        # aid=xxx&amp;AppSecretKey=xxx&amp;xxxxx
+        params = urlencode(params)
+        # print(params)
+        url = settings.TENCENT_CAPTCHA.get(&quot;GATEWAY&quot;)
+        # 发送http的get请求
+        f = urlopen(&quot;%s?%s&quot; % (url, params))
+        # https://ssl.captcha.qq.com/ticket/verify?aid=xxx&amp;AppSecretKey=xxx&amp;xxxxx
+        # f.read() 读取响应信息
+        content = f.read()
+        res = json.loads(content)
+        # print(res)
+        if int(res.get(&quot;response&quot;)) == 1:
+            # 验证成功
+            return Response({&quot;detail&quot;: 1})
+        else:
+            # 验证失败
+            return Response({&quot;detail&quot;: 0}, status=status.HTTP_400_BAD_REQUEST)
+</code></pre>
+<h3 id="53-添加url路由">5.3 添加url路由</h3>
+<p>最后，添加用于前端发送请求的后端<code>url</code>路由</p>
+<pre><code class="language-python">from django.urls import path
+from rest_framework_jwt.views import obtain_jwt_token
+from . import views
+
+urlpatterns = [
+    path('login/', obtain_jwt_token),
+    path('captcha/', views.CaptchaAPIView.as_view()),  # 验证码校验
+]
+</code></pre>
+<h2 id="6-运行测试">6、运行测试</h2>
+<p>最终效果如下</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210203-03.gif" alt=""></figure>
+<p>在腾讯验证码的后台可以看到详细的请求信息图表</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210203-05.png" alt=""></figure>
+<blockquote>
+<p>参考：https://cloud.tencent.com/document/product/1110/</p>
+</blockquote>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/wvO7cHdbN" class="tag">
+                    vue
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/VEfPb2dUj" class="tag">
+                    django
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/vhKLQmmvn" class="tag">
+                    python
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/ji-yu-k8s-ingress-nginxoauth2gitlab-wu-dai-ma-qin-ru-shi-xian-zi-ding-yi-fu-wu-de-wai-bu-yan-zheng">
+                  <h3 class="post-title">
+                    基于k8s Ingress Nginx+OAuth2+Gitlab无代码侵入实现自定义服务的外部验证
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

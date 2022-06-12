@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Golang反射-上篇 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Golang反射-上篇</h2>
+            <div class="post-date">2021-11-12</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%8F%8D%E5%B0%84%E7%9A%84%E5%AE%9A%E4%B9%89">1、反射的定义</a></li>
+<li><a href="#2-%E5%8F%8D%E5%B0%84%E7%9A%84%E5%9F%BA%E7%A1%80%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B">2、反射的基础数据类型</a></li>
+<li><a href="#3-type">3、Type</a></li>
+<li><a href="#4-value">4、Value</a></li>
+<li><a href="#5-%E5%8F%8D%E5%B0%84%E4%B8%89%E5%A4%A7%E5%AE%9A%E5%BE%8B">5、反射三大定律</a>
+<ul>
+<li><a href="#51-%E5%8F%8D%E5%B0%84%E7%AC%AC%E4%B8%80%E5%AE%9A%E5%BE%8B">5.1 反射第一定律</a></li>
+<li><a href="#52-%E5%8F%8D%E5%B0%84%E7%AC%AC%E4%BA%8C%E5%AE%9A%E5%BE%8B">5.2 反射第二定律</a></li>
+<li><a href="#53-%E5%8F%8D%E5%B0%84%E7%AC%AC%E4%B8%89%E5%AE%9A%E5%BE%8B">5.3 反射第三定律</a></li>
+</ul>
+</li>
+<li><a href="#6-%E5%8F%8D%E5%B0%84%E5%B8%B8%E7%94%A8%E7%9A%84api">6、反射常用的API</a>
+<ul>
+<li><a href="#61-%E8%8E%B7%E5%8F%96type%E7%B1%BB%E5%9E%8B">6.1 获取type类型</a></li>
+<li><a href="#62-%E8%8E%B7%E5%8F%96field%E4%BF%A1%E6%81%AF">6.2 获取Field信息</a></li>
+<li><a href="#63-%E8%8E%B7%E5%8F%96method%E4%BF%A1%E6%81%AF">6.3 获取method信息</a></li>
+<li><a href="#64-%E8%8E%B7%E5%8F%96%E5%87%BD%E6%95%B0%E4%BF%A1%E6%81%AF">6.4 获取函数信息</a></li>
+<li><a href="#65-%E8%B5%8B%E5%80%BC%E5%92%8C%E8%BD%AC%E6%8D%A2%E5%85%B3%E7%B3%BB">6.5 赋值和转换关系</a></li>
+<li><a href="#66-%E6%98%AF%E5%90%A6%E5%AE%9E%E7%8E%B0%E6%8E%A5%E5%8F%A3">6.6 是否实现接口</a></li>
+<li><a href="#67-value%E5%92%8C%E5%85%B6%E4%BB%96%E7%B1%BB%E5%9E%8B%E7%9A%84%E4%BA%92%E6%8D%A2">6.7 value和其他类型的互换</a></li>
+<li><a href="#68-value%E5%88%A4%E6%96%AD%E7%A9%BA%E5%80%BC%E7%9A%84%E4%B8%89%E7%A7%8D%E6%83%85%E5%86%B5">6.8 value判断空值的三种情况</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/golang.png" alt=""></figure>
+<h2 id="1-反射的定义">1、反射的定义</h2>
+<blockquote>
+<p>It’s a great source of confusion ~ （引用自官方博客）</p>
+</blockquote>
+<p>反射是指在运行时动态的访问和修改任意类型对象的结构和成员，在<code>go</code>语言中提供<code>reflect</code>包提供反射的功能，每一个变量都有两个属性：类型<code>Type</code>和值<code>Value</code></p>
+<p>反射能够自描述自控制<br>
+例如<code>python</code>的反射：根据字符串执行函数，根据字符串导入包</p>
+<p><code>go</code>是静态语言，反射就是<code>go</code>提供的一种机制，在编译时不知道类型的情况下可以做如下的事情</p>
+<ul>
+<li>更新变量</li>
+<li>运行时查看值</li>
+<li>调用方法</li>
+<li>对他们的布局进行操作</li>
+</ul>
+<p>使用反射的两个经典场景</p>
+<ul>
+<li>
+<p>你编写的这个函数，还不知道传给你的类型具体是什么，可能是还没约定好，也可能是传入的类型很多</p>
+</li>
+<li>
+<p>希望通过用户的输入来决定调用哪个函数（根据字符串调用方法），动态执行函数</p>
+</li>
+</ul>
+<h2 id="2-反射的基础数据类型">2、反射的基础数据类型</h2>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20211112-01.png" alt=""></figure>
+<h2 id="3-type">3、Type</h2>
+<p><code>reflect.Type</code>是一个接口类型，用于获取变量类型相关的信息，可通过<code>reflect.TypeOf</code>函数获取某个变量的类型信息</p>
+<p>源码<code>go/src/reflect/type.go</code></p>
+<pre><code class="language-go">type Type interface {
+	Align() int
+	FieldAlign() int
+	Method(int) Method  // 第 i 个方法
+	MethodByName(string) (Method, bool)  // 根据名称获取方法
+	NumMethod() int  // 方法的个数
+	Name() string  // 获取结构体名称
+	PkgPath() string  // 包路径
+	Size() uintptr  // 占用内存的大小
+	String() string  // 获取字符串表述
+	Kind() Kind // 数据类型
+	Implements(u Type) bool  // 判断是否实现了某接口
+	AssignableTo(u Type) bool  // 能否赋给另外一种类型
+	ConvertibleTo(u Type) bool  // 能否转换为另外一种类型
+	Comparable() bool
+	Bits() int
+	ChanDir() ChanDir
+	IsVariadic() bool
+	Elem() Type  // 解析指针（指针类型转为普通类型）
+	Field(i int) StructField  // 第i个成员
+	FieldByIndex(index []int) StructField  // 根据index路径获取嵌套成员
+	FieldByName(name string) (StructField, bool)  // 根据名称获取成员
+	FieldByNameFunc(match func(string) bool) (StructField, bool)
+	In(i int) Type
+	Key() Type
+	Len() int  // 容器的长度
+	NumField() int
+	NumIn() int  // 输出参数的个数
+	NumOut() int  // 返回参数的个数
+	Out(i int) Type
+
+	common() *rtype
+	uncommon() *uncommonType
+}
+</code></pre>
+<h2 id="4-value">4、Value</h2>
+<p><code>reflect.Value</code>是一个结构体类型，用于获取变量值的信息，可通过<code>reflect.ValueOf</code>函数获取修改原始数据类型(某个变量)的值信息</p>
+<p>源码<code>go/src/reflect/value.go</code></p>
+<pre><code class="language-go">type Value struct {
+   // 代表的数据类型
+	typ *rtype
+	// 指向原始数据的指针
+	ptr unsafe.Pointer
+}
+</code></pre>
+<h2 id="5-反射三大定律">5、反射三大定律</h2>
+<p><code>interface</code>类型有个<code>value</code>，<code>type</code>对，而反射就是检查<code>interface</code>的这个<code>value</code>, <code>type</code>对的<br>
+具体一点说就是<code>Go</code>提供一组方法提取<code>interface</code>的<code>value</code>，提供另一组方法提取<code>interface</code>的<code>type</code></p>
+<ul>
+<li><code>reflect.Type</code>提供一组接口处理<code>interface</code>的类型，即<code>value</code>, <code>type</code>中的<code>type</code></li>
+<li><code>reflect.Value</code>提供一组接口处理<code>interface</code>的值,即<code>value</code>, <code>type</code>中的<code>value</code></li>
+</ul>
+<h3 id="51-反射第一定律">5.1 反射第一定律</h3>
+<p>反射第一定律：反射可以将<code>interface</code>类型变量转换成反射对象</p>
+<p>如何通过反射获取一个变量的值和类型</p>
+<pre><code class="language-go">package main
+import (
+    &quot;fmt&quot;
+    &quot;reflect&quot;
+)
+func main() {
+    var x float64 = 3.4
+    t := reflect.TypeOf(x)  //t is reflext.Type
+    fmt.Println(&quot;type:&quot;, t)
+    fmt.Println(&quot;kind is float64:&quot;, v.Kind() == reflect.Float64)
+    v := reflect.ValueOf(x) //v is reflext.Value
+    fmt.Println(&quot;value:&quot;, v)
+}
+</code></pre>
+<p>程序输出</p>
+<pre><code class="language-go">type: float64
+kind is float64: true
+value: 3.4
+</code></pre>
+<p>反射是针对<code>interface</code>类型变量的，其中<code>TypeOf()</code>和<code>ValueOf()</code>接受的参数都是<code>interface{}</code>类型的，也即<code>x</code>值是被转成了<code>interface</code>传入的</p>
+<h3 id="52-反射第二定律">5.2 反射第二定律</h3>
+<p>反射第二定律：反射可以将反射对象还原成<code>interface</code>对象</p>
+<p>之所以叫’反射’，反射对象与<code>interface</code>对象是可以互相转化的</p>
+<pre><code class="language-go">package main
+import (
+    &quot;fmt&quot;
+    &quot;reflect&quot;
+)
+func main() {
+    var x float64 = 3.4
+    v := reflect.ValueOf(x) //v is reflext.Value
+    var y float64 = v.Interface().(float64)
+    fmt.Println(&quot;value:&quot;, y)
+}
+</code></pre>
+<p>对象<code>x</code>转换成反射对象<code>v</code>，<code>v</code>又通过<code>Interface()</code>接口转换成<code>interface</code>对象，<code>interface</code>对象通过<code>.(float64)</code>类型断言获取<code>float64</code>类型的值</p>
+<h3 id="53-反射第三定律">5.3 反射第三定律</h3>
+<p>反射第三定律：反射对象可修改，<code>value</code>值必须是可设置的</p>
+<p>通过反射可以将<code>interface</code>类型变量转换成反射对象，可以使用该反射对象设置其持有的值</p>
+<pre><code class="language-go">package main
+import (
+    &quot;reflect&quot;
+)
+func main() {
+    var x float64 = 3.4
+    v := reflect.ValueOf(x)
+    v.SetFloat(7.1) // Error: will panic.
+}
+</code></pre>
+<p>通过反射对象v设置新值，会出现<code>panic</code></p>
+<pre><code>panic: reflect: reflect.Value.SetFloat using unaddressable value
+</code></pre>
+<p>错误原因即是<code>v</code>是不可修改的。</p>
+<p>反射对象是否可修改取决于其所存储的值，回想一下函数传参时是传值还是传址就不难理解上例中为何失败了。</p>
+<p>上面例子传入<code>reflect.ValueOf()</code>函数的其实是<code>x</code>的值，而非<code>x</code>本身。即通过<code>v</code>修改其值是无法影响<code>x</code>的，也即是无效的修改，所以<code>golang</code>会报错</p>
+<p>想到此处，即可明白，如果构建<code>v</code>时使用<code>x</code>的地址就可实现修改了，但此时<code>v</code>代表的是指针地址，我们要设置的是指针所指向的内容，也即我们想要修改的是<code>*v</code>。 通过<code>v</code>修改<code>x</code>的值?</p>
+<p><code>reflect.Value</code>提供了<code>Elem()</code>方法，可以获得指针向指向的<code>value</code></p>
+<pre><code class="language-go">package main
+import (
+&quot;reflect&quot;
+    &quot;fmt&quot;
+)
+func main() {
+    var x float64 = 3.4
+    v := reflect.ValueOf(&amp;x)
+    v.Elem().SetFloat(7.1)
+    fmt.Println(&quot;x :&quot;, v.Elem().Interface())
+}
+</code></pre>
+<p>输出为：</p>
+<pre><code>x : 7.1
+</code></pre>
+<h2 id="6-反射常用的api">6、反射常用的API</h2>
+<h3 id="61-获取type类型">6.1 获取type类型</h3>
+<pre><code class="language-go">typeUser := reflect.TypeOf(&amp;User{}) //通过TypeOf()得到Type类型
+fmt.Println(typeUser)                      //*User
+fmt.Println(typeUser.Elem())               //User
+fmt.Println(typeUser.Name())               //空字符串
+fmt.Println(typeUser.Elem().Name())        //User，不带包名的类名称
+fmt.Println(typeUser.Kind())               //ptr
+fmt.Println(typeUser.Elem().Kind())        //struct
+fmt.Println(typeUser.Kind() == reflect.Ptr)
+fmt.Println(typeUser.Elem().Kind() == reflect.Struct)
+</code></pre>
+<h3 id="62-获取field信息">6.2 获取Field信息</h3>
+<pre><code class="language-go">typeUser := reflect.TypeOf(User{}) //需要用struct的Type，不能用指针的Type
+fieldNum := typeUser.NumField()           //成员变量的个数
+for i := 0; i &lt; fieldNum; i++ {
+	field := typeUser.Field(i)
+	fmt.Printf(&quot;%d %s offset %d anonymous %t type %s exported %t json tag %s\n&quot;, i,
+		field.Name,            //变量名称
+		field.Offset,          //相对于结构体首地址的内存偏移量，string类型会占据16个字节
+		field.Anonymous,       //是否为匿名成员
+		field.Type,            //数据类型，reflect.Type类型
+		field.IsExported(),    //包外是否可见（即是否以大写字母开头）
+		field.Tag.Get(&quot;json&quot;)) //获取成员变量后面``里面定义的tag
+//可以通过FieldByName获取Field
+if nameField, ok := typeUser.FieldByName(&quot;Name&quot;); ok {
+	fmt.Printf(&quot;Name is exported %t\n&quot;, nameField.IsExported())
+}
+//也可以根据FieldByIndex获取Field
+thirdField := typeUser.FieldByIndex([]int{2}) //参数是个slice，因为有struct嵌套的情况
+fmt.Printf(&quot;third field name %s\n&quot;, thirdField.Name)
+}
+</code></pre>
+<h3 id="63-获取method信息">6.3 获取method信息</h3>
+<pre><code class="language-go">typeUser := reflect.TypeOf(common.User{})
+methodNum := typeUser.NumMethod() //成员方法的个数。接收者为指针的方法【不】包含在内
+for i := 0; i &lt; methodNum; i++ {
+	method := typeUser.Method(i)
+	fmt.Println(method.Type)  // 会输出函数完整的签名，其中输入参数会将结构体本身也作为输入参数，因此参数个数多一个
+	fmt.Printf(&quot;method name:%s ,type:%s, exported:%t\n&quot;, method.Name, method.Type, method.IsExported())
+}
+fmt.Println()
+if method, ok := typeUser.MethodByName(&quot;Examine2&quot;); ok {  // 根据方法名获取
+	fmt.Printf(&quot;method name:%s ,type:%s, exported:%t\n&quot;, method.Name, method.Type, method.IsExported())
+}
+typeUser2 := reflect.TypeOf(&amp;common.User{})
+methodNum = typeUser2.NumMethod() //成员方法的个数。接收者为指针或值的方法都包含在内，也就是说值实现的方法指针也实现了（反之不成立）
+for i := 0; i &lt; methodNum; i++ {
+	method := typeUser2.Method(i)
+	fmt.Printf(&quot;method name:%s ,type:%s, exported:%t\n&quot;, method.Name, method.Type, method.IsExported())
+}
+</code></pre>
+<h3 id="64-获取函数信息">6.4 获取函数信息</h3>
+<pre><code class="language-go">typeFunc := reflect.TypeOf(Add) //获取函数类型
+fmt.Printf(&quot;is function type %t\n&quot;, typeFunc.Kind() == reflect.Func)
+argInNum := typeFunc.NumIn()   //输入参数的个数
+argOutNum := typeFunc.NumOut() //输出参数的个数
+for i := 0; i &lt; argInNum; i++ {
+	argTyp := typeFunc.In(i)
+	fmt.Printf(&quot;第%d个输入参数的类型%s\n&quot;, i, argTyp)
+}
+for i := 0; i &lt; argOutNum; i++ {
+	argTyp := typeFunc.Out(i)
+	fmt.Printf(&quot;第%d个输出参数的类型%s\n&quot;, i, argTyp)
+}
+</code></pre>
+<h3 id="65-赋值和转换关系">6.5 赋值和转换关系</h3>
+<ul>
+<li>type1.AssignableTo(type2)  // type1代表的类型是否可以赋值给type2代表的类型</li>
+<li>type1.ConvertibleTo(type2)) // type1代表的类型是否可以转换成type2代表的类型</li>
+<li>java的反射可以获取继承关系，而go语言不支持继承，所以必须是相同的类型才能AssignableTo和ConvertibleTo</li>
+</ul>
+<p>示例</p>
+<pre><code class="language-go">u := reflect.TypeOf(User{})
+t := reflect.TypeOf(Student{}) //Student内部嵌套了User
+u2 := reflect.TypeOf(User{})
+
+//false false
+fmt.Println(t.AssignableTo(u))  //t代表的类型是否可以赋值给u代表的类型
+fmt.Println(t.ConvertibleTo(u)) //t代表的类型是否可以转换成u代表的类型
+
+//false false
+fmt.Println(u.AssignableTo(t))
+fmt.Println(u.ConvertibleTo(t))
+
+//true true
+fmt.Println(u.AssignableTo(u2))
+fmt.Println(u.ConvertibleTo(u2))
+</code></pre>
+<h3 id="66-是否实现接口">6.6 是否实现接口</h3>
+<pre><code class="language-go">//通过reflect.TypeOf((*&lt;interface&gt;)(nil)).Elem()获得接口类型。因为People是个接口不能创建实例，所以把nil强制转为*common.People类型
+typeOfPeople := reflect.TypeOf((*common.People)(nil)).Elem()  // 可以将nil理解成People指针的一个实例
+fmt.Printf(&quot;typeOfPeople kind is interface %t\n&quot;, typeOfPeople.Kind() == reflect.Interface)
+t1 := reflect.TypeOf(common.User{})
+t2 := reflect.TypeOf(&amp;common.User{})
+//User的值类型实现了接口，则指针类型也实现了接口；但反过来不行(把Think的接收者改为*User试试)
+fmt.Printf(&quot;t1 implements People interface %t\n&quot;, t1.Implements(typeOfPeople))  // false
+fmt.Printf(&quot;t2 implements People interface %t\n&quot;, t2.Implements(typeOfPeople))  // true
+</code></pre>
+<h3 id="67-value和其他类型的互换">6.7 value和其他类型的互换</h3>
+<pre><code class="language-go">//原始类型转为Value
+iValue := reflect.ValueOf(1)
+sValue := reflect.ValueOf(&quot;hello&quot;)
+userPtrValue := reflect.ValueOf(&amp;common.User{
+	Id:     7,
+	Name:   &quot;杰克逊&quot;,
+	Weight: 65,
+	Height: 1.68,
+})
+fmt.Println(iValue)       //1
+fmt.Println(sValue)       //hello
+fmt.Println(userPtrValue) //&amp;{7 杰克逊  65 1.68}
+//Value转为Type
+iType := iValue.Type()
+sType := sValue.Type()
+userType := userPtrValue.Type()
+//在Type和相应Value上调用Kind()结果一样的
+fmt.Println(iType.Kind() == reflect.Int, iValue.Kind() == reflect.Int, iType.Kind() == iValue.Kind())                   //true true
+fmt.Println(sType.Kind() == reflect.String, sValue.Kind() == reflect.String, sType.Kind() == sValue.Kind())             //true true
+fmt.Println(userType.Kind() == reflect.Ptr, userPtrValue.Kind() == reflect.Ptr, userType.Kind() == userPtrValue.Kind()) //true true true
+
+//指针Value和非指针Value互相转换
+userValue := userPtrValue.Elem()                    //Elem() 指针Value转为非指针Value
+fmt.Println(userValue.Kind(), userPtrValue.Kind())  //struct ptr
+userPtrValue3 := userValue.Addr()                   //Addr() 非指针Value转为指针Value
+fmt.Println(userValue.Kind(), userPtrValue3.Kind()) //struct ptr
+
+//转为原始类型
+//通过Interface()函数把Value转为interface{}，再从interface{}强制类型转换，转为原始数据类型
+//或者在Value上直接调用Int()、String()等一步到位
+fmt.Printf(&quot;origin value iValue is %d %d\n&quot;, iValue.Interface().(int), iValue.Int())
+fmt.Printf(&quot;origin value sValue is %s %s\n&quot;, sValue.Interface().(string), sValue.String())
+user := userValue.Interface().(common.User)
+fmt.Printf(&quot;id=%d name=%s weight=%.2f height=%.2f\n&quot;, user.Id, user.Name, user.Weight, user.Height)
+user2 := userPtrValue.Interface().(*common.User)
+fmt.Printf(&quot;id=%d name=%s weight=%.2f height=%.2f\n&quot;, user2.Id, user2.Name, user2.Weight, user2.Height)
+</code></pre>
+<h3 id="68-value判断空值的三种情况">6.8 value判断空值的三种情况</h3>
+<p><code>pointer</code>、<code>channel</code>、<code>func</code>、<code>interface</code>、<code>map</code>、<code>slice</code>的预先声明都是<code>nil</code></p>
+<pre><code class="language-go">var i interface{} //接口没有指向具体的值
+v := reflect.ValueOf(i)
+fmt.Printf(&quot;v持有值 %t, type of v is Invalid %t\n&quot;, v.IsValid(), v.Kind() == reflect.Invalid)  // false
+
+var user *common.User = nil
+v = reflect.ValueOf(user) //Value指向一个nil
+if v.IsValid() {
+	fmt.Printf(&quot;v持有的值是nil %t\n&quot;, v.IsNil()) //调用IsNil()前先确保IsValid()，否则会panic  // true
+}
+
+var u common.User //只声明，里面的值都是0值
+v = reflect.ValueOf(u)
+if v.IsValid() {
+	fmt.Printf(&quot;v持有的值是对应类型的0值 %t\n&quot;, v.IsZero()) //调用IsZero()前先确保IsValid()，否则会panic  // true
+}
+</code></pre>
+<blockquote>
+<p>参考： https://go.dev/blog/laws-of-reflection</p>
+</blockquote>
+<p>See you ~</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/golang" class="tag">
+                    golang
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/helm-chart-yu-fa-gai-yao">
+                  <h3 class="post-title">
+                    Helm Chart语法概要
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

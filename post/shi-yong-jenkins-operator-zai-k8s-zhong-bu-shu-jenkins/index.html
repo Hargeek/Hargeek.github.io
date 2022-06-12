@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>使用Jenkins Operator在k8s中部署Jenkins | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">使用Jenkins Operator在k8s中部署Jenkins</h2>
+            <div class="post-date">2021-05-17</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-jenkins-operator%E4%BB%8B%E7%BB%8D">1、Jenkins Operator介绍</a></li>
+<li><a href="#2-jenkins-operator%E7%9A%84%E6%9E%B6%E6%9E%84%E5%92%8C%E8%AE%BE%E8%AE%A1">2、Jenkins Operator的架构和设计</a></li>
+<li><a href="#3-%E4%BD%BF%E7%94%A8operator%E9%83%A8%E7%BD%B2jenkins">3、使用Operator部署Jenkins</a>
+<ul>
+<li><a href="#31-%E5%89%8D%E6%8F%90%E6%9D%A1%E4%BB%B6">3.1 前提条件</a></li>
+<li><a href="#32-%E8%8E%B7%E5%8F%96%E5%B9%B6%E5%88%9B%E5%BB%BAcrd">3.2 获取并创建CRD</a></li>
+<li><a href="#33-%E9%83%A8%E7%BD%B2jenkins-operator">3.3 部署Jenkins Operator</a></li>
+<li><a href="#34-%E9%83%A8%E7%BD%B2jenkins">3.4 部署Jenkins</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210517-01.png" alt=""></figure>
+<h2 id="1-jenkins-operator介绍">1、Jenkins Operator介绍</h2>
+<p><a href="https://www.redhat.com/zh/topics/containers/what-is-a-kubernetes-operator">Kubernetes Operator</a>是一种特定于应用的控制器，可扩展<code>Kubernetes API</code>的功能，来代表<code>Kubernetes</code>用户创建、配置和管理复杂应用的实例</p>
+<p>这里对<code>Operator</code>的相关介绍就不多赘述了，主要还是回到<code>Jenkins Operator</code>这个话题</p>
+<p>基于<code>k8s</code>上<code>Jenkins</code>的常规安装是使用<code>yaml</code>资源清单，更为方便一点的是<code>helm chart</code>，但是常常我们在安装后还需要做很多的动作。例如插件问题，这尽管可以通过<code>Configuration as Code</code>的方式来解决，根据个人实际经验来看，还是存在一定几率会因主镜像版本、环境等存在诸多不可预知的问题。当然不同的部署方式都各有利弊，大家根据实际情况选择即可。</p>
+<p>直到官方支持<code>Jenkins</code>可以在<code>k8s</code>中通过<code>Operator</code>方式部署，在<code>4</code>月中旬，<a href="https://www.jenkins.io/blog/2021/04/15/jenkins-operator-sub-project/">Jenkins blog</a>说道：<strong>Jenkins Operator 正式成为了 Jenkins 的子项目</strong>，填补了<code>Jenkins</code>与<code>Kubernetes</code>间的缝隙。也就是说，最初由（个人）三方团队编写的<code>Jenkins Operator</code>被<code>Jenkins</code>官方认可了</p>
+<p>参考官方说明，<code>Jenkins Operator</code>可以帮我们解决以下问题：</p>
+<ul>
+<li>
+<p>安装指定版本的插件</p>
+<p>即使最新版本插件不兼容或具备安全漏洞，还是为了插件稳定性而使用（因为常常会出现我们通过一键升级插件导致很多问题而去手动安装旧版本插件的情况）</p>
+</li>
+<li>
+<p>更好的自定义配置</p>
+<p>包含在安装指定版本插件时指定插件配置等声明式配置</p>
+</li>
+<li>
+<p>开箱即用的安全配置</p>
+</li>
+<li>
+<p>可灵活调整的<code>debug</code>错误调试</p>
+</li>
+<li>
+<p>备份和还原作业历史记录</p>
+<p>......</p>
+</li>
+</ul>
+<h2 id="2-jenkins-operator的架构和设计">2、Jenkins Operator的架构和设计</h2>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210517-02.png" alt=""></figure>
+<p>参考<a href="https://jenkinsci.github.io/kubernetes-operator/docs/how-it-works/architecture-and-design/">Jenkins Operator Architecture and design</a></p>
+<p><code>Jenkins Operator</code>的设计包含以下概念</p>
+<ul>
+<li>监视清单的任何更改，并根据已部署的自定义资源清单维护所需的状态</li>
+<li>实现主<code>reconciliation</code>循环，由两个较小的<code>reconciliation</code>循环：<code>base</code>和<code>user</code></li>
+</ul>
+<p><code>Base reconciliation</code> 循环负责监听<code>Jenkins</code>基础配置：</p>
+<ul>
+<li>确认清单-监听清单中发生的任何更改</li>
+<li>确保<code>Jenkins Pod</code>状态，创建和验证<code>Jenkins Server Pod</code>的状态</li>
+<li>确认<code>Jenkins</code>的配置，包括安全加固、初始化配置等</li>
+<li>确认<code>Jenkins API token</code>，生成<code>token</code>并初始化<code>Jenkins Client</code></li>
+</ul>
+<p><code>User reconciliation</code>循环负责协调用户提供的配置：</p>
+<ul>
+<li>确保恢复任务，创建恢复任务，并确保恢复已成功执行</li>
+<li>确保<code>Seed Jobs</code>，创建<code>Seed Jobs</code>并确保所有这些工作都已成功执行</li>
+<li>确保用户配置，执行用户提供的配置，如<code>groovy</code>脚本，配置为代码或插件</li>
+<li>确保备份任务，创建备份任务并确保备份成功</li>
+</ul>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210517-03.png" alt=""></figure>
+<p><strong><code>Operator</code>状态</strong><br>
+<code>Operator</code>状态保存在自定义资源状态部分中，该部分用于存储<code>Operator</code>管理的任何配置事件或<code>Job</code>状态</p>
+<p>即使操作者或<code>Jenkins</code>重新启动，它也能帮助保持或恢复所需的状态</p>
+<h2 id="3-使用operator部署jenkins">3、使用Operator部署Jenkins</h2>
+<h3 id="31-前提条件">3.1 前提条件</h3>
+<p>参考<a href="https://jenkinsci.github.io/kubernetes-operator/docs/"><code>Jenkins Operator</code>官方文档</a>，需要有一个<code>1.11+</code>版本的<code>Kubernetes</code>集群，这里我的环境如下</p>
+<pre><code class="language-yaml"># kubectl version -o yaml
+clientVersion:
+  buildDate: &quot;2020-12-08T17:59:43Z&quot;
+  compiler: gc
+  gitCommit: af46c47ce925f4c4ad5cc8d1fca46c7b77d13b38
+  gitTreeState: clean
+  gitVersion: v1.20.0
+  goVersion: go1.15.5
+  major: &quot;1&quot;
+  minor: &quot;20&quot;
+  platform: darwin/amd64
+serverVersion:
+  buildDate: &quot;2021-01-13T13:20:00Z&quot;
+  compiler: gc
+  gitCommit: faecb196815e248d3ecfb03c680a4507229c2a56
+  gitTreeState: clean
+  gitVersion: v1.20.2
+  goVersion: go1.15.5
+  major: &quot;1&quot;
+  minor: &quot;20&quot;
+  platform: linux/amd64
+</code></pre>
+<h3 id="32-获取并创建crd">3.2 获取并创建CRD</h3>
+<p>获取<code>yaml</code>并创建<code>crd</code>，当然也可以通过直接<code>apply</code>远程地址，这里先将其保存到本地</p>
+<pre><code class="language-shell"># wget -c https://raw.githubusercontent.com/jenkinsci/kubernetes-operator/master/deploy/crds/jenkins_v1alpha2_jenkins_crd.yaml
+# kubectl apply -f jenkins_v1alpha2_jenkins_crd.yaml
+Warning: apiextensions.k8s.io/v1beta1 CustomResourceDefinition is deprecated in v1.16+, unavailable in v1.22+; use apiextensions.k8s.io/v1 CustomResourceDefinition
+customresourcedefinition.apiextensions.k8s.io/jenkins.jenkins.io created
+customresourcedefinition.apiextensions.k8s.io/jenkinsimages.jenkins.io created
+</code></pre>
+<h3 id="33-部署jenkins-operator">3.3 部署Jenkins Operator</h3>
+<p>有以下两种方式部署<code>Jenkins Operator</code></p>
+<ul>
+<li>
+<p>使用<code>yaml</code>一键安装，默认将安装在<code>default</code>命名空间下</p>
+<pre><code class="language-shell"># kubectl apply -f https://raw.githubusercontent.com/jenkinsci/kubernetes-operator/master/deploy/all-in-one-v1alpha2.yaml
+# kubectl get pods -w
+</code></pre>
+</li>
+<li>
+<p>使用<code>helm</code>并自定义安装，依赖<code>helm</code>在<code>v3</code>以上版本</p>
+</li>
+</ul>
+<p>创建<code>ns</code></p>
+<pre><code class="language-shell"># kubectl create ns jenkins
+</code></pre>
+<p>添加<code>helm</code>仓库并获取<code>chart</code></p>
+<pre><code class="language-shell"># helm repo add jenkins https://raw.githubusercontent.com/jenkinsci/kubernetes-operator/master/chart
+&quot;jenkins&quot; has been added to your repositories
+# helm pull jenkins/jenkins-operator
+# tar xf jenkins-operator-0.4.3.tgz &amp;&amp; cd jenkins-operator 
+</code></pre>
+<p>修改<code>value yaml</code>部分内容，可以定义关于<code>jenkins</code>实例、<code>operator deployment</code>、<code>backup</code>备份相关、<code>Configuration</code>配置相关字段</p>
+<ul>
+<li>指定ns</li>
+<li>指定插件</li>
+<li>默认情况只持久化了备份卷，这里将数据卷也做持久化，<code>sc</code>使用<code>csi-rbd-sc</code></li>
+<li>默认开启<code>configurationAsCode</code>，并通过<code>configmap</code>和<code>secret</code>注入</li>
+</ul>
+<pre><code class="language-yaml">jenkins:
+...
+  namespace: jenkins
+...
+  basePlugins:
+    - name: kubernetes
+      version: &quot;1.28.6&quot;
+    - name: workflow-job
+      version: &quot;2.40&quot;
+    - name: workflow-aggregator
+      version: &quot;2.6&quot;
+    - name: git
+      version: &quot;4.5.0&quot;
+    - name: job-dsl
+      version: &quot;1.77&quot;
+    - name: configuration-as-code
+      version: &quot;1.46&quot;
+    - name: kubernetes-credentials-provider
+      version: &quot;0.15&quot;
+  plugins:
+    - name: simple-theme-plugin
+      version: &quot;0.6&quot;
+#  plugins: []
+...
+  # volumes used by Jenkins
+  # By default, we are only using backup
+  volumes:
+    - name: backup # PVC volume where backups will be stored
+      persistentVolumeClaim:
+        claimName: jenkins-backup
+
+  # volumeMounts are mounts for Jenkins pod
+  volumeMounts: []
+...
+  backup:
+    # enabled is enable/disable switch for backup feature
+    # By default the feature is enabled
+    enabled: true
+
+    # image used by backup feature
+    # By default using prebuilt backup PVC image by VirtusLab
+    image: virtuslab/jenkins-operator-backup-pvc:v0.1.0
+
+    # containerName is backup container name
+    containerName: backup
+
+    # interval defines how often make backup in seconds
+    interval: 30
+
+    # makeBackupBeforePodDeletion when enabled will make backup before pod deletion
+    makeBackupBeforePodDeletion: true
+
+    # backupCommand is backup container command
+    backupCommand:
+      - /home/user/bin/backup.sh
+
+    # restoreCommand is backup restore command
+    restoreCommand:
+      - /home/user/bin/restore.sh
+
+    getLatestAction:
+      - /home/user/bin/get-latest.sh
+
+    # pvc is Persistent Volume Claim Kubernetes resource
+    pvc:
+      # enabled is enable/disable switch for PVC
+      enabled: true
+
+      # size is size of PVC
+      size: 5Gi
+
+      # className is storageClassName for PVC
+      # See https://kubernetes.io/docs/concepts/storage/persistent-volumes/#class-1 for more details
+      className: &quot;csi-rbd-sc&quot;
+
+    # env contains container environment variables
+    # PVC backup provider handles these variables:
+    # BACKUP_DIR - path for storing backup files (default: &quot;/backup&quot;)
+    # JENKINS_HOME - path to jenkins home (default: &quot;/jenkins-home&quot;)
+    # BACKUP_COUNT - define how much recent backups will be kept
+    env:
+      - name: BACKUP_DIR
+        value: /backup
+      - name: JENKINS_HOME
+        value: /jenkins-home
+      - name: BACKUP_COUNT
+        value: &quot;3&quot; # keep only the 3 most recent backups
+
+    # volumeMounts holds the mount points for volumes
+    volumeMounts:
+      - name: jenkins-home
+        mountPath: /jenkins-home # Jenkins home volume
+      - mountPath: /backup # backup volume
+        name: backup
+...
+  configuration:
+    configurationAsCode: {}
+    #    - configMapName: jenkins-casc
+    #      content: {}
+    groovyScripts: {}
+    #    - configMapName: jenkins-gs
+    #      content: {}
+
+    # secretRefName of existing secret (previously created)
+    secretRefName: &quot;&quot;
+
+    # secretData creates new secret if secretRefName is empty and fills with data provided in secretData
+    secretData: {}
+</code></pre>
+<p>执行安装</p>
+<pre><code class="language-shell"># helm install jenkins jenkins-operator -n jenkins --values ./jenkins-operator/values.yaml
+NAME: jenkins
+LAST DEPLOYED: Sun May 16 19:42:32 2021
+NAMESPACE: jenkins
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+1. Watch Jenkins instance being created:
+$ kubectl --namespace jenkins get pods -w
+
+2. Get Jenkins credentials:
+$ kubectl --namespace jenkins get secret jenkins-operator-credentials-jenkins -o 'jsonpath={.data.user}' | base64 -d
+$ kubectl --namespace jenkins get secret jenkins-operator-credentials-jenkins -o 'jsonpath={.data.password}' | base64 -d
+
+3. Connect to Jenkins (actual Kubernetes cluster):
+$ kubectl --namespace jenkins port-forward jenkins-jenkins 8080:8080
+
+Now open the browser and enter http://localhost:8080
+
+</code></pre>
+<p>检查创建的<code>operator</code></p>
+<pre><code class="language-shell"># kubectl get pods -n jenkins
+NAME                                       READY   STATUS    RESTARTS   AGE
+jenkins-jenkins                            1/2     Running   0          44s
+jenkins-jenkins-operator-996887c4b-wftz2   1/1     Running   0          1m29s
+# kubectl -n jenkins get jenkins        
+NAME      AGE
+jenkins   70s
+</code></pre>
+<h3 id="34-部署jenkins">3.4 部署Jenkins</h3>
+<p>一旦上面的<code>Jenkins Operator</code>部署后启动并正常运行，就自动会部署一个<code>Jenkins</code>实例<code>Pod</code>了</p>
+<p>实际上可以看到，通过<code>Jenkins Operator</code>部署的<code>Jenkins</code>的控制器不是场景<code>k8s</code>自带的三大控制器，而是由<code>operator</code>自己管控</p>
+<p>观察<code>operator</code>的日志如下</p>
+<pre><code class="language-shell"># kubectl -n jenkins logs -f jenkins-jenkins-operator-996887c4b-wftz2
+2021-05-16T11:59:05.017Z        INFO    controller-jenkins      jenkins/jenkins_controller.go:432       Setting default Jenkins API settings    {&quot;cr&quot;: &quot;jenkins&quot;}
+2021-05-16T11:59:05.073Z        INFO    controller-jenkins      jenkins/handler.go:88   *v1alpha2.Jenkins/jenkins has been updated      {&quot;cr&quot;: &quot;jenkins&quot;}
+2021-05-16T11:59:06.568Z        INFO    controller-jenkins      base/pod.go:159 Creating a new Jenkins Master Pod jenkins/jenkins-jenkins       {&quot;cr&quot;: &quot;jenkins&quot;}
+</code></pre>
+<p>观察<code>jenkins pod</code>中<code>jenkins master</code>的日志如下，正在下载插件（此步骤稍慢）</p>
+<pre><code class="language-shell"># kubectl -n jenkins logs -f jenkins-jenkins -c jenkins-master
+...
+ &gt; bootstrap4-api depends on font-awesome-api:5.15.2-2,jquery3-api:3.5.1-3,popper-api:1.16.1-2
+Downloading plugin: font-awesome-api from https://updates.jenkins.io/dynamic-2.263//latest/font-awesome-api.hpi
+Downloading plugin: jquery3-api from https://updates.jenkins.io/dynamic-2.263//latest/jquery3-api.hpi
+Downloading plugin: popper-api from https://updates.jenkins.io/dynamic-2.263//latest/popper-api.hpi
+</code></pre>
+<p>如果在有限时间（健康检查时间）内没有下载成功，这通常是由于网络原因引起的，<code>Operator</code>会中断该<code>Pod</code>并重新创建</p>
+<pre><code class="language-shell"># kubectl -n jenkins logs -f jenkins-jenkins-operator-996887c4b-wftz2
+2021-05-16T12:09:42.854Z        INFO    controller-jenkins      base/reconcile.go:370   Container 'jenkins-master' is terminated, status '{Name:jenkins-master State:{Waiting:nil Running:nil Terminated:&amp;ContainerStateTerminated{ExitCode:137,Signal:0,Reason:Error,Message:,StartedAt:2021-05-16 12:05:54 +0000 UTC,FinishedAt:2021-05-16 12:09:42 +0000 UTC,ContainerID:docker://342349d9e4045cd312345937797a2d9f048f3623fc1ce6bf1c2b77ff4f04d8da,}} LastTerminationState:{Waiting:nil Running:nil Terminated:nil} Ready:false RestartCount:0 Image:jenkins/jenkins:2.263.2-lts-alpine ImageID:docker-pullable://jenkins/jenkins@sha256:496142509b7d3e3f22f5cdc81b1d1322db61ec929d34dfd66b9ec3257bca13e5 ContainerID:docker://342349d9e4045cd312345937797a2d9f048f3623fc1ce6bf1c2b77ff4f04d8da Started:0xc0005aa2c6}' {&quot;cr&quot;: &quot;jenkins&quot;}
+</code></pre>
+<p>可行的一个解决办法是将<code>value.yaml</code>中的健康检查时间微调或者临时去掉健康检查，并<code>helm</code>更新让其正常启动并持久化后再次恢复，或者新创建一个<code>Jenkins</code>控制器将其覆盖</p>
+<pre><code class="language-shell"># helm -n jenkins upgrade jenkins jenkins-operator --values ./jenkins-operator/values.yaml 
+</code></pre>
+<p>最终直到看见这样的日志，就表示<code>Jenkins</code>启动成功了</p>
+<pre><code class="language-shell">2021-05-16 13:26:14.221+0000 [id=28]    INFO    o.s.c.s.AbstractApplicationContext#obtainFreshBeanFactory: Bean factory for application context [org.springframework.web.context.support.StaticWebApplicationContext@295b7e33]: org.springframework.beans.factory.support.DefaultListableBeanFactory@52880f75
+2021-05-16 13:26:14.223+0000 [id=28]    INFO    o.s.b.f.s.DefaultListableBeanFactory#preInstantiateSingletons: Pre-instantiating singletons in org.springframework.beans.factory.support.DefaultListableBeanFactory@52880f75: defining beans [filter,legacy]; root of factory hierarchy
+2021-05-16 13:26:14.489+0000 [id=29]    INFO    jenkins.InitReactorRunner$1#onAttained: Completed initialization
+2021-05-16 13:26:14.767+0000 [id=20]    INFO    hudson.WebAppMain$3#run: Jenkins is fully up and running
+</code></pre>
+<p>到这里，通过<code>Jenkins Operator</code>部署<code>Jenkins</code>就完成了（尽管看上去也没多少比<code>helm</code>或传统方式部署的优势），其实<code>Jenkins Operator</code>还有更为好用的的其他功能，后续再介绍。</p>
+<p>See you ~</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/JgJeOdy01" class="tag">
+                    jenkins
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/li-yong-docker-py-cao-zuo-docker">
+                  <h3 class="post-title">
+                    利用docker-py操作docker
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

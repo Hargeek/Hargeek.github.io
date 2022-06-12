@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>requests源码阅读 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">requests源码阅读</h2>
+            <div class="post-date">2021-01-18</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84">1、项目结构</a></li>
+<li><a href="#2-api%E6%A8%A1%E5%9D%97">2、api模块</a></li>
+<li><a href="#3-sessions">3、sessions</a></li>
+<li><a href="#4-models">4、models</a></li>
+<li><a href="#5-adapters-%E6%A8%A1%E5%9D%97">5、adapters 模块</a></li>
+<li><a href="#6-%E5%B0%8F%E6%8A%80%E5%B7%A7">6、小技巧</a>
+<ul>
+<li><a href="#61-json%E7%BC%A9%E8%BF%9B%E8%BE%93%E5%87%BA">6.1 json缩进输出</a></li>
+<li><a href="#62-structures">6.2 structures</a></li>
+<li><a href="#63-status_codes">6.3 status_codes</a></li>
+<li><a href="#64-hook">6.4 hook</a></li>
+</ul>
+</li>
+<li><a href="#%E5%8F%82%E8%80%83%E9%93%BE%E6%8E%A5">参考链接</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<p>requests是一个简洁易用的http-client库，早期在github的python项目受欢迎程度可以排名TOP10。介绍这个项目，我个人觉得还是官方的地道： <code>Requests is an elegant and simple HTTP library for Python, built for human beings.</code> 夸张到是人类就会使用requests)。我们一起阅读一下其源码，学习它是如何实现的。整篇文档分下面几个部分:</p>
+<ul>
+<li>项目结构</li>
+<li>api 模块</li>
+<li>sessions 模块</li>
+<li>models 模块</li>
+<li>adapters 模块</li>
+<li>小技巧</li>
+</ul>
+<h2 id="1-项目结构">1、项目结构</h2>
+<p>本次阅读代码版本是 <code>2.24.0</code>, 从github上clone项目后，使用log命令查看历史信息，找到tag=2.24.0的标签，切换版本:</p>
+<pre><code class="language-shell">git checkout 0797c61fd541f92f66e409dbf9515ca287af28d2
+</code></pre>
+<p>可以使用下面的方法简单判断一下代码量，这样阅读完成后会更有成就感。</p>
+<pre><code class="language-shell">requests git:(0797c61f) ✗ find requests -name &quot;*.py&quot; |xargs cat|grep -v ^$|wc -l  # 4000
+</code></pre>
+<p>大概浏览一下项目结构和代码，我们可以知道每个模块的功能： 名称|描述 —|— adapters.py|负责http连接的处理，主要适配自urllib3库 api|api接口 auth|http认证 certs|https证书处理 compat|python版本适配包 cookies|cookie处理 help|帮助 hook|钩子系统 models|数据模型 packages|兼容包相关 sessions|session处理 status_codes|http状态码 structures|数据结构 utils|工具</p>
+<p>4000多行代码，10多个模块，要全部梳理工作量不小，难度也大。本篇文章我们还是只关注主线，对于支线和细枝末节可以 <strong>不求甚解</strong> 。</p>
+<h2 id="2-api模块">2、api模块</h2>
+<p>首先还是从requests的使用示例出发：</p>
+<pre><code class="language-python">&gt;&gt;&gt; r = requests.get('https://api.github.com/user', auth=('user', 'pass'))
+&gt;&gt;&gt; r.status_code
+200
+&gt;&gt;&gt; r.headers['content-type']
+'application/json; charset=utf8'
+&gt;&gt;&gt; r.encoding
+'utf-8'
+&gt;&gt;&gt; r.text
+'{&quot;type&quot;:&quot;User&quot;...'
+&gt;&gt;&gt; r.json()
+{'private_gists': 419, 'total_private_repos': 77, ...}
+</code></pre>
+<p>上面的使用方法由api提供:</p>
+<pre><code class="language-shell"># api.py
+
+def request(method, url, **kwargs)
+    with sessions.Session() as session:
+        return session.request(method=method, url=url, **kwargs)
+
+def get(url, params=None, **kwargs):
+    kwargs.setdefault('allow_redirects', True)
+    return request('get', url, params=params, **kwargs)
+</code></pre>
+<p>这种get-request的api的封装方式，和我们之前读过的redis源码类似，可以让使用者更安全方便。request具体实现代码是从session上下文获取一个session，然后利用 <strong>session.request</strong> 发送请求。</p>
+<p>同时api中还包装了http的 <code>OPTIONS</code>, <code>HEAD</code>, <code>POST</code>, <code>PUT</code>, <code>PATCH</code> 和<code>DELETE</code> 方法。</p>
+<h2 id="3-sessions">3、sessions</h2>
+<p><code>sessions.py</code> 对象的创建和上下文：</p>
+<pre><code class="language-python"># sessions.py
+
+class Session(SessionRedirectMixin):
+    
+    def __init__(self):
+        self.headers = default_headers()
+        self.cookies = cookiejar_from_dict({})
+
+        # Default connection adapters.
+        self.adapters = OrderedDict()
+        ...
+        self.mount('https://', HTTPAdapter())
+    
+    def mount(self, prefix, adapter):
+        self.adapters[prefix] = adapter
+        
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        for v in self.adapters.values():
+            v.close()
+</code></pre>
+<p>session初始化时候，会创建默认的http-header，http-cookie信息，建立HTTPAdpater对象。<code>__enter__</code>和<code>__exit__</code>,是上下文装饰器函数，可以用来确保进行adapter的close。</p>
+<p>使用request方法发送请求:</p>
+<pre><code class="language-python">def request(self, method, url,
+        params=None, data=None, headers=None, cookies=None, files=None,
+        auth=None, timeout=None, allow_redirects=True, proxies=None,
+        hooks=None, stream=None, verify=None, cert=None, json=None):
+    req = Request(
+        method=method.upper(),
+        url=url,
+        headers=headers,
+        files=files,
+        data=data or {},
+        json=json,
+        params=params or {},
+        auth=auth,
+        cookies=cookies,
+        hooks=hooks,
+    )
+    ...
+    prep = PreparedRequest()
+    prep.prepare(
+        method=request.method.upper(),
+        url=request.url,
+        files=request.files,
+        data=request.data,
+        json=request.json,
+        headers=merge_setting(request.headers, self.headers, dict_class=CaseInsensitiveDict),
+        params=merge_setting(request.params, self.params),
+        auth=merge_setting(auth, self.auth),
+        cookies=merged_cookies,
+        hooks=merge_hooks(request.hooks, self.hooks),
+    )
+    ...
+    adapter = self.get_adapter(url=request.url)
+    ...
+    resp = adapter.send(prep, **send_kwargs)
+    return resp
+</code></pre>
+<p>request函数的处理流程，主要分成四步：</p>
+<ol>
+<li>使用请求参数封装Request对象</li>
+<li>生成PreparedRequest对象，并对request对象进行预先处理</li>
+<li>获取对应的http/https协议适配器，并用其send方法发送请求</li>
+<li>将获取的Response对象返回</li>
+</ol>
+<h2 id="4-models">4、models</h2>
+<p>在进行请求过程中创建了Request，PreparedRequest对象，同时从adpater中返回了Response对象,这3个对象的具体实现都在 <code>models.py</code> 模块。</p>
+<pre><code class="language-python">class Request(RequestHooksMixin):
+    
+    def __init__(self,
+            method=None, url=None, headers=None, files=None, data=None,
+            params=None, auth=None, cookies=None, hooks=None, json=None):
+        
+        ...
+        self.hooks = default_hooks()
+        for (k, v) in list(hooks.items()):
+            self.register_hook(event=k, hook=v)
+
+        self.method = method
+        self.url = url
+        self.headers = headers
+        self.files = files
+        self.data = data
+        self.json = json
+        self.params = params
+        self.auth = auth
+        self.cookies = cookies
+        ...
+</code></pre>
+<p>Request对象创建比较简单，就是做了一些属性的赋值，然后对外部注入的hook进行了一下校验，确保是可以执行的函数和函数集合。</p>
+<pre><code class="language-python">def register_hook(self, event, hook):
+    &quot;&quot;&quot;Properly register a hook.&quot;&quot;&quot;
+
+    if event not in self.hooks:
+        raise ValueError('Unsupported event specified, with event name &quot;%s&quot;' % (event))
+
+    if isinstance(hook, Callable):  ## hook 是一个函数
+        self.hooks[event].append(hook)
+    elif hasattr(hook, '__iter__'):  # hook 也可以是一个迭代器
+        self.hooks[event].extend(h for h in hook if isinstance(h, Callable))
+</code></pre>
+<p>PreparedRequest对象则对外部的参数进行更多的验证和准备:</p>
+<pre><code class="language-python">class PreparedRequest(RequestEncodingMixin, RequestHooksMixin):
+    
+    ...
+    
+    def prepare(self,
+        method=None, url=None, headers=None, files=None, data=None,
+        params=None, auth=None, cookies=None, hooks=None, json=None):
+    &quot;&quot;&quot;Prepares the entire request with the given parameters.&quot;&quot;&quot;
+
+        self.prepare_method(method)
+        self.prepare_url(url, params)
+        self.prepare_headers(headers)
+        self.prepare_cookies(cookies)
+        self.prepare_body(data, files, json)
+        self.prepare_auth(auth, url)
+
+        ...
+        hooks = hooks or []
+        for event in hooks:
+            self.register_hook(event, hooks[event])
+</code></pre>
+<p>可以看到PreparedRequest对象经过了：</p>
+<ul>
+<li>准备http方法</li>
+<li>准备url</li>
+<li>准备header</li>
+<li>准备cookie</li>
+<li>准备http-body</li>
+<li>准备认证</li>
+<li>接受Request对象上带来的hook</li>
+</ul>
+<p>hook我们最后再进行详细介绍，这里以prepare_headers为例看看验证过程中都做了什么:</p>
+<pre><code class="language-python">def prepare_headers(self, headers):
+    &quot;&quot;&quot;Prepares the given HTTP headers.&quot;&quot;&quot;
+
+    self.headers = CaseInsensitiveDict()  # 创建字典 
+    if headers:
+        for header in headers.items():
+            # Raise exception on invalid header value.
+            check_header_validity(header) # 验证信息
+            name, value = header
+            self.headers[to_native_string(name)] = value  # 赋值
+</code></pre>
+<p>Response对象，主要模拟文件操作，raw保留了二进制数据流，content属性是获得所有二进制数据，text属性将二进制数据编码成文本，json方法则是将文本序列化方法。</p>
+<pre><code class="language-python">CONTENT_CHUNK_SIZE = 10 * 1024 # 10k数据
+
+class Response(object):
+    
+    def __init__(self):
+        #: File-like object representation of response (for advanced usage).
+        #: Use of ``raw`` requires that ``stream=True`` be set on the request.
+        #: This requirement does not apply for use internally to Requests.
+        self.raw = None
+    
+    @property
+    def content(self):
+        &quot;&quot;&quot;Content of the response, in bytes.&quot;&quot;&quot;
+        ...
+        self._content = b''.join(self.iter_content(CONTENT_CHUNK_SIZE)) or b''
+        ...
+        return self._content
+    
+    @property
+    def text(self):
+        content = str(self.content, encoding, errors='replace')
+        return content
+    
+    def json(self, **kwargs):
+        ...
+        return complexjson.loads(self.text, **kwargs) 
+</code></pre>
+<blockquote>
+<p>requests 优先使用simplejson进行json的序列化</p>
+</blockquote>
+<p><code>iter_content</code> 函数中使用一个生成器来迭代的从流中获取数据。至于流如何得到，稍后看adapter的实现。</p>
+<pre><code class="language-python">def iter_content(self, chunk_size=1, decode_unicode=False):
+    def generate():
+            # Special case for urllib3.
+            if hasattr(self.raw, 'stream'):
+                try:
+                    for chunk in self.raw.stream(chunk_size, decode_content=True):
+                        yield chunk
+    stream_chunks = generate()
+    return stream_chunks
+</code></pre>
+<h2 id="5-adapters-模块">5、adapters 模块</h2>
+<p>具体的http请求如何发送的呢？主要就在HTTPAdapter中了:</p>
+<pre><code class="language-python">class HTTPAdapter(BaseAdapter):
+    def __init__(self, pool_connections=DEFAULT_POOLSIZE,
+                 pool_maxsize=DEFAULT_POOLSIZE, max_retries=DEFAULT_RETRIES,
+                 pool_block=DEFAULT_POOLBLOCK):
+        ...
+        # 初始化连接池
+        self.poolmanager = PoolManager(num_pools=connections, maxsize=maxsize,
+                                       block=block, strict=True, **pool_kwargs)
+    
+    def send(self, request, stream=False, timeout=None, verify=True, cert=None, proxies=None):
+        conn = self.poolmanager.connection_from_url(url) # 获取连接
+        
+        url = self.request_url(request, proxies)
+        self.add_headers(request, stream=stream, timeout=timeout, verify=verify, cert=cert, proxies=proxies)
+        
+        # 发送请求
+        resp = conn.urlopen(
+                    method=request.method,
+                    url=url,
+                    body=request.body,
+                    headers=request.headers,
+                    redirect=False,
+                    assert_same_host=False,
+                    preload_content=False,
+                    decode_content=False,
+                    retries=self.max_retries,
+                    timeout=timeout
+                )
+        
+        return self.build_response(request, resp)
+    
+    def close(self):
+        self.poolmanager.clear()  # 连接池关闭
+</code></pre>
+<p>这里主要用了urllib3库提供的PoolManager和urlopen，本篇文章我们就不深入里面的实现了，重点看看如何生成Response对象:</p>
+<pre><code class="language-python">def build_response(self, req, resp):
+    response = Response()
+    
+    # Fallback to None if there's no status_code, for whatever reason.
+    response.status_code = getattr(resp, 'status', None)
+
+    # Make headers case-insensitive.
+    response.headers = CaseInsensitiveDict(getattr(resp, 'headers', {}))
+
+    # Set encoding.
+    response.encoding = get_encoding_from_headers(response.headers)
+    response.raw = resp  # 二进制流
+    response.reason = response.raw.reason
+
+    if isinstance(req.url, bytes):
+        response.url = req.url.decode('utf-8')
+    else:
+        response.url = req.url
+
+    # Add new cookies from the server.
+    extract_cookies_to_jar(response.cookies, req, resp)
+
+    # Give the Response some context.
+    response.request = req
+    response.connection = self
+
+    return response
+</code></pre>
+<ul>
+<li>resp 是urllib3的HTTPResponse实现</li>
+<li>cookie是合并了Request和Response</li>
+<li>Response还引用了PreparedRequest对象，可以让response的使用更方便</li>
+</ul>
+<p>使用requests进行http请求的过程，主要集中在上面四个模块，现在对其核心过程都有了一定的了解。https则是再http基础上，做了更多的验证等工作。可以简单回顾一下请求执行流程：</p>
+<ol>
+<li>api中封装易用的API</li>
+<li>Session中进行流程的处理</li>
+<li>Request和PreparedRequest对请求进行预处理</li>
+<li>Response对响应进行封装，提供更易用的方法(json)和数据(ok)</li>
+</ol>
+<h2 id="6-小技巧">6、小技巧</h2>
+<p>requests库中还有一些代码，也让使用更简单，可以借鉴。</p>
+<h3 id="61-json缩进输出">6.1 json缩进输出</h3>
+<p>json输出的时候定义indent参数可以进行缩进，sort_keys可以进行排序。</p>
+<pre><code class="language-python"># help.py
+
+&quot;&quot;&quot;Pretty-print the bug information as JSON.&quot;&quot;&quot;
+print(json.dumps(info(), sort_keys=True, indent=2))
+</code></pre>
+<p>下面是示例和展示:</p>
+<pre><code class="language-python">a = {
+        &quot;name&quot;: &quot;game404&quot;,
+        &quot;age&quot;: 2
+    }
+print(json.dumps(a)) 
+print(json.dumps(a, sort_keys=True, indent=2))  # 定义indent参数
+# 输出
+{&quot;name&quot;: &quot;game404&quot;, &quot;age&quot;: 2}
+{
+  &quot;age&quot;: 2,
+  &quot;name&quot;: &quot;game404&quot;
+}
+</code></pre>
+<h3 id="62-structures">6.2 structures</h3>
+<p>structures模块中定义了2个数据结构。普通的python字典不可以使用 <code>.</code> 取值, 如果需要使用 <code>.</code> 需要定义对象:</p>
+<pre><code class="language-python"># structures.py
+
+a = {
+    &quot;name&quot;:&quot;game404&quot;
+}
+# print(a.name)  # AttributeError
+print(a[&quot;name&quot;])
+
+# 定义一个数据结构对象
+class Person(object):
+
+    def __init__(self, name):
+        self.name = name
+</code></pre>
+<p><code>LookupDict</code> 可以不用定义对象属性又使用<code>.</code> 取值，这在一些配置类上会很方便:</p>
+<pre><code class="language-python">class LookupDict(dict):
+    &quot;&quot;&quot;Dictionary lookup object.&quot;&quot;&quot;
+
+    def __init__(self, name=None):
+        self.name = name
+        super(LookupDict, self).__init__()
+
+    def __repr__(self):
+        return '&lt;lookup \'%s\'&gt;' % (self.name)
+
+    def __getitem__(self, key):
+        # We allow fall-through here, so values default to None
+        # 可以使用. 取值的魔法函数
+        return self.__dict__.get(key, None)
+
+    def get(self, key, default=None):
+        return self.__dict__.get(key, default
+        
+a = LookupDict(name=&quot;game404&quot;)
+a[&quot;motto&quot;] = &quot;Life is short, you need Python&quot;
+a.age = 2
+print(a[&quot;motto&quot;], a.age, a[&quot;age&quot;])  # none, 2, 2
+</code></pre>
+<p><code>CaseInsensitiveDict</code> 定义了大小写不敏感的字典，用来处理http-header：</p>
+<pre><code class="language-python">class CaseInsensitiveDict(MutableMapping):
+    
+    def __init__(self, data=None, **kwargs):
+        self._store = OrderedDict()  # 使用额外的_store存储数据
+        if data is None:
+            data = {}
+        self.update(data, **kwargs)
+
+    def __setitem__(self, key, value):
+        # Use the lowercased key for lookups, but store the actual
+        # key alongside the value.
+        self._store[key.lower()] = (key, value)  # 字典的key都转换为小写 
+    
+    def __delitem__(self, key):
+        del self._store[key.lower()]
+    
+cid = CaseInsensitiveDict()
+cid['Accept'] = 'application/json'
+print(cid['aCCEPT'] == 'application/json')  # True
+</code></pre>
+<p>可以看到CaseInsensitiveDict对象的__dict__实际上使用_store包装了一层:</p>
+<pre><code class="language-python">print(cid.__dict__)  # {'_store': OrderedDict([('accept', ('Accept', 'application/json'))])} 
+print(cid._store)  # OrderedDict([('accept', ('Accept', 'application/json'))])
+</code></pre>
+<h3 id="63-status_codes">6.3 status_codes</h3>
+<p>status_codes中定义了http状态码的语义化名称，比如 <code>OK</code> 是 <code>200</code>的语义化表达，不懂http的人也可以看到ok状态。</p>
+<pre><code class="language-python">print(requests.codes[&quot;ok&quot;], requests.codes.OK, requests.codes.ok, requests.codes.OKAY)  #200 200 200 200
+print(requests.codes.CREATED)  # 201
+print(requests.codes.found)  # 302
+</code></pre>
+<p>其实现方法主要是:</p>
+<pre><code class="language-python"># statuc_codes.py
+
+codes = LookupDict(name='status_codes')
+for code, titles in _codes.items():
+        for title in titles:
+            setattr(codes, title, code)  # 默认key 
+            if not title.startswith(('\\', '/')):
+                setattr(codes, title.upper(), code)  # 大写key
+</code></pre>
+<h3 id="64-hook">6.4 hook</h3>
+<p><code>hooks</code> 提供了一个简单的钩子系统，可以对一个事件名称注册多个处理函数（前面的register_hook），然后在合适的时候触发就可以获取对数据进行处理， 数据处理过程类似linux的管道符号 <code>|</code> :</p>
+<pre><code class="language-python"># hooks.py
+
+HOOKS = ['response']
+
+
+def default_hooks():  # 初始化默认的事件
+    return {event: [] for event in HOOKS}
+
+def dispatch_hook(key, hooks, hook_data, **kwargs):
+    &quot;&quot;&quot;Dispatches a hook dictionary on a given piece of data.&quot;&quot;&quot;
+    hooks = hooks or {}
+    hooks = hooks.get(key)
+    if hooks:
+        if hasattr(hooks, '__call__'):  # 判断是函数还是函数集合
+            hooks = [hooks]
+        for hook in hooks:
+            _hook_data = hook(hook_data, **kwargs)  # 注意hook会返回数据，由下一个函数继续处理
+            if _hook_data is not None:
+                hook_data = _hook_data
+    return hook_data
+</code></pre>
+<p>使用方法在:</p>
+<pre><code class="language-python">class Session(SessionRedirectMixin):
+
+    def send(self, request, **kwargs):
+        ...
+        r = adapter.send(request, **kwargs)
+        # Response manipulation hooks
+        r = dispatch_hook('response', hooks, r, **kwargs)
+</code></pre>
+<p>session在获取到请求后，触发预先定义的钩子，对response进行进一步的处理。</p>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li>https://requests.readthedocs.io/zh_CN/latest/</li>
+<li>https://urllib3.readthedocs.io/en/latest/</li>
+<li>https://gist.github.com/kennethreitz42/973705</li>
+</ul>
+<p>转载自：https://mp.weixin.qq.com/s/g8CYXC4bsAwnIzU7w4bpVg</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/vhKLQmmvn" class="tag">
+                    python
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/nginx-mu-lu-liu-lan-ji-chu-yu-jin-jie">
+                  <h3 class="post-title">
+                    Nginx目录浏览基础与进阶
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

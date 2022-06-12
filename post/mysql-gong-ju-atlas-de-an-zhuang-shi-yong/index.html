@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>MySQL工具Atlas的安装使用 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">MySQL工具Atlas的安装使用</h2>
+            <div class="post-date">2021-06-15</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E4%BB%8B%E7%BB%8D">1、介绍</a></li>
+<li><a href="#2-%E5%AE%89%E8%A3%85%E9%85%8D%E7%BD%AE">2、安装配置</a>
+<ul>
+<li><a href="#21-%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87">2.1 环境准备</a></li>
+<li><a href="#22-%E4%B8%8B%E8%BD%BD%E5%AE%89%E8%A3%85altas">2.2 下载安装Altas</a></li>
+<li><a href="#23-%E5%A4%84%E7%90%86%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">2.3 处理配置文件</a></li>
+<li><a href="#24-%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1">2.4 启动服务</a></li>
+</ul>
+</li>
+<li><a href="#3-%E8%AF%BB%E5%86%99%E5%88%86%E7%A6%BB%E5%8A%9F%E8%83%BD%E6%B5%8B%E8%AF%95">3、读写分离功能测试</a>
+<ul>
+<li><a href="#31-%E8%BF%9E%E6%8E%A5%E6%9C%8D%E5%8A%A1">3.1 连接服务</a></li>
+<li><a href="#32-%E5%8F%AA%E8%AF%BB%E6%B5%8B%E8%AF%95">3.2 只读测试</a></li>
+<li><a href="#33-%E5%86%99%E5%85%A5%E6%B5%8B%E8%AF%95">3.3 写入测试</a></li>
+</ul>
+</li>
+<li><a href="#4-%E7%AE%A1%E7%90%86%E5%8A%9F%E8%83%BD%E7%AE%80%E4%BB%8B">4、管理功能简介</a>
+<ul>
+<li><a href="#41-%E6%8C%81%E4%B9%85%E5%8C%96%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">4.1 持久化配置文件</a></li>
+<li><a href="#42-%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86%E6%9C%8D%E5%8A%A1">4.2 连接管理服务</a></li>
+<li><a href="#43-%E8%8A%82%E7%82%B9%E7%AE%A1%E7%90%86">4.3 节点管理</a>
+<ul>
+<li><a href="#431-%E6%9F%A5%E7%9C%8B%E6%89%80%E6%9C%89%E8%8A%82%E7%82%B9">4.3.1  查看所有节点</a></li>
+<li><a href="#432-%E8%8A%82%E7%82%B9%E7%9A%84%E4%B8%8A%E7%BA%BF%E5%92%8C%E4%B8%8B%E7%BA%BF">4.3.2 节点的上线和下线</a></li>
+<li><a href="#433-%E6%B7%BB%E5%8A%A0%E5%88%A0%E9%99%A4%E8%8A%82%E7%82%B9">4.3.3 添加删除节点</a></li>
+</ul>
+</li>
+<li><a href="#44-%E7%94%A8%E6%88%B7%E7%AE%A1%E7%90%86">4.4 用户管理</a>
+<ul>
+<li><a href="#441-%E5%9C%A8%E4%B8%BB%E5%BA%93%E5%A2%9E%E5%8A%A0%E6%95%B0%E6%8D%AE%E5%BA%93%E7%94%A8%E6%88%B7">4.4.1 在主库增加数据库用户</a></li>
+<li><a href="#442-%E6%9F%A5%E7%9C%8B%E5%BD%93%E5%89%8D%E7%94%A8">4.4.2 查看当前用</a></li>
+<li><a href="#443-%E5%A2%9E%E5%8A%A0atlas%E7%94%A8%E6%88%B7">4.4.3 增加Atlas用户</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210615-01.png" alt=""></figure>
+<blockquote>
+<p>作者：AshesCat</p>
+</blockquote>
+<h2 id="1-介绍">1、介绍</h2>
+<p><code>Atlas</code>是由<code>Qihoo 360</code>, <code>Web</code>平台部基础架构团队开发维护的一个基于<code>MySQL</code>协议的数据中间层项目<br>
+它是在<code>mysql-proxy 0.8.2</code>版本的基础上，对其进行了优化，增加了一些新的功能特性<br>
+<code>360</code>内部使用<code>Atlas</code>运行的<code>mysql</code>业务，每天承载的读写请求数达几十亿条<br>
+下载地址 ：https://github.com/Qihoo360/Atlas/releases</p>
+<p>注意：<br>
+1、<code>Atlas</code>只能安装运行在64位的系统上<br>
+2、<code>Centos 5.X</code>安装<code>Atlas-XX.el5.x86_64.rpm</code>，<code>Centos 6.X/7.X</code>安装<code>Atlas-XX.el6.x86_64.rpm</code><br>
+3、后端<code>mysql</code>版本应大于<code>5.1</code>，建议使用<code>Mysql 5.6</code>以上</p>
+<h2 id="2-安装配置">2、安装配置</h2>
+<h3 id="21-环境准备">2.1 环境准备</h3>
+<p>两台服务器<br>
+192.168.10.54：MySQL 5.7.30 一主三从，3307-3310端口<br>
+192.168.10.55：Atlas</p>
+<h3 id="22-下载安装altas">2.2 下载安装Altas</h3>
+<pre><code class="language-shell">
+wget https://github.com/Qihoo360/Atlas/releases/download/2.2.1/Atlas-2.2.1.el6.x86_64.rpm
+[root@db3 ~]# rpm -ivh Atlas-2.2.1.el6.x86_64.rpm 
+Preparing...        ####################### [100%]
+Updating / installing...
+   1:Atlas-2.2.1-1  ####################### [100%]
+</code></pre>
+<h3 id="23-处理配置文件">2.3 处理配置文件</h3>
+<pre><code class="language-shell">[root@db3 ~]# cd /usr/local/mysql-proxy/conf/
+[root@db3 conf]# mv test.cnf test.cnf.bak
+
+[root@db3 conf]# vim test.cnf
+[mysql-proxy]
+admin-username = user    # 管理用户
+admin-password = pwd     # 管理密码
+proxy-backend-addresses = 192.168.10.54:3307    # 写节点（主库）
+proxy-read-only-backend-addresses = 192.168.10.54:3308,192.168.10.54:3309,192.168.10.54:3310   # 只读节点（从库）
+pwds = test:3yb5jEku5h4=,repl:3yb5jEku5h4=      # 业务连接用户密码（逗号分隔），密码为Atlas/bin目录下encrypt命令生成
+daemon = true       # 后台运行
+keepalive = true    # 监测节点心跳
+event-threads = 4   # 并发数量，设置cpu核数一半
+log-level = message   # 日志级别
+log-path = /usr/local/mysql-proxy/log  # 日志目录
+sql-log = On   # sql记录（可做审计）
+proxy-address = 0.0.0.0:3306    # 业务连接端口
+admin-address = 0.0.0.0:2345    # 管理连接端口
+charset=utf8   # 字符集
+</code></pre>
+<h3 id="24-启动服务">2.4 启动服务</h3>
+<pre><code class="language-shell">[root@db3 mysql-proxy]# /usr/local/mysql-proxy/bin/mysql-proxyd test start
+OK: MySQL-Proxy of test is started
+[root@db3 mysql-proxy]# ps -ef |grep proxy
+root     105981      1  0 17:19 ?        00:00:00 /usr/local/mysql-proxy/bin/mysql-proxy --defaults-file=/usr/local/mysql-proxy/conf/test.cnf
+root     105982 105981  0 17:19 ?        00:00:00 /usr/local/mysql-proxy/bin/mysql-proxy --defaults-file=/usr/local/mysql-proxy/conf/test.cnf
+root     105995   1249  0 17:19 pts/0    00:00:00 grep --color=auto proxy
+</code></pre>
+<h2 id="3-读写分离功能测试">3、读写分离功能测试</h2>
+<p>测试读操作：</p>
+<pre><code class="language-shell">mysql -umha -pmha  -h 10.0.0.53 -P 33060 
+db03 [(none)]&gt;select @@server_id;
+</code></pre>
+<p>测试写操作：</p>
+<pre><code class="language-shell">mysql&gt; begin;select @@server_id;commit;
+</code></pre>
+<p><strong>注意:</strong><br>
+<code>DDL</code>建议不要在<code>Atlas</code>触发，最好是到主库触发<code>Online DDL</code>或者<code>PT-OSC</code><br>
+<code>DML</code>建议<code>begin</code>; <code>DML</code>;  <code>commit</code>;</p>
+<h3 id="31-连接服务">3.1 连接服务</h3>
+<pre><code class="language-mysql">[root@db5 conf]# mysql -urepl -p123 -h192.168.10.55 -P3306
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 1
+Server version: 5.0.81-log MySQL Community Server (GPL)   # 5.0.81版本
+</code></pre>
+<h3 id="32-只读测试">3.2 只读测试</h3>
+<pre><code class="language-mysql">mysql&gt; select @@server_id;
++-------------+
+| @@server_id |
++-------------+
+|           9 |
++-------------+
+1 row in set (0.00 sec)
+
+mysql&gt; select @@server_id;
++-------------+
+| @@server_id |
++-------------+
+|          10 |
++-------------+
+1 row in set (0.00 sec)
+
+mysql&gt; select @@server_id;
++-------------+
+| @@server_id |
++-------------+
+|           8 |
++-------------+
+1 row in set (0.00 sec)
+</code></pre>
+<h3 id="33-写入测试">3.3 写入测试</h3>
+<pre><code class="language-mysql">mysql&gt; begin;select @@server_id;commit;
+Query OK, 0 rows affected (0.00 sec)
+
++-------------+
+| @@server_id |
++-------------+
+|           7 |
++-------------+
+1 row in set (0.00 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
+mysql&gt; begin;select @@server_id;commit;
+Query OK, 0 rows affected (0.00 sec)
+
++-------------+
+| @@server_id |
++-------------+
+|           7 |
++-------------+
+1 row in set (0.00 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+</code></pre>
+<h2 id="4-管理功能简介">4、管理功能简介</h2>
+<h3 id="41-持久化配置文件">4.1 持久化配置文件</h3>
+<pre><code class="language-mysql">mysql&gt; save config;
+Empty set (0.00 sec)
+</code></pre>
+<h3 id="42-连接管理服务">4.2 连接管理服务</h3>
+<pre><code class="language-mysql">[root@db5 bin]# mysql -uuser -ppwd -h192.168.10.55 -P2345
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 1
+Server version: 5.0.99-agent-admin
+</code></pre>
+<h3 id="43-节点管理">4.3 节点管理</h3>
+<h4 id="431-查看所有节点">4.3.1  查看所有节点</h4>
+<pre><code class="language-mysql">mysql&gt; SELECT * FROM backends;
++-------------+--------------------+-------+------+
+| backend_ndx | address            | state | type |
++-------------+--------------------+-------+------+
+|           1 | 192.168.10.54:3307 | up    | rw   |
+|           2 | 192.168.10.54:3308 | up    | ro   |
+|           3 | 192.168.10.54:3309 | up    | ro   |
+|           4 | 192.168.10.54:3310 | up    | ro   |
++-------------+--------------------+-------+------+
+4 rows in set (0.00 sec)
+</code></pre>
+<h4 id="432-节点的上线和下线">4.3.2 节点的上线和下线</h4>
+<p>下线</p>
+<pre><code class="language-mysql">mysql&gt; set offline 1;
++-------------+--------------------+---------+------+
+| backend_ndx | address            | state   | type |
++-------------+--------------------+---------+------+
+|           1 | 192.168.10.54:3307 | offline | rw   |
++-------------+--------------------+---------+------+
+1 row in set (0.00 sec)
+mysql&gt; SELECT * FROM backends;
++-------------+--------------------+---------+------+
+| backend_ndx | address            | state   | type |
++-------------+--------------------+---------+------+
+|           1 | 192.168.10.54:3307 | offline | rw   |
+|           2 | 192.168.10.54:3308 | up      | ro   |
+|           3 | 192.168.10.54:3309 | up      | ro   |
+|           4 | 192.168.10.54:3310 | up      | ro   |
++-------------+--------------------+---------+------+
+4 rows in set (0.00 sec)
+</code></pre>
+<p>上线</p>
+<pre><code class="language-mysql">mysql&gt; set online 1;
++-------------+--------------------+---------+------+
+| backend_ndx | address            | state   | type |
++-------------+--------------------+---------+------+
+|           1 | 192.168.10.54:3307 | unknown | rw   |
++-------------+--------------------+---------+------+
+1 row in set (0.00 sec)
+
+</code></pre>
+<h4 id="433-添加删除节点">4.3.3 添加删除节点</h4>
+<p>删除</p>
+<pre><code class="language-mysql">mysql&gt; remove backend 4;
+Empty set (0.00 sec)
+
+mysql&gt; SELECT * FROM backends;
++-------------+--------------------+-------+------+
+| backend_ndx | address            | state | type |
++-------------+--------------------+-------+------+
+|           1 | 192.168.10.54:3307 | up    | rw   |
+|           2 | 192.168.10.54:3308 | up    | ro   |
+|           3 | 192.168.10.54:3309 | up    | ro   |
++-------------+--------------------+-------+------+
+3 rows in set (0.00 sec)
+</code></pre>
+<p>添加</p>
+<pre><code class="language-mysql">mysql&gt; add slave 192.168.10.54:3310;
+Empty set (0.00 sec)
+
+mysql&gt; SELECT * FROM backends;
++-------------+--------------------+-------+------+
+| backend_ndx | address            | state | type |
++-------------+--------------------+-------+------+
+|           1 | 192.168.10.54:3307 | up    | rw   |
+|           2 | 192.168.10.54:3308 | up    | ro   |
+|           3 | 192.168.10.54:3309 | up    | ro   |
+|           4 | 192.168.10.54:3310 | up    | ro   |
++-------------+--------------------+-------+------+
+4 rows in set (0.00 sec)
+</code></pre>
+<h3 id="44-用户管理">4.4 用户管理</h3>
+<h4 id="441-在主库增加数据库用户">4.4.1 在主库增加数据库用户</h4>
+<pre><code class="language-mysql">mysql&gt; grant all on *.* to user1@'192.168.10.%' identified by '123';
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+</code></pre>
+<h4 id="442-查看当前用">4.4.2 查看当前用</h4>
+<pre><code class="language-mysql">mysql&gt; select * from pwds;
++----------+--------------+
+| username | password     |
++----------+--------------+
+| test     | 3yb5jEku5h4= |
+| repl     | 3yb5jEku5h4= |
++----------+--------------+
+2 rows in set (0.00 sec)
+</code></pre>
+<h4 id="443-增加atlas用户">4.4.3 增加Atlas用户</h4>
+<pre><code class="language-mysql">mysql&gt; add pwd user1:123;
+Empty set (0.00 sec)
+
+mysql&gt; select * from pwds;
++----------+--------------+
+| username | password     |
++----------+--------------+
+| test     | 3yb5jEku5h4= |
+| repl     | 3yb5jEku5h4= |
+| user1    | 3yb5jEku5h4= |
++----------+--------------+
+3 rows in set (0.00 sec)
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/M29o-BG-i" class="tag">
+                    mysql
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/mysql-mha-bu-shu-yu-ce-shi-xia-pian">
+                  <h3 class="post-title">
+                    MySQL MHA部署与测试-下篇
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

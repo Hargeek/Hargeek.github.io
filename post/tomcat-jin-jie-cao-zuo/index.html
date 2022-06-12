@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Tomcat进阶操作 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Tomcat进阶操作</h2>
+            <div class="post-date">2018-07-16</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E4%BD%BF%E7%94%A8war%E5%8C%85%E9%83%A8%E7%BD%B2web%E7%AB%99%E7%82%B9">1、使用war包部署web站点</a></li>
+<li><a href="#2-tomcat-auth-basic%E8%AE%A4%E8%AF%81%E7%9A%84%E5%AE%9E%E7%8E%B0">2、tomcat auth basic认证的实现</a>
+<ul>
+<li><a href="#21-%E4%BF%AE%E6%94%B9tomcat%E7%9A%84conf%E7%9B%AE%E5%BD%95%E4%B8%8B%E7%9A%84tomcat-usersxml%E6%96%87%E4%BB%B6">2.1 修改tomcat的conf目录下的tomcat-users.xml文件</a></li>
+<li><a href="#22-%E4%BF%AE%E6%94%B9myappweb-infwebxml%E6%96%87%E4%BB%B6">2.2 修改myapp/WEB-INF/web.xml文件</a></li>
+</ul>
+</li>
+<li><a href="#3-%E8%87%AA%E5%AE%9A%E4%B9%89%E9%BB%98%E8%AE%A4%E7%BD%91%E7%AB%99%E7%9B%AE%E5%BD%95">3、自定义默认网站目录</a></li>
+<li><a href="#4-tomcat%E5%A4%9A%E5%AE%9E%E4%BE%8B%E5%8F%8A%E9%9B%86%E7%BE%A4%E6%9E%B6%E6%9E%84">4、tomcat多实例及集群架构</a>
+<ul>
+<li><a href="#41-tomcat%E5%A4%9A%E5%AE%9E%E4%BE%8B">4.1、tomcat多实例</a>
+<ul>
+<li><a href="#411-%E5%A4%8D%E5%88%B6tomcat%E7%9B%AE%E5%BD%95">4.1.1、复制tomcat目录</a></li>
+<li><a href="#412-%E4%BF%AE%E6%94%B9%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">4.1.2、修改配置文件</a></li>
+<li><a href="#413-%E5%90%AF%E5%8A%A8%E5%A4%9A%E5%AE%9E%E4%BE%8B">4.1.3、启动多实例</a></li>
+</ul>
+</li>
+<li><a href="#42-tomcat%E9%9B%86%E7%BE%A4">4.2、tomcat集群</a></li>
+</ul>
+</li>
+<li><a href="#5-tomcat%E4%BC%98%E5%8C%96">5、tomcat优化</a>
+<ul>
+<li><a href="#51-%E5%AE%89%E5%85%A8%E4%BC%98%E5%8C%96">5.1 安全优化</a></li>
+<li><a href="#52-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96">5.2、性能优化</a>
+<ul>
+<li><a href="#521-%E5%B1%8F%E8%94%BDdns%E6%9F%A5%E8%AF%A2">5.2.1、屏蔽dns查询</a></li>
+<li><a href="#522-jvm%E8%B0%83%E4%BC%98">5.2.2、jvm调优</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-使用war包部署web站点">1、使用war包部署web站点</h2>
+<pre><code>[root@tomcat webapps]# pwd
+/application/tomcat/webapps
+[root@tomcat webapps]# rz  #上传memtest.war，上传的是网上下载编译好的java项目
+[root@tomcat webapps]# ls	#等待一会儿就会解压war包
+docs  examples  host-manager  manager  memtest  memtest.war  ROOT
+</code></pre>
+<p>浏览器访问<br>
+http://10.0.0.7:8080/memtest</p>
+<h2 id="2-tomcat-auth-basic认证的实现">2、tomcat auth basic认证的实现</h2>
+<p>为站点的某个路径配置认证</p>
+<h3 id="21-修改tomcat的conf目录下的tomcat-usersxml文件">2.1 修改tomcat的conf目录下的tomcat-users.xml文件</h3>
+<p>添加角色用户名和密码</p>
+<pre><code>[root@tomcat ~]# vim /application/tomcat/conf/tomcat-users.xml
+…………
+&lt;role rolename=&quot;manager-gui&quot;/&gt;
+&lt;role rolename=&quot;admin-gui&quot;/&gt;
+&lt;user username=&quot;tomcat&quot; password=&quot;tomcat&quot; roles=&quot;manager-gui,admin-gui&quot;/&gt;
+&lt;/tomcat-users&gt;  #在此行前加入上面三行
+</code></pre>
+<h3 id="22-修改myappweb-infwebxml文件">2.2 修改myapp/WEB-INF/web.xml文件</h3>
+<p>这个文件的内容可以效仿系统自带的manager页面认证的配置文件/application/tomcat/webapps/manager/WEB-INF/web.xml进行配置</p>
+<pre><code>[root@tomcat jpress]# vim WEB-INF/web.xml
+&lt;security-constraint&gt;
+    &lt;web-resource-collection&gt;
+      &lt;web-resource-name&gt;HTML Manager interface (for humans)&lt;/web-resource-name&gt;
+      &lt;url-pattern&gt;/admin/*&lt;/url-pattern&gt;
+    &lt;/web-resource-collection&gt;
+    &lt;auth-constraint&gt;
+       &lt;role-name&gt;manager-gui&lt;/role-name&gt;
+    &lt;/auth-constraint&gt;
+  &lt;/security-constraint&gt;
+&lt;login-config&gt;
+    &lt;auth-method&gt;BASIC&lt;/auth-method&gt;
+    &lt;realm-name&gt;Jpress admin&lt;/realm-name&gt;
+  &lt;/login-config&gt;
+[root@tomcat jpress]# /application/tomcat/bin/shutdown.sh		#重启tomcat
+[root@tomcat jpress]# /application/tomcat/bin/startup.sh
+</code></pre>
+<p>访问网站admin路径时就需要认证</p>
+<h2 id="3-自定义默认网站目录">3、自定义默认网站目录</h2>
+<pre><code>[root@tomcat ~]# vim /application/tomcat/conf/server.xml
+      &lt;Host name=&quot;localhost&quot;  appBase=&quot;webapps&quot;
+            unpackWARs=&quot;true&quot; autoDeploy=&quot;true&quot;&gt;
+         &lt;Context path=&quot;&quot; docBase=&quot;/application/tomcat/webapps/memtest&quot; debug=&quot;0&quot; reloadable=&quot;false&quot; crossContext=&quot;true&quot;/&gt;
+[root@tomcat ~]# /application/tomcat/bin/shutdown.sh		#重启tomcat
+[root@tomcat ~]# /application/tomcat/bin/startup.sh
+</code></pre>
+<p>访问http://10.0.0.7:8080即可访问到网站</p>
+<h2 id="4-tomcat多实例及集群架构">4、tomcat多实例及集群架构</h2>
+<h3 id="41-tomcat多实例">4.1、tomcat多实例</h3>
+<h4 id="411-复制tomcat目录">4.1.1、复制tomcat目录</h4>
+<pre><code>[root@tomcat ~]# cd /application/
+[root@tomcat application]# cp -a apache-tomcat-8.0.27 tomcat8_1
+[root@tomcat application]# cp -a apache-tomcat-8.0.27 tomcat8_2
+</code></pre>
+<h4 id="412-修改配置文件">4.1.2、修改配置文件</h4>
+<pre><code>[root@tomcat application]# mkdir -p /data/www/www/ROOT
+[root@tomcat application]# cp /application/tomcat/webapps/memtest/meminfo.jsp /data/www/www/ROOT/
+[root@tomcat ~]# sed -i '22s#8005#8011#;69s#8080#8081#;123s#appBase=&quot;.*&quot;# appBase=&quot;/data/www/www&quot;#' /application/tomcat8_1/conf/server.xml
+[root@tomcat ~]# sed -i '22s#8005#8012#;69s#8080#8082#;123s#appBase=&quot;.*&quot;# appBase=&quot;/data/www/www&quot;#' /application/tomcat8_2/conf/server.xml
+[root@tomcat ~]# diff /application/tomcat/conf/server.xml  /application/tomcat8_1/conf/server.xml   
+22c22
+&lt; &lt;Server port=&quot;8005&quot; shutdown=&quot;SHUTDOWN&quot;&gt;
+---
+&gt; &lt;Server port=&quot;8011&quot; shutdown=&quot;SHUTDOWN&quot;&gt;
+69c69
+&lt;     &lt;Connector port=&quot;8080&quot; protocol=&quot;HTTP/1.1&quot;
+---
+&gt;     &lt;Connector port=&quot;8081&quot; protocol=&quot;HTTP/1.1&quot;
+123c123
+&lt;       &lt;Host name=&quot;localhost&quot;  appBase=&quot;/application/tomcat/webapps/memtest&quot;
+---
+&gt;       &lt;Host name=&quot;localhost&quot;   appBase=&quot;/data/www/www&quot;
+[root@tomcat ~]# diff /application/tomcat/conf/server.xml  /application/tomcat8_2/conf/server.xml
+22c22
+&lt; &lt;Server port=&quot;8005&quot; shutdown=&quot;SHUTDOWN&quot;&gt;
+---
+&gt; &lt;Server port=&quot;8012&quot; shutdown=&quot;SHUTDOWN&quot;&gt;
+69c69
+&lt;     &lt;Connector port=&quot;8080&quot; protocol=&quot;HTTP/1.1&quot;
+---
+&gt;     &lt;Connector port=&quot;8082&quot; protocol=&quot;HTTP/1.1&quot;
+123c123
+&lt;       &lt;Host name=&quot;localhost&quot;  appBase=&quot;/application/tomcat/webapps/memtest&quot;
+---
+&gt;       &lt;Host name=&quot;localhost&quot;    appBase=&quot;/data/www/www&quot;
+</code></pre>
+<h4 id="413-启动多实例">4.1.3、启动多实例</h4>
+<pre><code>for i in {1..2};do /application/tomcat8_$i/bin/startup.sh;done
+netstat -tunlp|grep java
+</code></pre>
+<h3 id="42-tomcat集群">4.2、tomcat集群</h3>
+<p>使用nginx+tomcat反向代理集群</p>
+<pre><code>[root@tomcat ~]# vim /application/nginx/conf/nginx.conf
+    upstream web_pools {
+        server 127.0.0.1:8081;
+        server 127.0.0.1:8082;
+        }
+    server {
+        listen       80;
+        server_name  localhost;
+        location / {
+            root   html;
+            index  index.jsp index.html index.htm;
+            proxy_pass http://web_pools;
+        }
+     }
+[root@tomcat ~]# /application/nginx/sbin/nginx -t
+[root@tomcat ~]# /application/nginx/sbin/nginx
+</code></pre>
+<p>浏览器直接访问ip地址即可访问到网站</p>
+<h2 id="5-tomcat优化">5、tomcat优化</h2>
+<h3 id="51-安全优化">5.1 安全优化</h3>
+<p>降权启动<br>
+telnet管理端口保护<br>
+ajp连接端口保护<br>
+禁用管理端</p>
+<h3 id="52-性能优化">5.2、性能优化</h3>
+<h4 id="521-屏蔽dns查询">5.2.1、屏蔽dns查询</h4>
+<pre><code>enableLookups=&quot;false&quot;
+&lt;Connector  port=&quot;8081&quot; protocol=&quot;HTTP/1.1&quot;
+               connectionTimeout=&quot;6000&quot; enableLookups=&quot;false&quot; acceptCount=&quot;800&quot;
+               redirectPort=&quot;8443&quot; /&gt;
+</code></pre>
+<h4 id="522-jvm调优">5.2.2、jvm调优</h4>
+<p>Tomcat较耗内存，如果系统资源有限，那就需要进行调优，提高资源使用率</p>
+<ul>
+<li>增加最大连接数</li>
+<li>调整工作模式</li>
+<li>启用gzip压缩</li>
+<li>调整JVM内存大小</li>
+<li>作为Web时，动静分离</li>
+<li>合理选择垃圾回收算法</li>
+<li>尽量使用较新JDK版本</li>
+</ul>
+<p>优化catalina.sh配置文件。在catalina.sh配置文件中添加以下代码：</p>
+<pre><code>JAVA_OPTS=&quot;-Djava.awt.headless=true -Dfile.encoding=UTF-8 -server -Xms1024m -Xmx1024m -XX:NewSize=512m -XX:MaxNewSize=512m -XX:PermSize=512m -XX:MaxPermSize=512m&quot;
+</code></pre>
+<ul>
+<li>
+<p>server<br>
+一定要作为第一个参数，在多个CPU时性能佳</p>
+</li>
+<li>
+<p>-Xms<br>
+初始堆内存Heap大小，使用的最小内存,cpu性能高时此值应设的大一些</p>
+</li>
+<li>
+<p>-Xmx<br>
+初始堆内存heap最大值，使用的最大内存<br>
+上面两个值是分配JVM的最小和最大内存，取决于硬件物理内存的大小，建议均设为物理内存的一半。</p>
+</li>
+<li>
+<p>-XX:PermSize<br>
+设定内存的永久保存区域</p>
+</li>
+<li>
+<p>-XX:MaxPermSize<br>
+设定最大内存的永久保存区域</p>
+</li>
+<li>
+<p>-XX:MaxNewSize:<br>
+s设定最大新生代内存大小</p>
+</li>
+<li>
+<p>-Xss 15120</p>
+</li>
+<li>
+<p>这使得JBoss每增加一个线程（thread)就会立即消耗15M内存，而最佳值应该是128K,默认值好像是512k.</p>
+</li>
+<li>
+<p>+XX:AggressiveHeap<br>
+会使得 Xms没有意义。这个参数让jvm忽略Xmx参数,疯狂地吃完一个G物理内存,再吃尽一个G的swap。</p>
+</li>
+<li>
+<p>-Xss<br>
+每个线程的Stack大小</p>
+</li>
+<li>
+<p>-verbose:gc<br>
+现实垃圾收集信息</p>
+</li>
+<li>
+<p>-Xloggc:gc.log<br>
+指定垃圾收集日志文件</p>
+</li>
+<li>
+<p>-Xmn<br>
+young generation的heap大小，一般设置为Xmx的3、4分之一</p>
+</li>
+<li>
+<p>-XX:+UseParNewGC<br>
+缩短minor收集的时间</p>
+</li>
+<li>
+<p>-XX:+UseConcMarkSweepGC<br>
+缩短major收集的时间</p>
+</li>
+</ul>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/tomcat" class="tag">
+                    tomcat
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/tomcat-huan-jing-bu-shu">
+                  <h3 class="post-title">
+                    Tomcat环境部署
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

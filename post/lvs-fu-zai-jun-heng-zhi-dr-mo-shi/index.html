@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>LVS负载均衡之DR模式 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">LVS负载均衡之DR模式</h2>
+            <div class="post-date">2018-09-11</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-lvs%E7%9A%84dr%E6%A8%A1%E5%BC%8F%E4%BB%8B%E7%BB%8D">1、LVS的DR模式介绍</a></li>
+<li><a href="#2-lvs%E7%9A%84dr%E6%A8%A1%E5%BC%8F%E9%83%A8%E7%BD%B2%E8%BF%87%E7%A8%8B">2、LVS的DR模式部署过程</a>
+<ul>
+<li><a href="#21-web%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%87%86%E5%A4%87">2.1、web服务器准备</a></li>
+<li><a href="#22-lvs%E6%9C%8D%E5%8A%A1%E5%99%A8%E9%85%8D%E7%BD%AE">2.2、lvs服务器配置</a></li>
+<li><a href="#23-web%E6%9C%8D%E5%8A%A1%E5%99%A8%E9%85%8D%E7%BD%AE">2.3、web服务器配置</a></li>
+<li><a href="#24-%E6%B5%8B%E8%AF%95">2.4、测试</a></li>
+<li><a href="#25-keepalived%E7%BB%93%E5%90%88lvs_dr%E6%A8%A1%E5%BC%8F">2.5、keepalived结合lvs_DR模式</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-lvs的dr模式介绍">1、LVS的DR模式介绍</h2>
+<p>参考自官网：http://www.linuxvirtualserver.org/zh/lvs3.html</p>
+<blockquote>
+<p>VS/DR利用大多数Internet服务的非对称特点，负载调度器中只负责调度请求，而服务器直接将响应返回给客户，可以极大地提高整个集群 系统的吞吐量。该方法与IBM的NetDispatcher产品中使用的方法类似（其中服务器上的IP地址配置方法是相似的），但IBM的 NetDispatcher是非常昂贵的商品化产品，我们也不知道它内部所使用的机制，其中有些是IBM的专利。<br>
+VS/DR的体系结构如图所示：调度器和服务器组都必须在物理上有一个网卡通过不分断的局域网相连，如通过高速的交换机或者HUB相连。VIP地址为调度器和服务器组共享，调度 器配置的VIP地址是对外可见的，用于接收虚拟服务的请求报文；所有的服务器把VIP地址配置在各自的Non-ARP网络设备上，它对外面是不可见的，只 是用于处理目标地址为VIP的网络请求。</p>
+</blockquote>
+<p><img src="https://image.ssgeek.com/20180911-01.png" alt=""><br>
+<code>VS/DR</code>的工作流程如图所示：它的连接调度和管理与<code>VS/NAT</code>和<code>VS/TUN</code>中的一样，它的报文转发方法又有不同，将报文直接路由给目标服务器。在<code>VS/DR</code>中，调度器根据各个服务器的负载情况，动态地选择一台服务器，不修改也不封装<code>IP</code>报文，而是将数据帧的<code>MAC</code>地址改为选出服务器的<code>MAC</code>地址，再将修改后的数据帧在与服务器组的局域网上发送。因为数据帧的<code>MAC</code>地址是选出的服务器，所以服务器肯定可以收到这个数据帧，从中可以获得该IP报文。当服务器发现 报文的目标地址<code>VIP</code>是在本地的网络设备上，服务器处理这个报文，然后根据路由表将响应报文直接返回给客户。<br>
+<img src="https://image.ssgeek.com/20180911-02.png" alt=""><br>
+在<code>VS/DR</code>中，根据缺省的<code>TCP/IP</code>协议栈处理，请求报文的目标地址为<code>VIP</code>，响应报文的源地址肯定也为<code>VIP</code>，所以响应报文不需要作任何修改，可以直接返回给客户，客户认为得到正常的服务，而不会知道是哪一台服务器处理的。<code>VS/DR</code>负载调度器跟<code>VS/TUN</code>一样只处于从客户到服务器的半连接中，按照半连接的<code>TCP</code>有限状态机进行状态迁移。<br>
+简单来说：请求由<code>LVS</code>接受，由真实提供服务的服务器（RealServer, RS）直接返回给用户，返回的时候不经过 LVS。<br>
+<code>DR</code>模式下需要<code>LVS</code>和绑定同一个<code>VIP</code>（RS 通过将 VIP 绑定在 loopback 实现）。<br>
+一个请求过来时，<code>LVS</code>只需要将网络帧的<code>MAC</code>地址修改为某一台<code>RS</code>的<code>MAC</code>，该包就会被转发到相应的<code>RS</code>处理，注意此时的源<code>IP</code>和目标<code>IP</code>都没变，<code>LVS</code>只是做了一下移花接木。<br>
+<code>RS</code>收到<code>LVS</code>转发来的包，链路层发现<code>MAC</code>是自己的，到上面的网络层，发现<code>IP</code>也是自己的，于是这个包被合法地接受，<code>RS</code>感知不到前面有<code>LVS</code>的存在。<br>
+而当<code>RS</code>返回响应时，只要直接向源<code>IP</code>（即用户的 IP）返回即可，不再经过<code>LVS</code>。<br>
+<code>DR</code>模式是性能最好的一种模式。<br>
+优点：效率最高，负载均衡器只用分发请求，应答包通过单独的路由返回给客户端，提高了服务器并发能力。<br>
+缺点：负载均衡器的网卡必须和物理网卡在同一网段上</p>
+<h2 id="2-lvs的dr模式部署过程">2、LVS的DR模式部署过程</h2>
+<p>环境：</p>
+<pre><code>lvs		eth0：10.0.0.31	eth0:1：10.0.0.32	gateway：10.0.0.254
+web01	eth0：10.0.0.71	lo：10.0.0.32		gateway：10.0.0.254
+web02	eth0：10.0.0.81	lo：10.0.0.32		gateway：10.0.0.254
+</code></pre>
+<h3 id="21-web服务器准备">2.1、web服务器准备</h3>
+<p>在web服务器上安装httpd服务来进行模拟，每台服务器的web首页不同，在负载均衡测试的时候以便区分<br>
+web01</p>
+<pre><code>[root@web01 ~]# yum install -y httpd
+[root@web01 ~]# systemctl start httpd.service 
+[root@web01 ~]# systemctl enable httpd.service 
+[root@web01 ~]# echo 'web01'&gt; /var/www/html/index.html
+[root@web01 ~]# curl 127.0.0.1
+web01
+</code></pre>
+<p>web02</p>
+<pre><code>[root@web02 ~]# yum install -y httpd
+[root@web02 ~]# systemctl start httpd.service 
+[root@web02 ~]# systemctl enable httpd.service 
+[root@web02 ~]# echo 'web02'&gt; /var/www/html/index.html
+[root@web02 ~]# curl 127.0.0.1
+web02
+</code></pre>
+<h3 id="22-lvs服务器配置">2.2、lvs服务器配置</h3>
+<pre><code>[root@lvs ~]# ifconfig eth0:0 10.0.0.32 netmask 255.255.255.255	#为网卡eth0增加辅助ip
+[root@lvs ~]# yum install -y ipvsadm				#安装lvs核心管理软件包
+[root@lvs ~]# ipvsadm -C
+[root@lvs ~]# ipvsadm -At 10.0.0.32:80 -s rr
+[root@lvs ~]# ipvsadm -at 10.0.0.32:80 -r 10.0.0.71:80 -g
+[root@lvs ~]# ipvsadm -at 10.0.0.32:80 -r 10.0.0.81:80 -g
+[root@lvs ~]# ipvsadm -L -n	
+IP Virtual Server version 1.2.1 (size=4096)
+Prot LocalAddress:Port Scheduler Flags
+  -&gt; RemoteAddress:Port           Forward Weight ActiveConn InActConn
+TCP  10.0.0.32:80 rr
+  -&gt; 10.0.0.71:80                 Route   1      0          0         
+  -&gt; 10.0.0.81:80                 Route   1      0          0
+</code></pre>
+<p>参数说明：<br>
+<code>-C	--clear</code>清除内核虚拟服务器表中的所有记录<br>
+<code>-A	--add-service</code>在内核的虚拟服务器表中添加一条新的虚拟服务器记录<br>
+<code>-t	--tcp-service service-address</code>说明虚拟服务器提供的是tcp 的服务<br>
+<code>-s 	--scheduler scheduler</code>使用的调度算法，调度算法可以指定以下8种：<code>rr</code>（轮询），<code>wrr</code>（权重），<code>lc</code>（最后连接），<code>wlc</code>（权重），<code>lblc</code>（本地最后连接），<code>lblcr</code>（带复制的本地最后连接），<code>dh</code>（目的地址哈希），<code>sh</code>（源地址哈希），<code>sed</code>（最小期望延迟），<code>nq</code>（永不排队）<br>
+<code>-a	--add-server</code>在内核虚拟服务器表的一条记录里添加一条新的真实服务器记录。也就是在一个虚拟服务器中增加一台新的真实服务器<br>
+<code>-r	--real-server server-address</code>指定真实的服务器<code>[Real-Server:port]</code><br>
+<code>-g	--gatewaying</code>指定<code>LVS</code>的工作模式为直接路由模式（也是LVS 默认的模式）<br>
+<code>-L	--list</code>显示内核虚拟服务器表<br>
+<code>-n</code>不解析端口使用的协议</p>
+<h3 id="23-web服务器配置">2.3、web服务器配置</h3>
+<p>web01</p>
+<pre><code>[root@web01 ~]# ifconfig lo:0 10.0.0.32 netmask 255.255.255.255			#为环回地址增加辅助ip
+[root@web01 ~]# ip addr
+1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN 
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet 10.0.0.32/32 scope global lo:0
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP qlen 1000
+    link/ether 00:0c:29:22:ee:cd brd ff:ff:ff:ff:ff:ff
+    inet 10.0.0.71/24 brd 10.0.0.255 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::20c:29ff:fe22:eecd/64 scope link 
+       valid_lft forever preferred_lft forever
+</code></pre>
+<p>以下操作目的是修改内核参数，开启arp抑制，调整arp内核参数的意义：<br>
+a）ARP广播会产生的问题<br>
+当客户端发起访问VIP 对应的域名的请求（curl 10.0.0.32）时，根据网络通信原理会产生ARP 广播，因为负载均衡器dir和真实的服务器rs在同一网络并且VIP设置在集群中的每个节点上，此时集群内的真实服务器会尝试回答来自客户端计算机的查找VIP的ARP广播，这就会产生问题，大家都说我是&quot;VIP&quot;。<br>
+b）为了达到负载均衡的目的，在所有real server上要关闭所有arp请求，导致不能响应client发出的arp请求（相当于哑巴），只有lvs可以响应，这样请求就会传到lvs的vip中，这就是为什么要禁止real server 的 arp请求和响应。因此必须想法办让真实服务器忽略来自客户端计算机的ARP广播请求 ——》 调整arp内核参数</p>
+<pre><code>[root@web01 ~]# echo &quot;1&quot; &gt; /proc/sys/net/ipv4/conf/lo/arp_ignore	
+[root@web01 ~]# echo &quot;2&quot; &gt; /proc/sys/net/ipv4/conf/lo/arp_announce
+[root@web01 ~]# echo &quot;1&quot; &gt; /proc/sys/net/ipv4/conf/all/arp_ignore
+[root@web01 ~]# echo &quot;2&quot; &gt; /proc/sys/net/ipv4/conf/all/arp_announce
+</code></pre>
+<p>web02的配置和web01相同</p>
+<h3 id="24-测试">2.4、测试</h3>
+<p>测试的时候用这三台机器测试都不能成功，需要在浏览器访问或者另外找一台机器测试<br>
+测试的时候访问10.0.0.32，访问到测试内容，配置LVS采用的是轮循模式。第一次是访问web01，刷新后是访问web02，再刷新后访问web01</p>
+<h3 id="25-keepalived结合lvs_dr模式">2.5、keepalived结合lvs_DR模式</h3>
+<p>配置keepalived增加虚拟ip，从而管理到lvs，可以进一步配置为lvs服务器的高可用</p>
+<pre><code>[root@lvs ~]# yum install keepalived -y
+[root@lvs ~]# vim /etc/keepalived/keepalived.conf
+! Configuration File for keepalived
+
+global_defs {
+   router_id LVS_DEVEL		#表示keepalived服务器的一个标识
+}
+
+vrrp_instance VI_1 {			#定义一个vrrp组，组名唯一
+    state MASTER			#定义改主机为keepalived的master主机
+    interface eth0			#监控eth0号端口
+    virtual_router_id 51		#虚拟路由id号为51，id号唯一，这个id决定了多播的MAC地址
+    priority 100			#节点优先级
+    advert_int 1			#检查间隔，默认为1秒
+    authentication {
+        auth_type PASS		#认证方式，密码认证
+        auth_pass 1111		#认证密码
+    }
+    virtual_ipaddress {
+        10.0.0.32			#虚拟ip地址
+    }
+}
+
+virtual_server 10.0.0.32 80 {		#虚拟主机设置
+    delay_loop 2				#每隔2秒查询realserver状态
+    lb_algo rr					#lvs的调度算法
+    lb_kind DR				#lvs的集群模式
+    protocol TCP				#用TCP协议检查realserver状态
+    real_server 10.0.0.71 80 {		#后端真实主机ip
+    weight 1					#每台机器的权重，0表示不给该机器转发请求，直到它恢复正常
+    HTTP_GET {					#以下为健康检查项目
+        url {
+		path /index.html			#访问的url首页
+		status_code 200			#返回状态码
+        }
+        connect_timeout 3			#连接超时时间，单位为秒
+        nb_get_retry 3				#检测失败后的重试次数，如果达到重试次数仍然失败，将后端从服务器池中移除
+        delay_before_retry 3			#失败重试的间隔时间，单位为秒
+    }
+    }
+    real_server 10.0.0.81 80 {
+    weight 1
+    HTTP_GET {
+        url {
+		path /index.html
+		status_code 200
+        }
+        connect_timeout 3
+        nb_get_retry 3
+        delay_before_retry 3
+    }
+    }
+}
+[root@lvs ~]# ipvsadm -C
+[root@lvs ~]# systemctl start keepalived.service
+[root@lvs ~]# ipvsadm -L -n
+IP Virtual Server version 1.2.1 (size=4096)
+Prot LocalAddress:Port Scheduler Flags
+  -&gt; RemoteAddress:Port           Forward Weight ActiveConn InActConn
+TCP  10.0.0.32:80 rr
+  -&gt; 10.0.0.71:80                 Route   1      0          0         
+  -&gt; 10.0.0.81:80                 Route   1      0          0
+</code></pre>
+<p>这里keepalived服务启动后，配置的vip也成功实现了lvs负载均衡，而且实现了对web服务器的健康检查，当某个web服务器宕机，lvs的规则也会自动调整。</p>
+<p>部分内容参考：http://www.cnblogs.com/windysai/p/6122277.html</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/YiimawiP_" class="tag">
+                    lvs
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/lvs-fu-zai-jun-heng-zhi-nat-mo-shi">
+                  <h3 class="post-title">
+                    LVS负载均衡之NAT模式
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

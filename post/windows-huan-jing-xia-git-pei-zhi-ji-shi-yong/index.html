@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Windows环境下Git配置及使用 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Windows环境下Git配置及使用</h2>
+            <div class="post-date">2018-09-18</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%AE%89%E8%A3%85%E5%8C%85%E4%BD%8D%E7%BD%AE">1、安装包位置</a></li>
+<li><a href="#2-%E8%BD%AF%E4%BB%B6%E5%AE%89%E8%A3%85">2、软件安装</a>
+<ul>
+<li><a href="#21-%E5%AE%89%E8%A3%85git">2.1、安装Git</a>
+<ul>
+<li><a href="#211-%E5%AE%89%E8%A3%85%E5%8C%85%E4%B8%8B%E8%BD%BD%E5%AE%8C%E6%88%90%E5%90%8E%E5%8F%8C%E5%87%BB%E8%BF%9B%E5%85%A5%E5%AE%89%E8%A3%85%E7%95%8C%E9%9D%A2">2.1.1、安装包下载完成后，双击进入安装界面</a></li>
+<li><a href="#212-%E9%80%89%E6%8B%A9%E5%AE%89%E8%A3%85%E8%B7%AF%E5%BE%84%E5%B9%B6%E7%82%B9%E5%87%BBnext">2.1.2、选择安装路径并点击“next”</a></li>
+<li><a href="#213-%E9%80%89%E6%8B%A9%E5%AE%89%E8%A3%85%E6%A8%A1%E5%9D%97%E9%BB%98%E8%AE%A4%E5%8D%B3%E5%8F%AF">2.1.3、选择安装模块，默认即可</a></li>
+<li><a href="#214-next%E8%BF%9B%E5%85%A5git-setup%E7%95%8C%E9%9D%A2">2.1.4、next进入Git Setup界面</a></li>
+<li><a href="#215-next%E8%BF%9B%E5%85%A5git-setup%E7%95%8C%E9%9D%A2">2.1.5、next进入Git Setup界面</a></li>
+<li><a href="#216-%E9%80%89%E6%8B%A9%E6%93%8D%E4%BD%9C%E7%BB%88%E7%AB%AF">2.1.6、选择操作终端</a></li>
+<li><a href="#217-%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85">2.1.7、开始安装</a></li>
+</ul>
+</li>
+<li><a href="#22-%E5%AE%89%E8%A3%85tortoisegit">2.2、安装TortoiseGit</a>
+<ul>
+<li><a href="#221-%E5%8F%8C%E5%87%BB%E5%AE%89%E8%A3%85%E7%A8%8B%E5%BA%8F%E8%BF%9B%E5%85%A5%E5%AE%89%E8%A3%85%E7%95%8C%E9%9D%A2">2.2.1、双击安装程序，进入安装界面</a></li>
+<li><a href="#222-%E4%B8%A4%E6%AD%A5next">2.2.2、两步next</a></li>
+<li><a href="#223-%E9%80%89%E6%8B%A9%E5%AE%89%E8%A3%85%E6%A8%A1%E5%9D%97%E5%8F%8A%E5%AE%89%E8%A3%85%E4%BD%8D%E7%BD%AE">2.2.3、选择安装模块及安装位置</a></li>
+<li><a href="#224-next">2.2.4、next</a></li>
+</ul>
+</li>
+<li><a href="#23-tortoisegit%E6%B1%89%E5%8C%96%E5%8F%AF%E9%80%89%E6%AD%A5%E9%AA%A4">2.3、TortoiseGit汉化(可选步骤)</a>
+<ul>
+<li><a href="#231-%E5%8F%8C%E5%87%BB%E5%AF%B9%E5%BA%94%E5%AE%89%E8%A3%85tortoisegit%E7%89%88%E6%9C%AC%E7%9A%84%E8%AF%AD%E8%A8%80%E5%8C%85%E5%AE%89%E8%A3%85">2.3.1、双击对应安装TortoiseGit版本的语言包安装</a></li>
+<li><a href="#232-%E7%82%B9%E5%87%BB%E4%B8%8B%E4%B8%80%E6%AD%A5%E5%BC%80%E5%A7%8B%E5%AE%89%E8%A3%85">2.3.2、点击“下一步”开始安装</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#3-%E9%85%8D%E7%BD%AE">3、配置</a>
+<ul>
+<li><a href="#31-%E8%BF%9B%E5%85%A5%E8%AE%BE%E7%BD%AE%E9%80%89%E9%A1%B9">3.1、进入设置选项</a></li>
+<li><a href="#32-%E5%B8%B8%E8%A7%84%E8%AE%BE%E7%BD%AE">3.2、常规设置</a></li>
+<li><a href="#33-%E8%AE%BE%E7%BD%AEssh%E8%B7%AF%E5%BE%84">3.3、设置ssh路径</a></li>
+<li><a href="#34-%E9%85%8D%E7%BD%AE%E8%B4%A6%E6%88%B7%E5%8F%8A%E5%9C%B0%E5%9D%80">3.4、配置账户及地址</a></li>
+<li><a href="#35-%E6%9C%AC%E6%9C%BA%E7%94%9F%E6%88%90%E5%AF%86%E9%92%A5">3.5、本机生成密钥</a>
+<ul>
+<li><a href="#351-tortoisegit%E7%95%8C%E9%9D%A2%E7%94%9F%E6%88%90%E5%AF%86%E9%92%A5">3.5.1、TortoiseGit界面生成密钥</a></li>
+<li><a href="#352-git-bash%E7%94%9F%E6%88%90%E5%AF%86%E9%92%A5">3.5.2、Git Bash生成密钥</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#4-%E4%BD%BF%E7%94%A8">4、使用</a>
+<ul>
+<li><a href="#41-%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%93%8D%E4%BD%9C">4.1、命令行操作</a></li>
+<li><a href="#42-tortoisegit%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95">4.2、TortoiseGit使用方法</a></li>
+<li><a href="#43-eclipse%E4%B8%AD%E9%85%8D%E7%BD%AE%E4%BD%BF%E7%94%A8gitlab">4.3、Eclipse中配置使用GitLab</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-安装包位置">1、安装包位置</h2>
+<p><a href="https://git-scm.com/download/win">Git下载地址</a><br>
+<a href="https://tortoisegit.org/download">TortoiseGit下载地址</a></p>
+<h2 id="2-软件安装">2、软件安装</h2>
+<p>软件安装顺序为<code>Git</code>——&gt;<code>TortoiseGit</code>——&gt; <code>TortoiseGit</code>汉化(可选步骤)<br>
+如果没有特别注明，选择默认选项，下一步即可</p>
+<h3 id="21-安装git">2.1、安装Git</h3>
+<h4 id="211-安装包下载完成后双击进入安装界面">2.1.1、安装包下载完成后，双击进入安装界面</h4>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20180918-01.png" alt=""></figure>
+<h4 id="212-选择安装路径并点击next">2.1.2、选择安装路径并点击“next”</h4>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20180918-02.png" alt=""></figure>
+<h4 id="213-选择安装模块默认即可">2.1.3、选择安装模块，默认即可</h4>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20180918-03.png" alt=""></figure>
+<h4 id="214-next进入git-setup界面">2.1.4、next进入Git Setup界面</h4>
+<p><code>Adjusting your PATH environment</code>，选择默认值<code>Use Git Bash only</code><br>
+<img src="https://image.ssgeek.com/20180918-04.png" alt=""></p>
+<h4 id="215-next进入git-setup界面">2.1.5、next进入Git Setup界面</h4>
+<p><code>Configuring the line ending conversions</code>，选择换行格式，选择<code>Checkout as-is, commit Unix-style line endings</code><br>
+<img src="https://image.ssgeek.com/20180918-05.png" alt=""></p>
+<h4 id="216-选择操作终端">2.1.6、选择操作终端</h4>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20180918-06.png" alt=""></figure>
+<h4 id="217-开始安装">2.1.7、开始安装</h4>
+<figure data-type="image" tabindex="5"><img src="https://image.ssgeek.com/20180918-07.png" alt=""></figure>
+<h3 id="22-安装tortoisegit">2.2、安装TortoiseGit</h3>
+<h4 id="221-双击安装程序进入安装界面">2.2.1、双击安装程序，进入安装界面</h4>
+<figure data-type="image" tabindex="6"><img src="https://image.ssgeek.com/20180918-08.png" alt=""></figure>
+<h4 id="222-两步next">2.2.2、两步next</h4>
+<p>进入<code>Choose SSH Client</code>选择界面，选择<code>OpenSSH，Git default SSH Client</code><br>
+<img src="https://image.ssgeek.com/20180918-09.png" alt=""></p>
+<h4 id="223-选择安装模块及安装位置">2.2.3、选择安装模块及安装位置</h4>
+<figure data-type="image" tabindex="7"><img src="https://image.ssgeek.com/20180918-10.png" alt=""></figure>
+<h4 id="224-next">2.2.4、next</h4>
+<p>进入<code>Ready to Install</code>界面，选择<code>Install</code>按钮开始安装过程，完成安装<br>
+<img src="https://image.ssgeek.com/20180918-11.png" alt=""></p>
+<h3 id="23-tortoisegit汉化可选步骤">2.3、TortoiseGit汉化(可选步骤)</h3>
+<h4 id="231-双击对应安装tortoisegit版本的语言包安装">2.3.1、双击对应安装TortoiseGit版本的语言包安装</h4>
+<figure data-type="image" tabindex="8"><img src="https://image.ssgeek.com/20180918-12.png" alt=""></figure>
+<h4 id="232-点击下一步开始安装">2.3.2、点击“下一步”开始安装</h4>
+<p>安装完成勾选<code>Configure TortoiseGit to use this language</code>并点击完成<br>
+<img src="https://image.ssgeek.com/20180918-13.png" alt=""></p>
+<h2 id="3-配置">3、配置</h2>
+<h3 id="31-进入设置选项">3.1、进入设置选项</h3>
+<p>在桌面空白处点击右键，右键菜单中会加入<code>TortoiseGit</code>快捷键，点击“设置”<br>
+<img src="https://image.ssgeek.com/20180918-14.png" alt=""></p>
+<h3 id="32-常规设置">3.2、常规设置</h3>
+<p>常规设置中，设置本机的<code>git</code>路径，即安装的<code>git</code>软件的启动目录<br>
+<img src="https://image.ssgeek.com/20180918-15.png" alt=""></p>
+<h3 id="33-设置ssh路径">3.3、设置ssh路径</h3>
+<p>选择<code>Network</code>选项卡，设置<code>SSH</code>路径。<code>SSH</code>选择<code>TortoiseGitPlink.exe</code><br>
+<img src="https://image.ssgeek.com/20180918-16.png" alt=""></p>
+<h3 id="34-配置账户及地址">3.4、配置账户及地址</h3>
+<p>配置账户及地址，选择<code>Git</code>选项卡，查看提示，提示意味着权限问题，此权限需要联系管理员授权，授权的用户才能通过填写用户信息后从相应git版本库中获取和提交代码<br>
+<img src="https://image.ssgeek.com/20180918-17.png" alt=""><br>
+选择“配置源”为“全局”，填写用户信息，设置用户名、邮箱和签名的密钥内容，如果暂时在本地使用就只需将用户名和邮箱添加，而<code>Signing key</code>会自动生成，此处的用户名和邮箱是管理员分配给您的</p>
+<h3 id="35-本机生成密钥">3.5、本机生成密钥</h3>
+<p>生成密钥的方式有两种，一种通过<code>TortoiseGit</code>来管理，另一种就是<code>Bash</code>界面，这两种方式同样用于管理<code>Git</code>项目</p>
+<h4 id="351-tortoisegit界面生成密钥">3.5.1、TortoiseGit界面生成密钥</h4>
+<p>找到安装的<code>TortoiseGit</code>启动栏或者安装路径对应的<code>PuTTYgen</code>快捷方式，点击打开<br>
+<img src="https://image.ssgeek.com/20180918-18.png" alt=""><br>
+点击<code>Generate</code>，选择加密算法并晃动鼠标生成密钥，公钥需要提供给管理员添加至<code>git</code>服务器，私钥保存到电脑的某个路径，不能删除<br>
+<img src="https://image.ssgeek.com/20180918-19.png" alt=""><br>
+本机添加私钥，找到安装的<code>TortoiseGit</code>启动栏或者安装路径对应的<code>Pageant</code>快捷方式，点击打开<br>
+<img src="https://image.ssgeek.com/20180918-20.png" alt=""><br>
+点击添加并找到上一步骤所保存的私钥<br>
+<img src="https://image.ssgeek.com/20180918-21.png" alt=""></p>
+<h4 id="352-git-bash生成密钥">3.5.2、Git Bash生成密钥</h4>
+<p>电脑空白桌面右键选择<code>“Git Bash Here”</code>，输入<code>ssh-keygen -t rsa -C &quot;xxx@xxx.com&quot;</code>，把里面的邮箱地址为自己的注册邮箱地址或者管理员分配的地址，邮箱要用英文的双引号引起来，一路回车即可<br>
+<img src="https://image.ssgeek.com/20180918-22.png" alt=""><br>
+生成的密钥文件路径位于<code>C:\Users\&lt;用户名&gt;\.ssh</code>文件夹下，分为公钥和私钥，公钥名称为<code>id_rsa.pub</code>。同样的，需要把公钥需要提供给管理员添加至git服务器</p>
+<h2 id="4-使用">4、使用</h2>
+<h3 id="41-命令行操作">4.1、命令行操作</h3>
+<ul>
+<li>1、远程仓库相关命令</li>
+</ul>
+<pre><code>检出仓库：$ git clone git://github.com/jquery/jquery.git
+查看远程仓库：$ git remote -v
+添加远程仓库：$ git remote add [name] [url]
+删除远程仓库：$ git remote rm [name]
+修改远程仓库：$ git remote set-url —push[name][newUrl]
+拉取远程仓库：$ git pull [remoteName] [localBranchName]
+推送远程仓库：$ git push [remoteName] [localBranchName]
+git 中 clone 过来的时候，git 不会对比本地和服务器的文件，也就不会有冲突，建议确定完全覆盖本地的
+时候用 clone，不确定会不会有冲突的时候用 git pull，将远程服务器的代码 download 下来
+</code></pre>
+<ul>
+<li>2、分支(branch)操作相关命令</li>
+</ul>
+<pre><code>查看本地分支：$ git branch
+查看远程分支：$ git branch -r
+创建本地分支：$ git branch [name] —-注意新分支创建后不会自动切换为当前分支
+切换分支：$ git checkout [name]
+创建新分支并立即切换到新分支：$ git checkout -b [name]
+删除分支：$ git branch -d [name] —- -d选项只能删除已经参与了合并的分支，对于未有合并的分支是无法删除的。如果想强制删除一个分支，可以使用-D选项
+合并分支：$ git merge [name] —-将名称为[name]的分支与当前分支合并
+创建远程分支(本地分支push到远程)：$ git push origin [name]
+删除远程分支：$ git push origin :heads/[name]
+我从master分支创建了一个issue5560分支，做了一些修改后，使用git push origin master提交，但是显示的结果却是’Everything up-to-date’，发生问题的原因是git push origin master 在没有track远程分支的本地分支中默认提交的master分支，因为master分支默认指向了origin master 分支，这里要使用git push origin issue5560：master 就可以把issue5560推送到远程的master分支了。
+    如果想把本地的某个分支test提交到远程仓库，并作为远程仓库的master分支，或者作为另外一个名叫test的分支，那么可以这么做。
+$ git push origin test:master         // 提交本地test分支作为远程的master分支 //好像只写这一句，远程的github就会自动创建一个test分支
+$ git push origin test:test              // 提交本地test分支作为远程的test分支
+如果想删除远程的分支呢？类似于上面，如果:左边的分支为空，那么将删除:右边的远程的分支。
+$ git push origin :test              // 刚提交到远程的test将被删除，但是本地还会保存的，不用担心
+</code></pre>
+<ul>
+<li>3、版本(tag)操作相关命令</li>
+</ul>
+<pre><code>查看版本：$ git tag
+创建版本：$ git tag [name]
+删除版本：$ git tag -d [name]
+查看远程版本：$ git tag -r
+创建远程版本(本地版本push到远程)：$ git push origin [name]
+删除远程版本：$ git push origin :refs/tags/[name]
+</code></pre>
+<ul>
+<li>4、子模块(submodule)相关操作命令</li>
+</ul>
+<pre><code>添加子模块：$ git submodule add [url] [path]
+如：$ git submodule add git://github.com/soberh/ui-libs.git src/main/webapp/ui-libs
+初始化子模块：$ git submodule init —-只在首次检出仓库时运行一次就行
+更新子模块：$ git submodule update —-每次更新或切换分支后都需要运行一下
+删除子模块：（分4步走哦）
+1)$ git rm –cached [path]
+2) 编辑“.gitmodules”文件，将子模块的相关配置节点删除掉
+3) 编辑“.git/config”文件，将子模块的相关配置节点删除掉
+4) 手动删除子模块残留的目录
+5）忽略一些文件、文件夹不提交
+在仓库根目录下创建名称为“.gitignore”的文件，写入不需要的文件夹名或文件，每个元素占一行即可，如
+target
+bin
+*.db
+git pull：相当于是从远程获取最新版本并merge到本地
+git pull origin master
+</code></pre>
+<p>更多命令行操作可以参考http://www.git-scm.com.cn/1093.html</p>
+<h3 id="42-tortoisegit使用方法">4.2、TortoiseGit使用方法</h3>
+<p><code>Git</code>客户端<code>TortoiseGit</code>（Windows系统）的使用方法与<code>TortoiseSVN</code>类似，可参考：<br>
+http://www.git-scm.com.cn/1311.html</p>
+<h3 id="43-eclipse中配置使用gitlab">4.3、Eclipse中配置使用GitLab</h3>
+<p>参考：<br>
+https://www.cnblogs.com/wxjnew/p/9146863.html<br>
+http://www.git-scm.com.cn/1295.html</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/app" class="tag">
+                    实用程序
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/git" class="tag">
+                    git
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/git-yu-gitlab">
+                  <h3 class="post-title">
+                    Git与GitLab
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

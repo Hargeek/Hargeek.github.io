@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Golang文件操作-下篇 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Golang文件操作-下篇</h2>
+            <div class="post-date">2021-09-18</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%96%87%E4%BB%B6%E7%9A%84%E9%87%8D%E5%91%BD%E5%90%8D%E5%92%8C%E5%88%A0%E9%99%A4">1、文件的重命名和删除</a></li>
+<li><a href="#2-%E6%96%87%E4%BB%B6%E8%B7%AF%E5%BE%84%E7%9A%84%E8%8E%B7%E5%8F%96">2、文件路径的获取</a></li>
+<li><a href="#3-%E5%88%A4%E6%96%AD%E6%96%87%E4%BB%B6%E6%98%AF%E5%90%A6%E5%AD%98%E5%9C%A8">3、判断文件是否存在</a></li>
+<li><a href="#4-%E8%8E%B7%E5%8F%96%E6%96%87%E4%BB%B6%E7%9A%84%E4%BF%A1%E6%81%AF">4、获取文件的信息</a></li>
+<li><a href="#5-%E6%8B%B7%E8%B4%9D%E6%96%87%E4%BB%B6">5、拷贝文件</a></li>
+<li><a href="#6-%E7%9B%AE%E5%BD%95%E6%93%8D%E4%BD%9C">6、目录操作</a></li>
+<li><a href="#7-%E5%B8%B8%E8%A7%81%E7%9B%AE%E5%BD%95">7、常见目录</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/golang.png" alt=""></figure>
+<h2 id="1-文件的重命名和删除">1、文件的重命名和删除</h2>
+<p><code>os</code>包自带重命名和删除的方法</p>
+<pre><code class="language-go">package main
+
+import &quot;os&quot;
+
+func main()  {
+	os.Rename(&quot;user.log&quot;, &quot;user.v2.log&quot;)
+	os.Remove(&quot;user.txt&quot;)
+}
+</code></pre>
+<h2 id="2-文件路径的获取">2、文件路径的获取</h2>
+<p>文件路径操作包括对文件路径、文件名等</p>
+<pre><code class="language-go">package main
+
+import (
+	&quot;fmt&quot;
+	&quot;os&quot;
+	&quot;path/filepath&quot;
+)
+
+func main() {
+	fmt.Println(filepath.Abs(&quot;.&quot;))  // 获取当前路径，和Getwd相同
+	fmt.Println(os.Args)
+	fmt.Println(filepath.Abs(os.Args[0]))  // 当前程序运行的绝对路径
+	path, _ := filepath.Abs(os.Args[0])
+
+	fmt.Println(filepath.Base(&quot;c:/test/a.txt&quot;))  // basename 文件名 a.txt
+	fmt.Println(filepath.Base(&quot;c:/test/xxxx/&quot;))  // basename 目录名 xxxx
+	fmt.Println(filepath.Base(path))
+
+	fmt.Println(filepath.Dir(&quot;c:/test/a.txt&quot;))  // 获取目录名 c:/test
+	fmt.Println(filepath.Dir(&quot;c:/test/xxxx/&quot;))  // 获取目录名 c:/test/xxxx
+	fmt.Println(filepath.Dir(path))
+
+	fmt.Println(filepath.Ext(&quot;c:/test/a.txt&quot;))  // 获取扩展名 .txt
+	fmt.Println(filepath.Ext(&quot;c:/test/xxxx/a&quot;))  // 空
+	fmt.Println(filepath.Ext(path))  					// 空
+
+	dirPath := filepath.Dir(path)
+	iniPath := dirPath + &quot;/conf/ip.ini&quot;
+	fmt.Println(iniPath)  // 拼接配置文件路径
+
+	fmt.Println(filepath.Join(dirPath, &quot;conf&quot;, &quot;ip.ini&quot;))  // 组装配置文件路径
+	fmt.Println(filepath.Glob(&quot;./[ab]*/*.go&quot;))   // 找文件 找当前路径下目录名包含ab，以go文件结尾
+	filepath.Walk(&quot;.&quot;, func(path string, fileInfo os.FileInfo, err error) error {  // 遍历路径下所有子孙目录
+		fmt.Println(path, fileInfo.Name())
+		return nil
+	})
+}
+</code></pre>
+<h2 id="3-判断文件是否存在">3、判断文件是否存在</h2>
+<p>主要是通过<code>os</code>包的<code>open</code>方法打开文件，并接收返回的错误信息，给<code>os</code>包的<code>IsNotExist</code>函数判断，返回一个布尔值</p>
+<pre><code class="language-go">package main
+
+import (
+	&quot;fmt&quot;
+	&quot;os&quot;
+)
+
+func main()  {
+	file, err := os.Open(&quot;xxx&quot;)
+	if err != nil {
+		if os.IsNotExist(err){
+			fmt.Println(&quot;文件不存在&quot;)
+		}
+	} else {
+		file.Close()
+	}
+}
+</code></pre>
+<h2 id="4-获取文件的信息">4、获取文件的信息</h2>
+<p>获取文件信息及文件夹的子文件信息<br>
+<code>lstat</code>：如果是超链接，获取的是超链接的信息<br>
+<code>stat</code>：如果是超链接，获取的是目标文件的信息</p>
+<pre><code class="language-go">package main
+
+import (
+	&quot;fmt&quot;
+	&quot;os&quot;
+)
+
+func main()  {
+	for _, path := range []string{&quot;user.txt&quot;, &quot;reader.go&quot;, &quot;aaa&quot;} {  // 循环文件名
+		fileInfo, err := os.Stat(path)
+		if err != nil {
+			if os.IsNotExist(err){
+				fmt.Println(&quot;文件不存在&quot;)
+			}
+		} else {
+			fmt.Println(fileInfo.Name(), fileInfo.IsDir(), fileInfo.Size(), fileInfo.ModTime())
+			//文件名	是否是目录	大小	修改时间
+			//user.txt false 12 2021-08-30 16:20:54.853211783 +0800 CST
+			//reader.go false 387 2021-08-30 15:57:06.860696025 +0800 CST
+			if fileInfo.IsDir() {  // 获取目录下的子目录及文件
+				dirfile, err := os.Open(path)
+				if err == nil {
+					defer dirfile.Close()
+					//childrens, _ := dirfile.Readdir(-1)  // 获取所有的子目录
+					//for _, children := range childrens {
+					//	fmt.Println(children.Name(), children.IsDir(), children.Size(), children.ModTime())
+					//}
+					names, _ := dirfile.Readdirnames(-1)
+					for _, name := range names {
+						fmt.Println(name)
+					}
+				}
+			}
+		}
+	}
+}
+</code></pre>
+<h2 id="5-拷贝文件">5、拷贝文件</h2>
+<p><code>copyfile</code>功能的实现，主要借助于<code>golang</code>自带的命令行解析工具<code>flag</code>（这个在后面的文章中会专门介绍），通过<code>bufio</code>读取并写入文件</p>
+<pre><code class="language-go">package main
+
+import (
+	&quot;bufio&quot;
+	&quot;flag&quot;
+	&quot;fmt&quot;
+	&quot;io&quot;
+	&quot;os&quot;
+)
+
+func copyfile(src, dest string) {
+	srcfile, err := os.Open(src)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		defer srcfile.Close()
+		destfile, err := os.Create(dest)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			defer destfile.Close()
+			reader := bufio.NewReader(srcfile)
+			writer := bufio.NewWriter(destfile)
+			bytes := make([]byte, 1024*1024*10)  // 缓冲区大小
+			for {
+				n, err := reader.Read(bytes)
+				if err != nil {
+					if err != io.EOF {
+						fmt.Println(err)
+					}
+					break
+				}
+				writer.Write(bytes[:n])
+				//destfile.Write(bytes[:n])
+				writer.Flush()
+			}
+		}
+	}
+}
+
+func main() {
+	src := flag.String(&quot;s&quot;, &quot;&quot;, &quot;src file&quot;)
+	dest := flag.String(&quot;d&quot;, &quot;&quot;, &quot;dest file&quot;)
+	help := flag.Bool(&quot;h&quot;, false, &quot;help&quot;)
+
+	flag.Usage = func() {
+		fmt.Println(`
+Usage: copyfile -s srcfile -d destfile
+Options:
+		`)
+		flag.PrintDefaults()
+	}
+
+	flag.Parse()
+	if *help || *src == &quot;&quot; || *dest == &quot;&quot; {
+		flag.Usage()
+	} else {
+		copyfile(*src, *dest)
+	}
+}
+</code></pre>
+<p>支持递归拷贝目录及目录下的文件</p>
+<pre><code class="language-go">package main
+
+import (
+	&quot;bufio&quot;
+	&quot;flag&quot;
+	&quot;fmt&quot;
+	&quot;io&quot;
+	&quot;io/ioutil&quot;
+	&quot;os&quot;
+	&quot;path/filepath&quot;
+)
+
+func copyFile(src, dest string) {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		defer srcFile.Close()
+		destFile, err := os.Create(dest)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			defer destFile.Close()
+			reader := bufio.NewReader(srcFile)
+			writer := bufio.NewWriter(destFile)
+			bytes := make([]byte, 1024*1024*10)  // 缓冲区大小
+			for {
+				n, err := reader.Read(bytes)
+				if err != nil {
+					if err != io.EOF {
+						fmt.Println(err)
+					}
+					break
+				}
+				writer.Write(bytes[:n])
+				//destfile.Write(bytes[:n])
+				writer.Flush()
+			}
+		}
+	}
+}
+
+func copyDir(src, dst string) {
+	files, err := ioutil.ReadDir(src)
+	if err == nil {
+		os.Mkdir(dst, os.ModePerm)  // 目标路径不存在先创建目录
+		for _, file := range files {
+			if file.IsDir() {  // 目录 递归调用
+				copyDir(filepath.Join(src, file.Name()), filepath.Join(dst, file.Name()))
+			} else {  // 文件 拷贝文件
+				copyFile(filepath.Join(src, file.Name()), filepath.Join(dst, file.Name()))
+			}
+		}
+	}
+}
+
+func main() {
+	src := flag.String(&quot;s&quot;, &quot;&quot;, &quot;src file&quot;)
+	dest := flag.String(&quot;d&quot;, &quot;&quot;, &quot;dest file&quot;)
+	help := flag.Bool(&quot;h&quot;, false, &quot;help&quot;)
+
+	flag.Usage = func() {
+		fmt.Println(`
+Usage: copyfile -s srcfile -d destfile
+Options:
+		`)
+		flag.PrintDefaults()
+	}
+
+	flag.Parse()
+	if *help || *src == &quot;&quot; || *dest == &quot;&quot; {
+		flag.Usage()
+	} else {
+		// src是否存在 不存在则退出
+		// src 文件 copyfile
+		// dst 判断 存在 退出
+
+		// src 目录 copydir
+		// dst 判断 不存在 copy
+		// dst 存在 目录
+		// dst 存在 不是目录 退出
+		if _, err := os.Stat(*dest); err == nil {
+			fmt.Println(&quot;目的文件已存在&quot;)
+			return
+		} else {
+			if !os.IsNotExist(err) {
+				fmt.Println(&quot;目的文件获取错误&quot;, err)
+			}
+		}
+		if info, err := os.Stat(*src); err != nil {
+			if os.IsNotExist(err) {
+				fmt.Println(&quot;源文件不存在&quot;)
+			} else {
+				fmt.Println(&quot;源文件获取错误: &quot;, err)
+			}
+		} else {
+			if info.IsDir() {
+				copyDir(*src, *dest)
+			} else {
+				copyFile(*src, *dest)
+			}
+		}
+	}
+}
+</code></pre>
+<h2 id="6-目录操作">6、目录操作</h2>
+<p>目录的创建、删除和重命名</p>
+<pre><code class="language-go">package main
+
+import &quot;os&quot;
+
+func main()  {
+	os.Mkdir(&quot;test01&quot;, 0644)
+	os.Rename(&quot;test01&quot;, &quot;test02&quot;)
+	os.Remove(&quot;test02&quot;)
+}
+</code></pre>
+<p>创建子目录，当父目录不存在的时候需要使用<code>mkdirAll</code>，并设置权限（创建目录除了给定的权限还要加上系统的<code>Umask</code>，<code>Go</code>也是如实遵循这种约定，<code>Umask</code>是权限的补码，用于设置创建文件和文件夹默认权限的）</p>
+<pre><code class="language-go">package main
+
+import (
+	&quot;os&quot;
+	&quot;syscall&quot;
+)
+
+func main()  {
+	//os.Mkdir(&quot;test01&quot;, 0644)  // 如果目录存在会报错
+	//os.Rename(&quot;test01&quot;, &quot;test02&quot;)
+	//os.Remove(&quot;test02&quot;)
+
+	//err := os.Mkdir(&quot;test01/xxx&quot;, 0644)
+	//fmt.Println(err)  // mkdir test01/xxx: no such file or directory
+	mask := syscall.Umask(0)    // 改为 0000 八进制
+	defer syscall.Umask(mask)   // 改为原来的 umask
+	err := os.MkdirAll(&quot;test01/test/&quot;, 0777)  // MkdirAll创建
+	if err != nil {
+		panic(err)
+	}
+	os.RemoveAll(&quot;test01&quot;)
+}
+</code></pre>
+<h2 id="7-常见目录">7、常见目录</h2>
+<pre><code class="language-go">package main
+
+import (
+	&quot;fmt&quot;
+	&quot;os&quot;
+)
+
+func main() {
+	fmt.Println(os.TempDir())  // 临时目录
+	fmt.Println(os.UserCacheDir())  // 用户缓存目录
+	fmt.Println(os.UserHomeDir())  // 用户家目录
+	fmt.Println(os.Getwd())  // 当前绝对目录
+}
+</code></pre>
+<p>See you ~</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/golang" class="tag">
+                    golang
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/golang-wen-jian-cao-zuo-shang-pian">
+                  <h3 class="post-title">
+                    Golang文件操作-上篇
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

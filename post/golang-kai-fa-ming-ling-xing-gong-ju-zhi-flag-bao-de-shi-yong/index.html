@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Golang开发命令行工具之flag包的使用 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Golang开发命令行工具之flag包的使用</h2>
+            <div class="post-date">2021-10-11</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7%E6%A6%82%E8%BF%B0">1、命令行工具概述</a></li>
+<li><a href="#2-flag%E5%8C%85%E4%BB%8B%E7%BB%8D">2、flag包介绍</a></li>
+<li><a href="#3-flag%E5%8C%85%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%8F%82%E6%95%B0%E7%9A%84%E5%AE%9A%E4%B9%89">3、flag包命令行参数的定义</a></li>
+<li><a href="#4-flag%E5%8C%85%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%8F%82%E6%95%B0%E8%A7%A3%E6%9E%90">4、flag包命令行参数解析</a></li>
+<li><a href="#5-flag%E5%8C%85%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B8%AE%E5%8A%A9">5、flag包命令行帮助</a></li>
+<li><a href="#6-flag%E5%AE%9A%E4%B9%89%E7%9F%AD%E5%8F%82%E6%95%B0%E5%92%8C%E9%95%BF%E5%8F%82%E6%95%B0">6、flag定义短参数和长参数</a></li>
+<li><a href="#7-%E7%A4%BA%E4%BE%8B">7、示例</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/golang.png" alt=""></figure>
+<h2 id="1-命令行工具概述">1、命令行工具概述</h2>
+<p>日常命令行操作，相对应的众多命令行工具是提高生产力的必备工具，我在之前的文章<a href="https://www.ssgeek.com/post/wo-de-sheng-chan-li-gong-ju-tui-jian-zhong-duan-01-pian/">我的生产力工具推荐-终端01篇</a>中有推荐过一些我常用的基于<code>terminal</code>终端的命令行<code>cli</code>工具</p>
+<p>鼠标能够让用户更容易上手，降低用户学习成本。 而对于开发者，键盘操作模式能显著提升生产力，还有在一些专业工具中， 大量使用快捷键代替繁琐的鼠标操作，能够使开发人员更加专注于工作，提高效率，因为键盘操作模式更容易产生肌肉记忆</p>
+<p>举个栗子。我司业务研发，前些年在我们的强力推动下（被迫）转向使用了<code>git</code>作为版本控制，开始使用的是图形化“小乌龟”工具。后续出现几次问题解决起来较麻烦后，推荐其使用原生的<code>git</code>命令行。如今，使用<code>git</code>命令行操作版本控制可谓 “一顿操作猛如虎......”</p>
+<p>命令行（键盘）操作在很大程度上可以提高工作效率，与之相对应的是鼠标（触屏等）操作，这两种模式是目前的主流人机交互方式</p>
+<p>设计一款命令行工具的开发语言可以选择原始的<code>shell</code>、甚至是更原始的语言<code>C</code>，更为容易上手且功能更多的有<code>node</code>、<code>python</code>、<code>golang</code></p>
+<p>本文是基于<code>golang</code>开发命令行工具的开篇，主要是基于<code>golang</code>原生内置的、轻量的<code>flag</code>包实现，用<code>golang</code>设计命令行工具而不用<code>shell</code>、<code>python</code>的原因这里就不做论述了</p>
+<h2 id="2-flag包介绍">2、flag包介绍</h2>
+<p><code>flag</code>包用来解析命令行参数</p>
+<p>相比简单的使用<code>os.Args</code>来获取命令行参数，<code>flag</code>可以实现按照更为通用的命令行用法，例如<code>mysql -u root -p 123456</code>。其中<code>mysql</code>是命令行的名称即这个命令，<code>-u</code>和<code>-p</code>分别是这个命令的两个参数：用户名和密码，后面接着的是对应的参数值，有了参数的声明之后，两个参数可以互换位置，参数值也可以选填或按照缺省(默认)值进行指定</p>
+<p><code>flag</code>的详细用法可参考<a href="https://pkg.go.dev/flag">flag包文档</a></p>
+<p><code>flag</code>包支持的命令行参数的类型有<code>bool</code>、<code>int</code>、<code>int64</code>、<code>uint</code>、<code>uint64</code>、<code>float</code>  <code>float64</code>、<code>string</code>、<code>duration</code></p>
+<p>即布尔值、整型、浮点型、字符串、时间段类型</p>
+<h2 id="3-flag包命令行参数的定义">3、flag包命令行参数的定义</h2>
+<p>定义<code>flag</code>命令行参数，用来接收命令行输入的参数值，一般有以下两种方法</p>
+<ul>
+<li>flag.TypeVar()：先定义参数（实际上是指针），再定义<code>flag.TypeVar</code>将命令行参数存储(绑定)到前面参数的值的指针(地址)</li>
+</ul>
+<pre><code class="language-go">var name string
+var age int
+var height float64
+var graduated bool
+// &amp;name 就是接收用户命令行中输入的-n后面的参数值
+// 返回值是一个用来存储name参数的值的指针/地址
+// 定义string类型命令行参数name，括号中依次是变量名、flag参数名、默认值、参数说明
+flag.StringVar(&amp;name, &quot;n&quot;, &quot;&quot;, &quot;name参数,默认为空&quot;)
+// 定义整型命令行参数age
+flag.IntVar(&amp;age,&quot;a&quot;, 0, &quot;age参数,默认为0&quot;)
+// 定义浮点型命令行参数height
+flag.Float64Var(&amp;height,&quot;h&quot;, 0, &quot;height参数,默认为0&quot;)
+// 定义布尔型命令行参数graduated
+flag.BoolVar(&amp;graduated,&quot;g&quot;, false, &quot;graduated参数,默认为false&quot;)
+</code></pre>
+<ul>
+<li>flag.Type()：用短变量声明的方式定义参数类型及变量名</li>
+</ul>
+<pre><code class="language-go">// 定义string类型命令行参数name，括号中依次是flag参数名、默认值、参数说明
+namePtr := flag.String(&quot;n&quot;, &quot;&quot;, &quot;name参数,默认为空&quot;)
+// 定义整型命令行参数age
+age := flag.Int(&quot;a&quot;, 0, &quot;age参数,默认为0&quot;)
+// 定义浮点型命令行参数height
+height := flag.Float64(&quot;h&quot;, 0, &quot;height参数,默认为0&quot;)
+// 定义布尔型命令行参数graduated
+graduated:= flag.Bool(&quot;g&quot;, false, &quot;graduated参数,默认为false&quot;)
+</code></pre>
+<h2 id="4-flag包命令行参数解析">4、flag包命令行参数解析</h2>
+<p>固定用法，定义好参数后，通过调用<code>flag.Parse()</code>来对命令行参数进行解析写入注册的<code>flag</code>里，进而解析获取参数值，通过查看源码中也是调用的<code>os.Args</code></p>
+<p>源码路径<code>go/src/flag/flag.go</code></p>
+<pre><code class="language-go">// Parse parses the command-line flags from os.Args[1:]. Must be called
+// after all flags are defined and before flags are accessed by the program.
+func Parse() {
+	// Ignore errors; CommandLine is set for ExitOnError.
+	CommandLine.Parse(os.Args[1:])
+}
+</code></pre>
+<p>进而查看<code>Parse</code>方法的源码</p>
+<pre><code class="language-go">func (f *FlagSet) Parse(arguments []string) error {
+	f.parsed = true
+	f.args = arguments
+	for {
+		seen, err := f.parseOne()
+		if seen {
+			continue
+		}
+		if err == nil {
+			break
+		}
+		switch f.errorHandling {
+		case ContinueOnError:
+			return err
+		case ExitOnError:
+			if err == ErrHelp {
+				os.Exit(0)
+			}
+			os.Exit(2)
+		case PanicOnError:
+			panic(err)
+		}
+	}
+	return nil
+}
+</code></pre>
+<p>真正解析参数的是<code>parseOne</code>方法（这里省略源码），结论是</p>
+<ul>
+<li>当遇到单独的一个 &quot;-&quot; 或不是 &quot;-&quot; 开始时，会停止解析</li>
+<li>遇到连续的两个 &quot;-&quot; 时，解析停止</li>
+<li>在终止符&quot;-&quot;之后停止</li>
+</ul>
+<p>解析参数时，对于参数的指定方式一般有&quot;-&quot;、&quot;--&quot;、以及是否空格等方式，组合下来有如下几种方式</p>
+<table>
+<thead>
+<tr>
+<th>-flag xxx</th>
+<th>空格和一个<code>-</code>符号</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>--flag xxx</td>
+<td>空格和两个<code>-</code>符号</td>
+</tr>
+<tr>
+<td>-flag=xxx</td>
+<td>等号和一个<code>-</code>符号</td>
+</tr>
+<tr>
+<td>--flag=xxx</td>
+<td>等号和两个<code>-</code>符号</td>
+</tr>
+</tbody>
+</table>
+<p>其中，<code>-flag xxx</code>方式最为常用，如果参数是布尔型，只能用等号方式指定</p>
+<h2 id="5-flag包命令行帮助">5、flag包命令行帮助</h2>
+<p><code>flag</code>包默认会根据定义的命令行参数，在使用时如果不输入参数就打印对应的帮助信息</p>
+<p>这样的帮助信息我们可以对其进行覆盖去改变默认的<code>Usage</code></p>
+<pre><code class="language-go">package main
+
+import (
+    &quot;flag&quot;
+    &quot;fmt&quot;
+)
+
+func main()  {
+    var host string
+    var port int
+    var verbor bool
+    var help bool
+    // 绑定命令行参数与变量关系
+    flag.StringVar(&amp;host, &quot;H&quot;, &quot;127.0.0.1&quot;, &quot;ssh host&quot;)
+    flag.IntVar(&amp;port, &quot;P&quot;, 22, &quot;ssh port&quot;)
+    flag.BoolVar(&amp;verbor, &quot;v&quot;, false, &quot;detail log&quot;)
+    flag.BoolVar(&amp;help, &quot;h&quot;, false, &quot;help&quot;)
+    // 自定义-h
+    flag.Usage = func() {
+        fmt.Println(`
+Usage: flag [-H addr] [-p port] [-v]
+
+Options: 
+    `)
+        flag.PrintDefaults()
+    }
+    // 解析命令行参数
+    flag.Parse()
+    if help {
+        flag.Usage()
+    } else {
+        fmt.Println(host, port, verbor)
+    }
+}
+/*
+➜  go run flag_args.go -h
+
+Usage: flag [-H addr] [-p port] [-v]
+
+Options:
+
+  -H string
+        ssh host (default &quot;127.0.0.1&quot;)
+  -P int
+        ssh port (default 22)
+  -h    help
+  -v    detail log
+ */
+</code></pre>
+<h2 id="6-flag定义短参数和长参数">6、flag定义短参数和长参数</h2>
+<p>简单来说，短参数和长参数，就是例如我们在使用某些命令时，查看命令版本可以输入<code>-V</code>，也可以输入<code>--version</code>。这种情况下，<code>flag</code>并没有默认支持，但是可以通过可以两个选项共享同一个变量来实现，即通过给某个相同的变量设置不同的选项，参数在初始化的时候其顺序是不固定的，因此还需要保证其拥有相同的默认值</p>
+<pre><code class="language-go">package main
+
+import (
+  &quot;fmt&quot;
+  &quot;flag&quot;
+)
+
+var logLevel string
+
+func init() {
+  const (
+    defaultLogLevel = &quot;DEBUG&quot;
+    usage = &quot;set log level&quot;
+  )
+  flag.StringVar(&amp;logLevel, &quot;log_level&quot;, defaultLogLevel, usage)
+  flag.StringVar(&amp;logLevel, &quot;l&quot;, defaultLogLevel, usage + &quot;(shorthand)&quot;)
+}
+
+func main() {
+  flag.Parse()
+  fmt.Println(&quot;log level:&quot;, logLevel)
+}
+</code></pre>
+<p>通过<code>const</code>声明公共的常量，并在默认值以及帮助信息中去使用，这样就可以实现了</p>
+<h2 id="7-示例">7、示例</h2>
+<p>实现计算字符串或目录下递归计算文件<code>md5</code>的命令，类似<code>linux</code>的<code>md5sum</code>命令</p>
+<p>其中利用<code>bufio</code>分批次读取文件，防止文件过大时造成资源占用高</p>
+<pre><code class="language-go">package main
+
+import (
+	&quot;bufio&quot;
+	&quot;crypto/md5&quot;
+	&quot;flag&quot;
+	&quot;fmt&quot;
+	&quot;io&quot;
+	&quot;os&quot;
+	&quot;strings&quot;
+)
+
+func md5reader(reader *bufio.Reader) string {  //
+	hasher := md5.New()  // 定义MD5 hash计算器
+	bytes := make([]byte, 1024*1024*10)  // 分批次读取文件
+
+	for {
+		n, err := reader.Read(bytes)
+		if err != nil {
+			if err != io.EOF {
+				return &quot;&quot;
+			}
+			break
+		} else {
+			hasher.Write(bytes[:n])
+		}
+	}
+	return fmt.Sprintf(&quot;%x&quot;, hasher.Sum(nil))
+}
+
+func md5file(path string) (string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return &quot;&quot;, err
+	} else {
+		defer file.Close()
+		return md5reader(bufio.NewReader(file)), nil
+	}
+}
+
+func md5str(txt string) (string, error) {
+	return md5reader(bufio.NewReader(strings.NewReader(txt))), nil
+	//return fmt.Sprintf(&quot;%x&quot;, md5.Sum([]byte(txt)))
+}
+
+func main()  {
+	txt := flag.String(&quot;s&quot;, &quot;&quot;, &quot;md5 txt&quot;)
+	path := flag.String(&quot;f&quot;, &quot;&quot;, &quot;file path&quot;)
+	help := flag.Bool(&quot;h&quot;, false, &quot;help&quot;)
+	flag.Usage = func() {
+		fmt.Println(`
+Usage: md5 [-s 123abc] [-f path]
+Options:
+		`)
+		flag.PrintDefaults()
+	}
+	flag.Parse()
+	if *help || *txt == &quot;&quot; &amp;&amp; *path == &quot;&quot; {
+		flag.Usage()
+	} else {
+		var md5 string
+		var err error
+		if *path != &quot;&quot; {
+			md5, err = md5file(*path)
+		} else {
+			md5, err = md5str(*txt)
+		}
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Println(md5)
+		}
+	}
+}
+</code></pre>
+<p>编译生成二进制文件</p>
+<pre><code class="language-shell">➜  go build -o md5go -x md5_bufio.go
+➜  ll md5go 
+-rwxr-xr-x  1 ssgeek  staff   1.9M Oct 2 00:54 md5go
+</code></pre>
+<p>测试使用</p>
+<pre><code class="language-shell">➜  ./md5go -h             
+
+Usage: md5 [-s 123abc] [-f path]
+Options:
+                
+  -f string
+        file path
+  -h    help
+  -s string
+        md5 txt
+➜  ./md5go -s 123456
+e10adc3949ba59abbe56e057f20f883e
+➜  ./md5go -f md5_bufio.go
+8607a07cbb98cec0e9abe14b0db0bee6
+</code></pre>
+<p>Just here，see you ~</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/golang" class="tag">
+                    golang
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/mysql-ji-yu-binlog-de-shu-ju-hui-fu-shi-zhan">
+                  <h3 class="post-title">
+                    MySQL基于Binlog的数据恢复实战
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

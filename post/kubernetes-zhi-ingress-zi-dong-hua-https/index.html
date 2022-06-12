@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Kubernetes之Ingress自动化https | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Kubernetes之Ingress自动化https</h2>
+            <div class="post-date">2020-03-05</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%89%8D%E7%BD%AE%E6%9D%A1%E4%BB%B6">1、前置条件</a></li>
+<li><a href="#2-%E9%83%A8%E7%BD%B2cert-manager">2、部署cert-manager</a>
+<ul>
+<li><a href="#21-%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AAnamespace">2.1、创建一个namespace</a></li>
+<li><a href="#22-%E5%AE%89%E8%A3%85cert-manager">2.2、安装cert-manager</a></li>
+<li><a href="#23-%E6%B5%8B%E8%AF%95">2.3、测试</a></li>
+</ul>
+</li>
+<li><a href="#3-%E5%88%9B%E5%BB%BAclusterissuer">3、创建clusterissuer</a></li>
+<li><a href="#4-%E4%B8%BA%E5%9F%9F%E5%90%8D%E5%88%9B%E5%BB%BAcertificate">4、为域名创建certificate</a></li>
+<li><a href="#5-%E5%9C%A8ingress%E4%B8%AD%E5%BC%95%E7%94%A8%E5%AF%B9%E5%BA%94%E7%9A%84secret">5、在ingress中引用对应的secret</a></li>
+<li><a href="#6-%E8%87%AA%E5%8A%A8%E5%8C%96%E9%A2%81%E5%8F%91%E8%AF%81%E4%B9%A6">6、自动化颁发证书</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>cert-manager 是一个云原生证书管理开源项目，用于在 Kubernetes 集群中提供 HTTPS 证书并自动续期，支持 Let’s Encrypt, HashiCorp Vault 这些免费证书的签发。在Kubernetes集群中，我们可以通过 Kubernetes Ingress 和 Let’s Encrypt 实现外部服务的自动化 HTTPS。</p>
+</blockquote>
+<h2 id="1-前置条件">1、前置条件</h2>
+<p>在Kubernetes集群中使用 HTTPS 协议，需要一个证书管理器、一个证书自动签发服务，主要通过 Ingress 来发布 HTTPS 服务，因此需要Ingress Controller并进行配置，启用 HTTPS 及其路由。<br>
+<img src="https://image.ssgeek.com/20200305-02.png" alt=""></p>
+<p>本文环境：</p>
+<ul>
+<li>k8s v1.17.0</li>
+<li>Ingress Controller为nginx，且有对应暴露的公网ip地址</li>
+</ul>
+<h2 id="2-部署cert-manager">2、部署cert-manager</h2>
+<p>从cert-manager v0.11.0开始，Kubernetes的最低支持版本是v1.12.0。仍在运行Kubernetes v1.11或更低版本的用户应在安装cert-manager之前升级到受支持的版本。</p>
+<p>cert-manager可以通过官方yaml安装或者通过helm快速安装，本文记录通过官方yaml安装的过程</p>
+<h3 id="21-创建一个namespace">2.1、创建一个namespace</h3>
+<pre><code># namespace.yaml 
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-manager
+</code></pre>
+<p>或者</p>
+<pre><code>kubectl create namespace cert-manager
+</code></pre>
+<h3 id="22-安装cert-manager">2.2、安装cert-manager</h3>
+<p>官方的yaml地址为</p>
+<pre><code>https://github.com/jetstack/cert-manager/releases/download/v0.13.1/cert-manager.yaml
+</code></pre>
+<p>yaml中有三个镜像，分别为</p>
+<ul>
+<li>cert-manager-controller:v0.13.1</li>
+<li>cert-manager-cainjector:v0.13.1</li>
+<li>cert-manager-webhook:v0.13.1</li>
+</ul>
+<p>默认是从<code>quay.io</code>获取镜像，如果<code>quay.io</code>的镜像无法获取，修改<code>image</code>为国内源，例如<code>Azure</code>中国的地址<code>quay.azk8s.cn</code></p>
+<p>部署，会在集群中创建一系列的<code>crd</code>资源</p>
+<pre><code># kubectl apply -f cert-manager.yaml 
+customresourcedefinition.apiextensions.k8s.io/certificaterequests.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/certificates.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/challenges.acme.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/clusterissuers.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/issuers.cert-manager.io created
+customresourcedefinition.apiextensions.k8s.io/orders.acme.cert-manager.io created
+namespace/cert-manager unchanged
+serviceaccount/cert-manager-cainjector created
+serviceaccount/cert-manager created
+serviceaccount/cert-manager-webhook created
+clusterrole.rbac.authorization.k8s.io/cert-manager-cainjector created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-cainjector created
+role.rbac.authorization.k8s.io/cert-manager-cainjector:leaderelection created
+rolebinding.rbac.authorization.k8s.io/cert-manager-cainjector:leaderelection created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-webhook:auth-delegator created
+rolebinding.rbac.authorization.k8s.io/cert-manager-webhook:webhook-authentication-reader created
+clusterrole.rbac.authorization.k8s.io/cert-manager-webhook:webhook-requester created
+role.rbac.authorization.k8s.io/cert-manager:leaderelection created
+rolebinding.rbac.authorization.k8s.io/cert-manager:leaderelection created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-issuers created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-clusterissuers created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-certificates created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-orders created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-challenges created
+clusterrole.rbac.authorization.k8s.io/cert-manager-controller-ingress-shim created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-issuers created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-clusterissuers created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-certificates created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-orders created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-challenges created
+clusterrolebinding.rbac.authorization.k8s.io/cert-manager-controller-ingress-shim created
+clusterrole.rbac.authorization.k8s.io/cert-manager-view created
+clusterrole.rbac.authorization.k8s.io/cert-manager-edit created
+service/cert-manager created
+service/cert-manager-webhook created
+deployment.apps/cert-manager-cainjector created
+deployment.apps/cert-manager created
+deployment.apps/cert-manager-webhook created
+mutatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
+validatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
+</code></pre>
+<p>检查对应的pod状态</p>
+<pre><code># kubectl get pods -n cert-manager 
+NAME                                      READY   STATUS    RESTARTS   AGE
+cert-manager-5cbcb9f4f5-7k6j4             1/1     Running   0          90s
+cert-manager-cainjector-8df55567d-bspds   1/1     Running   0          90s
+cert-manager-webhook-5d9c55bb4c-tmlck     1/1     Running   0          88s
+</code></pre>
+<h3 id="23-测试">2.3、测试</h3>
+<p>在正式使用前，先通过<a href="https://cert-manager.io/docs/installation/kubernetes/">官方的示例</a>做一个测试来确认正确设置了<code>cert-manager</code>并能够颁发基本证书类型<br>
+测试<code>Webhook</code>正常工作</p>
+<pre><code># cat &lt;&lt;EOF &gt; test-resources.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-manager-test
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Issuer
+metadata:
+  name: test-selfsigned
+  namespace: cert-manager-test
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: selfsigned-cert
+  namespace: cert-manager-test
+spec:
+  dnsNames:
+    - example.com
+  secretName: selfsigned-cert-tls
+  issuerRef:
+    name: test-selfsigned
+EOF
+</code></pre>
+<p>创建测试资源</p>
+<pre><code># kubectl apply -f test-resources.yaml
+namespace/cert-manager-test created
+issuer.cert-manager.io/test-selfsigned created
+certificate.cert-manager.io/selfsigned-cert created
+</code></pre>
+<p>查新创建证书的状态。可能需要等待几秒钟，然后<code>cert-manager</code>才能处理证书请求</p>
+<pre><code># kubectl -n cert-manager-test describe certificate selfsigned-cert
+...
+Spec:
+  Dns Names:
+    example.com
+  Issuer Ref:
+    Name:       test-selfsigned
+  Secret Name:  selfsigned-cert-tls
+Status:
+  Conditions:
+    Last Transition Time:  2020-03-05T10:01:06Z
+    Message:               Certificate is up to date and has not expired
+    Reason:                Ready
+    Status:                True
+    Type:                  Ready
+  Not After:               2020-06-03T10:01:06Z
+Events:
+  Type    Reason        Age   From          Message
+  ----    ------        ----  ----          -------
+  Normal  GeneratedKey  61s   cert-manager  Generated a new private key
+  Normal  Requested     61s   cert-manager  Created new CertificateRequest resource &quot;selfsigned-cert-504566127&quot;
+  Normal  Issued        61s   cert-manager  Certificate issued successfully
+</code></pre>
+<p>清理测试资源</p>
+<pre><code># kubectl delete -f test-resources.yaml 
+namespace &quot;cert-manager-test&quot; deleted
+issuer.cert-manager.io &quot;test-selfsigned&quot; deleted
+certificate.cert-manager.io &quot;selfsigned-cert&quot; deleted
+</code></pre>
+<h2 id="3-创建clusterissuer">3、创建clusterissuer</h2>
+<p>为了配置<code>cert-manager</code>以开始颁发证书，必须先创建<code>Issuer</code>或<code>ClusterIssuer</code>资源。这些资源代表特定的签名机构，并详细说明如何满足证书请求。<code>Issuer</code>只能用来签发自己所在<code>namespace</code>下的证书，<code>ClusterIssuer</code>可以签发任意<code>namespace</code>下的证书，这里以<code>ClusterIssuer</code>为例创建一个签发机构</p>
+<pre><code># cat clusterissuer.yaml
+apiVersion: cert-manager.io/v1alpha2
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: ssgeek@ssgeek.com
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
+</code></pre>
+<p>说明：</p>
+<ul>
+<li>metadata.name 创建的签发机构的名称，创建证书的时候会引用</li>
+<li>spec.acme.email 邮箱，证书快过期的时候会有邮件提醒，不过<code>cert-manager</code>会利用<code>acme</code>协议自动给我们重新颁发证书来续期</li>
+<li>spec.acme.server acme 协议的服务端，由官方给出</li>
+<li>spec.acme.privateKeySecretRef 指示此签发机构的私钥将要存储到哪个<code>Secret</code>对象中</li>
+<li>pec.acme.solvers.http01 指示签发机构使用<code>HTTP-01</code>的方式进行<code>acme</code>协议 (还可以用<code>DNS</code>方式，<code>acme</code>协议的目的是证明这台机器和域名都是属于你的，然后才准许给你颁发证书)</li>
+</ul>
+<h2 id="4-为域名创建certificate">4、为域名创建certificate</h2>
+<p>这里通过一个我自己的域名<code>blog.ssgeek.com</code>来进行测试，此域名已经修改<code>dns</code>为公网地址</p>
+<pre><code># cat certificate.yaml 
+apiVersion: cert-manager.io/v1alpha2
+kind: Certificate
+metadata:
+  name: blog
+  namespace: default
+spec:
+  secretName: blog-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  duration: 2160h
+  renewBefore: 360h
+  keyEncoding: pkcs1
+  dnsNames:
+  - blog.ssgeek.com
+</code></pre>
+<p>说明：</p>
+<ul>
+<li>spec.secretName 指示证书最终存到哪个 Secret 中</li>
+<li>spec.issuerRef.kind 值为 ClusterIssuer 说明签发机构不在本 namespace 下，而是在全局</li>
+<li>spec.issuerRef.name 我们创建的签发机构的名称 (ClusterIssuer.metadata.name)</li>
+<li>spec.duration 证书过期时间</li>
+<li>spec.renewBefore 在过期前自动更新</li>
+<li>spec.dnsNames 指示该证书的可以用于哪些域名</li>
+<li>更多选项可以参照<a href="https://cert-manager.io/docs/usage/certificate/">官方文档</a></li>
+</ul>
+<p>创建并检查相应资源</p>
+<pre><code># kubectl apply -f certificate.yaml 
+certificate.cert-manager.io/blog created
+# kubectl get certificate
+NAME   READY   SECRET     AGE
+blog   True    blog-tls   36s
+# kubectl get secrets |grep blog-tls
+blog-tls               kubernetes.io/tls                     3      52s
+# kubectl describe secrets blog-tls 
+Name:         blog-tls
+Namespace:    default
+Labels:       &lt;none&gt;
+Annotations:  cert-manager.io/alt-names: blog.ssgeek.com
+              cert-manager.io/certificate-name: blog
+              cert-manager.io/common-name: blog.ssgeek.com
+              cert-manager.io/ip-sans: 
+              cert-manager.io/issuer-kind: ClusterIssuer
+              cert-manager.io/issuer-name: letsencrypt-prod
+              cert-manager.io/uri-sans: 
+
+Type:  kubernetes.io/tls
+
+Data
+====
+ca.crt:   0 bytes
+tls.crt:  3558 bytes
+tls.key:  1675 bytes
+</code></pre>
+<p>在创建时查看<code>cert-namager</code>的日志</p>
+<pre><code># kubectl -n cert-manager logs -f cert-manager-5cbcb9f4f5-4kks2
+...
+I0305 05:50:13.817322       1 controller.go:129] cert-manager/controller/certificates &quot;msg&quot;=&quot;syncing item&quot; &quot;key&quot;=&quot;default/blog&quot; 
+I0305 05:50:14.317351       1 conditions.go:155] Setting lastTransitionTime for Certificate &quot;blog&quot; condition &quot;Ready&quot; to 2020-03-05 05:50:14.317341236 +0000 UTC m=+2213.785243238
+I0305 05:50:14.525738       1 controller.go:135] cert-manager/controller/certificates &quot;msg&quot;=&quot;finished processing work item&quot; &quot;key&quot;=&quot;default/blog&quot; 
+I0305 05:50:14.525812       1 controller.go:129] cert-manager/controller/certificates &quot;msg&quot;=&quot;syncing item&quot; &quot;key&quot;=&quot;default/blog&quot; 
+I0305 05:50:14.526251       1 sync.go:367] cert-manager/controller/certificates &quot;msg&quot;=&quot;no existing CertificateRequest resource exists, creating new request...&quot; &quot;related_resource_kind&quot;=&quot;Secret&quot; &quot;related_resource_name&quot;=&quot;blog-tls&quot; &quot;related_resource_namespace&quot;=&quot;default&quot; &quot;resource_kind&quot;=&quot;Certificate&quot; &quot;resource_name&quot;=&quot;blog&quot; &quot;resource_namespace&quot;=&quot;default&quot; 
+I0305 05:50:14.774094       1 controller.go:129] cert-manager/controller/certificaterequests-issuer-ca &quot;msg&quot;=&quot;syncing item&quot; &quot;key&quot;=&quot;default/blog-109727931&quot; 
+I0305 05:50:14.774118       1 controller.go:129] cert-manager/controller/certificaterequests-issuer-selfsigned &quot;msg&quot;=&quot;syncing item&quot; &quot;key&quot;=&quot;default/blog-109727931&quot; 
+I0305 05:50:14.774135       1 sync.go:379] cert-manager/controller/certificates &quot;msg&quot;=&quot;created certificate request&quot; &quot;related_resource_kind&quot;=&quot;Secret&quot; &quot;related_resource_name&quot;=&quot;blog-tls&quot; &quot;related_resource_namespace&quot;=&quot;default&quot; &quot;resource_kind&quot;=&quot;Certificate&quot; &quot;resource_name&quot;=&quot;blog&quot; &quot;resource_namespace&quot;=&quot;default&quot; &quot;request_name&quot;=&quot;blog-109727931&quot;
+</code></pre>
+<p>如果创建出来的<code>certificate</code>状态为<code>False</code>，可以通过以下命令查看相关信息</p>
+<pre><code># kubectl get challenge
+</code></pre>
+<p>如果有相应的<code>challenge</code>，通过<code>kubectl describe</code>检查，例如我这里之前创建失败时检查的错误信息如下<br>
+<img src="https://image.ssgeek.com/20200305-03.png" alt=""><br>
+出现此问题的原因是我把此域名的解析设置为了内网地址，官方的颁发证书机构接口地址无法访问到，因此必须解析在公网，并保证服务暴露在公网</p>
+<h2 id="5-在ingress中引用对应的secret">5、在ingress中引用对应的secret</h2>
+<p>生成的证书最终绑定在对应的域名服务下，这里我运行了一个<code>nginx pod</code>，创建了对应的<code>service</code>和<code>ingress</code>资源，在<code>ingress</code>资源中声明了此<code>secret</code>，由于部署了<code>cert-maganer</code>，在<code>ingress</code>中，还支持更多的注解，可以参考<a href="https://cert-manager.io/docs/usage/ingress/">官方文档</a></p>
+<p><code>yaml</code>内容如下</p>
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - image: nginx:1.15 
+        imagePullPolicy: IfNotPresent
+        name: nginx
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  namespace: default
+spec:
+  selector:
+    app: nginx
+  ports:
+  - name: nginx
+    port: 80
+    targetPort: 80
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nginx
+  namespace: default
+  annotations:
+    kubernietes.io/ingress.class: &quot;nginx&quot;
+    nginx.ingress.kubernetes.io/ssl-redirect: &quot;true&quot;
+spec:
+  tls:
+  - hosts:
+    - blog.ssgeek.com
+    secretName: blog-tls
+  rules:
+    - host: blog.ssgeek.com
+      http:
+        paths:
+        - path: /
+          backend:
+            serviceName: nginx
+            servicePort: 80
+</code></pre>
+<p>然后通过域名访问，检查证书是否正常<br>
+<img src="https://image.ssgeek.com/20200305-04.png" alt=""></p>
+<h2 id="6-自动化颁发证书">6、自动化颁发证书</h2>
+<p>上述内容是通过根据域名创建<code>certificate</code>最终得到的签名证书，再配置到<code>ingress</code>中使用，还不够自动化。没错，其实官方给出了自动通过<code>ClusterIssuer</code>颁发证书的做法，只需要在<code>ingress</code>中添加相应注解即可</p>
+<pre><code>apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nginx
+  namespace: default
+  annotations:
+    kubernietes.io/ingress.class: &quot;nginx&quot;
+    cert-manager.io/cluster-issuer: &quot;letsencrypt-prod&quot;
+    kubernetes.io/tls-acme: &quot;true&quot;
+spec:
+  tls:
+  - hosts:
+    - blog.ssgeek.com
+    secretName: blog-tls
+  rules:
+    - host: blog.ssgeek.com
+      http:
+        paths:
+        - path: /
+          backend:
+            serviceName: nginx
+            servicePort: 80
+</code></pre>
+<p>创建<code>ingress</code>资源，就会发现自动创建了<code>certificate</code>,得到<code>secret</code><br>
+浏览器访问，出现<code>307</code>的<code>http</code>临时重定向到<code>https</code>，也可以继续添加一个注解强制进行强制重定向</p>
+<pre><code>apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nginx
+  namespace: default
+  annotations:
+    kubernietes.io/ingress.class: &quot;nginx&quot;
+    nginx.ingress.kubernetes.io/ssl-redirect: &quot;true&quot;
+    nginx.ingress.kubernetes.io/force-ssl-redirect: &quot;true&quot;
+    cert-manager.io/cluster-issuer: &quot;letsencrypt-prod&quot;
+    kubernetes.io/tls-acme: &quot;true&quot;
+spec:
+  tls:
+  - hosts:
+    - blog.ssgeek.com
+    secretName: blog-tls
+  rules:
+    - host: blog.ssgeek.com
+      http:
+        paths:
+        - path: /
+          backend:
+            serviceName: nginx
+            servicePort: 80
+</code></pre>
+<p>参考：<br>
+<a href="https://cert-manager.io/docs">官方文档</a><br>
+<a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nginx-ingress-with-cert-manager-on-digitalocean-kubernetes">DIGITALOCEAN社区</a><br>
+<a href="https://blog.k8s.fit/articles/2020/02/28/1582892559454.html">Happiness&quot;Blog<br>
+</a></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/app" class="tag">
+                    实用程序
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/jenkinssharelibrary-shi-jian-zhi-zi-ding-yi-tong-zhi-qi">
+                  <h3 class="post-title">
+                    JenkinsShareLibrary实践之自定义通知器
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

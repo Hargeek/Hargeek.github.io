@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Kubernetes Pod资源调度概述 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Kubernetes Pod资源调度概述</h2>
+            <div class="post-date">2020-04-15</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E8%B0%83%E5%BA%A6%E6%A6%82%E8%BF%B0">1、调度概述</a></li>
+<li><a href="#2-%E8%B0%83%E5%BA%A6%E5%99%A8">2、调度器</a></li>
+<li><a href="#3-%E5%B8%B8%E7%94%A8%E9%A2%84%E9%80%89%E7%AD%96%E7%95%A5">3、常用预选策略</a></li>
+<li><a href="#3-%E5%B8%B8%E7%94%A8%E4%BC%98%E9%80%89%E5%87%BD%E6%95%B0">3、常用优选函数</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20200415-01.png" alt=""></figure>
+<h2 id="1-调度概述">1、调度概述</h2>
+<p><code>Kubernetes API Server</code>接受客户端提交<code>Pod</code>对象创建请求后的操作过程中，有一个重要的步骤是由调度器程序<code>kube-scheduler</code>从当前集群中选择一个可用的最佳节点来接收井运行它，通常<br>
+是默认的调度器<code>default-scheduler</code>负责执行此类任务。对于每个待创建的<code>Pod</code>对象来说， 调度过程通常分为三个阶段：预选、优选和选定三个步骤，以筛选执行任务的最佳节点。</p>
+<h2 id="2-调度器">2、调度器</h2>
+<p><code>Kubernetes</code>系统的核心任务在于创建客户端请求创建的<code>Pod</code>对象并确保其以期望的状态运行。创建<code>Pod</code>对象时，调度器<code>scheduler</code>负责为每一个未经调度的<code>Pod</code>资源、基于一系列的规则集从集群中挑选一个合适的节点来运行它，因此它也可以称作<code>Pod</code>调度器。调度过程中，调度器不会修改<code>Pod</code>资源，而是从中读取数据，并根据配置的策略挑选出最适合的节点 ，而后通过<code>API</code>调用将<code>Pod</code>绑定至挑选出的节点之上以完成调度过程。</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20200415-02.png" alt=""></figure>
+<p><code>Kubernetes</code>内建了适合绝大多数场景中 <code>Pod</code>资源调度需求的默认调度器，它支持同时使用算法基于原生及可定制的工具来选出集群中最适合运行当前<code>Pod</code>资源的一个节点，其核心目标是<strong>基于资源可用性将各 Pod 资源公 平地分布于集群节点之上</strong>，<code>kubernetes</code>提供的默认调度器也称为“通用调度器”，它通过三个步骤完成调度操作：节点预选<code>Predicate</code>、节点优先级排序<code>Priority</code>及节点择优<code>Select</code>。</p>
+<p>1）节点预选：基于一系列预选规则（如 <code>PodFitsResources</code>和<code>MatchNode- Selector</code>等）对每个节点进行检查，将那些不符合条件的节点过滤掉从而完成节点预选。</p>
+<p>2）节点优选：对预选出的节点进行优先级排序，以便选出最适合运行<code>Pod</code>对象的节点</p>
+<p>3）从优先级排序结果中挑出优先级最高的节点运行<code>Pod</code>对象，当此类节点多于一个时，则从中随机选择一个</p>
+<p>有些特殊的<code>Pod</code>资源需要运行在特定的节点之上，或者说对某类节点有着特殊偏好（如那些有着<code>SSD</code>、<code>GPU</code>等特殊硬件的节点），以便更好地匹配容器应用的运行需求。另外，有的<code>Pod</code>资源与其他<code>Pod</code>资源存在着特定的关联性，它们运行于同一节点以便能够实现更高效的协同效果等。 此种场景可通过组合节点标签，以及<code>Pod</code>标签或标签选择器等来激活特定的预选策略以完成高级调度，如<code>MatchlnterPodAffinity</code>、 <code>MatchNodeSelector</code>和<code>PodToleratesNodeTaints</code>等预选策略，它们用于为用户提供自定义<code>Pod</code>亲和性或反亲和性、节点亲和性以及基于污点及容忍度的调度机制。不过，未激活特定的预选策略时，<code>Pod</code>资源对节点便没有特殊偏好，相关的预选策略无法在节点预选过程中真正发挥作用。</p>
+<h2 id="3-常用预选策略">3、常用预选策略</h2>
+<p>简单来说，预选策略就是节点过滤器，例如节点标签必须能够匹配到<code>Pod</code>资源的标签选择器（由 MatchNodeSelector 实现的规则），以及 <code>Pod</code>容器的资源请求量不能大于节点上剩余的可分配资源（由 PodFitsResources 实现的规则 ）等。 执行预选操作时，调度器将对每个节点基于配置使用的预选策略以特定次序逐一筛查，并根据一票否决制进行节点淘汰。 若预选后不存在任何一个满足条件的节点，则<code>Pod</code>被置于 <code>Pending</code>状态，直到至少有一个节点可用为止。</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20200415-03.png" alt=""></figure>
+<ul>
+<li>CheckNodeCondition：检查是否可以在节点报告磁盘、网络不可用或未准备好的情况下将<code>Pod</code>对象调度其上。</li>
+<li>HostName：如果<code>Pod</code>对象拥有<code>spec.hostname</code>属性，则检查节点名称字符串是否和该属性值匹配。</li>
+<li>PodFitsHostPorts：如果<code>Pod</code>对象定义了<code>ports.hostPort</code>属性，则检查<code>Pod</code>指定的端口是否已经被节点上的其他容器或服务占用。</li>
+<li>MatchNodeSelector：如果<code>Pod</code>对象定义了<code>spec.nodeSelector</code>属性，则检查节点标签是否和该属性匹配。</li>
+<li>NoDiskConflict：检查<code>Pod</code>对象请求的存储卷在该节点上可用。</li>
+<li>PodFitsResources：检查节点上的资源（CPU、内存）可用性是否满足<code>Pod</code>对象的运行需求。</li>
+<li>PodToleratesNodeTaints：如果<code>Pod</code>对象中定义了<code>spec.tolerations</code>属性，则需要检查该属性值是否可以接纳节点定义的污点（taints）。</li>
+<li>PodToleratesNodeNoExecuteTaints：如果<code>Pod</code>对象定义了<code>spec.tolerations</code>属性，检查该属性是否接纳节点的<code>NoExecute</code>类型的污点。</li>
+<li>CheckNodeLabelPresence：仅检查节点上指定的所有标签的存在性，要检查的标签以及其可否存在取决于用户的定义。</li>
+<li>CheckServiceAffinity：根据当前<code>Pod</code>对象所属的<code>Service</code>已有其他<code>Pod</code>对象所运行的节点调度，目前是将相同的<code>Service</code>的<code>Pod</code>对象放在同一个或同一类节点上。</li>
+<li>MaxEBSVolumeCount：检查节点上是否已挂载<code>EBS</code>存储卷数量是否超过了设置的最大值，默认值：39</li>
+<li>MaxGCEPDVolumeCount：检查节点上已挂载的<code>GCE PD</code>存储卷是否超过了设置的最大值，默认值：16</li>
+<li>MaxAzureDiskVolumeCount：检查节点上已挂载的<code>Azure Disk</code>存储卷数量是否超过了设置的最大值，默认值：16</li>
+<li>CheckVolumeBinding：检查节点上已绑定和未绑定的<code>PVC</code>是否满足<code>Pod</code>对象的存储卷需求。</li>
+<li>NoVolumeZoneConflct：在给定了区域限制的前提下，检查在该节点上部署<code>Pod</code>对象是否存在存储卷冲突。</li>
+<li>CheckNodeMemoryPressure：在给定了节点已经上报了存在内存资源压力过大的状态，则需要检查该<code>Pod</code>是否可以调度到该节点上。</li>
+<li>CheckNodePIDPressure：如果给定的节点已经报告了存在<code>PID</code>资源压力过大的状态，则需要检查该<code>Pod</code>是否可以调度到该节点上。</li>
+<li>CheckNodeDiskPressure：如果给定的节点存在磁盘资源压力过大，则检查该<code>Pod</code>对象是否可以调度到该节点上。</li>
+<li>MatchInterPodAffinity：检查给定的节点能否可以满足<code>Pod</code>对象的亲和性和反亲和性条件，用来实现<code>Pod</code>亲和性调度或反亲和性调度。</li>
+</ul>
+<p>如上的各预选策略中，<code>CheckNodeLabelPresence</code>和<code>CheckServiceAffinity</code>可以接受特定的配置参数以便在预选过程中融合用户自定义的调度逻辑，这类策略也可称为可配置 策略，而余下那些不可接受配置参数的策略也统一称为静态策略。 另外，<code>NoDiskConflict</code>、 <code>PodToleratesNodeNoExecuteTaints</code>、 <code>CheckNodeLabelPresence</code>和<code>CheckServiceAffinity</code>没有包含在默认的预选策略中 。</p>
+<h2 id="3-常用优选函数">3、常用优选函数</h2>
+<p>预选策略筛选并生成一个节点列表后即进入第二阶段的优选过程。在这个过程中，调度器向每个通过预选的节 点传递一系列的优选函数（如 BalancedResourceAllocation 和 TaintTolerationPriority 等）来计算其优先级分值 ，优先级分值介于<code>0</code>到<code>10</code>之间， 其中<code>0</code>表示不适用，<code>10</code>表示最适合托管该<code>Pod</code>对象。</p>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20200415-04.png" alt=""></figure>
+<p>另外，调度器还支持为每个优选函数指定一个简单的由正数值表示的权重，进行节点优先级分值的计算时，它首先将每个优选函数的计算得分乘 以其权重（大多数优先级的默认权重为 1 ），然后将所有优选函数的得分相加从而得出节点的最终优先级分值。 权重属性赋予了管理员定义优选函数倾向性的能力。 下面是每个节点的最终优先级得分的计算公式：</p>
+<p><code>finalScoreNode = (weight1 * priorityFunc1) + (weight2 * priorityFunc2) + ......</code></p>
+<p>下面是各优选函数的相关说明：</p>
+<ul>
+<li>
+<p>LeastRequestedPriority：由节点空闲资源与节点总容量的比值计算而来，即由<code>CPU</code>或内存资源的总容量减去节点上已有<code>Pod</code>对象需求的容量总和，再减去当前要创建的<code>Pod</code>对象的需求容量得到的结果除以总容量。<code>CPU</code>和内存具有相同的权重，资源空闲比例越高的节点得分就越高，其计算公式为：<code>（cpu((capacity - sum(r巳quested)) * IO/capacity) + memory(( capacity sum( requested)) * I O/capacity))/2</code>。</p>
+</li>
+<li>
+<p>BalancedResourceAllocation：以<code>CPU</code>和内存资源占用率的相近程序作为评估标准， 二者越接近的节点权重越高 。 该优选级函数不能单独使用，它需要与<code>LeastRequestedPriority</code>组合使用来平衡优化节点资源的使用状况，以选择那些在部署当前<code>Pod</code>资源后系统资源更为均衡的节点 。</p>
+</li>
+<li>
+<p>NodePreferAvoidPodsPriority：此优选级函数权限默认为<code>10000</code>，它将根据节点是否设置了注解信息来计算其优选级。 计算方式是：给定的节点无此注解信息时，其得分为<code>10</code>乘以权重<code>10000</code>；存在此注解信息时，对于那些由<code>ReplicationController</code>或<code>ReplicaSet</code>控制器管控的<code>Pod</code>对象的得分为<code>0</code>，其他<code>Pod</code>对象会被忽略（得最高分）。</p>
+</li>
+<li>
+<p>NodeAffinityPriority：基于节点亲和性调度偏好进行优先级评估，它将根据<code>Pod</code>资源中的<code>nodeSelector</code>对给定节点进行匹配度检查，成功匹配到的条目越多则节点得分越高。不过，其评估过程使用首选而非强制型的<code>PreferredDuringSchedulinglgnoredDuringExecuti on</code>标签选择器。</p>
+</li>
+<li>
+<p>TaintTolerationPriority：基于<code>Pod</code>资源对节点的污点容忍调度偏好进行其优先级的评估，它将<code>Pod</code>对象的<code>tolerations</code>列表与节点的污点进行匹配度检查，成功匹配的条目越 多， 则节点得分越低。</p>
+</li>
+<li>
+<p>SelectorSpreadPriority：首先查找与当前<code>Pod</code>对象匹配的<code>Service</code>、<code>ReplicationController</code>、<code>ReplicaSet ( RS ）</code>和 <code>StatefulSet</code>，而后查找与这些选择器匹配的现存<code>Pod</code>对象及其所在的节点，则运行此类<code>Pod</code>对象越少的节点得分将越高。 简单来说，如其名称所示，此优选函数会尽量将同一标签选择器匹配到的<code>Pod</code>资源分散到不同的节点上运行。</p>
+</li>
+<li>
+<p>InterPodAffinityPriority：遍历<code>Pod</code>对象的亲和性条目，并将那些能够匹配到给定节点的条目的权重相加，结果值越大的节点得分越高。</p>
+</li>
+<li>
+<p>MostRequestedPriority：与优选函数<code>LeastRequestedPriority</code>的评估节点得分的方法相似，不同的是，资源占用比例越大的节点，其得分越高 。</p>
+</li>
+<li>
+<p>NodeLabelPriority：根据节点是否拥有特定的标签来评估其得分，而无论其值为何。需要其存在时，拥有相应标签的节点将获得优先级，否则，不具有相应标签的节点将获得优先级。</p>
+</li>
+<li>
+<p>ImageLocalityPriority：基于给定节点上拥有的运行当前<code>Pod</code>对象中的容器所依赖到的镜像文件来计算节点得分，不具有<code>Pod</code>依赖到的任何镜像文件的节点其得分为<code>0</code>，而拥有相应镜像文件的各节点中，所拥有的被依赖到的镜像文件其体积之和越大则节点得分越高。</p>
+</li>
+</ul>
+<p>小结：<code>Kubernetes</code>的默认调度器以预选、优选、选定机制完成将每个新的<code>Pod</code>资源绑定至为其选出的目标节点上。</p>
+<p>参考来源：https://kubernetes.io/zh/docs/concepts/scheduling/</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/python-shu-ju-fen-xi-zhi-numpy-ru-men">
+                  <h3 class="post-title">
+                    Python数据分析之Numpy入门
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

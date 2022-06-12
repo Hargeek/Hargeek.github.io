@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>zabbix-web切换为nginx及https | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">zabbix-web切换为nginx及https</h2>
+            <div class="post-date">2019-07-15</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E8%83%8C%E6%99%AF%E5%92%8C%E7%8E%AF%E5%A2%83">1、背景和环境</a></li>
+<li><a href="#2-%E5%AE%89%E8%A3%85nginx">2、安装nginx</a>
+<ul>
+<li><a href="#21-%E7%BC%96%E8%AF%91%E5%8F%82%E6%95%B0">2.1、编译参数</a></li>
+<li><a href="#22-%E4%BF%AE%E6%94%B9%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E5%B9%B6%E9%85%8D%E7%BD%AEhttps">2.2、修改配置文件并配置https</a></li>
+<li><a href="#23-%E9%85%8D%E7%BD%AEnginx%E4%B8%BA%E7%B3%BB%E7%BB%9F%E6%9C%8D%E5%8A%A1">2.3、配置nginx为系统服务</a></li>
+</ul>
+</li>
+<li><a href="#3-%E5%AE%89%E8%A3%85php">3、安装php</a>
+<ul>
+<li><a href="#31-%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85">3.1、编译安装</a>
+<ul>
+<li><a href="#311-%E7%BC%96%E8%AF%91%E5%8F%82%E6%95%B0">3.1.1、编译参数</a></li>
+<li><a href="#312-%E6%8E%92%E9%94%99">3.1.2、排错</a></li>
+</ul>
+</li>
+<li><a href="#32-%E9%85%8D%E7%BD%AE">3.2、配置</a></li>
+<li><a href="#33-%E9%85%8D%E7%BD%AEphp%E4%B8%BA%E7%B3%BB%E7%BB%9F%E6%9C%8D%E5%8A%A1">3.3、配置php为系统服务</a></li>
+<li><a href="#34-%E5%90%AF%E5%8A%A8">3.4、启动</a></li>
+</ul>
+</li>
+<li><a href="#4-%E8%AE%BF%E9%97%AE%E5%8F%8A%E6%8E%92%E9%94%99">4、访问及排错</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-背景和环境">1、背景和环境</h2>
+<p>zabbix使用了很久，安装的时候并没有选择复杂的源码编译安装，所以默认采用了apache的httpd提供web服务。由于对httpd并没有深入研究，而且个人对httpd的配置文件格式很不感冒，怎么办？当然是换nginx呀！顺便加上https证书安全安全。<br>
+本文中的环境如下：<br>
+系统版本：CentOS Linux release 7.4.1708 (Core)<br>
+软件版本：<br>
+zabbix 4.0.0<br>
+nginx 1.16.0<br>
+php 5.6.40</p>
+<h2 id="2-安装nginx">2、安装nginx</h2>
+<h3 id="21-编译参数">2.1、编译参数</h3>
+<p>apache httpd通过模块来使用php，nginx连接php则需要单独安装php，首先编译安装nginx<br>
+编译参数和步骤如下，<a href="https://raw.githubusercontent.com/Hargeek/linux-bash/master/Nginx/make_install_nginx.sh">来自我的github</a></p>
+<pre><code>#!/bin/bash
+#定义版本
+VERSION=1.16.0
+#安装依赖包
+yum install gcc gcc-c++ glibc pcre-devel zlib-devel openssl-devel -y
+#用户创建
+/usr/sbin/useradd -M -s /sbin/nologin www
+#编译安装
+cd ~
+wget http://nginx.org/download/nginx-${VERSION}.tar.gz
+tar xf nginx-${VERSION}.tar.gz
+cd nginx-${VERSION}
+./configure --prefix=/usr/local/nginx --pid-path=/usr/local/nginx/run/nginx.pid --user=www --group=www --with-http_stub_status_module --with-http_ssl_module --with-http_gzip_static_module --with-http_realip_module
+make &amp;&amp; make install
+cd /usr/local/nginx/conf/
+grep -Ev '^$|#' nginx.conf.default &gt; nginx.conf
+#清除包
+cd ~
+rm -rf nginx-${VERSION} nginx-${VERSION}.tar.gz
+</code></pre>
+<h3 id="22-修改配置文件并配置https">2.2、修改配置文件并配置https</h3>
+<p>/usr/local/nginx/confnginx.conf</p>
+<pre><code>[root@zabbix ~]# cat /usr/local/nginx/conf/nginx.conf
+worker_processes  1;
+events {
+    worker_connections  1024;
+}
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+    sendfile        on;
+    keepalive_timeout  65;
+    server_tokens   off;
+    include /usr/local/nginx/conf/Include/*.conf;
+}
+
+</code></pre>
+<p>cat /usr/local/nginx/conf/Include/zabbix.conf</p>
+<pre><code>[root@zabbix ~]# cat /usr/local/nginx/conf/Include/zabbix.conf
+server {
+    listen       80;
+    server_name  www.zabbix.cn;
+    return 301   https://www.zabbix.cn$request_uri;
+}
+server {
+    listen       443 ssl;
+    server_name  www.zabbix.cn
+    if ($host != 'www.zabbix.cn') {
+        return 403;
+    }
+    root /usr/share/zabbix;   
+    index index.php index.html index.htm; 
+    ssl_certificate     /usr/local/nginx/ssl-certs/2505454_www.zabbix.cn.pem;
+    ssl_certificate_key /usr/local/nginx/ssl-certs/2505454_www.zabbix.cn.key;
+    ssl_session_timeout 5m;
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl_prefer_server_ciphers on;
+    access_log      /var/log/nginx/ngnix_access.log;
+    error_log       /var/log/nginx/ngnix_error.log;
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+    location ^~ /app {
+        deny all;
+    }
+    location ^~ /conf {
+        deny all;
+    }
+    location ^~ /local {
+        deny all;
+    }
+    location ^~ /include {
+        deny all;
+    }
+    location ~ \.php$ {
+        try_files $uri =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass   127.0.0.1:9000;
+        fastcgi_index  index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include        fastcgi_params;
+    }
+}
+</code></pre>
+<h3 id="23-配置nginx为系统服务">2.3、配置nginx为系统服务</h3>
+<pre><code>vim /lib/systemd/system/nginx.service
+[Unit]
+Description=nginx - high performance web server
+Documentation=http://nginx.org/en/docs/
+After=network.target
+[Service]
+Type=forking
+ExecStart=/usr/local/nginx/sbin/nginx
+ExecReload=/usr/local/nginx/sbin/nginx -s reload
+ExecStop=/usr/local/nginx/sbin/nginx -s stop
+PrivateTmp=true
+
+[Install]  
+WantedBy=multi-user.target
+</code></pre>
+<ul>
+<li>加载系统服务</li>
+</ul>
+<pre><code>systemctl daemon-reload
+</code></pre>
+<ul>
+<li>设置开机启动</li>
+</ul>
+<pre><code>systemctl enable nginx
+</code></pre>
+<ul>
+<li>启动 nginx</li>
+</ul>
+<pre><code>systemctl start nginx
+</code></pre>
+<ul>
+<li>停止</li>
+</ul>
+<pre><code>systemctl stop nginx
+</code></pre>
+<ul>
+<li>加载配置文件</li>
+</ul>
+<pre><code>systemctl reload nginx
+</code></pre>
+<h2 id="3-安装php">3、安装php</h2>
+<h3 id="31-编译安装">3.1、编译安装</h3>
+<h4 id="311-编译参数">3.1.1、编译参数</h4>
+<p>php的编译安装稍微复杂，复杂点就在于它的编译参数，php的编译参数很多，这里尽量最小化安装，如何选择参数，可通过在第一次安装zabbix的时候环境检测查看到，参数不满足是无法正常安装使用的，我通过本地虚拟机重新安装了一遍zabbix，得到具体环境参数如下，每列可依次理解为：名称、检测结果、需满足的结果、检测是否通过。</p>
+<pre><code>PHP version		5.6.40					5.4.0		OK
+PHP option 		&quot;memory_limit&quot;			128M	128M	OK
+PHP option 		&quot;post_max_size&quot;			8M	16M	Fail
+PHP option 		&quot;upload_max_filesize&quot;	2M	2M	OK
+PHP option 		&quot;max_execution_time&quot;	30	300	Fail
+PHP option 		&quot;max_input_time&quot;	    -1	300	OK
+PHP option 		&quot;date.timezone&quot;			unknown		Fail
+PHP databases support					MySQL 			OK
+PHP bcmath		on						OK
+PHP mbstring	on						OK
+PHP option 		&quot;mbstring.func_overload&quot;	off	off	OK
+PHP option 		&quot;always_populate_raw_post_data&quot;	on	off	Fail
+PHP sockets		on				OK
+PHP gd			2.1.0	2.0		OK
+PHP gd PNG 		support	on		OK
+PHP gd JPEG 	support	on		OK
+PHP gd FreeType support	on		OK
+PHP libxml		2.9.1			2.6.15	OK
+PHP xmlwriter	on				OK
+PHP xmlreader	on				OK
+PHP LDAP		off				Warning
+PHP ctype		on				OK
+PHP session		on				OK
+PHP option 		&quot;session.auto_start&quot;	off	off	OK
+PHP gettext		off		Warning
+PHP option 		&quot;arg_separator.output&quot;	&amp;	&amp;	OK
+</code></pre>
+<p>查看上述参数，最后确认一个合适的编译参数，如果第一次编译少了某些参数，也可通过不重新编译添加模块的方法，最终编译参数如下：</p>
+<pre><code>./configure --prefix=/usr/local/php-5.6.40 \
+--enable-opcache \
+--with-config-file-path=/usr/local/php-5.6.40/etc \
+--with-mysql=mysqlnd \
+--with-mysqli=mysqlnd \
+--with-pdo-mysql=mysqlnd \
+--enable-fpm \
+--enable-static \
+--enable-inline-optimization \
+--enable-sockets \
+--enable-wddx \
+--enable-zip \
+--enable-calendar \
+--enable-bcmath \
+--enable-soap \
+--with-zlib \
+--with-iconv \
+--with-gd \
+--with-xmlrpc \
+--enable-mbstring \
+--with-curl \
+--with-gettext \
+--with-ldap \
+--enable-ftp \
+--with-mcrypt  \
+--with-freetype-dir=/usr/local/freetype.2.1.10 \
+--with-jpeg-dir=/usr/local/jpeg.6 \
+--with-png-dir=/usr/local/libpng.1.2.50 \
+--disable-ipv6 \
+--disable-debug \
+--with-openssl \
+--disable-maintainer-zts \
+--disable-fileinfo
+</code></pre>
+<h4 id="312-排错">3.1.2、排错</h4>
+<p>编译安装时可能出现的报错和解决办法如下，具体不做分析<br>
+报错一：</p>
+<pre><code>configure: error: Cannot find ldap.h
+</code></pre>
+<p>解决办法：</p>
+<pre><code>yum install -y openldap openldap-devel
+</code></pre>
+<p>报错二：</p>
+<pre><code>configure: error: Cannot find ldap libraries in /usr/lib.
+</code></pre>
+<p>解决办法：</p>
+<pre><code>cp -frp /usr/lib64/libldap* /usr/lib/
+</code></pre>
+<p>报错三：</p>
+<pre><code>//.usrlibs//lib64ldap.o/:liblber -undefined2.4.so.2 :reference  errorto  addingsymbol  symbols':ber_scanf 'DSO
+ /missingusr /fromlib64 /commandliblber -line2.4.so.2
+: error adding symbols: DSO missing from command line
+collect2: error: ld returned 1 exit status
+collect2: error: ld returned 1 exit status
+make: *** [sapi/cli/php] Error 1
+make: *** Waiting for unfinished jobs....
+make: *** [sapi/cgi/php-cgi] Error 1
+/usr/bin/ld: ext/ldap/.libs/ldap.o: undefined reference to symbol 'ber_scanf'
+/usr/lib64/liblber-2.4.so.2: error adding symbols: DSO missing from command line
+collect2: error: ld returned 1 exit status
+</code></pre>
+<p>解决办法：</p>
+<pre><code>vim Makefile 在这行最后添加-llber
+EXTRA_LIBS = -lcrypt -lz -lresolv -lcrypt -lrt -lmcrypt -lldap -lpng -lz -ljpeg -lcurl -lz -lrt -lm -ldl -lnsl -lxml2 -lz -lm -ldl -lssl -lcrypto -lcurl -lxml2 -lz -lm -ldl -lssl -lcrypto -lfreetype -lxml2 -lz -lm -ldl -lxml2 -lz -lm -ldl -lcrypt -lxml2 -lz -lm -ldl -lxml2 -lz -lm -ldl -lxml2 -lz -lm -ldl -lxml2 -lz -lm -ldl -lxml2 -lz -lm -ldl -lssl -lcrypto -lcrypt -llber
+</code></pre>
+<h3 id="32-配置">3.2、配置</h3>
+<p>编译安装完php后，需要修改配置文件php.ini中的内容以满足上述检测：</p>
+<pre><code>post_max_size = 16M
+max_input_time = 300
+max_execution_time = 300
+date.timezone = Asia/Shanghai
+always_populate_raw_post_data = -1
+</code></pre>
+<h3 id="33-配置php为系统服务">3.3、配置php为系统服务</h3>
+<p>编译安装php的，会在php目录生成很多二进制文件，找到init.d.php-fpm，拷贝到init.d下。</p>
+<pre><code>cp /usr/local/src/php-5.6.33/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
+</code></pre>
+<p>设置权限</p>
+<pre><code>chmod 755 /etc/init.d/php-fpm
+</code></pre>
+<p>配置php-fpm.conf</p>
+<pre><code>vim /usr/local/etc/php-fpm.conf
+</code></pre>
+<p>如果打开了pid配置，需要将pid（;pid = run/php-fpm.pid）前的;去掉。<br>
+启动</p>
+<pre><code>/etc/init.d/php-fpm start
+</code></pre>
+<h3 id="34-启动">3.4、启动</h3>
+<p>编译配置没有问题，可正常启动</p>
+<h2 id="4-访问及排错">4、访问及排错</h2>
+<p>访问时出现的报错及解决办法如下<br>
+报错一：</p>
+<pre><code>FastCGI sent in stderr: &quot;PHP message: PHP Warning:  require_once(/etc/zabbix/web/maintenance.inc.php):   failed to open stream: Permission denied in /app/nginx/html/zabbix/include/classes/core/ZBase.php on line 292
+PHP message: PHP Fatal error:  require_once(): Failed opening required '/etc/zabbix/web/mainte‘
+</code></pre>
+<p>解决办法：</p>
+<pre><code>chmod -R 755 /etc/zabbix/web
+</code></pre>
+<p>报错二：</p>
+<pre><code>Database error
+Error connecting to database: No such file or directory
+</code></pre>
+<p>解决办法：修改php.ini</p>
+<pre><code>mysqli.default_socket = /var/lib/mysql/mysql.sock
+</code></pre>
+<p>最终，切换nginx及配置https成功：<br>
+<img src="https://image.ssgeek.com/20190715-01.png" alt=""></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/zabbix" class="tag">
+                    zabbix
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/si-you-jing-xiang-cang-ku-harbor">
+                  <h3 class="post-title">
+                    私有镜像仓库Harbor
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>k8s生产实践之获取客户端真实IP | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">k8s生产实践之获取客户端真实IP</h2>
+            <div class="post-date">2021-05-19</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">1、概述</a></li>
+<li><a href="#2-%E7%8E%AF%E5%A2%83%E4%BB%8B%E7%BB%8D">2、环境介绍</a></li>
+<li><a href="#3-%E7%9B%B8%E5%85%B3%E8%AF%B4%E6%98%8E">3、相关说明</a></li>
+<li><a href="#4-%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87">4、环境准备</a></li>
+<li><a href="#5-%E8%B4%9F%E8%BD%BD%E9%85%8D%E7%BD%AE">5、负载配置</a></li>
+<li><a href="#6-ingress-controller-%E9%85%8D%E7%BD%AE">6、Ingress Controller 配置</a></li>
+<li><a href="#7-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E9%AA%8C%E8%AF%81">7、服务端验证</a></li>
+<li><a href="#8-%E5%B0%8F%E7%BB%93">8、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210519-06.png" alt=""></figure>
+<h2 id="1-概述">1、概述</h2>
+<p>通常<code>web</code>应用获取用户客户端的真实<code>ip</code>一个很常见的需求，例如将用户真实<code>ip</code>取到之后对用户做白名单访问限制、将用户<code>ip</code>记录到数据库日志中对用户的操作做审计等等</p>
+<p>在<code>vm</code>时代是一个比较容易解决的问题，但当一切云原生化（容器化）之后变得稍微复杂了些</p>
+<p><code>k8s</code>中运行的应用通过<code>Service</code>抽象来互相查找、通信和与外部世界沟通，在<code>k8s</code>中是<code>kube-proxy</code>组件实现了<code>Service</code>的通信与负载均衡，流量在传递的过程中经过了源地址转换<code>SNAT</code>，因此在默认的情况下，常常是拿不到用户真实的<code>ip</code>的</p>
+<p>这个问题在<code>k8s</code>官方文档(https://kubernetes.io/zh/docs/tutorials/services/source-ip/)中基于<code>Cluster IP</code>、<code>NodePort</code>、<code>LoadBalancer</code>三种不同的<code>Service</code>类型进行了一定的说明，这里不再剖析</p>
+<h2 id="2-环境介绍">2、环境介绍</h2>
+<p>本篇仅介绍<strong>私有云</strong>+<strong>外部硬件负载</strong>+<strong><code>k8s</code>集群</strong>的真实场景下如何进行配置</p>
+<p>相关环境及设备说明如下</p>
+<table>
+<thead>
+<tr>
+<th>组件名</th>
+<th>型号或版本</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>硬件负载设备</td>
+<td>SANGFOR(深信服) AD 6.5R1</td>
+</tr>
+<tr>
+<td>k8s Ingress 控制器</td>
+<td>NGINX Ingress Controller 0.25.0</td>
+</tr>
+<tr>
+<td>k8s 集群</td>
+<td>Kubernetes 1.17.0</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-相关说明">3、相关说明</h2>
+<p>真实生产场景下，一般提供给用户的都是七层<code>https</code>服务</p>
+<p>首先域名解析在外部负载设备绑定的公网<code>ip</code>上，负载周边可能还会有一些安全设备例如<code>WAF</code>等，这里不多介绍</p>
+<p>流量经过负载后进入到<code>k8s</code>集群中，其中<code>Ingress Controller</code>以<code>DaemonSet</code>方式部署并使用<code>hostNetwork</code>模式接收并处理到达宿主机的<code>80</code>、<code>443</code>端口流量</p>
+<p>关于<code>https</code>证书的配置，一般有以下两种可选方式：</p>
+<ul>
+<li>
+<p>配置在负载设备（负载类型如果只考虑七层负载），由负载负责将数据包封包解包，并转发到后端，如果用户通过<code>https</code>形式访问，流量经过的流程是：用户端——&gt;负载<code>80</code>端口——&gt;负载<code>443</code>端口——&gt;服务端(<code>k8s node</code>)的<code>80</code>端口</p>
+</li>
+<li>
+<p>配置在后端，例如<code>Ingress</code>资源上，如果用户通过<code>https</code>形式访问，流量经过的流程是：用户端——&gt;负载<code>80</code>端口——&gt;服务端(<code>k8s node</code>)的<code>80</code>端口——&gt;服务端(<code>k8s node</code>)的<code>443</code>端口</p>
+</li>
+</ul>
+<p>但是为了获取用户的真实<code>ip</code>，只能选择方式一，因为如果证书配置在后端服务，流量经过负载时是加密的，负载一般在没有证书的情况下，是无法对数据包进行解包操作透传用户<code>ip</code>的</p>
+<p>以上在公有云环境下，例如腾讯云<code>CLB</code>、阿里云新的应用型负载<code>ALB</code>或传统型负载<code>CLB</code>均有涉及，可能<strong>不尽详细</strong></p>
+<h2 id="4-环境准备">4、环境准备</h2>
+<p>首先需要准备一个后端获取用户请求，显示打印或输出的应用，可以自己手撸一个简单应用，当然为了操作简单也可以选择<code>nginx</code>容器在应用日志中查看，更好的方式是选择<code>whoami</code>、<code>echoserver</code>这类镜像</p>
+<p>其中<code>whoami</code>可以在控制台访问服务时打印用户请求等相关信息，<code>echoserver</code>可以在浏览器呈现用户请求等相关信息</p>
+<p>这里为了模拟和真实应用一样的场景，选择更为直观的<code>echoserver</code>，其源镜像地址为<code>gcr.io/google-containers/echoserver</code></p>
+<p>如果网络不佳，可以从我的地址获取<code>ssgeek/echoserver</code></p>
+<p>首先基于<code>k8s</code>部署该应用，创建<code>deploy</code>、<code>svc</code>、<code>ing</code>，定义如下</p>
+<pre><code class="language-yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echoserver
+  labels:
+    app: echoserver
+spec:
+  selector:
+    matchLabels:
+      app: echoserver
+  template:
+    metadata:
+      labels:
+        app: echoserver
+    spec:
+      containers:
+      - name: echoserver
+        image: ssgeek/echoserver:latest
+        ports:
+        - containerPort: 8080
+        env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: echoserver
+  labels:
+    app: echoserver
+spec:
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http
+  selector:
+    app: echoserver
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: echoserver
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+  - host: echo.ssgeek.com
+    http:
+      paths:
+      - backend:
+          serviceName: echoserver
+          servicePort: 80
+        path: /
+</code></pre>
+<h2 id="5-负载配置">5、负载配置</h2>
+<p>这里简单分析及列出关键配置</p>
+<ul>
+<li>插入请求头以透传ip</li>
+</ul>
+<p>部署好后端服务后，开始配置外部（深信服）负载，除了导入<code>https</code>证书外，还需要在转发的请求头中插入<code>X-Forwarded-For</code>头部，确保用户<code>ip</code>在经过负载时作为请求头的一部分传递到后端服务器</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210519-01.png" alt=""></figure>
+<ul>
+<li>负载设备到后端请求头部改写</li>
+</ul>
+<p>由于负载设备到后端的<code>80</code>端口，因此后端只接收<code>http</code>请求，也就是请求经过负载处理<code>https</code>及证书相关动作</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210519-02.png" alt=""></figure>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20210519-03.png" alt=""></figure>
+<p>未添加请求头部改写时，对请求抓包的现象对比如下（分别为无<code>https</code>配置时和有<code>https</code>配置但未改写请求头部时）</p>
+<figure data-type="image" tabindex="5"><img src="https://image.ssgeek.com/20210519-04.png" alt=""></figure>
+<h2 id="6-ingress-controller-配置">6、Ingress Controller 配置</h2>
+<p>修改<code>Nginx Ingress Controller</code>配置，添加如下内容</p>
+<p>参考：https://kubernetes.github.io/ingress-nginx/user-guide/</p>
+<pre><code class="language-yaml">data:
+  use-forwarded-headers: &quot;true&quot;
+  compute-full-forwarded-for: &quot;true&quot;
+  forwarded-for-header: &quot;X-Forwarded-For&quot;
+</code></pre>
+<ul>
+<li>
+<p>use-forwarded-headers</p>
+<p>如果为<code>true</code>，会将传入的<code>X-Forwarded-*</code>头传递给<code>upstreams</code></p>
+<p>如果为<code>false</code>，会忽略传入的<code>X-Forwarded-*</code>头，用看到的请求信息填充它们。如果直接暴露在互联网上，或者它在基于<code>L3/packet-based load balancer</code>后面，并且不改变数据包中的源<code>IP</code>时使用此选项</p>
+</li>
+<li>
+<p>forwarded-for-header</p>
+<p>设置标头字段以标识客户端的原始<code>IP</code>地址。 默认: X-Forwarded-For</p>
+</li>
+<li>
+<p>compute-full-forwarded-for</p>
+<p>将远程地址附加到 <code>X-Forwarded-For</code>标头，而不是替换它。 启用此选项后，<code>upstreams</code>应用程序将根据其自己的受信任代理列表提取客户端<code>IP</code></p>
+</li>
+</ul>
+<h2 id="7-服务端验证">7、服务端验证</h2>
+<p>服务端请求暴露及应用获取<code>ip</code>效果如下</p>
+<figure data-type="image" tabindex="6"><img src="https://image.ssgeek.com/20210519-05.png" alt=""></figure>
+<p>正常情况可拿到以下几类<code>ip</code></p>
+<ul>
+<li>pod ip</li>
+</ul>
+<p><code>k8s pod</code>自身的<code>ip</code></p>
+<ul>
+<li>node ip</li>
+</ul>
+<p><code>k8s pod</code>所在<code>node</code>的<code>ip</code></p>
+<ul>
+<li>负载 ip</li>
+</ul>
+<p>位于请求头<code>X-Forwarded-For</code>字段中</p>
+<ul>
+<li>用户真实 ip</li>
+</ul>
+<p>位于请求头<code>X-Forwarded-For</code>字段、<code>x-original-forwarded-for</code>字段、<code>x-real-ip</code>字段中</p>
+<p>关于<code>x-forwarded-for</code>、<code>x-original-forwarded-for</code>、<code>x-real-ip</code>的说明：</p>
+<p><code>X-Forwarded-For</code>用于记录从客户端地址到最后一个代理服务器的所有地址</p>
+<p><code>X-Real-IP</code>用于记录请求的客户端地址</p>
+<p><code>X-Original-Forwarded-For</code>字面意思是原始转发 IP，这是<code>Ingress</code>的功能，<code>Ingress</code>将用户的真实<code>IP</code>记录到了这个字段</p>
+<p>对应用来说，以<code>java</code>应用为例，获取用户<code>ip</code>的代码如下</p>
+<pre><code class="language-java">/**
+ * 获取操作用户ip
+ * @return
+ */
+private String getIp() {
+
+    HttpServletRequest request;
+    try {
+        request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+    } catch (NullPointerException e) {
+        return &quot;127.0.0.1&quot;;
+    }
+
+    //取客户端ip
+    String ipAddress = request.getHeader(&quot;x-forwarded-for&quot;);
+    if (ipAddress == null || ipAddress.length() == 0
+            || &quot;unknown&quot;.equalsIgnoreCase(ipAddress)) {
+        ipAddress = request.getHeader(&quot;Proxy-Client-IP&quot;);
+    }
+    if (ipAddress == null || ipAddress.length() == 0
+            || &quot;unknown&quot;.equalsIgnoreCase(ipAddress)) {
+        ipAddress = request.getHeader(&quot;WL-Proxy-Client-IP&quot;);
+    }
+    if (ipAddress == null || ipAddress.length() == 0
+            || &quot;unknown&quot;.equalsIgnoreCase(ipAddress)) {
+        ipAddress = request.getRemoteAddr();
+        if (ipAddress.equals(&quot;127.0.0.1&quot;)) {
+            // 根据网卡取本机配置的IP
+            InetAddress inet = null;
+            try {
+                inet = InetAddress.getLocalHost();
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+            ipAddress = inet.getHostAddress();
+        }
+    }
+    // 对于通过多个代理的情况，第一个IP为客户端真实IP,多个IP按照','分割
+    if (ipAddress != null &amp;&amp; ipAddress.length() &gt; 15) { // &quot;***.***.***.***&quot;.length()
+        // = 15
+        if (ipAddress.indexOf(&quot;,&quot;) &gt; 0) {
+            ipAddress = ipAddress.substring(0, ipAddress.indexOf(&quot;,&quot;));
+        }
+    }
+    return ipAddress;
+}
+</code></pre>
+<h2 id="8-小结">8、小结</h2>
+<p>本文记录了私有云和有外部负载的真实场景下，<code>k8s</code>集群中的应用获取用户<code>ip</code>的相关实现逻辑及关键处理，希望能帮助到大家</p>
+<p>See you ~</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/vc0wdkGoK" class="tag">
+                    ingress
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/nginx" class="tag">
+                    nginx
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/shi-yong-jenkins-operator-zai-k8s-zhong-bu-shu-jenkins">
+                  <h3 class="post-title">
+                    使用Jenkins Operator在k8s中部署Jenkins
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

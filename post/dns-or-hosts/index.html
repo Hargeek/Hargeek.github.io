@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>DNS or hosts ？ | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">DNS or hosts ？</h2>
+            <div class="post-date">2021-07-29</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-dns%E8%A7%A3%E6%9E%90%E7%9A%84%E6%B5%81%E7%A8%8B">1、dns解析的流程</a></li>
+<li><a href="#2-dns%E7%BC%93%E5%AD%98%E6%80%8E%E4%B9%88%E5%A4%84%E7%90%86">2、dns缓存怎么处理</a></li>
+<li><a href="#3-%E4%B8%80%E4%B8%AA%E4%B8%8D%E5%B8%B8%E7%94%A8%E7%9A%84%E6%96%87%E4%BB%B6">3、一个不常用的文件</a></li>
+<li><a href="#4-%E5%A6%82%E4%BD%95%E6%8E%A7%E5%88%B6%E8%A7%A3%E6%9E%90%E9%A1%BA%E5%BA%8F">4、如何控制解析顺序</a></li>
+<li><a href="#5-%E5%B0%8F%E7%BB%93">5、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210729-02.png" alt=""></figure>
+<h2 id="1-dns解析的流程">1、dns解析的流程</h2>
+<p>作为一名<code>IT</code>攻(dǎ)城(gōng)狮(rén)，肯定会听过、看过或者在你最初的面试中遇到过这个经典的问题：</p>
+<p>当我在浏览器输入<code>www.baidu.com</code>并回车后，直到显示百度的首页，这中间经历了什么？</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210729-01.png" alt=""></figure>
+<p>这里的答案中的第一大步骤就是将域名解析成<code>ip</code>的过程，具体来说其中在本地环境的流程如下：</p>
+<p>当我们输入这个网址回车的时候，浏览器会首先查询浏览器的缓存，这个缓存存活时间可能只有<code>1</code>分钟，如果没找到，则去查询本地的<code>dns</code>缓存和<code>hosts</code>文件，如果有<code>www.baidu.com</code>这个域名对应的<code>ip</code>，则直接通过这个<code>ip</code>访问网站服务器。如果本地的<code>dns</code>缓存和<code>hosts</code>文件没找到，这时候就会把请求发送给网卡配置信息里的<code>dns</code>服务器，默认有两个，只有当<code>dns1</code>不能访问时，才会使用<code>dns2</code>。我们也称网卡配置信息里的<code>dns</code>为<code>local dns</code>，这时候<code>local dns</code>会先查询它的缓存，有没有<code>www.baidu.com</code>相应的记录，如果有，则返回给用户，如果没有，就会访问根域名服务器进行后续的解析请求及响应流程</p>
+<p>上面的流程提到了<code>dns</code>缓存和<code>hosts</code>文件，其中通过浏览器去访问网站时，涉及到在浏览器缓存和操作系统<code>OS</code>缓存。在浏览器中访问的时候，会优先访问浏览器缓存，如果未命中则访问<code>OS</code>缓存</p>
+<h2 id="2-dns缓存怎么处理">2、dns缓存怎么处理</h2>
+<p>那么<code>dns</code>缓存和<code>hosts</code>文件，谁又排在前面呢？</p>
+<p>答案当然是缓存，因此往往会出现尽管修改了<code>hosts</code>文件，但是有时候并不会生效，发现还是会解析成之前的地址</p>
+<p>不同的操作系统可以按照下面的方法去清除缓存</p>
+<ul>
+<li>Windows</li>
+</ul>
+<pre><code class="language-shell">ipconfig /displaydns  # 查看当前已经缓存的域名
+ipconfig /flushdns    # 清空dns缓存
+</code></pre>
+<ul>
+<li>Mac</li>
+</ul>
+<pre><code class="language-shell">sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder  # 不同版本可能会有区别
+</code></pre>
+<ul>
+<li>Linux</li>
+</ul>
+<p>现在很多<code>Linux</code>发行版都没有内置<code>DNS</code>本地缓存，在<code>Linux</code>下无需刷新，因为除了做<code>DNS</code>服务端的服务器之外,大多数本身并没有缓存（一种观点是服务器稳定运行时并不会有多少<code>dns</code>请求）</p>
+<blockquote>
+<p>这个观点不是本文重点，没有深究</p>
+</blockquote>
+<p>当然，如果非要缓存刷新，可以安装<code>nscd</code>，然后刷新这个守护进程</p>
+<pre><code class="language-shell"># Ubuntu
+apt-get install -y nscd
+# CentOS
+yum install -y nscd
+# 使用
+service nscd restart
+</code></pre>
+<h2 id="3-一个不常用的文件">3、一个不常用的文件</h2>
+<p>前面聊到的都是常见的话题，本节提到的是关于<code>linux</code>中一个<strong>不常用但很实用</strong>的内容</p>
+<p>那就是在不考虑<code>dns</code>缓存的情况下，<code>hosts</code>文件<code>/etc/hosts</code>和<code>dns</code>配置文件<code>/etc/resolv.conf</code>到底是先解析<code>hosts</code>文件还是先解析<code>dns</code>服务器呢</p>
+<p>结论当然是<code>hosts</code>文件为大，<code>hosts</code>文件只要配置了某条解析记录，就不会去按照<code>dns</code>的相关配置请求<code>dns</code>服务器了</p>
+<p>其实不然，我们是可以去通过某些配置控制这个顺序的，其重点就在于<code>/etc/nsswitch.conf</code>文件</p>
+<p><code>nsswitch.conf</code>(name service switch configuration，名称服务切换配置)文件位于<code>/etc</code>目录下，由它规定通过哪些途径以及按照什么顺序以及通过这些途径来查找特定类型的信息，还可以指定某个方法生效或失效时系统将采取什么动作<br>
+<code>nsswitch.conf</code>中的每一行配置都指明了如何搜索信息，每行配置的格式如下：</p>
+<pre><code class="language-shell">Info: method[[action]] [method[[action]]…]
+</code></pre>
+<p>其中，<code>info</code>指定该行所描述的信息的类型，<code>method</code>为用来查找该信息的方法，<code>action</code>是对前面的<code>method</code>返回状态的响应，<code>action</code>要放在方括号里</p>
+<p>这个文件的工作原理：当需要提供<code>nsswitch.conf</code>文件所描述的信息的时候，系统将检查含有适当<code>info</code>字段的配置行。它按照从左向右的顺序开始执行配置行中指定的方法。在默认情况下，如果找到期望的信息，系统将停止搜索。如果没有指定<code>action</code>，那么当某个方法未能返回结果时，系统就会尝试下一个动作。有可能搜索结束都没有找到想要的信息。</p>
+<h2 id="4-如何控制解析顺序">4、如何控制解析顺序</h2>
+<p><code>nsswitch.conf</code>文件的搜索顺序是从左到右，对于每一种信息类型，都可以指定下面的一种或多种方法</p>
+<table>
+<thead>
+<tr>
+<th>files</th>
+<th>搜索本地文件，如/etc/hosts</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>nis</td>
+<td>搜索NIS数据库，也叫yp</td>
+</tr>
+<tr>
+<td>dns</td>
+<td>查询DNS（只查询主机）</td>
+</tr>
+<tr>
+<td>compat</td>
+<td>passwd、group和shadow影子文件中的±语法</td>
+</tr>
+</tbody>
+</table>
+<p>修改配置很简单，替换两者顺序即可</p>
+<pre><code class="language-shell"># vim /etc/nsswitch.conf
+hosts:      file dns myhostname  # 先hosts，再dns（file指的就是hosts文件）
+# hosts:      dns file myhostname  # 先dns，再hosts
+</code></pre>
+<p>关于<code>nsswitch.conf</code>文件的配置不深究，这里仅分析是否配置<code>dns</code>及<code>hosts</code>，以及此文件修改不同的顺序给<code>dns</code>解析带来的情况</p>
+<ul>
+<li>
+<p>如果<code>hosts</code>未配置，<code>DNS</code>也未配置，必定会报<code>unknowns hosts</code></p>
+</li>
+<li>
+<p>如果<code>hosts</code>未配置，<code>DNS</code>配置，可能会报<code>unknowns hosts</code>，因为<code>DNS</code>服务器可能会解析慢导致<code>unknown hosts</code>，或者会有些超时</p>
+</li>
+<li>
+<p>如果配置<code>hosts</code>，<code>DNS</code>配置，但是<code>nsswitch</code>解析顺序是<code>DNS</code>在前，<code>hosts</code>在后，则情况和上面一样</p>
+</li>
+<li>
+<p>如果配置<code>hosts</code>，<code>DNS</code>配置，且<code>nsswitch</code>解析顺序是<code>hosts</code>在前，<code>DNS</code>在后，则这种是比较好的配置方式，即默认方式</p>
+</li>
+</ul>
+<h2 id="5-小结">5、小结</h2>
+<p>在实际应用中，如果<code>hosts</code>文件中有很多内容不方便维护，但又想去掉<code>hosts</code>解析进行<code>dns</code>拦截的效果，就可以仅通过简单修改<code>nsswitch.conf</code>文件来达到目的</p>
+<p>See you~</p>
+<p>参考：</p>
+<ul>
+<li>
+<p><a href="https://www.getpagespeed.com/server-setup/dns-caching-and-beyond-in-centos-rhel-7-and-8">CentOS/RHEL 7 and 8 DNS cache</a></p>
+</li>
+<li>
+<p><a href="https://www.siteground.com/kb/how_to_clear_the_local_dns_cache_in_linux/">how_to_clear_the_local_dns_cache_in_linux</a></p>
+</li>
+</ul>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/linux" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/golang-jie-gou-ti-lei-xing-de-shen-qian-kao-bei">
+                  <h3 class="post-title">
+                    Golang结构体类型的深浅拷贝
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

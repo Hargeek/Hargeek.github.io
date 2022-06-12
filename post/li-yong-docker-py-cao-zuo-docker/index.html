@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>利用docker-py操作docker | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">利用docker-py操作docker</h2>
+            <div class="post-date">2021-05-12</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-docker-py%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84">1、docker-py项目结构</a></li>
+<li><a href="#2-docker-py-api%E7%A4%BA%E4%BE%8B">2、docker-py API示例</a></li>
+<li><a href="#3-dockerclient%E7%9A%84%E5%AE%9E%E7%8E%B0">3、DockerClient的实现</a></li>
+<li><a href="#4-docker-version%E5%91%BD%E4%BB%A4%E8%B7%9F%E8%B8%AA">4、docker-version命令跟踪</a></li>
+<li><a href="#5-unixhttpadapter%E7%9A%84%E5%AE%9E%E7%8E%B0">5、UnixHTTPAdapter的实现</a></li>
+<li><a href="#6-docker-ps%E5%91%BD%E4%BB%A4%E8%B7%9F%E8%B8%AA">6、docker-ps命令跟踪</a></li>
+<li><a href="#7-docker-logs%E5%91%BD%E4%BB%A4%E8%B7%9F%E8%B8%AA">7、docker-logs命令跟踪</a></li>
+<li><a href="#8-docker-exec-%E5%91%BD%E4%BB%A4%E8%B7%9F%E8%B8%AA">8、docker-exec 命令跟踪</a></li>
+<li><a href="#9-%E4%BD%BF%E7%94%A8curl%E8%AE%BF%E9%97%AEdocker-api">9、使用curl访问docker-api</a></li>
+<li><a href="#10-%E5%B0%8F%E7%BB%93">10、小结</a></li>
+<li><a href="#11-%E5%B0%8F%E6%8A%80%E5%B7%A7">11、小技巧</a></li>
+<li><a href="#%E5%8F%82%E8%80%83%E9%93%BE%E6%8E%A5">参考链接</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<p>docker-py是Docker SDK for Python。docker-py主要利用了requests，使用http/socket协议连接本地的docker engine进行操作。对 <strong>docker</strong> 感兴趣，苦于工作中只用到 <strong>http</strong> 协议的同学，都建议阅读一下本文。话不多数，一起了解docker-py的实现，本文分下面几个部分:</p>
+<ul>
+<li>docker-py项目结构</li>
+<li>docker-py API示例</li>
+<li>DockerClient的实现</li>
+<li>docker-version命令跟踪</li>
+<li>UnixHTTPAdapter的实现</li>
+<li>docker-ps命令跟踪</li>
+<li>docker-logs命令跟踪</li>
+<li>docker-exec 命令跟踪</li>
+<li>使用curl访问docker-api</li>
+<li>小结</li>
+<li>小技巧</li>
+</ul>
+<h2 id="1-docker-py项目结构">1、docker-py项目结构</h2>
+<p>本次代码阅读，使用的版本是 <code>4.2.0</code>， 项目目录结构大概如下:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">文件</th>
+<th style="text-align:left">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">client.py</td>
+<td style="text-align:left">docker客户端的API</td>
+</tr>
+<tr>
+<td style="text-align:left">api</td>
+<td style="text-align:left">api相关目录</td>
+</tr>
+<tr>
+<td style="text-align:left">api/client.py</td>
+<td style="text-align:left">api的主要实现</td>
+</tr>
+<tr>
+<td style="text-align:left">api/container.py</td>
+<td style="text-align:left">container相关的api和client-mixin</td>
+</tr>
+<tr>
+<td style="text-align:left">api/daemon.py</td>
+<td style="text-align:left">daemon相关的api和client-mixin</td>
+</tr>
+<tr>
+<td style="text-align:left">models</td>
+<td style="text-align:left">下为各种对象模型，主要是单体及集合</td>
+</tr>
+<tr>
+<td style="text-align:left">models/resource.py</td>
+<td style="text-align:left">模型基类</td>
+</tr>
+<tr>
+<td style="text-align:left">models/containers.py</td>
+<td style="text-align:left">Container和ContainerCollection模型</td>
+</tr>
+<tr>
+<td style="text-align:left">transport</td>
+<td style="text-align:left">为客户端和服务端的交互协议</td>
+</tr>
+<tr>
+<td style="text-align:left">transport/unixconn.py</td>
+<td style="text-align:left">mac下主要使用了unix-sock实现</td>
+</tr>
+</tbody>
+</table>
+<p>还有一些目录和类，因为不在这次介绍中，所以就没有罗列。</p>
+<h2 id="2-docker-py-api示例">2、docker-py API示例</h2>
+<p><code>docker-py</code> API上手非常简单:</p>
+<pre><code class="language-python">import docker
+client = docker.from_env()
+
+result = client.version()
+print(result)
+# {'Platform': {'Name': 'Docker Engine - Community'},...}
+
+client.containers.list()
+# [&lt;Container '45e6d2de7c54'&gt;, &lt;Container 'db18e4f20eaa'&gt;, ...]
+
+client.images.pull('nginx:1.10-alpine')
+# &lt;Image: 'nginx:1.10-alpine'&gt;
+
+client.images.list()
+[&lt;Image 'ubuntu'&gt;, &lt;Image 'nginx:1.10-alpine'&gt;, ...]
+</code></pre>
+<p>上面示例展示了:</p>
+<ul>
+<li>使用环境变量，创建client连接本地<code>docker-engine</code>服务</li>
+<li>获取版本号，等同 <code>docker version</code></li>
+<li>获取正在运行的容器列表，等同 <code>docker container list</code>(别名是 <code>docker ps</code>)</li>
+<li>拉取 <strong>nginx:1.10-alpin</strong> 镜像，等同 <code>docker image pull nginx:1.10-alpine</code>(别名是<code>docker pull nginx:1.10-alpine</code>)</li>
+<li>获取镜像列表, 等同 <code>docker image list</code></li>
+</ul>
+<p>我们可以看到，docker-py的操作和docker的标准命令基本一致。</p>
+<h2 id="3-dockerclient的实现">3、DockerClient的实现</h2>
+<p>DockerClient的构造函数和工厂方法展示docker-client对象包装了APIClient对象：</p>
+<pre><code class="language-python"># client.py
+
+class DockerClient(object):
+    def __init__(self, *args, **kwargs):
+        self.api = APIClient(*args, **kwargs)
+    
+    @classmethod
+    def from_env(cls, **kwargs):
+        timeout = kwargs.pop('timeout', DEFAULT_TIMEOUT_SECONDS)
+        max_pool_size = kwargs.pop('max_pool_size', DEFAULT_MAX_POOL_SIZE)
+        version = kwargs.pop('version', None)
+        use_ssh_client = kwargs.pop('use_ssh_client', False)
+        return cls(
+            timeout=timeout,
+            max_pool_size=max_pool_size,
+            version=version,
+            use_ssh_client=use_ssh_client,
+            **kwargs_from_env(**kwargs)
+        )
+</code></pre>
+<p>DockerClient的API分2中，一种是属性方法，比如常用的 <strong>containers</strong>，<strong>images</strong>，<strong>networks</strong> 和 <strong>volumes</strong> 等子命令，因为要将返回值包装成对应模型对象:</p>
+<pre><code class="language-python">@property
+def containers(self):
+    &quot;&quot;&quot;
+    An object for managing containers on the server. See the
+    :doc:`containers documentation &lt;containers&gt;` for full details.
+    &quot;&quot;&quot;
+    return ContainerCollection(client=self)
+
+@property
+def images(self):
+    return ImageCollection(client=self)
+
+@property
+def networks(self):
+    return NetworkCollection(client=self)
+
+@property
+def volumes(self):
+    return VolumeCollection(client=self)
+    
+    ...
+</code></pre>
+<p>另一种是不需要模型包装，可以直接使用APIClient返回结果的 <strong>info</strong>, <strong>version</strong> 等方法:</p>
+<pre><code class="language-python"># Top-level methods
+def info(self, *args, **kwargs):
+        return self.api.info(*args, **kwargs)
+    info.__doc__ = APIClient.info.__doc__
+
+def version(self, *args, **kwargs):
+        return self.api.version(*args, **kwargs)
+    version.__doc__ = APIClient.version.__doc__
+    
+    ...
+</code></pre>
+<p>DockerClient类工厂方法的全局引用:</p>
+<pre><code class="language-python">from_env = DockerClient.from_env
+</code></pre>
+<h2 id="4-docker-version命令跟踪">4、docker-version命令跟踪</h2>
+<p>我们先从简单的 <code>docker version</code> 命令跟踪查看APIClient如何工作的。APIClient的构造函数:</p>
+<pre><code class="language-python"># api/client.py
+
+import requests
+
+class APIClient(
+        requests.Session,
+        BuildApiMixin,
+        ConfigApiMixin,
+        ContainerApiMixin,
+        DaemonApiMixin,
+        ExecApiMixin,
+        ImageApiMixin,
+        NetworkApiMixin,
+        PluginApiMixin,
+        SecretApiMixin,
+        ServiceApiMixin,
+        SwarmApiMixin,
+        VolumeApiMixin):
+        
+    def __init__(self, base_url=None, version=None,
+             timeout=DEFAULT_TIMEOUT_SECONDS, tls=False,
+             user_agent=DEFAULT_USER_AGENT, num_pools=None,
+             credstore_env=None, use_ssh_client=False,
+             max_pool_size=DEFAULT_MAX_POOL_SIZE):
+        super(APIClient, self).__init__()
+        
+        base_url = utils.parse_host(
+            base_url, IS_WINDOWS_PLATFORM, tls=bool(tls)
+        )
+        
+        if base_url.startswith('http+unix://'):
+            self._custom_adapter = UnixHTTPAdapter(
+                base_url, timeout, pool_connections=num_pools,
+                max_pool_size=max_pool_size
+            )
+            self.mount('http+docker://', self._custom_adapter)
+            self._unmount('http://', 'https://')
+            # host part of URL should be unused, but is resolved by requests
+            # module in proxy_bypass_macosx_sysconf()
+            self.base_url = 'http+docker://localhost'
+</code></pre>
+<p>上面代码可见:</p>
+<ul>
+<li>APIClient继承自 <strong>requests.Session</strong></li>
+<li>APIClient使用Mixin方式组合了多个API，比如ContainerApiMixin提供container的api操作;NetWorkApiMixin提供network的api操作</li>
+<li>使用mount方法加载不同协议的适配器adapter，unix系的docker是unix-socket;windows则是npipe</li>
+</ul>
+<blockquote>
+<p>关于requests的使用，可以参看之前的博文 requests 源码阅读</p>
+</blockquote>
+<p>默认的服务URL实现:</p>
+<pre><code class="language-python">DEFAULT_UNIX_SOCKET = &quot;http+unix:///var/run/docker.sock&quot;
+DEFAULT_NPIPE = 'npipe:////./pipe/docker_engine'
+
+def parse_host(addr, is_win32=False, tls=False):
+    path = ''
+    port = None
+    host = None
+
+    # Sensible defaults
+    if not addr and is_win32:
+        return DEFAULT_NPIPE
+    if not addr or addr.strip() == 'unix://':
+        return DEFAULT_UNIX_SOCKET
+</code></pre>
+<p><code>version</code> 请求在 <strong>DaemonApiMixin</strong> 中实现:</p>
+<pre><code class="language-python">class DaemonApiMixin(object):
+
+
+    def version(self, api_version=True):
+        url = self._url(&quot;/version&quot;, versioned_api=api_version)
+        return self._result(self._get(url), json=True)
+</code></pre>
+<p>底层的请求和响应在主类APIClient中提供:</p>
+<pre><code class="language-python">class APIClient
+    
+    def _url(self, pathfmt, *args, **kwargs):
+        ...
+        return '{0}{1}'.format(self.base_url, pathfmt.format(*args))
+
+    @update_headers
+    def _get(self, url, **kwargs):
+        return self.get(url, **self._set_request_timeout(kwargs))
+            
+    def _result(self, response, json=False, binary=False):
+        assert not (json and binary)
+        self._raise_for_status(response)
+    
+        if json:
+            return response.json()
+        if binary:
+            return response.content
+        return response.text
+</code></pre>
+<p>get和result，response都是requests提供。get发送请求，response.json将请求格式化成json后返回。</p>
+<h2 id="5-unixhttpadapter的实现">5、UnixHTTPAdapter的实现</h2>
+<p><code>/var/run/docker.sock</code>是Docker守护程序侦听的UNIX套接字,其连接使用UnixHTTPAdapter处理:</p>
+<pre><code class="language-python"># transport/unixconn.py
+
+import requests.adapters
+
+RecentlyUsedContainer = urllib3._collections.RecentlyUsedContainer
+
+class UnixHTTPAdapter(BaseHTTPAdapter):
+    def __init__(self, socket_url, timeout=60,
+                 pool_connections=constants.DEFAULT_NUM_POOLS,
+                 max_pool_size=constants.DEFAULT_MAX_POOL_SIZE):
+        socket_path = socket_url.replace('http+unix://', '')
+        if not socket_path.startswith('/'):
+            socket_path = '/' + socket_path
+        self.socket_path = socket_path
+        self.timeout = timeout
+        self.max_pool_size = max_pool_size
+        self.pools = RecentlyUsedContainer(
+            pool_connections, dispose_func=lambda p: p.close()
+        )
+        super(UnixHTTPAdapter, self).__init__()
+    
+    def get_connection(self, url, proxies=None):
+        with self.pools.lock:
+            pool = self.pools.get(url)
+            if pool:
+                return pool
+
+            pool = UnixHTTPConnectionPool(
+                url, self.socket_path, self.timeout,
+                maxsize=self.max_pool_size
+            )
+            self.pools[url] = pool
+
+        return pool
+</code></pre>
+<p>UnixHTTPAdapter主要使用urllib3提供的链接池管理UnixHTTPConnection连接:</p>
+<pre><code class="language-python">class UnixHTTPConnection(httplib.HTTPConnection, object):
+
+    def __init__(self, base_url, unix_socket, timeout=60):
+        super(UnixHTTPConnection, self).__init__(
+            'localhost', timeout=timeout
+        )
+        self.base_url = base_url
+        self.unix_socket = unix_socket
+        self.timeout = timeout
+        self.disable_buffering = False
+
+    def connect(self):
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sock.settimeout(self.timeout)
+        sock.connect(self.unix_socket)
+        self.sock = sock
+
+    def putheader(self, header, *values):
+        super(UnixHTTPConnection, self).putheader(header, *values)
+        if header == 'Connection' and 'Upgrade' in values:
+            self.disable_buffering = True
+
+    def response_class(self, sock, *args, **kwargs):
+        if self.disable_buffering:
+            kwargs['disable_buffering'] = True
+
+        return UnixHTTPResponse(sock, *args, **kwargs)
+
+
+class UnixHTTPConnectionPool(urllib3.connectionpool.HTTPConnectionPool):
+    def __init__(self, base_url, socket_path, timeout=60, maxsize=10):
+        super(UnixHTTPConnectionPool, self).__init__(
+            'localhost', timeout=timeout, maxsize=maxsize
+        )
+        self.base_url = base_url
+        self.socket_path = socket_path
+        self.timeout = timeout
+
+    def _new_conn(self):
+        return UnixHTTPConnection(
+            self.base_url, self.socket_path, self.timeout
+        )
+</code></pre>
+<p>connect展示了socket类型是 <code>socket.AF_UNIX</code>, 这一部分的实现都非常基础 。</p>
+<blockquote>
+<p>关于socket，可以参看之前的博文 python http 源码阅读</p>
+</blockquote>
+<h2 id="6-docker-ps命令跟踪">6、docker-ps命令跟踪</h2>
+<p>接着我们跟踪稍微复杂点的命令 <code>client.containers.list()</code>， 也就是 <code>docker ps</code>。前面介绍了，<strong>container</strong> 会组装结果为数据模型，下面是模型的父类:</p>
+<pre><code class="language-python">class Model(object):
+    &quot;&quot;&quot;
+    A base class for representing a single object on the server.
+    &quot;&quot;&quot;
+    id_attribute = 'Id'
+
+    def __init__(self, attrs=None, client=None, collection=None):
+        self.client = client
+        # 集合
+        self.collection = collection
+
+        self.attrs = attrs
+</code></pre>
+<p>Model是单个模型抽象，Collection则是模型集合的抽象，使用集合的prepare_model构建各种对象:</p>
+<pre><code class="language-python">class Collection(object):
+    &quot;&quot;&quot;
+    A base class for representing all objects of a particular type on the
+    server.
+    &quot;&quot;&quot;
+
+    model = None
+
+    def __init__(self, client=None):
+        self.client = client
+    
+    ...
+    
+    def prepare_model(self, attrs):
+        &quot;&quot;&quot;
+        Create a model from a set of attributes.
+        &quot;&quot;&quot;
+        if isinstance(attrs, Model):
+            attrs.client = self.client
+            # 双向引用
+            attrs.collection = self
+            return attrs
+        elif isinstance(attrs, dict):
+            return self.model(attrs=attrs, client=self.client, collection=self)
+        else:
+            raise Exception(&quot;Can't create %s from %s&quot; %
+                            (self.model.__name__, attrs))
+</code></pre>
+<p>Container和ContainerCollection的实现</p>
+<pre><code class="language-python">class Container(Model):
+    pass
+    
+class ContainerCollection(Collection):
+    model = Container
+    
+    def get(self, container_id):
+        resp = self.client.api.inspect_container(container_id)
+        return self.prepare_model(resp)
+        
+    def list(self, all=False, before=None, filters=None, limit=-1, since=None,
+             sparse=False, ignore_removed=False):
+        resp = self.client.api.containers(all=all, before=before,
+                                          filters=filters, limit=limit,
+                                          since=since)
+        containers = []
+        for r in resp:
+            containers.append(self.get(r['Id']))
+        return containers
+</code></pre>
+<p>其中list函数主要有下面几个步骤</p>
+<ul>
+<li>使用api的containers接口得到resp，就是container-id列表</li>
+<li>逐个循环使用api的inspect_container请求container的详细信息</li>
+<li>将结果封装成Container对象</li>
+<li>返回容器Container对象列表</li>
+</ul>
+<p>api.containers和api.inspect_container在ContainerApiMixin中提供, 非常简单清晰:</p>
+<pre><code class="language-python">class ContainerApiMixin(object):
+
+    def containers(self, quiet=False, all=False, trunc=False, latest=False,
+                   since=None, before=None, limit=-1, size=False,
+                   filters=None):
+        params = {
+            'limit': 1 if latest else limit,
+            'all': 1 if all else 0,
+            'size': 1 if size else 0,
+            'trunc_cmd': 1 if trunc else 0,
+            'since': since,
+            'before': before
+        }
+        if filters:
+            params['filters'] = utils.convert_filters(filters)
+        u = self._url(&quot;/containers/json&quot;)
+        res = self._result(self._get(u, params=params), True)
+
+        if quiet:
+            return [{'Id': x['Id']} for x in res]
+        if trunc:
+            for x in res:
+                x['Id'] = x['Id'][:12]
+        return res
+    
+    @utils.check_resource('container')
+    def inspect_container(self, container):
+        return self._result(
+            self._get(self._url(&quot;/containers/{0}/json&quot;, container)), True
+        )
+</code></pre>
+<h2 id="7-docker-logs命令跟踪">7、docker-logs命令跟踪</h2>
+<p>前面的命令都是request-response的模式，我们再看看不一样的，基于流的docker-logs命令。我们先启动一个容器:</p>
+<pre><code class="language-python">docker run -d bfirsh/reticulate-splines
+</code></pre>
+<p>查看容器列表</p>
+<pre><code class="language-python"># docker ps
+CONTAINER ID   IMAGE                       COMMAND                  CREATED          STATUS          PORTS             NAMES
+61709b0ed4b8   bfirsh/reticulate-splines   &quot;/usr/local/bin/run.…&quot;   22 seconds ago   Up 21 seconds                     festive_pare
+</code></pre>
+<p>实时跟踪容器运行日志:</p>
+<pre><code class="language-python"># docker logs -f 6170
+Reticulating spline 1...
+Reticulating spline 2...
+....
+</code></pre>
+<p>可以看到<strong>reticulate-splines</strong>容器就是不停的打印行数数据。可以用下面的代码实现 <code>docker logs</code> 相同的功能:</p>
+<pre><code class="language-python">logs = client.containers.get('61709b0ed4b8').logs(stream=True)
+ try:
+  while True:
+   line = next(logs).decode(&quot;utf-8&quot;)
+   print(line)
+ except StopIteration:
+  print(f'log stream ended for {container_name}')   
+</code></pre>
+<p>代码执行结果和前面的类似:</p>
+<pre><code class="language-python"># python sample.py
+...
+Reticulating spline 14...
+
+Reticulating spline 15...
+...
+</code></pre>
+<p>logs的实现中返回一个CancellableStream，而不是一个result，利用这个stream，就可以持续的读取输出:</p>
+<pre><code class="language-python"># models/Container
+
+def logs(self, **kwargs):
+    return self.client.api.logs(self.id, **kwargs)
+    
+# api/continer
+def logs(self, container, stdout=True, stderr=True, stream=False,
+             timestamps=False, tail='all', since=None, follow=None,
+             until=None):
+    ...
+    
+    url = self._url(&quot;/containers/{0}/logs&quot;, container)
+        res = self._get(url, params=params, stream=stream)
+        output = self._get_result(container, stream, res)
+
+        if stream:
+            return CancellableStream(output, res)
+        else:
+            return output
+</code></pre>
+<p>比较特别的是下面对于stream的处理:</p>
+<pre><code class="language-python"># api/client
+
+def _multiplexed_response_stream_helper(self, response):
+    &quot;&quot;&quot;A generator of multiplexed data blocks coming from a response
+    stream.&quot;&quot;&quot;
+
+    # Disable timeout on the underlying socket to prevent
+    # Read timed out(s) for long running processes
+    socket = self._get_raw_response_socket(response)
+    self._disable_socket_timeout(socket)
+
+    while True:
+        header = response.raw.read(STREAM_HEADER_SIZE_BYTES)
+        if not header:
+            break
+        _, length = struct.unpack('&gt;BxxxL', header)
+        if not length:
+            continue
+        data = response.raw.read(length)
+        if not data:
+            break
+        yield data
+
+def _disable_socket_timeout(self, socket):
+    sockets = [socket, getattr(socket, '_sock', None)]
+
+    for s in sockets:
+        if not hasattr(s, 'settimeout'):
+            continue
+
+        timeout = -1
+
+        if hasattr(s, 'gettimeout'):
+            timeout = s.gettimeout()
+
+        # Don't change the timeout if it is already disabled.
+        if timeout is None or timeout == 0.0:
+            continue
+
+        s.settimeout(None)
+</code></pre>
+<p>上面代码展示了:</p>
+<ul>
+<li>流的读取方式是每次读取STREAM_HEADER_SIZE_BYTES长度的数据作为协议头</li>
+<li>协议头结构体格式解压后得到后面的数据包长度</li>
+<li>继续读取指定长度的数据包</li>
+<li>重复执行上面的数据读取过程</li>
+<li>流式读取的时候还需要关闭socket的超时机制，确保流一直保持，知道手动(ctl+c)关闭</li>
+</ul>
+<p>而 <strong>attach</strong> 则是采用了websocket的实现, 因为我们一般推荐使用exec命令，所以这里简单了解即可:</p>
+<pre><code class="language-python">def _attach_websocket(self, container, params=None):
+    url = self._url(&quot;/containers/{0}/attach/ws&quot;, container)
+    req = requests.Request(&quot;POST&quot;, url, params=self._attach_params(params))
+    full_url = req.prepare().url
+    full_url = full_url.replace(&quot;http://&quot;, &quot;ws://&quot;, 1)
+    full_url = full_url.replace(&quot;https://&quot;, &quot;wss://&quot;, 1)
+    return self._create_websocket_connection(full_url)
+
+def _create_websocket_connection(self, url):
+    return websocket.create_connection(url)
+</code></pre>
+<h2 id="8-docker-exec-命令跟踪">8、docker-exec 命令跟踪</h2>
+<p>docker-exec是我们的重头戏，因为除了可以直接获取docker是输出外，还可以和docker进行交互。先简单回顾一下exec的使用:</p>
+<pre><code class="language-python"># docker exec -it 2075 ping www.weibo.cn
+PING www.weibo.cn (123.125.22.241): 56 data bytes
+64 bytes from 123.125.22.241: seq=0 ttl=37 time=6.797 ms
+64 bytes from 123.125.22.241: seq=1 ttl=37 time=39.279 ms
+64 bytes from 123.125.22.241: seq=2 ttl=37 time=29.635 ms
+64 bytes from 123.125.22.241: seq=3 ttl=37 time=27.737 ms
+</code></pre>
+<p>上面示例可以用下面代码完全模拟:</p>
+<pre><code class="language-python">result = client.containers.get(&quot;2075&quot;).exec_run(&quot;ping www.weibo.cn&quot;, tty=True, stream=True)
+try:
+ while True:
+  line = next(result[1]).decode(&quot;utf-8&quot;)
+  print(line)
+except StopIteration:
+ print(f'exec stream ended for {container_name}')
+</code></pre>
+<p>使用tty伪装终端和容器进行交互，就是我们最常用的方式了:</p>
+<pre><code class="language-python"># docker exec -it 2075 sh
+/ # ls -la
+total 64
+drwxr-xr-x    1 root     root          4096 Mar 24 13:16 .
+drwxr-xr-x    1 root     root          4096 Mar 24 13:16 ..
+-rwxr-xr-x    1 root     root             0 Mar 24 13:16 .dockerenv
+drwxr-xr-x    2 root     root          4096 Mar  3  2017 bin
+drwxr-xr-x    5 root     root           340 Mar 24 13:16 dev
+drwxr-xr-x    1 root     root          4096 Mar 24 13:16 etc
+drwxr-xr-x    2 root     root          4096 Mar  3  2017 home
+drwxr-xr-x    1 root     root          4096 Mar  3  2017 lib
+lrwxrwxrwx    1 root     root            12 Mar  3  2017 linuxrc -&gt; /bin/busybox
+drwxr-xr-x    5 root     root          4096 Mar  3  2017 media
+drwxr-xr-x    2 root     root          4096 Mar  3  2017 mnt
+dr-xr-xr-x  156 root     root             0 Mar 24 13:16 proc
+drwx------    1 root     root          4096 Mar 25 08:17 root
+drwxr-xr-x    2 root     root          4096 Mar  3  2017 run
+drwxr-xr-x    2 root     root          4096 Mar  3  2017 sbin
+drwxr-xr-x    2 root     root          4096 Mar  3  2017 srv
+dr-xr-xr-x   13 root     root             0 Mar 24 13:16 sys
+drwxrwxrwt    1 root     root          4096 Mar  3  2017 tmp
+drwxr-xr-x    1 root     root          4096 Mar  3  2017 usr
+drwxr-xr-x    1 root     root          4096 Mar  3  2017 var
+/ # exit
+</code></pre>
+<p>同样这个过程也可以使用docker-py实现:</p>
+<pre><code class="language-python">_, socket = client.containers.get(&quot;2075&quot;).exec_run(&quot;sh&quot;, stdin=True, socket=True)
+print(socket)
+socket._sock.sendall(b&quot;ls -la\n&quot;)
+try:
+ unknown_byte=socket._sock.recv(docker.constants.STREAM_HEADER_SIZE_BYTES)
+ print(unknown_byte)
+
+ buffer_size = 4096 # 4 KiB
+ data = b''
+ while True:
+  part = socket._sock.recv(buffer_size)
+  data += part
+  if len(part) &lt; buffer_size:
+   # either 0 or end of data
+   break
+ print(data.decode(&quot;utf8&quot;))
+
+except Exception: 
+ pass
+socket._sock.send(b&quot;exit\n&quot;)
+</code></pre>
+<p>示例演示的过程是:</p>
+<ul>
+<li>获取一个已经存在的容器<strong>2075</strong></li>
+<li>对容器执行exec命令，注意需要开启stdin和socket</li>
+<li>向容器发送 <code>ls -lah</code> 展示目录列表</li>
+<li>读区socket上的结果。(这里我们偷懒，没有解析头，直接硬取，这样不够健壮)</li>
+<li>继续发送 <code>exit</code> 退出容器</li>
+</ul>
+<p>程序的输出和上面使用命令方式完全一致，就不在张贴了。进入核心的exec_run函数的实现:</p>
+<pre><code class="language-python"># model/containers
+
+def exec_run(self, cmd, stdout=True, stderr=True, stdin=False, tty=False,
+                 privileged=False, user='', detach=False, stream=False,
+                 socket=False, environment=None, workdir=None, demux=False):
+    resp = self.client.api.exec_create(
+            self.id, cmd, stdout=stdout, stderr=stderr, stdin=stdin, tty=tty,
+            privileged=privileged, user=user, environment=environment,
+            workdir=workdir,
+        )
+    exec_output = self.client.api.exec_start(
+        resp['Id'], detach=detach, tty=tty, stream=stream, socket=socket,
+        demux=demux
+    )
+    if socket or stream:
+        return ExecResult(None, exec_output)
+</code></pre>
+<p>主要使用API的exec_create和exec_start两个函数, 先看第一个exec_create函数:</p>
+<pre><code class="language-python"># api/exec_api
+
+def exec_create(self, container, cmd, stdout=True, stderr=True,
+                    stdin=False, tty=False, privileged=False, user='',
+                    environment=None, workdir=None, detach_keys=None):
+
+    if isinstance(cmd, six.string_types):
+        cmd = utils.split_command(cmd)
+
+    if isinstance(environment, dict):
+        environment = utils.utils.format_environment(environment)
+
+    data = {
+        'Container': container,
+        'User': user,
+        'Privileged': privileged,
+        'Tty': tty,
+        'AttachStdin': stdin,
+        'AttachStdout': stdout,
+        'AttachStderr': stderr,
+        'Cmd': cmd,
+        'Env': environment,
+    }
+
+    if detach_keys:
+        data['detachKeys'] = detach_keys
+    elif 'detachKeys' in self._general_configs:
+        data['detachKeys'] = self._general_configs['detachKeys']
+
+    url = self._url('/containers/{0}/exec', container)
+    res = self._post_json(url, data=data)
+    return self._result(res, True)
+</code></pre>
+<p>exec_create相对还是比较简单，就是post-json数据到 <code>/containers/{0}/exec</code> 接口。然后是exec_start函数:</p>
+<pre><code class="language-python">def exec_start(self, exec_id, detach=False, tty=False, stream=False,
+               socket=False, demux=False):
+
+    # we want opened socket if socket == True
+
+    data = {
+        'Tty': tty,
+        'Detach': detach
+    }
+
+    headers = {} if detach else {
+        'Connection': 'Upgrade',
+        'Upgrade': 'tcp'
+    }
+
+    res = self._post_json(
+        self._url('/exec/{0}/start', exec_id),
+        headers=headers,
+        data=data,
+        stream=True
+    )
+    if detach:
+        return self._result(res)
+    if socket:
+        return self._get_raw_response_socket(res)
+    return self._read_from_socket(res, stream, tty=tty, demux=demux)
+</code></pre>
+<p>exec_start是post-json到 <code>/exec/{0}/start</code> 接口，注意这个接口看起来不是到容器，而是到exec。然后如果socket参数是true则返回socket，可以进行写入；否则仅仅读取数据。</p>
+<h2 id="9-使用curl访问docker-api">9、使用curl访问docker-api</h2>
+<p>docker-engine的REST-api也可以直接使用 <strong>curl</strong> 访问:</p>
+<pre><code class="language-shell">$ curl --unix-socket /var/run/docker.sock -H &quot;Content-Type: application/json&quot; \
+  -d '{&quot;Image&quot;: &quot;alpine&quot;, &quot;Cmd&quot;: [&quot;echo&quot;, &quot;hello world&quot;]}' \
+  -X POST http://localhost/v1.41/containers/create
+{&quot;Id&quot;:&quot;1c6594faf5&quot;,&quot;Warnings&quot;:null}
+
+$ curl --unix-socket /var/run/docker.sock -X POST http://localhost/v1.41/containers/1c6594faf5/start
+
+$ curl --unix-socket /var/run/docker.sock -X POST http://localhost/v1.41/containers/1c6594faf5/wait
+{&quot;StatusCode&quot;:0}
+
+$ curl --unix-socket /var/run/docker.sock &quot;http://localhost/v1.41/containers/1c6594faf5/logs?stdout=1&quot;
+hello world
+</code></pre>
+<p>可以通过修改<code>/etc/docker/daemon.json</code>更改为http服务方式的api</p>
+<pre><code class="language-python">{
+  &quot;debug&quot;: true,
+  &quot;hosts&quot;: [&quot;tcp://192.168.59.3:2376&quot;]
+}
+</code></pre>
+<p>然后 curl 命令可以直接访问docker的api</p>
+<pre><code class="language-python">curl http://127.0.0.1:2375/info
+curl http://127.0.0.1:2375/version
+curl http://127.0.0.1:2375/images/json
+curl http://127.0.0.1:2375/images/alpine/json
+curl http://127.0.0.1:2375/containers/json
+curl http://127.0.0.1:2375/containers/25c5805a06b6/json
+</code></pre>
+<h2 id="10-小结">10、小结</h2>
+<p>利用docker-py可以完全操作docker，这得益docker提供的REST-api操作。同时也发现requests的设计很强大，不仅仅可以用来做http请求，还可以用来做socket请求。学习docker-py后，相信大家对docker的理解一定有那么一点点加深，也希望下面这张图可以帮助你记忆:</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210512-01.png" alt=""></figure>
+<h2 id="11-小技巧">11、小技巧</h2>
+<p>使用 <code>check_resource</code> 装饰器，对函数的参数进行预先处理:</p>
+<pre><code class="language-python">def check_resource(resource_name):
+    def decorator(f):
+        @functools.wraps(f)
+        def wrapped(self, resource_id=None, *args, **kwargs):
+            if resource_id is None and kwargs.get(resource_name):
+                resource_id = kwargs.pop(resource_name)
+            if isinstance(resource_id, dict):
+                resource_id = resource_id.get('Id', resource_id.get('ID'))
+            if not resource_id:
+                raise errors.NullResource(
+                    'Resource ID was not provided'
+                )
+            return f(self, resource_id, *args, **kwargs)
+        return wrapped
+    return decorator
+</code></pre>
+<p>代码版本比较工具:</p>
+<pre><code class="language-python">from distutils.version import StrictVersion
+
+
+def compare_version(v1, v2):
+    &quot;&quot;&quot;Compare docker versions
+
+    &gt;&gt;&gt; v1 = '1.9'
+    &gt;&gt;&gt; v2 = '1.10'
+    &gt;&gt;&gt; compare_version(v1, v2)
+    1
+    &gt;&gt;&gt; compare_version(v2, v1)
+    -1
+    &gt;&gt;&gt; compare_version(v2, v2)
+    0
+    &quot;&quot;&quot;
+    s1 = StrictVersion(v1)
+    s2 = StrictVersion(v2)
+    if s1 == s2:
+        return 0
+    elif s1 &gt; s2:
+        return -1
+    else:
+        return 1
+
+
+def version_lt(v1, v2):
+    return compare_version(v1, v2) &gt; 0
+
+
+def version_gte(v1, v2):
+    return not version_lt(v1, v2)
+</code></pre>
+<h2 id="参考链接">参考链接</h2>
+<ul>
+<li>https://docs.docker.com/engine/api/sdk/examples/</li>
+<li>https://docker-py.readthedocs.io/en/stable/</li>
+</ul>
+<p>转载自：https://mp.weixin.qq.com/s/kF03uUxWiDkeClZY9o5E8Q</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/vhKLQmmvn" class="tag">
+                    python
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/docker" class="tag">
+                    docker
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/wo-de-sheng-chan-li-gong-ju-tui-jian-ide-cha-jian-pian">
+                  <h3 class="post-title">
+                    我的生产力工具推荐-IDE插件篇
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

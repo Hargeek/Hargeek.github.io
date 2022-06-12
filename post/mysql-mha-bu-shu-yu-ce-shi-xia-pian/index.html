@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>MySQL MHA部署与测试-下篇 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">MySQL MHA部署与测试-下篇</h2>
+            <div class="post-date">2021-06-10</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%95%85%E9%9A%9C%E6%B5%8B%E8%AF%95">1、故障测试</a>
+<ul>
+<li><a href="#11-%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B">1.1 操作流程</a></li>
+<li><a href="#12-%E6%97%A5%E5%BF%97%E6%9F%A5%E7%9C%8B">1.2 日志查看</a></li>
+</ul>
+</li>
+<li><a href="#2-%E4%B8%BB%E5%8A%A8%E5%88%87%E6%8D%A2">2、主动切换</a></li>
+<li><a href="#3-%E5%9C%A8%E7%BA%BF%E5%88%87%E6%8D%A2">3、在线切换</a>
+<ul>
+<li><a href="#31-%E5%8F%AA%E5%88%87%E6%8D%A2%E8%A7%92%E8%89%B2">3.1 只切换角色</a>
+<ul>
+<li><a href="#311-%E5%88%87%E6%8D%A2%E5%91%BD%E4%BB%A4">3.1.1 切换命令</a></li>
+<li><a href="#312-%E6%B3%A8%E6%84%8F%E5%86%85%E5%AE%B9">3.1.2 注意内容</a></li>
+</ul>
+</li>
+<li><a href="#32-%E8%84%9A%E6%9C%AC%E5%8A%9F%E8%83%BD%E5%AE%9E%E7%8E%B0">3.2 脚本功能实现</a>
+<ul>
+<li><a href="#321-%E5%87%86%E5%A4%87%E8%84%9A%E6%9C%AC">3.2.1 准备脚本</a></li>
+<li><a href="#322-mha%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">3.2.2 mha配置文件</a></li>
+<li><a href="#323-%E5%85%B3%E5%81%9Cmha%E6%9C%8D%E5%8A%A1">3.2.3 关停mha服务</a></li>
+<li><a href="#324-%E6%A3%80%E6%9F%A5repl">3.2.4 检查repl</a></li>
+<li><a href="#325-%E5%9C%A8%E7%BA%BF%E5%88%87%E6%8D%A2">3.2.5 在线切换</a></li>
+<li><a href="#326-%E7%A1%AE%E8%AE%A4vip">3.2.6 确认vip</a></li>
+<li><a href="#327-%E9%87%8D%E6%9E%84binlog-server">3.2.7 重构binlog-server</a></li>
+<li><a href="#328-%E9%87%8D%E6%96%B0%E5%90%AF%E5%8A%A8mha">3.2.8 重新启动mha</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>作者：AshesCat</p>
+</blockquote>
+<h2 id="1-故障测试">1、故障测试</h2>
+<h3 id="11-操作流程">1.1 操作流程</h3>
+<pre><code class="language-shell"># 追踪mha-manager日志
+[root@db03 ~]# tail -f  /var/log/mha/app1/manager 
+# 关闭主库
+[root@db01 ~]# /etc/init.d/mysqld stop
+</code></pre>
+<h3 id="12-日志查看">1.2 日志查看</h3>
+<pre><code class="language-shell">
+# 确认主库宕机部分
+Wed Jun  2 16:55:42 2021 - [warning] Got error on MySQL select ping: 1053 (Server shutdown in progress)
+Wed Jun  2 16:55:42 2021 - [info] Executing SSH check script: exit 0
+Wed Jun  2 16:55:42 2021 - [info] HealthCheck: SSH to 192.168.10.51 is reachable.
+Wed Jun  2 16:55:44 2021 - [warning] Got error on MySQL connect: 2003 (Can't connect to MySQL server on '192.168.10.51' (111))
+Wed Jun  2 16:55:44 2021 - [warning] Connection failed 2 time(s)..
+Wed Jun  2 16:55:46 2021 - [warning] Got error on MySQL connect: 2003 (Can't connect to MySQL server on '192.168.10.51' (111))
+Wed Jun  2 16:55:46 2021 - [warning] Connection failed 3 time(s)..
+Wed Jun  2 16:55:48 2021 - [warning] Got error on MySQL connect: 2003 (Can't connect to MySQL server on '192.168.10.51' (111))
+Wed Jun  2 16:55:48 2021 - [warning] Connection failed 4 time(s)..
+Wed Jun  2 16:55:48 2021 - [warning] Master is not reachable from health checker!
+Wed Jun  2 16:55:48 2021 - [warning] Master 192.168.10.51(192.168.10.51:3306) is not reachable!
+
+
+
+# 确认各节点状态
+Wed Jun  2 16:55:48 2021 - [warning] SSH is reachable.
+Wed Jun  2 16:55:48 2021 - [info] Connecting to a master server failed. Reading configuration file /etc/masterha_default.cnf and /etc/mha/app1.cnf again, and trying to connect to all servers to check server status..
+Wed Jun  2 16:55:48 2021 - [warning] Global configuration file /etc/masterha_default.cnf not found. Skipping.
+Wed Jun  2 16:55:48 2021 - [info] Reading application default configuration from /etc/mha/app1.cnf..
+Wed Jun  2 16:55:48 2021 - [info] Reading server configuration from /etc/mha/app1.cnf..
+Wed Jun  2 16:55:49 2021 - [info] GTID failover mode = 1
+Wed Jun  2 16:55:49 2021 - [info] Dead Servers:
+Wed Jun  2 16:55:49 2021 - [info]   192.168.10.51(192.168.10.51:3306)
+Wed Jun  2 16:55:49 2021 - [info] Alive Servers:
+Wed Jun  2 16:55:49 2021 - [info]   192.168.10.52(192.168.10.52:3306)
+Wed Jun  2 16:55:49 2021 - [info]   192.168.10.53(192.168.10.53:3306)
+Wed Jun  2 16:55:49 2021 - [info] Alive Slaves:
+Wed Jun  2 16:55:49 2021 - [info]   192.168.10.52(192.168.10.52:3306)  Version=8.0.20 (oldest major version between slaves) log-bin:enabled
+Wed Jun  2 16:55:49 2021 - [info]     GTID ON
+Wed Jun  2 16:55:49 2021 - [info]     Replicating from 192.168.10.51(192.168.10.51:3306)
+Wed Jun  2 16:55:49 2021 - [info]     Primary candidate for the new Master (candidate_master is set)
+Wed Jun  2 16:55:49 2021 - [info]   192.168.10.53(192.168.10.53:3306)  Version=8.0.20 (oldest major version between slaves) log-bin:enabled
+Wed Jun  2 16:55:49 2021 - [info]     GTID ON
+Wed Jun  2 16:55:49 2021 - [info]     Replicating from 192.168.10.51(192.168.10.51:3306)
+Wed Jun  2 16:55:49 2021 - [info]     Not candidate for the new Master (no_master is set)
+Wed Jun  2 16:55:49 2021 - [info] Checking slave configurations..
+Wed Jun  2 16:55:49 2021 - [info]  read_only=1 is not set on slave 192.168.10.52(192.168.10.52:3306).
+Wed Jun  2 16:55:49 2021 - [info]  read_only=1 is not set on slave 192.168.10.53(192.168.10.53:3306).
+Wed Jun  2 16:55:49 2021 - [info] Checking replication filtering settings..
+Wed Jun  2 16:55:49 2021 - [info]  Replication filtering check ok.
+Wed Jun  2 16:55:49 2021 - [info] Master is down!
+Wed Jun  2 16:55:49 2021 - [info] Terminating monitoring script.
+Wed Jun  2 16:55:49 2021 - [info] Got exit code 20 (Master dead).
+Wed Jun  2 16:55:49 2021 - [info] MHA::MasterFailover version 0.58.
+Wed Jun  2 16:55:49 2021 - [info] Starting master failover.
+Wed Jun  2 16:55:49 2021 - [info] 
+Wed Jun  2 16:55:49 2021 - [info] * Phase 1: Configuration Check Phase..
+Wed Jun  2 16:55:49 2021 - [info] 
+Wed Jun  2 16:55:51 2021 - [info] GTID failover mode = 1
+Wed Jun  2 16:55:51 2021 - [info] Dead Servers:
+Wed Jun  2 16:55:51 2021 - [info]   192.168.10.51(192.168.10.51:3306)
+Wed Jun  2 16:55:51 2021 - [info] Checking master reachability via MySQL(double check)...
+Wed Jun  2 16:55:51 2021 - [info]  ok.
+Wed Jun  2 16:55:51 2021 - [info] Alive Servers:
+Wed Jun  2 16:55:51 2021 - [info]   192.168.10.52(192.168.10.52:3306)
+Wed Jun  2 16:55:51 2021 - [info]   192.168.10.53(192.168.10.53:3306)
+Wed Jun  2 16:55:51 2021 - [info] Alive Slaves:
+Wed Jun  2 16:55:51 2021 - [info]   192.168.10.52(192.168.10.52:3306)  Version=8.0.20 (oldest major version between slaves) log-bin:enabled
+Wed Jun  2 16:55:51 2021 - [info]     GTID ON
+Wed Jun  2 16:55:51 2021 - [info]     Replicating from 192.168.10.51(192.168.10.51:3306)
+Wed Jun  2 16:55:51 2021 - [info]     Primary candidate for the new Master (candidate_master is set)
+Wed Jun  2 16:55:51 2021 - [info]   192.168.10.53(192.168.10.53:3306)  Version=8.0.20 (oldest major version between slaves) log-bin:enabled
+Wed Jun  2 16:55:51 2021 - [info]     GTID ON
+Wed Jun  2 16:55:51 2021 - [info]     Replicating from 192.168.10.51(192.168.10.51:3306)
+Wed Jun  2 16:55:51 2021 - [info]     Not candidate for the new Master (no_master is set)
+Wed Jun  2 16:55:51 2021 - [info] Starting GTID based failover.
+Wed Jun  2 16:55:51 2021 - [info] 
+Wed Jun  2 16:55:51 2021 - [info] ** Phase 1: Configuration Check Phase completed.
+Wed Jun  2 16:55:51 2021 - [info] 
+Wed Jun  2 16:55:51 2021 - [info] * Phase 2: Dead Master Shutdown Phase..
+Wed Jun  2 16:55:51 2021 - [info] 
+Wed Jun  2 16:55:51 2021 - [info] Forcing shutdown so that applications never connect to the current master..
+Wed Jun  2 16:55:51 2021 - [info] Executing master IP deactivation script:
+Wed Jun  2 16:55:51 2021 - [info]   /usr/local/bin/master_ip_failover --orig_master_host=192.168.10.51 --orig_master_ip=192.168.10.51 --orig_master_port=3306 --command=stopssh --ssh_user=root  
+
+# VIP状态检查，日志补偿（此部分未发现日志缺失）
+IN SCRIPT TEST====/sbin/ifconfig eth0:1 down==/sbin/ifconfig eth0:1 192.168.10.49/24===
+
+Disabling the VIP on old master: 192.168.10.51 
+SIOCSIFFLAGS: Cannot assign requested address
+Wed Jun  2 16:55:51 2021 - [info]  done.
+Wed Jun  2 16:55:51 2021 - [warning] shutdown_script is not set. Skipping explicit shutting down of the dead master.
+Wed Jun  2 16:55:51 2021 - [info] * Phase 2: Dead Master Shutdown Phase completed.
+Wed Jun  2 16:55:51 2021 - [info] 
+Wed Jun  2 16:55:51 2021 - [info] * Phase 3: Master Recovery Phase..
+Wed Jun  2 16:55:51 2021 - [info] 
+Wed Jun  2 16:55:51 2021 - [info] * Phase 3.1: Getting Latest Slaves Phase..
+Wed Jun  2 16:55:51 2021 - [info] 
+Wed Jun  2 16:55:51 2021 - [info] The latest binary log file/position on all slaves is mysql-bin.000005:196
+Wed Jun  2 16:55:51 2021 - [info] Latest slaves (Slaves that received relay log files to the latest):
+Wed Jun  2 16:55:51 2021 - [info]   192.168.10.52(192.168.10.52:3306)  Version=8.0.20 (oldest major version between slaves) log-bin:enabled
+Wed Jun  2 16:55:51 2021 - [info]     GTID ON
+Wed Jun  2 16:55:51 2021 - [info]     Replicating from 192.168.10.51(192.168.10.51:3306)
+Wed Jun  2 16:55:51 2021 - [info]     Primary candidate for the new Master (candidate_master is set)
+Wed Jun  2 16:55:51 2021 - [info]   192.168.10.53(192.168.10.53:3306)  Version=8.0.20 (oldest major version between slaves) log-bin:enabled
+Wed Jun  2 16:55:51 2021 - [info]     GTID ON
+Wed Jun  2 16:55:51 2021 - [info]     Replicating from 192.168.10.51(192.168.10.51:3306)
+Wed Jun  2 16:55:51 2021 - [info]     Not candidate for the new Master (no_master is set)
+Wed Jun  2 16:55:51 2021 - [info] The oldest binary log file/position on all slaves is mysql-bin.000005:196
+Wed Jun  2 16:55:51 2021 - [info] Oldest slaves:
+Wed Jun  2 16:55:51 2021 - [info]   192.168.10.52(192.168.10.52:3306)  Version=8.0.20 (oldest major version between slaves) log-bin:enabled
+Wed Jun  2 16:55:51 2021 - [info]     GTID ON
+Wed Jun  2 16:55:51 2021 - [info]     Replicating from 192.168.10.51(192.168.10.51:3306)
+Wed Jun  2 16:55:51 2021 - [info]     Primary candidate for the new Master (candidate_master is set)
+Wed Jun  2 16:55:51 2021 - [info]   192.168.10.53(192.168.10.53:3306)  Version=8.0.20 (oldest major version between slaves) log-bin:enabled
+Wed Jun  2 16:55:51 2021 - [info]     GTID ON
+Wed Jun  2 16:55:51 2021 - [info]     Replicating from 192.168.10.51(192.168.10.51:3306)
+Wed Jun  2 16:55:51 2021 - [info]     Not candidate for the new Master (no_master is set)
+Wed Jun  2 16:55:51 2021 - [info] 
+Wed Jun  2 16:55:51 2021 - [info] * Phase 3.3: Determining New Master Phase..
+Wed Jun  2 16:55:51 2021 - [info] 
+Wed Jun  2 16:55:51 2021 - [info] Searching new master from slaves..
+Wed Jun  2 16:55:51 2021 - [info]  Candidate masters from the configuration file:
+Wed Jun  2 16:55:51 2021 - [info]   192.168.10.52(192.168.10.52:3306)  Version=8.0.20 (oldest major version between slaves) log-bin:enabled
+Wed Jun  2 16:55:51 2021 - [info]     GTID ON
+Wed Jun  2 16:55:51 2021 - [info]     Replicating from 192.168.10.51(192.168.10.51:3306)
+Wed Jun  2 16:55:51 2021 - [info]     Primary candidate for the new Master (candidate_master is set)
+Wed Jun  2 16:55:51 2021 - [info]  Non-candidate masters:
+Wed Jun  2 16:55:51 2021 - [info]   192.168.10.53(192.168.10.53:3306)  Version=8.0.20 (oldest major version between slaves) log-bin:enabled
+Wed Jun  2 16:55:51 2021 - [info]     GTID ON
+Wed Jun  2 16:55:51 2021 - [info]     Replicating from 192.168.10.51(192.168.10.51:3306)
+Wed Jun  2 16:55:51 2021 - [info]     Not candidate for the new Master (no_master is set)
+Wed Jun  2 16:55:51 2021 - [info]  Searching from candidate_master slaves which have received the latest relay log events..
+
+# 选主结束，开始切换
+Wed Jun  2 16:55:51 2021 - [info] New master is 192.168.10.52(192.168.10.52:3306)
+Wed Jun  2 16:55:51 2021 - [info] Starting master failover..
+Wed Jun  2 16:55:51 2021 - [info] 
+From:
+192.168.10.51(192.168.10.51:3306) (current master)
+ +--192.168.10.52(192.168.10.52:3306)
+ +--192.168.10.53(192.168.10.53:3306)
+
+To:
+192.168.10.52(192.168.10.52:3306) (new master)
+ +--192.168.10.53(192.168.10.53:3306)
+Wed Jun  2 16:55:51 2021 - [info] 
+Wed Jun  2 16:55:51 2021 - [info] * Phase 3.3: New Master Recovery Phase..
+Wed Jun  2 16:55:51 2021 - [info] 
+Wed Jun  2 16:55:51 2021 - [info]  Waiting all logs to be applied.. 
+Wed Jun  2 16:55:51 2021 - [info]   done.
+Wed Jun  2 16:55:51 2021 - [info] Getting new master's binlog name and position..
+Wed Jun  2 16:55:51 2021 - [info]  mysql-bin.000005:196
+Wed Jun  2 16:55:51 2021 - [info]  All other slaves should start replication from here. Statement should be: CHANGE MASTER TO MASTER_HOST='192.168.10.52', MASTER_PORT=3306, MASTER_AUTO_POSITION=1, MASTER_USER='rep', MASTER_PASSWORD='xxx';
+Wed Jun  2 16:55:51 2021 - [info] Master Recovery succeeded. File:Pos:Exec_Gtid_Set: mysql-bin.000005, 196, f4682075-c1b9-11eb-86b2-000c2934cc5a:1-21
+Wed Jun  2 16:55:51 2021 - [info] Executing master IP activate script:
+Wed Jun  2 16:55:51 2021 - [info]   /usr/local/bin/master_ip_failover --command=start --ssh_user=root --orig_master_host=192.168.10.51 --orig_master_ip=192.168.10.51 --orig_master_port=3306 --new_master_host=192.168.10.52 --new_master_ip=192.168.10.52 --new_master_port=3306 --new_master_user='mha'   --new_master_password=xxx
+Unknown option: new_master_user
+Unknown option: new_master_password
+
+# 切换vip，处理manager配置文件（将db1踢出mha环境）
+IN SCRIPT TEST====/sbin/ifconfig eth0:1 down==/sbin/ifconfig eth0:1 192.168.10.49/24===
+
+Enabling the VIP - 192.168.10.49/24 on the new master - 192.168.10.52 
+Wed Jun  2 16:55:51 2021 - [info]  OK.
+Wed Jun  2 16:55:51 2021 - [info] ** Finished master recovery successfully.
+Wed Jun  2 16:55:51 2021 - [info] * Phase 3: Master Recovery Phase completed.
+Wed Jun  2 16:55:51 2021 - [info] 
+Wed Jun  2 16:55:51 2021 - [info] * Phase 4: Slaves Recovery Phase..
+Wed Jun  2 16:55:51 2021 - [info] 
+Wed Jun  2 16:55:51 2021 - [info] 
+Wed Jun  2 16:55:51 2021 - [info] * Phase 4.1: Starting Slaves in parallel..
+Wed Jun  2 16:55:51 2021 - [info] 
+Wed Jun  2 16:55:51 2021 - [info] -- Slave recovery on host 192.168.10.53(192.168.10.53:3306) started, pid: 48882. Check tmp log /var/log/mha/app1/192.168.10.53_3306_20210602165549.log if it takes time..
+Wed Jun  2 16:55:53 2021 - [info] 
+Wed Jun  2 16:55:53 2021 - [info] Log messages from 192.168.10.53 ...
+Wed Jun  2 16:55:53 2021 - [info] 
+Wed Jun  2 16:55:51 2021 - [info]  Resetting slave 192.168.10.53(192.168.10.53:3306) and starting replication from the new master 192.168.10.52(192.168.10.52:3306)..
+Wed Jun  2 16:55:51 2021 - [info]  Executed CHANGE MASTER.
+Wed Jun  2 16:55:52 2021 - [info]  Slave started.
+Wed Jun  2 16:55:52 2021 - [info]  gtid_wait(f4682075-c1b9-11eb-86b2-000c2934cc5a:1-21) completed on 192.168.10.53(192.168.10.53:3306). Executed 0 events.
+Wed Jun  2 16:55:53 2021 - [info] End of log messages from 192.168.10.53.
+Wed Jun  2 16:55:53 2021 - [info] -- Slave on host 192.168.10.53(192.168.10.53:3306) started.
+Wed Jun  2 16:55:53 2021 - [info] All new slave servers recovered successfully.
+Wed Jun  2 16:55:53 2021 - [info] 
+Wed Jun  2 16:55:53 2021 - [info] * Phase 5: New master cleanup phase..
+Wed Jun  2 16:55:53 2021 - [info] 
+Wed Jun  2 16:55:53 2021 - [info] Resetting slave info on the new master..
+Wed Jun  2 16:55:53 2021 - [info]  192.168.10.52: Resetting slave info succeeded.
+Wed Jun  2 16:55:53 2021 - [info] Master failover to 192.168.10.52(192.168.10.52:3306) completed successfully.
+Wed Jun  2 16:55:53 2021 - [info] Deleted server1 entry from /etc/mha/app1.cnf .
+Wed Jun  2 16:55:53 2021 - [info] 
+
+# 切换完成
+----- Failover Report -----
+
+app1: MySQL Master failover 192.168.10.51(192.168.10.51:3306) to 192.168.10.52(192.168.10.52:3306) succeeded
+
+Master 192.168.10.51(192.168.10.51:3306) is down!
+
+Check MHA Manager logs at db3:/var/log/mha/app1/manager for details.
+
+Started automated(non-interactive) failover.
+Invalidated master IP address on 192.168.10.51(192.168.10.51:3306)
+Selected 192.168.10.52(192.168.10.52:3306) as a new master.
+192.168.10.52(192.168.10.52:3306): OK: Applying all logs succeeded.
+192.168.10.52(192.168.10.52:3306): OK: Activated master IP address.
+192.168.10.53(192.168.10.53:3306): OK: Slave started, replicating from 192.168.10.52(192.168.10.52:3306)
+192.168.10.52(192.168.10.52:3306): Resetting slave info succeeded.
+Master failover to 192.168.10.52(192.168.10.52:3306) completed successfully.
+</code></pre>
+<h2 id="2-主动切换">2、主动切换</h2>
+<p>故障后进行主动切换，查看主从状态和<code>vip</code>环境确认</p>
+<p>主库已切换至<code>db2</code></p>
+<pre><code class="language-shell">[root@db3 ~ ]# mysql -uroot -p123456 -e &quot;show slave status\G;&quot; |grep Master_Host
+mysql: [Warning] Using a password on the command line interface can be insecure.
+                  Master_Host: 192.168.10.52   # 主库已变更
+</code></pre>
+<p><code>vip</code>已切换至<code>db2</code></p>
+<pre><code class="language-shell">[root@db2 ~]# ip a |grep eth0
+2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    inet 192.168.10.52/24 brd 192.168.10.255 scope global noprefixroute eth0
+    inet 192.168.10.49/24 brd 192.168.10.255 scope global secondary eth0:1
+</code></pre>
+<h2 id="3-在线切换">3、在线切换</h2>
+<h3 id="31-只切换角色">3.1 只切换角色</h3>
+<h4 id="311-切换命令">3.1.1 切换命令</h4>
+<pre><code class="language-shell">masterha_master_switch  --conf=/etc/mha/app1.cnf --master_state=alive --new_master_host=192.168.10.51 --orig_master_is_new_slave --running_updates_limit=10000
+
+master_ip_online_change_script is not defined. If you do not disable writes on the current master manually, applications keep writing on the current master. Is it ok to proceed? (yes/NO): yes
+
+# 命令解析
+--conf=/etc/mha/app1.cnf  # 指定配置文件
+--master_state=alive      # 主库在线的情况下进行切换
+--new_master_host=192.168.10.51   # 指定新主ip
+--orig_master_is_new_slave  # 原主库改为从库
+running_updates_limit=10000  # 网络延时(ping值)超过1w毫秒不进行切换
+</code></pre>
+<h4 id="312-注意内容">3.1.2 注意内容</h4>
+<p><strong>此命令一般不会在生产环境使用，只用于测试</strong><br>
+1、需要关闭<code>mha-manager</code>，不然切换无法执行成功。报错如下：</p>
+<pre><code class="language-shell">Tue Jun  8 10:03:54 2021 - [error][/usr/share/perl5/vendor_perl/MHA/MasterRotate.pm, ln143] Getting advisory lock failed on the current master. MHA Monitor runs on the current master. Stop MHA Manager/Monitor and try again.
+Tue Jun  8 10:03:54 2021 - [error][/usr/share/perl5/vendor_perl/MHA/ManagerUtil.pm, ln177] Got ERROR:  at /usr/bin/masterha_master_switch line 53.
+</code></pre>
+<p>2、需要将原主库锁住<code>Flush table with read lock</code>，使其只读。因为在切换完主从后，<code>vip</code>尚未切换，此段时间数据还会写入到原主库，导致数据不一致。警告如下：</p>
+<pre><code class="language-shell">It is better to execute FLUSH NO_WRITE_TO_BINLOG TABLES on the master before switching. Is it ok to execute on 192.168.10.52(192.168.10.52:3306)? (YES/no): yes
+</code></pre>
+<p>3、需要手工切换<code>vip</code></p>
+<p>4、需要重新拉取主库<code>binlog</code>（binlog-server）</p>
+<h3 id="32-脚本功能实现">3.2 脚本功能实现</h3>
+<p>功能: 在线切换时，自动锁原主库，<code>VIP</code>自动切换</p>
+<h4 id="321-准备脚本">3.2.1 准备脚本</h4>
+<pre><code class="language-perl">vim /usr/local/bin/master_ip_online_change
+#!/usr/bin/env perl
+
+use strict;
+use warnings FATAL =&gt; 'all';
+use Getopt::Long;
+use MHA::DBHelper;
+use MHA::NodeUtil;
+use Time::HiRes qw( sleep gettimeofday tv_interval );
+use Data::Dumper;
+my $_tstart;
+my $_running_interval = 0.1;
+my (
+  $command,              $orig_master_is_new_slave, $orig_master_host,
+  $orig_master_ip,       $orig_master_port,         $orig_master_user,
+  $orig_master_password, $orig_master_ssh_user,     $new_master_host,
+  $new_master_ip,        $new_master_port,          $new_master_user,
+  $new_master_password,  $new_master_ssh_user,
+);
+ 
+###########################################################################
+my $vip = &quot;10.0.0.55&quot;;
+my $key = &quot;1&quot;;
+my $ssh_start_vip = &quot;/sbin/ifconfig ens33:$key $vip&quot;;
+my $ssh_stop_vip = &quot;/sbin/ifconfig ens33:$key $vip down&quot;;
+my $ssh_Bcast_arp= &quot;/sbin/arping -I ens33 -c 3 -A 10.0.0.55&quot;;
+###########################################################################
+ 
+GetOptions(
+  'command=s'                =&gt; \$command,
+  'orig_master_is_new_slave' =&gt; \$orig_master_is_new_slave,
+  'orig_master_host=s'       =&gt; \$orig_master_host,
+  'orig_master_ip=s'         =&gt; \$orig_master_ip,
+  'orig_master_port=i'       =&gt; \$orig_master_port,
+  'orig_master_user=s'       =&gt; \$orig_master_user,
+  'orig_master_password=s'   =&gt; \$orig_master_password,
+  'orig_master_ssh_user=s'   =&gt; \$orig_master_ssh_user,
+  'new_master_host=s'        =&gt; \$new_master_host,
+  'new_master_ip=s'          =&gt; \$new_master_ip,
+  'new_master_port=i'        =&gt; \$new_master_port,
+  'new_master_user=s'        =&gt; \$new_master_user,
+  'new_master_password=s'    =&gt; \$new_master_password,
+  'new_master_ssh_user=s'    =&gt; \$new_master_ssh_user,
+);
+exit &amp;main();
+sub current_time_us {
+  my ( $sec, $microsec ) = gettimeofday();
+  my $curdate = localtime($sec);
+  return $curdate . &quot; &quot; . sprintf( &quot;%06d&quot;, $microsec );
+}
+sub sleep_until {
+  my $elapsed = tv_interval($_tstart);
+  if ( $_running_interval &gt; $elapsed ) {
+    sleep( $_running_interval - $elapsed );
+  }
+}
+sub get_threads_util {
+  my $dbh                    = shift;
+  my $my_connection_id       = shift;
+  my $running_time_threshold = shift;
+  my $type                   = shift;
+  $running_time_threshold = 0 unless ($running_time_threshold);
+  $type                   = 0 unless ($type);
+  my @threads;
+  my $sth = $dbh-&gt;prepare(&quot;SHOW PROCESSLIST&quot;);
+  $sth-&gt;execute();
+  while ( my $ref = $sth-&gt;fetchrow_hashref() ) {
+    my $id         = $ref-&gt;{Id};
+    my $user       = $ref-&gt;{User};
+    my $host       = $ref-&gt;{Host};
+    my $command    = $ref-&gt;{Command};
+    my $state      = $ref-&gt;{State};
+    my $query_time = $ref-&gt;{Time};
+    my $info       = $ref-&gt;{Info};
+    $info =~ s/^\s*(.*?)\s*$/$1/ if defined($info);
+    next if ( $my_connection_id == $id );
+    next if ( defined($query_time) &amp;&amp; $query_time &lt; $running_time_threshold );
+    next if ( defined($command)    &amp;&amp; $command eq &quot;Binlog Dump&quot; );
+    next if ( defined($user)       &amp;&amp; $user eq &quot;system user&quot; );
+    next
+      if ( defined($command)
+      &amp;&amp; $command eq &quot;Sleep&quot;
+      &amp;&amp; defined($query_time)
+      &amp;&amp; $query_time &gt;= 1 );
+    if ( $type &gt;= 1 ) {
+      next if ( defined($command) &amp;&amp; $command eq &quot;Sleep&quot; );
+      next if ( defined($command) &amp;&amp; $command eq &quot;Connect&quot; );
+    }
+    if ( $type &gt;= 2 ) {
+      next if ( defined($info) &amp;&amp; $info =~ m/^select/i );
+      next if ( defined($info) &amp;&amp; $info =~ m/^show/i );
+    }
+    push @threads, $ref;
+  }
+  return @threads;
+}
+sub main {
+  if ( $command eq &quot;stop&quot; ) {
+    ## Gracefully killing connections on the current master
+    # 1. Set read_only= 1 on the new master
+    # 2. DROP USER so that no app user can establish new connections
+    # 3. Set read_only= 1 on the current master
+    # 4. Kill current queries
+    # * Any database access failure will result in script die.
+    my $exit_code = 1;
+    eval {
+      ## Setting read_only=1 on the new master (to avoid accident)
+      my $new_master_handler = new MHA::DBHelper();
+      # args: hostname, port, user, password, raise_error(die_on_error)_or_not
+      $new_master_handler-&gt;connect( $new_master_ip, $new_master_port,
+        $new_master_user, $new_master_password, 1 );
+      print current_time_us() . &quot; Set read_only on the new master.. &quot;;
+      $new_master_handler-&gt;enable_read_only();
+      if ( $new_master_handler-&gt;is_read_only() ) {
+        print &quot;ok.\n&quot;;
+      }
+      else {
+        die &quot;Failed!\n&quot;;
+      }
+      $new_master_handler-&gt;disconnect();
+      # Connecting to the orig master, die if any database error happens
+      my $orig_master_handler = new MHA::DBHelper();
+      $orig_master_handler-&gt;connect( $orig_master_ip, $orig_master_port,
+        $orig_master_user, $orig_master_password, 1 );
+      ## Drop application user so that nobody can connect. Disabling per-session binlog beforehand
+      $orig_master_handler-&gt;disable_log_bin_local();
+      print current_time_us() . &quot; Drpping app user on the orig master..\n&quot;;
+###########################################################################
+      #FIXME_xxx_drop_app_user($orig_master_handler);
+###########################################################################
+      ## Waiting for N * 100 milliseconds so that current connections can exit
+      my $time_until_read_only = 15;
+      $_tstart = [gettimeofday];
+      my @threads = get_threads_util( $orig_master_handler-&gt;{dbh},
+        $orig_master_handler-&gt;{connection_id} );
+      while ( $time_until_read_only &gt; 0 &amp;&amp; $#threads &gt;= 0 ) {
+        if ( $time_until_read_only % 5 == 0 ) {
+          printf
+&quot;%s Waiting all running %d threads are disconnected.. (max %d milliseconds)\n&quot;,
+            current_time_us(), $#threads + 1, $time_until_read_only * 100;
+          if ( $#threads &lt; 5 ) {
+            print Data::Dumper-&gt;new( [$_] )-&gt;Indent(0)-&gt;Terse(1)-&gt;Dump . &quot;\n&quot;
+              foreach (@threads);
+          }
+        }
+        sleep_until();
+        $_tstart = [gettimeofday];
+        $time_until_read_only--;
+        @threads = get_threads_util( $orig_master_handler-&gt;{dbh},
+          $orig_master_handler-&gt;{connection_id} );
+      }
+      ## Setting read_only=1 on the current master so that nobody(except SUPER) can write
+      print current_time_us() . &quot; Set read_only=1 on the orig master.. &quot;;
+      $orig_master_handler-&gt;enable_read_only();
+      if ( $orig_master_handler-&gt;is_read_only() ) {
+        print &quot;ok.\n&quot;;
+      }
+      else {
+        die &quot;Failed!\n&quot;;
+      }
+      ## Waiting for M * 100 milliseconds so that current update queries can complete
+      my $time_until_kill_threads = 5;
+      @threads = get_threads_util( $orig_master_handler-&gt;{dbh},
+        $orig_master_handler-&gt;{connection_id} );
+      while ( $time_until_kill_threads &gt; 0 &amp;&amp; $#threads &gt;= 0 ) {
+        if ( $time_until_kill_threads % 5 == 0 ) {
+          printf
+&quot;%s Waiting all running %d queries are disconnected.. (max %d milliseconds)\n&quot;,
+            current_time_us(), $#threads + 1, $time_until_kill_threads * 100;
+          if ( $#threads &lt; 5 ) {
+            print Data::Dumper-&gt;new( [$_] )-&gt;Indent(0)-&gt;Terse(1)-&gt;Dump . &quot;\n&quot;
+              foreach (@threads);
+          }
+        }
+        sleep_until();
+        $_tstart = [gettimeofday];
+        $time_until_kill_threads--;
+        @threads = get_threads_util( $orig_master_handler-&gt;{dbh},
+          $orig_master_handler-&gt;{connection_id} );
+      }
+###########################################################################
+      print &quot;disable the VIP on old master: $orig_master_host \n&quot;;
+      &amp;stop_vip();
+###########################################################################
+      ## Terminating all threads
+      print current_time_us() . &quot; Killing all application threads..\n&quot;;
+      $orig_master_handler-&gt;kill_threads(@threads) if ( $#threads &gt;= 0 );
+      print current_time_us() . &quot; done.\n&quot;;
+      $orig_master_handler-&gt;enable_log_bin_local();
+      $orig_master_handler-&gt;disconnect();
+      ## After finishing the script, MHA executes FLUSH TABLES WITH READ LOCK
+      $exit_code = 0;
+    };
+    if ($@) {
+      warn &quot;Got Error: $@\n&quot;;
+      exit $exit_code;
+    }
+    exit $exit_code;
+  }
+  elsif ( $command eq &quot;start&quot; ) {
+    ## Activating master ip on the new master
+    # 1. Create app user with write privileges
+    # 2. Moving backup script if needed
+    # 3. Register new master's ip to the catalog database
+    my $exit_code = 10;
+    eval {
+      my $new_master_handler = new MHA::DBHelper();
+      # args: hostname, port, user, password, raise_error_or_not
+      $new_master_handler-&gt;connect( $new_master_ip, $new_master_port,
+        $new_master_user, $new_master_password, 1 );
+      ## Set read_only=0 on the new master
+      $new_master_handler-&gt;disable_log_bin_local();
+      print current_time_us() . &quot; Set read_only=0 on the new master.\n&quot;;
+      $new_master_handler-&gt;disable_read_only();
+      ## Creating an app user on the new master
+      print current_time_us() . &quot; Creating app user on the new master..\n&quot;;
+###########################################################################
+      #FIXME_xxx_create_app_user($new_master_handler);
+###########################################################################
+      $new_master_handler-&gt;enable_log_bin_local();
+      $new_master_handler-&gt;disconnect();
+      ## Update master ip on the catalog database, etc
+###############################################################################
+      print &quot;enable the VIP: $vip on the new master: $new_master_host \n &quot;;
+      &amp;start_vip();
+###############################################################################
+      $exit_code = 0;
+    };
+    if ($@) {
+      warn &quot;Got Error: $@\n&quot;;
+      exit $exit_code;
+    }
+    exit $exit_code;
+  }
+  elsif ( $command eq &quot;status&quot; ) {
+    # do nothing
+    exit 0;
+  }
+  else {
+    &amp;usage();
+    exit 1;
+  }
+}
+###########################################################################
+sub start_vip() {
+	`ssh $new_master_ssh_user\@$new_master_host \&quot; $ssh_start_vip \&quot;`;
+}
+sub stop_vip() {
+	`ssh $orig_master_ssh_user\@$orig_master_host \&quot; $ssh_stop_vip \&quot;`;
+}
+###########################################################################
+sub usage {
+  print
+&quot;Usage: master_ip_online_change --command=start|stop|status --orig_master_host=host --orig_master_ip=ip --orig_master_port=port --new_master_host=host --new_master_ip=ip --new_master_port=port\n&quot;;
+  die;
+}
+</code></pre>
+<p>根据自身环境修改以下内容（与vip脚本设置一致）</p>
+<pre><code class="language-perl">my $vip = '192.168.10.49/24';      # vip网段，与各节点服务器网段一致。
+my $key = '1';                     # 虚拟网卡eth0:1 的 1
+my $ssh_start_vip = &quot;/sbin/ifconfig eth0:$key $vip&quot;;  # 网卡按照实际网卡名称填写
+my $ssh_stop_vip = &quot;/sbin/ifconfig eth0:$key down&quot;;   # 网卡按照实际网卡名称填写
+my $ssh_Bcast_arp= &quot;/sbin/arping -I eth0 -c 3 -A 192.168.10.49&quot;; # 重新声明mac地址，arp
+</code></pre>
+<h4 id="322-mha配置文件">3.2.2 mha配置文件</h4>
+<p>修改<code>mha-manager</code>配置文件，增加一下内容</p>
+<pre><code class="language-shell">vim /etc/mha/app1.cnf
+master_ip_online_change_script=/usr/local/bin/master_ip_online_change
+</code></pre>
+<h4 id="323-关停mha服务">3.2.3 关停mha服务</h4>
+<pre><code class="language-shell">masterha_stop  --conf=/etc/mha/app1.cnf
+</code></pre>
+<h4 id="324-检查repl">3.2.4 检查repl</h4>
+<pre><code class="language-shell">masterha_check_repl   --conf=/etc/mha/app1.cnf
+</code></pre>
+<h4 id="325-在线切换">3.2.5 在线切换</h4>
+<pre><code class="language-shell">masterha_master_switch  --conf=/etc/mha/app1.cnf --master_state=alive --new_master_host=192.168.10.51 --orig_master_is_new_slave --running_updates_limit=10000
+
+From:
+192.168.10.52(192.168.10.52:3306) (current master)
+ +--192.168.10.51(192.168.10.51:3306)
+ +--192.168.10.53(192.168.10.53:3306)
+
+To:
+192.168.10.51(192.168.10.51:3306) (new master)
+ +--192.168.10.53(192.168.10.53:3306)
+ +--192.168.10.52(192.168.10.52:3306)
+ 
+Tue Jun  8 10:44:10 2021 - [info] Switching master to 192.168.10.51(192.168.10.51:3306) completed successfully.  # 切换成功
+
+</code></pre>
+<h4 id="326-确认vip">3.2.6 确认vip</h4>
+<pre><code class="language-shell">[root@db1 ~]# ip a |grep eth0
+2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    inet 192.168.10.51/24 brd 192.168.10.255 scope global noprefixroute eth0
+    inet 192.168.10.49/24 brd 192.168.10.255 scope global secondary eth0:1
+</code></pre>
+<h4 id="327-重构binlog-server">3.2.7 重构binlog-server</h4>
+<p>1、查询当前<code>salve</code>当前拿取的<code>binlog</code>日志</p>
+<pre><code class="language-mysql">[root@db3 ~]# mysql -uroot -p123456 -e &quot;show slave status \G&quot;|grep &quot;Master_Log&quot; 
+              Master_Log_File: mysql-bin.000006
+          Read_Master_Log_Pos: 196
+        Relay_Master_Log_File: mysql-bin.000006
+          Exec_Master_Log_Pos: 196
+</code></pre>
+<p>2、关停当前<code>binlog-server</code>服务，清除<code>binlog-server</code>目录里拉取的日志文件</p>
+<pre><code class="language-shell">[root@db03 bin]# ps -ef |grep mysqlbinlog
+root      28144  16272  0 17:50 pts/1    00:00:00 mysqlbinlog -R --host=192.168.10.52 --user=mha --password=x x --raw --stop-never mysql-bin.000005
+root      28529  16272  0 18:03 pts/1    00:00:00 grep --color=auto mysqlbinlog
+[root@db03 bin]# kill -9 28144
+[root@db03 bin]# cd /data/binlog_server/
+[root@db03 binlog_server]# ll
+total 4
+-rw-r----- 1 root root 194 Apr  1 17:50 mysql-bin.000005
+[root@db03 binlog_server]# rm -rf *
+[1] 28534
+</code></pre>
+<p>3、进入日志目录，重新启动<code>binlog-server</code>守护进程</p>
+<pre><code class="language-shell">[root@db03 bin]# cd /data/binlog_server/
+[root@db03 binlog_server]# mysqlbinlog  -R --host=192.168.10.51 --user=mha --password=mha --raw  --stop-never mysql-bin.000009 &amp;
+</code></pre>
+<h4 id="328-重新启动mha">3.2.8 重新启动mha</h4>
+<pre><code class="language-shell">[root@db03 bin]# nohup masterha_manager --conf=/etc/mha/app1.cnf --remove_dead_master_conf --ignore_last_failover  &lt; /dev/null&gt; /var/log/mha/app1/manager.log 2&gt;&amp;1 &amp;
+
+[root@db03 binlog_server]# masterha_check_status   --conf=/etc/mha/app1.cnf 
+app1 (pid:28535) is running(0:PING_OK), master:192.168.10.51
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/M29o-BG-i" class="tag">
+                    mysql
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/mysql-mha-bu-shu-yu-ce-shi-shang-pian">
+                  <h3 class="post-title">
+                    MySQL MHA部署与测试-上篇
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

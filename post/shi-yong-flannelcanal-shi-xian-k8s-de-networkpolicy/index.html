@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>使用flannel+canal实现k8s的NetworkPolicy | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">使用flannel+canal实现k8s的NetworkPolicy</h2>
+            <div class="post-date">2019-10-21</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-networkpolicy%E6%A6%82%E8%BF%B0">1、NetworkPolicy概述</a></li>
+<li><a href="#2-networkpolicy%E7%AD%96%E7%95%A5%E6%A8%A1%E5%9E%8B">2、NetworkPolicy策略模型</a></li>
+<li><a href="#3-networkpolicy%E9%BB%98%E8%AE%A4%E7%AD%96%E7%95%A5">3、NetworkPolicy默认策略</a></li>
+<li><a href="#4-networkpolicy%E7%9A%84%E5%AE%9E%E7%8E%B0">4、NetworkPolicy的实现</a></li>
+<li><a href="#5-%E4%BD%BF%E7%94%A8flannelcanal%E5%AE%9E%E7%8E%B0k8s%E7%9A%84networkpolicy">5、使用flannel+canal实现k8s的NetworkPolicy</a>
+<ul>
+<li><a href="#51-%E5%AE%9E%E9%AA%8C%E7%8E%AF%E5%A2%83%E8%AF%B4%E6%98%8E">5.1、实验环境说明</a></li>
+<li><a href="#52-%E5%AE%89%E8%A3%85canal">5.2、安装canal</a></li>
+<li><a href="#53-%E5%BA%94%E7%94%A8%E7%A4%BA%E4%BE%8B">5.3、应用示例</a>
+<ul>
+<li><a href="#531-%E5%88%9B%E5%BB%BA%E9%BB%98%E8%AE%A4%E6%9C%8D%E5%8A%A1">5.3.1、创建默认服务</a></li>
+<li><a href="#532-%E6%B5%8B%E8%AF%95%E8%AE%BF%E9%97%AE">5.3.2、测试访问</a></li>
+<li><a href="#533-%E5%88%9B%E5%BB%BA%E9%BB%98%E8%AE%A4policy">5.3.3、创建默认policy</a></li>
+<li><a href="#534-%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E5%85%81%E8%AE%B8%E5%B8%A6%E6%9C%89accesstrue%E7%9A%84pod%E8%AE%BF%E9%97%AEnginx%E7%9A%84%E7%BD%91%E7%BB%9C%E7%AD%96%E7%95%A5">5.3.4、创建一个允许带有access=true的Pod访问nginx的网络策略</a></li>
+</ul>
+</li>
+<li><a href="#54-%E7%94%9F%E4%BA%A7%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF">5.4、生产使用场景</a>
+<ul>
+<li><a href="#541-%E7%A6%81%E6%AD%A2%E8%AE%BF%E9%97%AE%E6%8C%87%E5%AE%9A%E6%9C%8D%E5%8A%A1">5.4.1、禁止访问指定服务</a></li>
+<li><a href="#542-%E5%8F%AA%E5%85%81%E8%AE%B8%E6%8C%87%E5%AE%9Apod%E8%AE%BF%E9%97%AE%E6%9C%8D%E5%8A%A1">5.4.2、只允许指定pod访问服务</a></li>
+<li><a href="#543-%E7%A6%81%E6%AD%A2-namespace-%E4%B8%AD%E6%89%80%E6%9C%89-pod-%E4%B9%8B%E9%97%B4%E7%9A%84%E7%9B%B8%E4%BA%92%E8%AE%BF%E9%97%AE">5.4.3、禁止 namespace 中所有 Pod 之间的相互访问</a></li>
+<li><a href="#544-%E7%A6%81%E6%AD%A2%E5%85%B6%E4%BB%96-namespace-%E8%AE%BF%E9%97%AE%E6%9C%8D%E5%8A%A1">5.4.4、禁止其他 namespace 访问服务</a></li>
+<li><a href="#545-%E5%8F%AA%E5%85%81%E8%AE%B8%E6%8C%87%E5%AE%9Anamespace%E8%AE%BF%E9%97%AE%E6%9C%8D%E5%8A%A1">5.4.5、只允许指定namespace访问服务</a></li>
+<li><a href="#546-%E5%85%81%E8%AE%B8%E5%A4%96%E7%BD%91%E8%AE%BF%E9%97%AE%E6%9C%8D%E5%8A%A1">5.4.6、允许外网访问服务</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-networkpolicy概述">1、NetworkPolicy概述</h2>
+<p>官方说明：<a href="https://kubernetes.io/zh/docs/concepts/services-networking/network-policies/">网络策略（NetworkPolicy）</a>是一种关于<code>pod</code>间及<code>pod</code>与其他网络端点间所允许的通信规则的规范。<br>
+简单来说，<code>NetworkPolicy</code>就是对<code>pod</code>进行网络策略控制。用于为<code>Kubernetes</code>实现更为精细的流量控制，实现租户隔离机制。<code>Kubernetes</code>使用标准的资源对象<code>NetworkPolicy</code>供管理员按需定义网络访问控制策略。</p>
+<h2 id="2-networkpolicy策略模型">2、NetworkPolicy策略模型</h2>
+<p>使用<code>network policy</code>资源可以配置<code>pod</code>的网络，<code>networkPolicy</code>是<code>namespace scoped</code>的，他只能影响某个<code>namespace</code>下的<code>pod</code>的网络出入站规则。<br>
+<img src="https://image.ssgeek.com/20191021-01.png" alt=""></p>
+<ul>
+<li><code>metadata</code>描述信息。</li>
+<li><code>podSelector</code> pod选择器，选定的<code>pod</code>所有的出入站流量要遵循本<code>networkpolicy</code>的约束。</li>
+<li><code>policyTypes</code> 策略类型。包括了<code>Ingress</code>和<code>Egress</code>，默认情况下一个<code>policyTypes</code>的值一定会包含<code>Ingress</code>，当有<code>egress</code>规则时，<code>policyTypes</code>的值中会包含<code>Egress</code>。</li>
+<li><code>ingress</code>入站，即由其他网络端点发往特定<code>Pod</code>组的流量 ，通常由流量发出的源站点<code>from</code>和流量的目标端口所定义 。</li>
+<li><code>egress</code>出站，即由特定的<code>Pod</code>组发往其他网络端点的流量 ，通常由流量的目标网络端点<code>to</code>和端口<code>ports</code>来进行定义 。</li>
+<li><code>port</code> 端口，<code>TCP</code>或<code>UDP</code>的端口号。</li>
+<li><code>to，from</code> 端点，流量目标和流量源相关的组件， 它可以是<code>CIDR</code>格式的<code>IP</code>地址块 <code>ipBlock</code>、网络名称空间选择器<code>namespaceSelector</code>匹配的名称空间， 或<code>Pod</code>选择器<code>podSelector</code>匹配的<code>Pod</code>组。</li>
+</ul>
+<p>对<a href="https://kubernetes.io/zh/docs/concepts/services-networking/network-policies/#networkpolicy-%E8%B5%84%E6%BA%90">官方示例</a>的说明：</p>
+<pre><code>apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      role: db
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+</code></pre>
+<p>该例子的效果如下：<br>
+1、<code>default namespace</code>下<code>label</code>包含<code>role=db</code>的<code>pod</code>，都会被隔绝，他们只能建立满足<code>networkPolicy</code>的<code>ingress</code>和<code>egress</code>描述的连接。即2-5点：<br>
+2、所有属于<code>172.17.0.0/16</code>网段的ip，除了<code>172.17.1.0/24</code>中的ip，其他的都可以与上述<code>pod</code>的<code>6379</code>端口建立<code>tcp</code>连接。<br>
+3、所有包含<code>label：project=myproject</code>的<code>namespace</code>中的<code>pod</code>可以与上述<code>pod</code>的<code>6379</code>端口建立<code>tcp</code>连接；<br>
+4、所有<code>default namespace</code>下的<code>label</code>包含<code>role=frontend</code>的<code>pod</code>可以与上述<code>pod</code>的<code>6379</code>端口建立<code>tcp</code>连接；<br>
+5、允许上述<code>pod</code>访问网段为<code>10.0.0.0/24</code>的目的<code>ip</code>的<code>5978</code>端口。</p>
+<h2 id="3-networkpolicy默认策略">3、NetworkPolicy默认策略</h2>
+<p>默认情况下，如果名称空间中不存在任何策略，则所有进出该名称空间中的Pod的流量都被允许。以下示例用于更改该名称空间中的默认行为。</p>
+<ul>
+<li>默认拒绝所有入口流量<br>
+通过创建选择所有容器但不允许任何进入这些容器的入口流量的<code>NetworkPolicy</code>来为名称空间创建<code>default</code>隔离策略。这样可以确保即使容器没有选择其他任何<code>NetworkPolicy</code>，也仍然可以被隔离。此策略不会更改默认的出口隔离行为。</li>
+</ul>
+<pre><code>apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+</code></pre>
+<ul>
+<li>默认允许所有入口流量<br>
+如果要允许所有流量进入某个命名空间中的所有<code>Pod</code>（即使添加了导致某些<code>Pod</code>被视为“隔离”的策略），则可以创建一个策略来明确允许该命名空间中的所有流量。</li>
+</ul>
+<pre><code>apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-all
+spec:
+  podSelector: {}
+  ingress:
+  - {}
+  policyTypes:
+  - Ingress
+</code></pre>
+<ul>
+<li>默认拒绝所有出口流量<br>
+通过创建选择所有容器但不允许来自这些容器的任何出口流量的<code>NetworkPolicy</code>来为名称空间创建<code>default egress</code>隔离策略。这样可以确保即使没有被其他任何<code>NetworkPolicy</code>选择的<code>Pod</code>也不会被允许流出流量。此策略不会更改默认的<code>ingress</code>隔离行为。</li>
+</ul>
+<pre><code>apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+</code></pre>
+<ul>
+<li>默认允许所有出口流量<br>
+如果要允许来自命名空间中所有<code>Pod</code>的所有流量（即使添加了导致某些<code>Pod</code>被视为“隔离”的策略），则可以创建一个策略，该策略明确允许该命名空间中的所有出口流量。</li>
+</ul>
+<pre><code>apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-all
+spec:
+  podSelector: {}
+  egress:
+  - {}
+  policyTypes:
+  - Egress
+</code></pre>
+<ul>
+<li>默认拒绝所有入口和所有出口流量<br>
+为名称空间创建<code>default</code>策略，以通过在该名称空间中创建以下<code>NetworkPolicy</code>来阻止所有入站和出站流量。这样可以确保即使没有被其他任何<code>NetworkPolicy</code>选择的<code>Pod</code>也不会被允许进入或流出流量。</li>
+</ul>
+<pre><code>apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+</code></pre>
+<h2 id="4-networkpolicy的实现">4、NetworkPolicy的实现</h2>
+<p><code>kubernetes</code>的网络策略功能本身并不支持，依赖其所使用的网络插件实现。因此，仅在使用那些支持网络策略功能的网络插件时才能够配置网络策略，企业内部可以使用简单的<code>flannel</code>、<code>weave</code>、<code>kube-router</code>等，适合公有云的方案则有<code>calico</code>等。不同的网络实现原理<code>vethpair</code>、<code>bridge</code>、<code>macvlan</code>等并不能统一地支持<code>network policy</code>。每种解决方案各有其特定的网络策略实现方式，它们的实现或依赖于节点自身的功能，或借助于<code>Hypervisor</code>的特性，也可能是网络自身的功能 。究其最终的底层实现原理，目前是基于<code>linux iptables</code>实现，使用类似于<code>nf_conntrack</code>检查记录网络流量<code>session</code>从而决定流量是否阻断。</p>
+<h2 id="5-使用flannelcanal实现k8s的networkpolicy">5、使用flannel+canal实现k8s的NetworkPolicy</h2>
+<p><code>Flannel</code>是解决容器网络方案最为普遍和简单的方案，<code>Canal</code>代表了针对云原生应用程序的最佳网络策略解决方案，旨在让用户轻松的将<code>Calico</code>和<code>Flannel</code>网络部署在一起作为统一的网络解决方案，将<code>Calico</code>的网络策略执行和<code>Flannel</code>的叠加及非叠加网络连接选项的丰富功能相结合。<br>
+在<code>Calico</code>的官方文档的相应部分中描述到此种方案是：用于策略的<code>Calico</code>和用于网络的<code>Flannel</code>相组合。官方文档见：https://docs.projectcalico.org/v3.10/getting-started/kubernetes/installation/flannel</p>
+<h3 id="51-实验环境说明">5.1、实验环境说明</h3>
+<p>实验k8s环境是<code>kubeadm</code>搭建的1master+2node最新版本1.16.2版本k8s，<code>cni</code>版本为0.3.1，<code>flannel</code>版本为0.11.0，<code>flannel</code>后端是<code>vxlan</code>模式并且已经开启了<code>Directrouting</code>。</p>
+<pre><code>[root@k8s-master-01 ~]# kubectl version
+Client Version: version.Info{Major:&quot;1&quot;, Minor:&quot;16&quot;, GitVersion:&quot;v1.16.2&quot;, GitCommit:&quot;c97fe5036ef3df2967d086711e6c0c405941e14b&quot;, GitTreeState:&quot;clean&quot;, BuildDate:&quot;2019-10-15T19:18:23Z&quot;, GoVersion:&quot;go1.12.10&quot;, Compiler:&quot;gc&quot;, Platform:&quot;linux/amd64&quot;}
+Server Version: version.Info{Major:&quot;1&quot;, Minor:&quot;16&quot;, GitVersion:&quot;v1.16.2&quot;, GitCommit:&quot;c97fe5036ef3df2967d086711e6c0c405941e14b&quot;, GitTreeState:&quot;clean&quot;, BuildDate:&quot;2019-10-15T19:09:08Z&quot;, GoVersion:&quot;go1.12.10&quot;, Compiler:&quot;gc&quot;, Platform:&quot;linux/amd64&quot;}
+[root@k8s-master-01 ~]# kubectl get nodes
+NAME            STATUS   ROLES    AGE    VERSION
+k8s-master-01   Ready    master   4d1h   v1.16.2
+k8s-node-01     Ready    &lt;none&gt;   4d     v1.16.2
+k8s-node-02     Ready    &lt;none&gt;   4d     v1.16.2
+[root@k8s-master-01 ~]# kubectl get pods -n kube-system 
+NAME                                    READY   STATUS    RESTARTS   AGE
+coredns-58cc8c89f4-bd6s8                1/1     Running   2          4d1h
+coredns-58cc8c89f4-bv5rl                1/1     Running   2          4d1h
+etcd-k8s-master-01                      1/1     Running   2          4d1h
+kube-apiserver-k8s-master-01            1/1     Running   2          4d1h
+kube-controller-manager-k8s-master-01   1/1     Running   2          4d1h
+kube-flannel-ds-amd64-grzvh             1/1     Running   1          2d22h
+kube-flannel-ds-amd64-hrd4h             1/1     Running   1          2d22h
+kube-flannel-ds-amd64-l8rtk             1/1     Running   1          2d22h
+kube-proxy-bp98z                        1/1     Running   2          4d
+kube-proxy-kvwgh                        1/1     Running   2          4d
+kube-proxy-n8lj6                        1/1     Running   2          4d1h
+kube-scheduler-k8s-master-01            1/1     Running   2          4d1h
+</code></pre>
+<h3 id="52-安装canal">5.2、安装canal</h3>
+<p>按照官方文档说明安装：https://docs.projectcalico.org/v3.10/getting-started/kubernetes/installation/flannel<br>
+部署时canal支持将数据存储于etcd中，支持选择专用的etcd存储，也能够以kubernetes api server作为后端存储，这里选择以后种方式进行。<br>
+结合<code>flannel</code>工作时，<code>Calico</code>提供的默认配置清单中是以<code>flannel</code>默认使用的<code>10.244.0.0/16</code> 为<code>Pod</code>网络，因此，请确保<code>kube-controller-manager</code>程序在启动时通过<code>--clustr-cidr</code>选项设置使用了此网络地址，并且<code>--allocate-node-cidrs</code>的值应设置为<code>true</code>。在使用<code>kubeadm</code>安装的此版本集群中，此选项均已配置。<br>
+如果集群cidr网络地址不是默认值，需要修改配置再进行部署。</p>
+<pre><code>[root@k8s-master-01 canal]# curl https://docs.projectcalico.org/v3.10/manifests/canal.yaml -O
+[root@k8s-master-01 canal]# kubectl apply -f canal.yaml 
+configmap/canal-config created
+customresourcedefinition.apiextensions.k8s.io/felixconfigurations.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/ipamblocks.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/blockaffinities.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/ipamhandles.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/ipamconfigs.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/bgppeers.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/bgpconfigurations.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/ippools.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/hostendpoints.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/clusterinformations.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/globalnetworkpolicies.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/globalnetworksets.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/networkpolicies.crd.projectcalico.org created
+customresourcedefinition.apiextensions.k8s.io/networksets.crd.projectcalico.org created
+clusterrole.rbac.authorization.k8s.io/calico-node created
+clusterrole.rbac.authorization.k8s.io/flannel configured
+clusterrolebinding.rbac.authorization.k8s.io/canal-flannel created
+clusterrolebinding.rbac.authorization.k8s.io/canal-calico created
+daemonset.apps/canal created
+serviceaccount/canal created
+[root@k8s-master-01 ~]# kubectl get pods -n kube-system -o wide|grep canal
+canal-rxb97                             2/2     Running   0          4h25m   192.168.2.12   k8s-node-02     &lt;none&gt;           &lt;none&gt;
+canal-tdcgf                             2/2     Running   0          4h25m   192.168.2.10   k8s-master-01   &lt;none&gt;           &lt;none&gt;
+canal-vll8z                             2/2     Running   0          4h25m   192.168.2.11   k8s-node-01     &lt;none&gt;           &lt;none&gt;
+</code></pre>
+<h3 id="53-应用示例">5.3、应用示例</h3>
+<h4 id="531-创建默认服务">5.3.1、创建默认服务</h4>
+<p>运行一组<code>nginx</code> pod并暴露80端口</p>
+<pre><code>[root@k8s-master-01 ~]# kubectl run nginx --image=nginx --replicas=3 --port=80 --expose
+kubectl run --generator=deployment/apps.v1 is DEPRECATED and will be removed in a future version. Use kubectl run --generator=run-pod/v1 or kubectl create instead.
+service/nginx created
+deployment.apps/nginx created
+[root@k8s-master-01 ~]# kubectl get pods
+NAME                          READY   STATUS    RESTARTS   AGE
+nginx-5578584966-8spqk        1/1     Running   0          15s
+nginx-5578584966-sjlvc        1/1     Running   0          15s
+nginx-5578584966-xm4pb        1/1     Running   0          15s
+[root@k8s-master-01 ~]# kubectl get svc nginx 
+NAME    TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+nginx   ClusterIP   10.1.8.146   &lt;none&gt;        80/TCP    16s
+</code></pre>
+<h4 id="532-测试访问">5.3.2、测试访问</h4>
+<pre><code>[root@k8s-master-01 ~]# kubectl run busy1 --rm -it --image=busybox /bin/sh
+kubectl run --generator=deployment/apps.v1 is DEPRECATED and will be removed in a future version. Use kubectl run --generator=run-pod/v1 or kubectl create instead.
+If you don't see a command prompt, try pressing enter.
+/ # wget --spider --timeout=1 nginx
+Connecting to nginx (10.1.8.146:80)
+remote file exists  ## 访问成功
+</code></pre>
+<h4 id="533-创建默认policy">5.3.3、创建默认policy</h4>
+<p>创建默认拒绝所有入站流量的networkpolicy，测试访问</p>
+<pre><code>[root@k8s-master-01 networkpolicy]# vim default-deny-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+[root@k8s-master-01 networkpolicy]# kubectl apply -f default-deny-ingress.yaml 
+networkpolicy.networking.k8s.io/default-deny created
+[root@k8s-master-01 ~]# kubectl run busy1 --rm -it --image=busybox /bin/sh
+kubectl run --generator=deployment/apps.v1 is DEPRECATED and will be removed in a future version. Use kubectl run --generator=run-pod/v1 or kubectl create instead.
+If you don't see a command prompt, try pressing enter.
+/ # wget --spider --timeout=1 nginx
+Connecting to nginx (10.1.8.146:80)
+wget: download timed out  ## 访问失败
+</code></pre>
+<h4 id="534-创建一个允许带有accesstrue的pod访问nginx的网络策略">5.3.4、创建一个允许带有access=true的Pod访问nginx的网络策略</h4>
+<pre><code>[root@k8s-master-01 networkpolicy]# vim nginx-policy.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: access-nginx
+spec:
+  podSelector:
+    matchLabels:
+      run: nginx
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          access: &quot;true&quot;
+[root@k8s-master-01 networkpolicy]# kubectl apply -f nginx-policy.yaml 
+networkpolicy.networking.k8s.io/access-nginx created
+</code></pre>
+<p>使用不带access=true标签的pod访问服务</p>
+<pre><code>[root@k8s-master-01 ~]# kubectl run busy1 --rm -it --image=busybox /bin/sh
+kubectl run --generator=deployment/apps.v1 is DEPRECATED and will be removed in a future version. Use kubectl run --generator=run-pod/v1 or kubectl create instead.
+If you don't see a command prompt, try pressing enter.
+/ # wget --spider --timeout=1 nginx
+Connecting to nginx (10.1.8.146:80)
+wget: download timed out  ## 访问失败
+</code></pre>
+<p>使用带access=true标签的pod访问服务</p>
+<pre><code>[root@k8s-master-01 ~]# kubectl run busy2 --rm -it --labels=&quot;access=true&quot; --image=busybox /bin/sh
+kubectl run --generator=deployment/apps.v1 is DEPRECATED and will be removed in a future version. Use kubectl run --generator=run-pod/v1 or kubectl create instead.
+If you don't see a command prompt, try pressing enter.
+/ # wget --spider --timeout=1 nginx
+Connecting to nginx (10.1.8.146:80)
+remote file exists  ## 访问成功
+</code></pre>
+<h3 id="54-生产使用场景">5.4、生产使用场景</h3>
+<h4 id="541-禁止访问指定服务">5.4.1、禁止访问指定服务</h4>
+<pre><code>kubectl run web --image=nginx --labels app=web,env=prod --expose --port 80
+</code></pre>
+<p>网络策略</p>
+<pre><code>kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: web-deny-all
+spec:
+  podSelector:
+    matchLabels:
+      app: web
+      env: prod
+</code></pre>
+<h4 id="542-只允许指定pod访问服务">5.4.2、只允许指定pod访问服务</h4>
+<pre><code>kubectl run apiserver --image=nginx --labels app=bookstore,role=api --expose --port 80
+</code></pre>
+<p>网络策略</p>
+<pre><code>kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: api-allow
+spec:
+  podSelector:
+    matchLabels:
+      app: bookstore
+      role: api
+  ingress:
+  - from:
+      - podSelector:
+          matchLabels:
+            app: bookstore
+</code></pre>
+<h4 id="543-禁止-namespace-中所有-pod-之间的相互访问">5.4.3、禁止 namespace 中所有 Pod 之间的相互访问</h4>
+<pre><code>apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: default
+spec:
+  podSelector: {}
+</code></pre>
+<h4 id="544-禁止其他-namespace-访问服务">5.4.4、禁止其他 namespace 访问服务</h4>
+<pre><code>kubectl create namespace secondary
+kubectl run web --namespace secondary --image=nginx \
+    --labels=app=web --expose --port 80
+</code></pre>
+<p>网络策略</p>
+<pre><code>kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  namespace: secondary
+  name: web-deny-other-namespaces
+spec:
+  podSelector:
+    matchLabels:
+  ingress:
+  - from:
+    - podSelector: {}
+</code></pre>
+<h4 id="545-只允许指定namespace访问服务">5.4.5、只允许指定namespace访问服务</h4>
+<pre><code>kubectl run web --image=nginx \
+    --labels=app=web --expose --port 80
+</code></pre>
+<p>网络策略</p>
+<pre><code>kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: web-allow-prod
+spec:
+  podSelector:
+    matchLabels:
+      app: web
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          purpose: production
+</code></pre>
+<h4 id="546-允许外网访问服务">5.4.6、允许外网访问服务</h4>
+<pre><code>kubectl run web --image=nginx --labels=app=web --port 80
+kubectl expose deployment/web --type=LoadBalancer
+</code></pre>
+<p>网络策略</p>
+<pre><code>kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: web-allow-external
+spec:
+  podSelector:
+    matchLabels:
+      app: web
+  ingress:
+  - ports:
+    - port: 80
+    from: []
+</code></pre>
+<p>参考来源：<br>
+https://kubernetes.io/zh/docs/concepts/services-networking/network-policies/<br>
+https://docs.projectcalico.org/v3.10/getting-started/kubernetes/installation/flannel<br>
+https://github.com/ahmetb/kubernetes-network-policy-recipes</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/er-jin-zhi-da-jian-kubernetes-ji-qun-zui-xin-v1160-ban-ben">
+                  <h3 class="post-title">
+                    二进制搭建Kubernetes集群(最新v1.16.0版本)
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

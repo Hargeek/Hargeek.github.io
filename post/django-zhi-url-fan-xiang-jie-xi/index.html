@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Django之URL反向解析 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Django之URL反向解析</h2>
+            <div class="post-date">2020-06-27</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%8F%8D%E5%90%91%E8%A7%A3%E6%9E%90%E7%9A%84%E6%A6%82%E8%BF%B0%E5%92%8C%E6%9D%A5%E7%94%B1">1、反向解析的概述和来由</a></li>
+<li><a href="#2-%E5%8F%8D%E5%90%91%E8%A7%A3%E6%9E%90%E7%9A%84%E7%A4%BA%E4%BE%8B">2、反向解析的示例</a></li>
+<li><a href="#3-url%E5%88%86%E7%BB%84%E7%9A%84%E5%8F%8D%E5%90%91%E8%A7%A3%E6%9E%90">3、url分组的反向解析</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-反向解析的概述和来由">1、反向解析的概述和来由</h2>
+<p>在<code>Django</code>中提供了关于<code>URL</code>的映射的解决方案，可以做两个方向的使用</p>
+<ul>
+<li>
+<p>1.普通解析过程：由客户端的浏览器发起一个<code>url</code>请求，Django根据<code>url</code>解析，把<code>url</code>中的参数捕获，调用相应的视图，获取相应的数据，然后返回给客户端显示。</p>
+</li>
+<li>
+<p>2.反向解析：通过一个视图的名字，再加上一些参数和值，逆向获取相应的<code>url</code>。简单来说，反向解析(本质)就是指通过一些方法，得到一个结果，该结果可以访问到对应的<code>url</code>并触发视图函数的运行</p>
+</li>
+</ul>
+<p>反向解析的应用场景，是因为在软件开发初期，<code>url</code>地址的路径设计可能并不完美，后期需要进行调整，如果项目中很多地方使用了该路径，一旦该路径发生变化，就意味着所有使用该路径的地方都需要进行修改，这是一个非常繁琐的操作。</p>
+<p>因此，解决方案就是在编写一条<code>url(regex,view,kwargs=None,name=None)</code>时，可以通过参数<code>name</code>为<code>url</code>地址的路径部分起一个别名，项目中就可以通过别名来获取这个路径。以后无论路径如何变化别名与路径始终保持一致。这种通过别名获取路径的过程就称为反向解析。</p>
+<h2 id="2-反向解析的示例">2、反向解析的示例</h2>
+<p>示例：登录成功跳转到index.html页面</p>
+<ul>
+<li>在<code>urls.py</code>中</li>
+</ul>
+<pre><code>from django.conf.urls import url
+from django.contrib import admin
+from app01 import views
+urlpatterns = [
+    url(r'^admin/', admin.site.urls),
+    
+    url(r'^login/$', views.login,name='login_page'), # 路径login/的别名为login_page
+    url(r'^index/$', views.index,name='index_page'), # 路径index/的别名为index_page
+]
+</code></pre>
+<ul>
+<li>在<code>views.py</code>中</li>
+</ul>
+<pre><code>from django.shortcuts import render 
+from django.shortcuts import reverse # 用于反向解析
+from django.shortcuts import redirect #用于重定向页面
+from django.shortcuts import HttpResponse
+
+def login(request):
+    if request.method == 'GET':
+        # 当为get请求时，返回login.html页面,页面中的{% url 'login_page' %}会被反向解析成路径：/login/
+        return render(request, 'login.html')
+	
+    # 当为post请求时，可以从request.POST中取出请求体的数据
+    name = request.POST.get('name')
+    pwd = request.POST.get('pwd')
+    if name == 'kevin' and pwd == '123':
+        url = reverse('index_page')  # reverse会将别名'index_page'反向解析成路径：/index/       
+        return redirect(url) # 重定向到/index/
+    else:
+        return HttpResponse('用户名或密码错误')
+
+
+def index(request):
+    return render(request, 'index.html')
+</code></pre>
+<ul>
+<li>login.html</li>
+</ul>
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;登录页面&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;!--强调：login_page必须加引号--&gt;
+&lt;form action=&quot;{% url 'login_page' %}&quot; method=&quot;post&quot;&gt;
+    &lt;p&gt;用户名：&lt;input type=&quot;text&quot; name=&quot;name&quot;&gt;&lt;/p&gt;
+    &lt;p&gt;密码：&lt;input type=&quot;password&quot; name=&quot;pwd&quot;&gt;&lt;/p&gt;
+    &lt;p&gt;&lt;input type=&quot;submit&quot; value=&quot;提交&quot;&gt;&lt;/p&gt;
+&lt;/form&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<ul>
+<li>index.html</li>
+</ul>
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;首页&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h3&gt;我是index页面...&lt;/h3&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>测试：<br>
+运行项目，在浏览器中输入http://127.0.0.1:8000/login/<br>
+会看到登录页面，输入正确的用户名密码后会跳转到index.html页面，当修改路由表中匹配路径的正则表达式时，程序其余部分均无需修改</p>
+<p>因此，反向解析的一般用法是</p>
+<pre><code># 后端views.py反向解析的使用
+  	from django.shortcuts import render,HttpResponse,redirect,reverse
+  	url = reverse('login_page')
+# 前端模版login.html文件中，反向解析的使用
+ 	{% url 'login_page' %}
+</code></pre>
+<h2 id="3-url分组的反向解析">3、url分组的反向解析</h2>
+<p>如果路径中存在分组（无名分组和有名分组）的反向解析，例如</p>
+<pre><code>from django.conf.urls import url
+from django.contrib import admin
+from app01 import views
+urlpatterns = [
+    url(r'^admin/', admin.site.urls),
+    
+    url(r'^aritcle/(\d+)/$',views.article,name='article_page'), #　无名分组
+    url(r'^user/(?P&lt;uid&gt;\d+)/$',views.article,name='user_page'), # 有名分组
+]
+</code></pre>
+<p>对应反向解析的写法是</p>
+<pre><code># 1 针对无名分组，比如要反向解析出：/aritcle/1/ 这种路径，写法如下
+在views.py中，反向解析的使用：
+	url = reverse('article_page',args=(1,)) 
+在模版login.html文件中，反向解析的使用
+	{% url 'article_page' 1 %}
+
+    
+# 2 针对有名分组，比如要反向解析出：/user/1/ 这种路径，写法如下
+在views.py中，反向解析的使用：
+	url = reverse('user_page',kwargs={'uid':1}) 
+在模版login.html文件中，反向解析的使用
+	{% url 'user_page' uid=1 %}
+</code></pre>
+<p>参考：<a href="https://www.cnblogs.com/xiaoyuanqujing">小猿取经</a></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/VEfPb2dUj" class="tag">
+                    django
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/vhKLQmmvn" class="tag">
+                    python
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/k8s-wang-luo-zhi-calico">
+                  <h3 class="post-title">
+                    Kubernetes网络之Calico
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

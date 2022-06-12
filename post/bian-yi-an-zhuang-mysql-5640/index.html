@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>编译安装mysql 5.6.40 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">编译安装mysql 5.6.40</h2>
+            <div class="post-date">2019-03-07</div>
+            
+            <div class="post-content">
+              <p></p>
+<blockquote>
+<p>环境说明<br>
+系统版本 	CentOS 7.2 x86_64<br>
+软件版本 	mysql-5.6.40</p>
+</blockquote>
+<p>编译步骤如下：</p>
+<pre><code>[root@db01 ~]# mkdir -p /service/tools
+[root@db01 ~]# mkdir /application
+[root@db01 ~]# yum install ncurses-devel libaio-devel cmake gcc gcc-c++ glibc openssl-devel bison-devel -y
+[root@db01 ~]# useradd -s /sbin/nologin -M mysql
+[root@db01 ~]# cd /service/tools/
+[root@db01 tools]# wget https://mirrors.tuna.tsinghua.edu.cn/mysql/downloads/MySQL-5.6/mysql-5.6.40.tar.gz
+[root@db01 tools]# tar xf mysql-5.6.40.tar.gz
+[root@db01 tools]# cd mysql-5.6.40/
+[root@db01 tools]# cmake . -DCMAKE_INSTALL_PREFIX=/application/mysql-5.6.40 \
+-DMYSQL_DATADIR=/application/mysql-5.6.40/data \
+-DMYSQL_UNIX_ADDR=/application/mysql-5.6.40/mysql.sock \
+-DDEFAULT_CHARSET=utf8 \
+-DDEFAULT_COLLATION=utf8_general_ci \
+-DWITH_EXTRA_CHARSETS=all \
+-DWITH_INNOBASE_STORAGE_ENGINE=1 \
+-DWITH_FEDERATED_STORAGE_ENGINE=1 \
+-DWITH_BLACKHOLE_STORAGE_ENGINE=1 \
+-DWITHOUT_EXAMPLE_STORAGE_ENGINE=1 \
+-DWITH_ZLIB=bundled \
+-DWITH_SSL=bundled \
+-DENABLED_LOCAL_INFILE=1 \
+-DWITH_EMBEDDED_SERVER=1 \
+-DENABLE_DOWNLOADS=1 \
+-DWITH_DEBUG=0
+[root@db01 tools]# make &amp;&amp; make install
+</code></pre>
+<p>参数说明：</p>
+<pre><code>cmake . -DCMAKE_INSTALL_PREFIX=/application/mysql-5.6.40 \	#指定安装目录
+-DMYSQL_DATADIR=/application/mysql-5.6.40/data \		#指定数据data目录
+-DMYSQL_UNIX_ADDR=/application/mysql-5.6.40/mysql.sock \ #指定sock路径
+-DDEFAULT_CHARSET=utf8 \									#指定默认字符集
+-DDEFAULT_COLLATION=utf8_general_ci \					#指定默认校验规则
+-DWITH_EXTRA_CHARSETS=all \								#指定扩展支持的字符集
+-DWITH_INNOBASE_STORAGE_ENGINE=1 \						#启用innodb存储引擎
+-DWITH_FEDERATED_STORAGE_ENGINE=1 \						#启用Federated存储引擎
+-DWITH_BLACKHOLE_STORAGE_ENGINE=1 \						#启用BLACKHOLE引擎
+-DWITHOUT_EXAMPLE_STORAGE_ENGINE=1 \						#禁用EXAMPLE_STORAGE_ENGINE
+-DWITH_ZLIB=bundled \										#启用zlib支持
+-DWITH_SSL=bundled \										#启用ssl库支持
+-DENABLED_LOCAL_INFILE=1 \								#启用加载本地数据
+-DWITH_EMBEDDED_SERVER=1 \								#嵌入式服务器
+-DENABLE_DOWNLOADS=1 \									#编译时允许自主下载相关文件
+-DWITH_DEBUG=0												#禁用调试模式
+</code></pre>
+<p>后续步骤：</p>
+<pre><code>[root@db01 mysql-5.6.40]# ln -s /application/mysql-5.6.40/ /application/mysql  #创建软链接
+[root@db01 mysql-5.6.40]# \cp support-files/my*.cnf /etc/my.cnf  #拷贝配置文件
+[root@db01 mysql-5.6.40]# /application/mysql/scripts/mysql_install_db --basedir=/application/mysql/ --datadir=/application/mysql/data --user=mysql  #初始化
+[root@db01 mysql-5.6.40]# chown -R mysql:mysql  /application/mysql/  #修改目录所属
+[root@db01 mysql-5.6.40]# \cp support-files/mysql.server /etc/init.d/mysqld  #拷贝启动脚本
+[root@db01 mysql-5.6.40]# chmod +x /etc/init.d/mysqld  #添加执行权限
+[root@db01 mysql-5.6.40]# ll /etc/init.d/mysqld  #检查
+-rwxr-xr-x 1 root root 10619 7月   1 16:06 /etc/init.d/mysqld
+[root@db01 mysql-5.6.40]# /etc/init.d/mysqld start  #启动mysql
+Starting MySQL.Logging to '/application/mysql-5.6.40/data/db01.err'.
+ SUCCESS!
+[root@db01 mysql-5.6.40]# ln -s /application/mysql/bin/* /usr/bin/ #创建命令快捷方式
+或者
+[root@db01 ~]# echo 'PATH=/application/mysql/bin/:$PATH' &gt;&gt;/etc/profile
+[root@db01 ~]# tail -1 /etc/profile
+[root@db01 ~]# source /etc/profile
+</code></pre>
+<p>基本优化（清理用户及无用数据库）</p>
+<pre><code>mysql&gt; select user,host from mysql.user;
+mysql&gt; drop user ''@'db01';
+mysql&gt; drop user ''@'localhost';
+mysql&gt; drop user 'root'@'db01';
+mysql&gt; drop user 'root'@'::1';
+mysql&gt; select user,host from mysql.user;
+mysql&gt; drop database test;
+mysql&gt; show databases;
+或者根据mysql_secure_installation命令进行向导优化
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/M29o-BG-i" class="tag">
+                    mysql
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/database" class="tag">
+                    数据库
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/linux-yuan-cheng-zhi-xing-windows-ji-qi-ren-wu">
+                  <h3 class="post-title">
+                    Linux远程执行Windows机器任务
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

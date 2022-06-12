@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>squid代理及常见的代理上网 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">squid代理及常见的代理上网</h2>
+            <div class="post-date">2020-02-13</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E7%8E%AF%E5%A2%83%E8%AF%B4%E6%98%8E">1、环境说明</a></li>
+<li><a href="#2-%E6%90%AD%E5%BB%BAsquid%E6%9C%8D%E5%8A%A1">2、搭建squid服务</a>
+<ul>
+<li><a href="#21-%E5%AE%89%E8%A3%85%E6%9C%8D%E5%8A%A1">2.1、安装服务</a></li>
+<li><a href="#22-%E9%85%8D%E7%BD%AE%E5%8F%97%E4%BF%A1">2.2、配置受信</a></li>
+</ul>
+</li>
+<li><a href="#3-%E9%85%8D%E7%BD%AE%E4%BB%A3%E7%90%86">3、配置代理</a>
+<ul>
+<li><a href="#31-%E9%85%8D%E7%BD%AE%E5%85%A8%E5%B1%80%E4%BB%A3%E7%90%86">3.1、配置全局代理</a></li>
+<li><a href="#32-%E9%85%8D%E7%BD%AEwget%E4%BB%A3%E7%90%86">3.2、配置wget代理</a></li>
+<li><a href="#33-%E9%85%8D%E7%BD%AEyum%E4%BB%A3%E7%90%86">3.3、配置yum代理</a></li>
+<li><a href="#34-%E9%85%8D%E7%BD%AEdocker%E4%BB%A3%E7%90%86">3.4、配置docker代理</a></li>
+<li><a href="#35-%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5">3.5、问题排查</a></li>
+</ul>
+</li>
+<li><a href="#4-%E6%90%AD%E5%BB%BAk8s%E6%97%B6%E9%85%8D%E7%BD%AE%E4%BB%A3%E7%90%86">4、搭建k8s时配置代理</a></li>
+<li><a href="#5-%E6%80%BB%E7%BB%93">5、总结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>Squid Cache（简称为Squid）是HTTP代理服务器软件。Squid用途广泛，可以作为缓存服务器，可以过滤流量帮助网络安全，也可以作为代理服务器链中的一环，向上级代理转发数据或直接连接互联网。Squid程序在Unix一类系统运行。由于它是开源软件，有网站修改Squid的源代码，编译为原生Windows版[2]；用户也可在Windows里安装Cygwin，然后在Cygwin里编译Squid。<br>
+Squid历史悠久，功能完善。除了HTTP外，对FTP与HTTPS的支持也相当好，在3.0测试版中也支持了IPv6。但是Squid的上级代理不能使用SOCKS协议。</p>
+</blockquote>
+<h2 id="1-环境说明">1、环境说明</h2>
+<p>本文中涉及两台服务器，这两台服务器均有内网<code>ip</code>地址，分别为</p>
+<pre><code>A: 192.168.0.200
+B: 192.168.0.100
+C: 192.168.0.101
+</code></pre>
+<p>其中<code>A</code>具有公网访问能力，<code>B</code>和<code>C</code>不具备公网访问能力。</p>
+<p>因此，可以让<code>B</code>具有公网访问能力或让<code>B</code>和<code>C</code>实现某些功能例如<code>yum</code>安装软件能正常使用，可行的方案有两种：</p>
+<ul>
+<li>方案1</li>
+</ul>
+<p>在<code>A</code>服务器开启数据包内核转发功能，接收<code>B</code>和<code>C</code>的数据包，<code>B</code>和<code>C</code>将自己的网关配置成<code>A</code>的地址，这样<code>B</code>和<code>C</code>的上网能力全部通过<code>A</code>来代理转发实现，这种做法简单好用，但是不适用于云厂商提供的虚拟主机例如阿里云<code>ECS</code>，因为云主机的<code>ip</code>和网卡配置一般是不支持自己定义的</p>
+<ul>
+<li>方案2</li>
+</ul>
+<p>在<code>A</code>服务器运行一个<code>squid</code>服务，<code>B</code>和<code>C</code>的某些操作通过<code>squid</code>来代理转发实现</p>
+<p>本文通过在<code>A</code>服务器上搭建<code>squid</code>代理，并在<code>B</code>和<code>C</code>服务器上实现了<code>wget</code>、<code>yum</code>、<code>docker</code>使用<code>A</code>的代理，以及把<code>A</code>、<code>B</code>、<code>C</code>这三台服务器作为<code>k8s</code>集群的节点利用<code>kubeadm</code>搭建一个<code>k8s</code>集群需要配置的地方</p>
+<h2 id="2-搭建squid服务">2、搭建squid服务</h2>
+<h3 id="21-安装服务">2.1、安装服务</h3>
+<p><code>A</code>服务器能上网，先把<code>A</code>服务器的<code>yum</code>源配置好，这里不做赘述，然后安装<code>squid</code>服务</p>
+<pre><code># rpm -qa | grep squid
+# yum install -y squid
+</code></pre>
+<p>默认安装的<code>squid</code>服务只需要配置一点，默认是拒绝所有服务器连接，只需要修改成允许所有服务器连接即可</p>
+<pre><code># vim /etc/squid/squid.conf
+http_access allow all
+</code></pre>
+<p>启动服务并设置成开机启动</p>
+<pre><code># systemctl start squid.service
+# systemctl enable squid.service
+</code></pre>
+<h3 id="22-配置受信">2.2、配置受信</h3>
+<p>这样配置之后，<code>squid</code>代理服务器就可以使用了，默认的端口是<code>3128</code>，但是为了安全，只让受信的服务器连接，通常还需要对<code>squid</code>配置账号验证授权使用，通过<code>httpd-tools</code>生成密码文件，安装</p>
+<pre><code># yum install httpd-tools -y
+</code></pre>
+<p>生成密码文件</p>
+<pre><code># mkdir /etc/squid3/
+# 生成密码文件，指定文件路径，其中squid是用户名
+# htpasswd -cd /etc/squid3/passwords squid
+#提示输入密码，不能超过8个字符，输入密码123456
+</code></pre>
+<p>测试密码文件</p>
+<pre><code># /usr/lib64/squid/basic_ncsa_auth /etc/squid3/passwords                
+squid 123456
+OK 
+# 测试完成，crtl + c 打断
+</code></pre>
+<p>配置<code>squid</code>使用验证，修改配置文件</p>
+<pre><code># vim /etc/squid/squid.conf
+# And finally deny all other access to this proxy
+auth_param basic program /usr/lib64/squid/basic_ncsa_auth /etc/squid3/passwords #账户密码文件
+auth_param basic realm proxy
+auth_param basic children 50 #最多 50 个账户同时运行
+auth_param basic realm CoolTube Proxy Server #密码框描述
+auth_param basic credentialsttl 2 hours #认证持续时间
+acl authenticated proxy_auth REQUIRED #对 authenticated 进行外部认证
+http_access allow authenticated #允许 authenticated 中的成员访问
+http_access deny all #拒绝所有其他访问
+visible_hostname squid.CoolTube #代理机名字
+
+# 这里是端口号，可以按需修改
+# http_port 3128 这样写会同时监听 ipv6 和 ipv4 的端口，推荐适应下面的配置方法。
+http_port 0.0.0.0:3128
+</code></pre>
+<p>初始化服务并重新启动</p>
+<pre><code># squid -z
+# systemctl restart squid.service
+</code></pre>
+<p>如果开启了防火墙，还要在防火墙中允许端口<code>3128</code>的策略，以<code>CentOS7</code>为例</p>
+<pre><code># 把 3128 端口加入防火墙过滤掉
+# firewall-cmd --permanent --zone=public --add-port=3128/tcp
+# 重启防火墙
+# firewall-cmd --reload
+</code></pre>
+<p>如果想新增用户，只需要按照上面的步骤再次生成一次密码文件就可以</p>
+<h2 id="3-配置代理">3、配置代理</h2>
+<h3 id="31-配置全局代理">3.1、配置全局代理</h3>
+<p>修改环境变量文件并使其生效</p>
+<pre><code>vim /etc/profile
+#在最后加入（有认证的情况）
+export http_proxy=&quot;http://squid:123456@192.168.0.200:3128&quot;
+export https_proxy=&quot;http://squid:123456@192.168.0.200:3128&quot;
+如果没有开启认证
+http_proxy=http://192.168.0.200:3128
+https_proxy=http://192.168.0.200:3128
+# source /etc/profile
+</code></pre>
+<h3 id="32-配置wget代理">3.2、配置wget代理</h3>
+<p>新增<code>wget</code>的环境变量文件</p>
+<pre><code># vim ~/.wgetrc
+http_proxy=http://192.168.0.200:3128
+https_proxy=http://192.168.0.200:3128
+use_proxy = on
+wait = 30
+# 验证，如果返回值为0表示wget可用
+# wget --spider -T 5 -q -t 2 www.baidu.com | echo $?
+0
+</code></pre>
+<h3 id="33-配置yum代理">3.3、配置yum代理</h3>
+<p>编辑<code>yum</code>的配置文件，新增下面的内容</p>
+<pre><code># vim /etc/yum.conf
+# 有认证的情况
+# Proxy
+proxy=http://squid:123456@192.168.0.200:3128
+# 没有认证
+# Proxy
+proxy=http://192.168.0.200:3128
+</code></pre>
+<h3 id="34-配置docker代理">3.4、配置docker代理</h3>
+<p><code>docker</code>配置代理是为了保证<code>docker</code>能从外网<code>pull</code>镜像，在安装了<code>docker</code>之后，在<code>docker</code>配置文件下新增配置并重启<code>docker</code></p>
+<pre><code># mkdir -p /etc/systemd/system/docker.service.d
+# vim /etc/systemd/system/docker.service.d/http-proxy.conf
+[Service]
+Environment=&quot;HTTP_PROXY=http://squid:123456@192.168.0.200:3128&quot; 
+# systemctl daemon-reload
+# systemctl restart docker
+</code></pre>
+<p>验证，通过<code>docker pull</code>命令<code>pull</code>一个公网的镜像</p>
+<pre><code>docker pull busybox:latest
+</code></pre>
+<h3 id="35-问题排查">3.5、问题排查</h3>
+<p>如果在配置上述代理后进行验证的时候，出现没有返回，卡顿或超时的情况，可以通过查看<code>A</code>服务器即<code>squid</code>代理服务器的日志进行检查，在日志中一般都可以查看到较为明显的错误<br>
+cache.log</p>
+<pre><code>tail -f /var/log/squid/cache.log 
+2020/02/12 22:56:12 kid1| Store logging disabled
+2020/02/12 22:56:12 kid1| DNS Socket created at [::], FD 9
+2020/02/12 22:56:12 kid1| DNS Socket created at 0.0.0.0, FD 10
+2020/02/12 22:56:12 kid1| Adding nameserver 114.114.114.114 from /etc/resolv.conf
+2020/02/12 22:56:12 kid1| Adding nameserver 114.114.115.115 from /etc/resolv.conf
+2020/02/12 22:56:12 kid1| helperOpenServers: Starting 0/50 'basic_ncsa_auth' processes
+2020/02/12 22:56:12 kid1| helperOpenServers: No 'basic_ncsa_auth' processes needed.
+2020/02/12 22:56:12 kid1| HTCP Disabled.
+2020/02/12 22:56:12 kid1| Finished loading MIME types and icons.
+2020/02/12 22:56:12 kid1| Accepting HTTP Socket connections at local=0.0.0.0:3128 remote=[::] FD 11 flags=9
+</code></pre>
+<p>access.log</p>
+<pre><code># tail -f /var/log/squid/access.log 
+1581519614.049     47 192.168.0.100 TCP_TUNNEL/200 5383 CONNECT registry.cn-beijing.aliyuncs.com:443 - HIER_DIRECT/47.95.181.38 -
+1581542724.596     39 192.168.0.100 TCP_MISS/503 397 HEAD http://url/ - HIER_NONE/- text/html
+1581542754.860    256 192.168.0.100 TCP_TUNNEL/200 4460 CONNECT www.baidu.com:443 - HIER_DIRECT/180.101.49.41 -
+1581542818.197    107 192.168.0.100 TCP_MISS/200 262 HEAD http://www.baidu.com/ - HIER_DIRECT/180.101.49.41 text/html
+1581542820.465     53 192.168.0.100 TCP_MISS/200 262 HEAD http://www.baidu.com/ - HIER_DIRECT/180.101.49.41 text/html
+1581542821.292     53 192.168.0.100 TCP_MISS/200 262 HEAD http://www.baidu.com/ - HIER_DIRECT/180.101.49.41 text/html
+1581542821.864     54 192.168.0.100 TCP_MISS/200 262 HEAD http://www.baidu.com/ - HIER_DIRECT/180.101.49.41 text/html
+1581542822.323     53 192.168.0.100 TCP_MISS/200 262 HEAD http://www.baidu.com/ - HIER_DIRECT/180.101.49.41 text/html
+1581542822.764     53 192.168.0.100 TCP_MISS/200 262 HEAD http://www.baidu.com/ - HIER_DIRECT/180.101.49.41 text/html
+1581542823.243     53 192.168.0.100 TCP_MISS/200 262 HEAD http://www.baidu.com/ - HIER_DIRECT/180.101.49.41 text/html
+</code></pre>
+<h2 id="4-搭建k8s时配置代理">4、搭建k8s时配置代理</h2>
+<p>在使用<code>kubeadm</code>或二进制方式搭建<code>k8s</code>集群时，集群内部<code>pod</code>和<code>service</code>会单独占用不同的网络，<code>service</code>网络是一个虚拟的网段，这个时候还需要声明流量不让其走<code>http/https</code>代理，这种声明方式也适用于对那些没有域名解析通过绑定<code>hosts</code>文件来访问的域名。</p>
+<p>如果不声明，在使用<code>kubeadm</code>部署<code>k8s</code>集群，执行<code>kubeadm init</code>初始化集群的时候会看到如下的提示并执行超时失败</p>
+<pre><code>[WARNING HTTPProxyCIDR]: connection to &quot;10.1.0.0/12&quot; uses proxy &quot;http://192.168.0.200:3128&quot;. This may lead to malfunctional cluster setup. Make sure that Pod and Services IP ranges specified correctly as exceptions in proxy configuration
+[WARNING HTTPProxyCIDR]: connection to &quot;10.244.0.0/16&quot; uses proxy &quot;http://192.168.0.200:3128&quot;. This may lead to malfunctional cluster setup. Make sure that Pod and Services IP ranges specified correctly as exceptions in proxy configuration
+</code></pre>
+<p>在不断重试的时候可以查看代理服务器的<code>squid</code>日志，发现日志中一直不断有来自<code>kubeadm</code>所在的机器向本机的<code>6443</code>端口发送的请求，却被拒绝了</p>
+<pre><code>1581507643.783      0 192.168.0.100 TCP_DENIED/403 3927 CONNECT 192.168.0.8:6443 - HIER_NONE/- text/html
+1581507644.283      0 192.168.0.100 TCP_DENIED/403 3927 CONNECT 192.168.0.8:6443 - HIER_NONE/- text/html
+1581507644.783      0 192.168.0.100 TCP_DENIED/403 3927 CONNECT 192.168.0.8:6443 - HIER_NONE/- text/html
+1581507645.283      0 192.168.0.100 TCP_DENIED/403 3927 CONNECT 192.168.0.8:6443 - HIER_NONE/- text/html
+1581507645.783      0 192.168.0.100 TCP_DENIED/403 3927 CONNECT 192.168.0.8:6443 - HIER_NONE/- text/html
+1581507646.283      0 192.168.0.100 TCP_DENIED/403 3927 CONNECT 192.168.0.8:6443 - HIER_NONE/- text/html
+1581507646.783      0 192.168.0.100 TCP_DENIED/403 3927 CONNECT 192.168.0.8:6443 - HIER_NONE/- text/html
+1581507647.283      0 192.168.0.100 TCP_DENIED/403 3927 CONNECT 192.168.0.8:6443 - HIER_NONE/- text/html
+</code></pre>
+<p>通过踩坑，正确可行的配置流程是：</p>
+<ul>
+<li>修改<code>docker</code>代理配置</li>
+</ul>
+<pre><code># vim /etc/systemd/system/docker.service.d/http-proxy.conf
+[Service]
+Environment=&quot;HTTP_PROXY=http://squid:123456@192.168.0.200:3128&quot; &quot;NO_PROXY=localhost,127.0.0.1,192.168.0.200,192.168.0.100,192.168.0.101,10.244.0.0/16&quot;
+# systemctl daemon-reload
+# systemctl restart docker
+</code></pre>
+<ul>
+<li>修改全局代理配置</li>
+</ul>
+<pre><code># vim /etc/profile
+export http_proxy=&quot;http://squid:123456@192.168.0.200:3128&quot;
+export https_proxy=&quot;http://squid:123456@192.168.0.200:3128&quot;
+export no_proxy=localhost,127.0.0.1,192.168.0.200,192.168.0.100,192.168.0.101,10.244.0.0/16
+# source /etc/profile
+</code></pre>
+<ul>
+<li>命令行声明</li>
+</ul>
+<pre><code>export http_proxy=&quot;http://squid:123456@192.168.0.200:3128&quot;
+export https_proxy=&quot;http://squid:123456@192.168.0.200:3128&quot;
+export no_proxy=localhost,127.0.0.1,192.168.0.200,192.168.0.100,192.168.0.101,10.244.0.0/16
+</code></pre>
+<p>然后再次执行<code>kubeadm init</code>初始化集群就成功了</p>
+<h2 id="5-总结">5、总结</h2>
+<p>本文记录了在特定的网络环境下如何通过<code>squid</code>配置代理，实现内网机器常用功能上网的方法，当然，这里提到的<code>yum</code>，<code>wget</code>，<code>docker</code>及<code>k8s</code>集群安装常用的操作之外还有一些也需要通过上网代理，这里不一一提及。</p>
+<p>好啦，疫情没结束，只能在家上班熬夜失眠，愿平安！🙏🙏🙏</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/app" class="tag">
+                    实用程序
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/linux" class="tag">
+                    linux
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/prometheus-jian-kong-jenkins">
+                  <h3 class="post-title">
+                    Prometheus监控Jenkins
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

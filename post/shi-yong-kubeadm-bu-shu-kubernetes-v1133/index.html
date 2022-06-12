@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>使用kubeadm部署Kubernetes v1.13.3 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">使用kubeadm部署Kubernetes v1.13.3</h2>
+            <div class="post-date">2019-02-28</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%AE%89%E8%A3%85%E8%A6%81%E6%B1%82">1、安装要求</a></li>
+<li><a href="#2-%E9%83%A8%E7%BD%B2">2、部署</a>
+<ul>
+<li><a href="#21-%E6%80%BB%E4%BD%93%E6%AD%A5%E9%AA%A4">2.1、总体步骤</a></li>
+<li><a href="#22-kubernetes%E6%9E%B6%E6%9E%84%E5%9B%BE">2.2、kubernetes架构图</a></li>
+<li><a href="#23-%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87">2.3、环境准备</a></li>
+<li><a href="#24-%E6%89%80%E6%9C%89%E8%8A%82%E7%82%B9%E5%AE%89%E8%A3%85dockerkubeadmkubelet">2.4、所有节点安装Docker/kubeadm/kubelet</a>
+<ul>
+<li><a href="#241-%E5%AE%89%E8%A3%85docker">2.4.1、安装Docker</a></li>
+<li><a href="#242-%E6%B7%BB%E5%8A%A0%E9%98%BF%E9%87%8C%E4%BA%91kubernetes%E7%9A%84yum%E6%BA%90">2.4.2、添加阿里云kubernetes的yum源</a></li>
+<li><a href="#243-%E5%AE%89%E8%A3%85kubeadmkubelet%E5%92%8Ckubectl">2.4.3、安装kubeadm，kubelet和kubectl</a></li>
+</ul>
+</li>
+<li><a href="#25-%E9%83%A8%E7%BD%B2kubernetes-master">2.5、部署Kubernetes Master</a></li>
+<li><a href="#26-%E5%AE%89%E8%A3%85pod%E7%BD%91%E7%BB%9C%E6%8F%92%E4%BB%B6cni">2.6、安装Pod网络插件(cni)</a></li>
+<li><a href="#27-%E5%8A%A0%E5%85%A5kubernetes-node">2.7、加入Kubernetes Node</a></li>
+<li><a href="#28-%E6%B5%8B%E8%AF%95kubernetes%E9%9B%86%E7%BE%A4">2.8、测试Kubernetes集群</a></li>
+<li><a href="#29-%E9%83%A8%E7%BD%B2dashboard">2.9、部署Dashboard</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>kubeadm是官方社区推出的一个用于快速部署kubernetes集群的工具。<br>
+这个工具能通过两条指令完成一个kubernetes集群的部署</p>
+</blockquote>
+<pre><code># 创建一个 Master 节点
+$ kubeadm init
+# 将一个 Node 节点加入到当前集群中
+$ kubeadm join &lt;Master节点的IP和端口 &gt;
+</code></pre>
+<h2 id="1-安装要求">1、安装要求</h2>
+<p>在开始之前，部署<code>Kubernetes</code>集群机器需要满足以下几个条件：</p>
+<ul>
+<li>一台或多台机器，操作系统<code>CentOS7.x-86_x64</code></li>
+<li>硬件配置：<code>2GB</code>或更多<code>RAM</code>，<code>2</code>个<code>CPU</code>或更多<code>CPU</code>，硬盘<code>30GB</code>或更多</li>
+<li>集群中所有机器之间网络互通</li>
+<li>可以访问外网，需要拉取镜像</li>
+<li>禁止<code>swap</code>分区</li>
+</ul>
+<h2 id="2-部署">2、部署</h2>
+<h3 id="21-总体步骤">2.1、总体步骤</h3>
+<ul>
+<li>在所有节点上安装<code>Docker</code>和<code>kubeadm</code></li>
+<li>部署<code>Kubernetes Master</code></li>
+<li>部署容器网络插件</li>
+<li>部署<code>Kubernetes Node</code>，将节点加入<code>Kubernetes</code>集群中</li>
+<li>部署<code>Dashboard Web</code>页面，可视化查看<code>Kubernetes</code>资源</li>
+</ul>
+<h3 id="22-kubernetes架构图">2.2、kubernetes架构图</h3>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20190228-01.png" alt=""></figure>
+<h3 id="23-环境准备">2.3、环境准备</h3>
+<pre><code>关闭防火墙：
+$ systemctl stop firewalld
+$ systemctl disable firewalld
+
+关闭selinux：
+$ sed -i 's/enforcing/disabled/' /etc/selinux/config 
+$ setenforce 0
+
+关闭swap：
+$ swapoff -a  $ 临时
+$ vim /etc/fstab  $ 永久
+
+添加主机名与IP对应关系（记得设置主机名）：
+$ cat /etc/hosts
+192.168.31.61 k8s-master
+192.168.31.62 k8s-node1
+192.168.31.63 k8s-node2
+
+将桥接的IPv4流量传递到iptables的链：
+$ cat &gt; /etc/sysctl.d/k8s.conf &lt;&lt; EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+$ sysctl --system
+</code></pre>
+<h3 id="24-所有节点安装dockerkubeadmkubelet">2.4、所有节点安装Docker/kubeadm/kubelet</h3>
+<p><code>Kubernetes</code>默认<code>CRI</code>（容器运行时）为<code>Docker</code>，因此先安装<code>Docker</code></p>
+<h4 id="241-安装docker">2.4.1、安装Docker</h4>
+<pre><code>$ wget https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo -O /etc/yum.repos.d/docker-ce.repo
+$ yum -y install docker-ce-18.06.1.ce-3.el7
+$ systemctl enable docker &amp;&amp; systemctl start docker
+$ docker --version
+Docker version 18.06.1-ce, build e68fc7a
+</code></pre>
+<h4 id="242-添加阿里云kubernetes的yum源">2.4.2、添加阿里云kubernetes的yum源</h4>
+<pre><code>$ cat &gt; /etc/yum.repos.d/kubernetes.repo &lt;&lt; EOF
+[kubernetes]
+name=Kubernetes
+baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=0
+repo_gpgcheck=0
+gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
+EOF
+</code></pre>
+<h4 id="243-安装kubeadmkubelet和kubectl">2.4.3、安装kubeadm，kubelet和kubectl</h4>
+<p>指定版本号部署</p>
+<pre><code>$ yum install -y kubelet-1.13.3 kubeadm-1.13.3 kubectl-1.13.3
+$ systemctl enable kubelet
+</code></pre>
+<h3 id="25-部署kubernetes-master">2.5、部署Kubernetes Master</h3>
+<pre><code>$ kubeadm init \
+  --apiserver-advertise-address=192.168.31.61 \
+  --image-repository registry.aliyuncs.com/google_containers \
+  --kubernetes-version v1.13.3 \
+  --service-cidr=10.1.0.0/16\
+  --pod-network-cidr=10.244.0.0/16
+</code></pre>
+<p>由于默认拉取镜像的地址k8s.gcr.io国内无法访问，这里指定了阿里云镜像仓库的地址。init执行完成后按照提示操作，使用kubectl工具</p>
+<pre><code class="language-bash">mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+$ kubectl get nodes
+</code></pre>
+<h3 id="26-安装pod网络插件cni">2.6、安装Pod网络插件(cni)</h3>
+<pre><code>$ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/a70459be0084506e4ec919aa1c114638878db11b/Documentation/kube-flannel.yml
+</code></pre>
+<p>部署时要确保能够访问到quay.io这个镜像仓库地址</p>
+<h3 id="27-加入kubernetes-node">2.7、加入Kubernetes Node</h3>
+<p>要向集群添加新节点，执行在<code>kubeadm init</code>输出的<code>kubeadm join</code>命令：<br>
+格式：</p>
+<pre><code>kubeadm join --token &lt;token&gt; &lt;master-ip&gt;:&lt;master-port&gt; --discovery-token-ca-cert-hash sha256:&lt;hash&gt;
+</code></pre>
+<p><code>token</code>是在<code>kubectl init</code>时生成的</p>
+<pre><code>$  kubeadm join 192.168.31.62:6443 --token l79g5t.6ov4jkddwqki1dxe --discovery-token-ca-cert-hash sha256:4f07f9068c543130461c9db368d62b4aabc22105451057f887defa35f47fa076
+</code></pre>
+<h3 id="28-测试kubernetes集群">2.8、测试Kubernetes集群</h3>
+<p>在<code>Kubernetes</code>集群中创建一个<code>pod</code>，验证是否正常运行<br>
+访问地址：http://NodeIP:Port</p>
+<pre><code>$ kubectl create deployment nginx --image=nginx
+$ kubectl expose deployment nginx --port=80 --type=NodePort
+$ kubectl get pod,svc
+</code></pre>
+<h3 id="29-部署dashboard">2.9、部署Dashboard</h3>
+<pre><code>$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v1.10.1/src/deploy/recommended/kubernetes-dashboard.yaml
+</code></pre>
+<p>默认镜像国内无法访问，修改镜像地址为：</p>
+<pre><code>registry.cn-hangzhou.aliyuncs.com/google_containers/kubernetes-dashboard-amd64:v1.10.1 
+</code></pre>
+<p>默认<code>Dashboard</code>只能集群内部访问，修改<code>Service</code>为<code>NodePort</code>类型，暴露到外部：</p>
+<pre><code>kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    k8s-app: kubernetes-dashboard
+  name: kubernetes-dashboard
+  namespace: kube-system
+spec:
+  type: NodePort
+  ports:
+    - port: 443
+      targetPort: 8443
+      nodePort: 30001
+  selector:
+    k8s-app: kubernetes-dashboard
+$ kubectl apply -f kubernetes-dashboard.yaml
+</code></pre>
+<p>访问地址：http://NodeIP:30001<br>
+创建<code>service account</code>并绑定默认<code>cluster-admin</code>管理员集群角色：</p>
+<pre><code>kubectl create serviceaccount dashboard-admin -n kube-system
+kubectl create clusterrolebinding dashboard-admin --clusterrole=cluster-admin --serviceaccount=kube-system:dashboard-admin
+kubectl describe secrets -n kube-system $(kubectl -n kube-system get secret | awk '/dashboard-admin/{print $1}')
+</code></pre>
+<p>使用输出的<code>token</code>登录<code>Dashboard</code></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/yong-hao-git-he-svn-qing-song-jia-yu-ban-ben-guan-li">
+                  <h3 class="post-title">
+                    用好Git和SVN轻松驾驭版本管理
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

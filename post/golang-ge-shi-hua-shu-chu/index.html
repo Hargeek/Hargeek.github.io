@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Golang格式化输出 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Golang格式化输出</h2>
+            <div class="post-date">2021-06-17</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%95%B4%E6%95%B0%E6%A0%BC%E5%BC%8F%E5%8C%96">1、整数格式化</a></li>
+<li><a href="#2-%E6%B5%AE%E7%82%B9%E6%95%B0%E6%A0%BC%E5%BC%8F%E5%8C%96">2、浮点数格式化</a></li>
+<li><a href="#3-%E5%B8%83%E5%B0%94%E7%B1%BB%E5%9E%8B%E6%A0%BC%E5%BC%8F%E5%8C%96">3、布尔类型格式化</a></li>
+<li><a href="#4-%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%A0%BC%E5%BC%8F%E5%8C%96">4、字符串格式化</a></li>
+<li><a href="#5-%E6%8C%87%E9%92%88%E6%A0%BC%E5%BC%8F%E5%8C%96">5、指针格式化</a></li>
+<li><a href="#6-%E9%80%9A%E7%94%A8%E7%9A%84%E5%8D%A0%E4%BD%8D%E7%AC%A6">6、通用的占位符</a></li>
+<li><a href="#7-%E5%AE%BD%E5%BA%A6">7、宽度</a>
+<ul>
+<li><a href="#71-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%AE%BD%E5%BA%A6%E6%8E%A7%E5%88%B6">7.1 字符串宽度控制</a></li>
+<li><a href="#72-%E6%B5%AE%E7%82%B9%E6%95%B0%E7%B2%BE%E5%BA%A6%E6%8E%A7%E5%88%B6">7.2 浮点数精度控制</a></li>
+</ul>
+</li>
+<li><a href="#8-%E6%A0%BC%E5%BC%8F%E5%8C%96%E9%94%99%E8%AF%AF">8、格式化错误</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/golang.png" alt=""></figure>
+<p><code>Go</code>语言用于控制文本输出常用的标准库是<code>fmt</code></p>
+<p><code>fmt</code>中主要用于输出的函数有:</p>
+<ul>
+<li>Print: 输出到控制台，不接受任何格式化操作</li>
+<li>Println: 输出到控制台并换行</li>
+<li>Printf: 只可以打印出格式化的字符串，只可以直接输出字符串类型的变量（不可以输出别的类型）</li>
+<li>Sprintf: 格式化并返回一个字符串而不带任何输出</li>
+<li>Fprintf: 来格式化并输出到<code>io.Writers</code>而不是<code>os.Stdout</code></li>
+</ul>
+<p>通过<code>Printf</code>函数来测试下<code>Go</code>语言里面的字符串格式化:</p>
+<pre><code>fmt.Sprintf(格式化样式, 参数列表…)
+</code></pre>
+<ul>
+<li>格式样式: 字符串形式，格式化符号以<code>%</code>开头，<code>%s</code>字符串格式，<code>%d</code>十进制的整数格式</li>
+<li>参数列表: 多个参数以逗号分隔，个数必须与格式化样式中的个数一一对应，否则运行时会报错</li>
+</ul>
+<p>比如:</p>
+<pre><code class="language-go">username := &quot;boy&quot;
+fmt.Printf(&quot;welcome, %s&quot;, username)
+</code></pre>
+<h2 id="1-整数格式化">1、整数格式化</h2>
+<table>
+<thead>
+<tr>
+<th>格  式</th>
+<th>描  述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>%b</td>
+<td>整型以二进制方式显示</td>
+</tr>
+<tr>
+<td>%o</td>
+<td>整型以八进制方式显示</td>
+</tr>
+<tr>
+<td>%d</td>
+<td>整型以十进制方式显示</td>
+</tr>
+<tr>
+<td>%x</td>
+<td>整型以十六进制方式显示</td>
+</tr>
+<tr>
+<td>%X</td>
+<td>整型以十六进制、字母大写方式显示</td>
+</tr>
+<tr>
+<td>%c</td>
+<td>相应Unicode码点所表示的字符</td>
+</tr>
+<tr>
+<td>%U</td>
+<td>Unicode 字符, Unicode格式：123，等同于 &quot;U+007B&quot;</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-go">a := 255
+fmt.Printf(&quot;二进制: %b\n&quot;, a)
+fmt.Printf(&quot;八进制: %o\n&quot;, a)
+fmt.Printf(&quot;十进制: %d\n&quot;, a)
+fmt.Printf(&quot;十六进制: %x\n&quot;, a)
+fmt.Printf(&quot;大写十六进制: %X\n&quot;, a)
+
+fmt.Printf(&quot;十六进制: %d\n&quot;, Hex2Dec(&quot;4E2D&quot;))
+fmt.Printf(&quot;字符: %c\n&quot;, 20013)
+fmt.Printf(&quot;Unicode格式: %U\n&quot;, '中') // U+4E2D
+</code></pre>
+<h2 id="2-浮点数格式化">2、浮点数格式化</h2>
+<table>
+<thead>
+<tr>
+<th>格  式</th>
+<th>描  述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>%e</td>
+<td>科学计数法，例如 -1234.456e+78</td>
+</tr>
+<tr>
+<td>%E</td>
+<td>科学计数法，例如 -1234.456E+78</td>
+</tr>
+<tr>
+<td>%f</td>
+<td>有小数点而无指数，例如 123.456</td>
+</tr>
+<tr>
+<td>%g</td>
+<td>根据情况选择 %e 或 %f 以产生更紧凑的（无末尾的0）输出</td>
+</tr>
+<tr>
+<td>%G</td>
+<td>根据情况选择 %E 或 %f 以产生更紧凑的（无末尾的0）输出</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-go">fmt.Printf(&quot;%e&quot;, 12675757563.5345432567) //1.267576e+10
+fmt.Printf(&quot;%E&quot;, 12675757563.5345432567) // 1.267576E+10
+fmt.Printf(&quot;%f&quot;, 12675757563.5345432567) // 12675757563.534544
+fmt.Printf(&quot;%g&quot;, 12675757563.5345432567) // 1.2675757563534544e+10
+fmt.Printf(&quot;%G&quot;, 12675757563.5345432567) // 1.2675757563534544E+1
+</code></pre>
+<h2 id="3-布尔类型格式化">3、布尔类型格式化</h2>
+<table>
+<thead>
+<tr>
+<th>格  式</th>
+<th>描  述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>%t</td>
+<td>true 或 false</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-go">fmt.Printf(&quot;%t&quot;, true)
+</code></pre>
+<h2 id="4-字符串格式化">4、字符串格式化</h2>
+<table>
+<thead>
+<tr>
+<th>格  式</th>
+<th>描  述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>%s</td>
+<td>字符串或切片的无解译字节</td>
+</tr>
+<tr>
+<td>%q</td>
+<td>双引号围绕的字符串，由Go语法安全地转义</td>
+</tr>
+<tr>
+<td>%x</td>
+<td>十六进制，小写字母，每字节两个字符</td>
+</tr>
+<tr>
+<td>%X</td>
+<td>十六进制，大写字母，每字节两个字符</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-go">str := &quot;I'm a boy&quot;
+fmt.Printf(&quot;%s&quot;, str)
+fmt.Println()
+fmt.Printf(&quot;%q&quot;, str)
+fmt.Println()
+fmt.Printf(&quot;%x&quot;, str)
+fmt.Println()
+fmt.Printf(&quot;%X&quot;, str)
+fmt.Println()
+</code></pre>
+<h2 id="5-指针格式化">5、指针格式化</h2>
+<table>
+<thead>
+<tr>
+<th>格  式</th>
+<th>描  述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>%p</td>
+<td>十六进制表示，前缀 0x</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-go">a := &quot;I'm a boy&quot;
+b := &amp;a
+fmt.Printf(&quot;%p&quot;, b)
+</code></pre>
+<h2 id="6-通用的占位符">6、通用的占位符</h2>
+<table>
+<thead>
+<tr>
+<th>格  式</th>
+<th>描  述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>%v</td>
+<td>值的默认格式。</td>
+</tr>
+<tr>
+<td>%+v</td>
+<td>类似%v，但输出结构体时会添加字段名</td>
+</tr>
+<tr>
+<td>%#v</td>
+<td>相应值的Go语法表示</td>
+</tr>
+<tr>
+<td>%T</td>
+<td>相应值的类型的Go语法表示</td>
+</tr>
+<tr>
+<td>%%</td>
+<td>百分号,字面上的%,非占位符含义</td>
+</tr>
+</tbody>
+</table>
+<p>默认格式<code>%v</code>下，对于不同的数据类型，底层会去调用默认的格式化方式：</p>
+<pre><code class="language-go">bool:                    %t 
+int, int8 etc.:          %d 
+uint, uint8 etc.:        %d, %x if printed with %#v
+float32, complex64, etc: %g
+string:                  %s
+chan:                    %p 
+pointer:                 %p
+</code></pre>
+<p>示例</p>
+<pre><code class="language-go">f := 1010.0101
+s := &quot;hey boy!&quot;
+fmt.Printf(&quot;%v&quot;, f)
+fmt.Println()
+
+fmt.Printf(&quot;%v&quot;, s)
+fmt.Println()
+</code></pre>
+<p>如果是复杂对象的话,按照如下规则进行打印：</p>
+<pre><code class="language-go">struct:            {field0 field1 ...} 
+array, slice:      [elem0 elem1 ...] 
+maps:              map[key1:value1 key2:value2] 
+pointer to above:  &amp;{}, &amp;[], &amp;map[]
+</code></pre>
+<p>示例</p>
+<pre><code class="language-go">user := User{&quot;laowang&quot;, 33}
+fmt.Printf(&quot;%v&quot;, user) // Go默认形式 {laowang 33}
+fmt.Println()
+fmt.Printf(&quot;%#v&quot;, user) //类型+值对象 day2.User{Name:&quot;laowang&quot;, Age:33}
+fmt.Println()
+fmt.Printf(&quot;%+v&quot;, user) //输出字段名和字段值形式 {Name:laowang Age:33}
+fmt.Println()
+fmt.Printf(&quot;%T&quot;, user) //值类型的Go语法表示形式, day2.User
+fmt.Println()
+fmt.Printf(&quot;%%&quot;)
+</code></pre>
+<h2 id="7-宽度">7、宽度</h2>
+<p>我们输出时 可能需要控制字符串的宽度和小数的精度</p>
+<h3 id="71-字符串宽度控制">7.1 字符串宽度控制</h3>
+<p>宽度设置格式: 占位符中间加一个数字, 数字分正负, +: 右对齐, -: 左对齐</p>
+<p>1.最小宽度, 不够部分可以选择补<code>0</code></p>
+<pre><code class="language-go">fmt.Printf(&quot;|%s|&quot;, &quot;aa&quot;) // 不设置宽度
+fmt.Printf(&quot;|%5s|&quot;, &quot;aa&quot;) // 5个宽度,  默认+， 右对齐
+fmt.Printf(&quot;|%-5s|&quot;, &quot;aa&quot;) // 5个宽度, 左对齐
+
+fmt.Printf(&quot;|%05s|&quot;, &quot;aa&quot;) // |000aa|
+</code></pre>
+<p>2.最大宽度, 超出的部分会被截断</p>
+<pre><code class="language-go">fmt.Printf(&quot;|%.5s|&quot;, &quot;xxxx&quot;) // 最大宽度为5
+</code></pre>
+<h3 id="72-浮点数精度控制">7.2 浮点数精度控制</h3>
+<p>你也可以指定浮点型的输出宽度，同时也可以通过 宽度.精度 的语法来指定输出的精度</p>
+<pre><code class="language-go">a := 54.123456
+fmt.Printf(&quot;|%f|&quot;, a)  // |54.123456|
+fmt.Printf(&quot;|%5.1f|&quot;, a)  // | 54.1|
+fmt.Printf(&quot;|%-5.1f|&quot;, a) // |54.1 |
+fmt.Printf(&quot;|%05.1f|&quot;, a) // |054.1|
+</code></pre>
+<p>思考: 不同语言的文字宽度并不一定相同, 比如</p>
+<pre><code class="language-go">fmt.Printf(&quot;|%2s|&quot;, &quot;中国&quot;)
+fmt.Printf(&quot;|%2s|&quot;, &quot;ab&quot;)
+</code></pre>
+<p>可以参考该解决办法: <a href="http://www.nbtuan.vip/2017/05/10/golang-char-width/">获取字符的宽度</a></p>
+<h2 id="8-格式化错误">8、格式化错误</h2>
+<p>1.类型错误或未知: <code>%!verb(type=value)</code></p>
+<pre><code class="language-go">Printf(&quot;%d&quot;, &quot;hi&quot;) // %!d(string=hi)
+</code></pre>
+<p>2.太多参数: <code>%!(EXTRA type=value)</code></p>
+<pre><code class="language-go">Printf(&quot;hi&quot;, &quot;guys&quot;) // hi%!(EXTRA string=guys)
+</code></pre>
+<p>3.太少参数: <code>%!verb(MISSING)</code></p>
+<pre><code class="language-go">Printf(&quot;hi%d&quot;) // hi %!d(MISSING)
+</code></pre>
+<p>4.宽度/精度不是整数值: <code>%!(BADWIDTH) or %!(BADPREC)</code></p>
+<pre><code class="language-go">Printf(&quot;%d&quot;, hi) // %!d(string=hi)
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/golang" class="tag">
+                    golang
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/mysql-gong-ju-atlas-de-an-zhuang-shi-yong">
+                  <h3 class="post-title">
+                    MySQL工具Atlas的安装使用
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

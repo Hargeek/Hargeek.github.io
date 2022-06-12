@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Azure DevOps的使用入门 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Azure DevOps的使用入门</h2>
+            <div class="post-date">2021-11-04</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E4%BB%8B%E7%BB%8D">1、介绍</a></li>
+<li><a href="#2-%E6%9C%8D%E5%8A%A1%E5%BC%80%E9%80%9A">2、服务开通</a></li>
+<li><a href="#3-%E6%B7%BB%E5%8A%A0ssh-key">3、添加ssh key</a></li>
+<li><a href="#4-%E6%B5%8B%E8%AF%95%E9%A1%B9%E7%9B%AE">4、测试项目</a>
+<ul>
+<li><a href="#41-%E6%8F%90%E4%BA%A4%E4%BB%A3%E7%A0%81">4.1 提交代码</a></li>
+<li><a href="#42-%E5%88%9B%E5%BB%BApipeline">4.2 创建pipeline</a></li>
+</ul>
+</li>
+<li><a href="#4-%E6%9C%8D%E5%8A%A1%E7%9A%84%E9%83%A8%E7%BD%B2">4、服务的部署</a></li>
+<li><a href="#5-%E5%B0%8F%E7%BB%93">5、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20211104-01.png" alt=""></figure>
+<h2 id="1-介绍">1、介绍</h2>
+<p><code>Azure DevOps</code>是由微软开发的服务平台，它提供了多种工具，可用于更好地进行团队协作。它还具有用于自动构建过程，测试，版本控制和程序包管理的工具</p>
+<p><code>Azure DevOps</code>提供了<code>5</code>个主要模块</p>
+<ul>
+<li>Azure Boards：敏捷工具</li>
+<li>Azure Repos：无限的、云托管的私人和公共<code>Git</code> 库</li>
+<li>Azure Pipelines：构建流水线</li>
+<li>Azure Test Plans：测试工具</li>
+<li>Azure Artifacts： 制品包存档</li>
+</ul>
+<p>除此之外，在扩展市场还有超过<code>1,000</code>个应用和工具可供选择，这点和自家产品<code>VS Code</code>一样，有着非常强大的插件生态</p>
+<h2 id="2-服务开通">2、服务开通</h2>
+<p>主要步骤如下</p>
+<ul>
+<li>访问<code>dev.azure.com</code></li>
+<li>点击“免费开始使用”</li>
+<li>使用<code>Microsoft</code>帐户或<code>Github</code>帐户登录(从<code>2018</code>年的某一天起，<code>Github</code>也是微软自家的了)</li>
+<li>创建一个<code>organization</code>（组织）</li>
+<li>创建一个<code>project</code>（项目）</li>
+</ul>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20211104-02.png" alt=""></figure>
+<h2 id="3-添加ssh-key">3、添加ssh key</h2>
+<p>依次点击<code>User settings</code> —&gt; <code>Security</code> —&gt; <code>SSH Public Keys</code> —&gt; <code>New key</code>，输入本地的<code>git ssh</code>公钥</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20211104-03.png" alt=""></figure>
+<h2 id="4-测试项目">4、测试项目</h2>
+<h3 id="41-提交代码">4.1 提交代码</h3>
+<p>提交测试代码，从<code>github</code>克隆并手动推送到到<code>azure devops repo</code>上</p>
+<p>当然，也可以直接导入<code>github</code>项目到<code>azure devops</code>界面，这里记录的是提交代码过程</p>
+<pre><code class="language-shell">➜  git clone https://github.com/MicrosoftDocs/pipelines-java &amp;&amp; cd pipelines-java
+Cloning into 'pipelines-java'...
+remote: Enumerating objects: 107, done.
+remote: Total 107 (delta 0), reused 0 (delta 0), pack-reused 107
+Receiving objects: 100% (107/107), 73.86 KiB | 134.00 KiB/s, done.
+Resolving deltas: 100% (38/38), done.
+➜  git:(master) git remote add azure git@ssh.dev.azure.com:v3/ssgeek/test-project/test-project
+➜  git:(master) git push -u azure --all
+</code></pre>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20211104-04.png" alt=""></figure>
+<h3 id="42-创建pipeline">4.2 创建pipeline</h3>
+<p>创建第一个<code>pipeline</code>管道</p>
+<ul>
+<li>
+<p>登录到<code>Azure DevOps</code>组织，并导航到项目</p>
+</li>
+<li>
+<p>转到<code>pipeline</code>，然后选择&quot;新建<code>Create Pipeline</code></p>
+</li>
+<li>
+<p>选择<code>Azure Repos Git</code>作为源代码位置，进一步选择刚才创建的<code>test-project</code>这个仓库</p>
+</li>
+</ul>
+<p>配置项目流水线类型<code>Configure your pipeline</code>，这里识别出了是<code>java</code>库，可选择的类型有四种</p>
+<ul>
+<li>Maven类型</li>
+<li>Maven类型并部署到azure cloud上</li>
+<li>自定义最小化pipeline</li>
+<li>选择现有的 Azure Pipelines YAML 文件</li>
+</ul>
+<p>由于仓库中没有<code>pipeline</code>文件，这里选择自动生成一个<code>pipeline</code>文件</p>
+<p>自动生成的<code>pipeline</code>文件内容如下</p>
+<pre><code class="language-yaml"># Maven
+# Build your Java project and run tests with Apache Maven.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/java
+
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    mavenOptions: '-Xmx3072m'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.8'
+    jdkArchitectureOption: 'x64'
+    publishJUnitResults: true
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    goals: 'package'
+</code></pre>
+<p>点击<code>Save and run</code></p>
+<figure data-type="image" tabindex="5"><img src="https://image.ssgeek.com/20211104-05.png" alt=""></figure>
+<p>查看构建日志</p>
+<figure data-type="image" tabindex="6"><img src="../../../../temp/20211104-06.png" alt=""></figure>
+<p>此时是构建失败的，也可以到控制台中查看构建错误提示</p>
+<figure data-type="image" tabindex="7"><img src="https://image.ssgeek.com/20211104-07.png" alt=""></figure>
+<p>从提示可以看出构建失败，在于使用<code>Azure Pipelines</code>生成代码或部署，需要至少一个代理<code>agent</code>，真正运行构建任务的是代理<code>agent</code>，这里并没有购买或授予任何托管用于运行<code>pipeline</code>任务的<code>agent</code>，可以按照提示的链接<a href="https://aka.ms/azpipelines-parallelism-request">申请免费的Agent</a></p>
+<p>此代理可以绑定微软云代理，也可以绑定自托管的代理（<code>Linux</code>、<code>Windows</code>、<code>macOS</code>）</p>
+<p>申请后过几个小时就可以了，再去修改代码触发运行或者手动运行<code>pipeline</code>，成功运行</p>
+<figure data-type="image" tabindex="8"><img src="https://image.ssgeek.com/20211104-08.png" alt=""></figure>
+<h2 id="4-服务的部署">4、服务的部署</h2>
+<p>构建流程运行完成后，就涉及到服务的部署了</p>
+<p>在<code>azure devops</code>中，服务部署支持部署到<code>VM</code>和<code>kubernetes</code>环境</p>
+<p>配置目标环境的方法，选择<code>Pipelines</code> —&gt; <code>Environments</code> —&gt; <code>Create environments</code></p>
+<figure data-type="image" tabindex="9"><img src="https://image.ssgeek.com/20211104-09.png" alt=""></figure>
+<p>以<code>k8s</code>资源为例，直接配置连接<code>azure cloud</code>的<code>k8s</code>，或者用<code>service account</code>进行配置通用的<code>k8s</code>集群</p>
+<img src="https://image.ssgeek.com/20211104-10.png" style="zoom: 33%;" />
+<p>具体的部署模式可以选择<code>yaml</code>部署、<code>helm</code>部署、以及<code>azure devops</code>支持的<code>Canary</code>灰度部署等等</p>
+<h2 id="5-小结">5、小结</h2>
+<p><code>azure devops</code>的模式和<code>gitlab ci</code>一样，自身集成了代码库管理和<code>devops</code>流水线功能，其运行任务的节点类似<code>gitlab runner</code>，是商业化<code>devops</code>产品的一大选择</p>
+<p>最重要的是，<code>azure devops Pipelines</code>一个月有<code>1800</code>分钟的免费额度，这个免费并不是付费才能“解锁更多姿势”的那种，足够良心</p>
+<p>从个人使用来看，界面足够简约好用</p>
+<p>所以综上，如果是想白嫖使用商业的<code>devops</code>产品，<code>azure devops</code>可以首选</p>
+<p><code>azure pipeline</code>的语法和<code>gitlab ci</code>语法也非常类似，后面再提及了</p>
+<p>See you ~</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/devops" class="tag">
+                    devops
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/macvmwarefusionwindows11-chang-xian">
+                  <h3 class="post-title">
+                    Mac + VMware Fusion + Windows 11尝鲜
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

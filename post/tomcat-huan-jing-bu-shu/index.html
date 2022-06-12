@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Tomcat环境部署 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Tomcat环境部署</h2>
+            <div class="post-date">2018-07-15</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E8%BD%AF%E4%BB%B6%E5%8C%85%E5%87%86%E5%A4%87">1、软件包准备</a></li>
+<li><a href="#2-%E9%83%A8%E7%BD%B2java%E7%8E%AF%E5%A2%83">2、部署java环境</a>
+<ul>
+<li><a href="#21-rpm%E5%AE%89%E8%A3%85">2.1、rpm安装</a></li>
+<li><a href="#22-%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%AE%89%E8%A3%85">2.2、二进制安装</a></li>
+</ul>
+</li>
+<li><a href="#3-%E5%AE%89%E8%A3%85tomcat%E5%8F%8Atomcat%E7%9B%AE%E5%BD%95%E4%BB%8B%E7%BB%8D">3、安装tomcat及tomcat目录介绍</a></li>
+<li><a href="#4-%E5%90%AF%E5%8A%A8tomcat">4、启动tomcat</a></li>
+<li><a href="#5-%E8%AE%BF%E9%97%AE%E7%BD%91%E7%AB%99">5、访问网站</a></li>
+<li><a href="#6-tomcat%E6%97%A5%E5%BF%97">6、tomcat日志</a></li>
+<li><a href="#7-tomcat%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">7、tomcat配置文件</a></li>
+<li><a href="#8-tomcat%E7%AE%A1%E7%90%86">8、tomcat管理</a></li>
+<li><a href="#9-tomcat%E4%B8%BB%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6serverxml%E8%AF%A6%E8%A7%A3">9、tomcat主配置文件server.xml详解</a>
+<ul>
+<li><a href="#91-serverxml%E7%BB%84%E4%BB%B6%E7%B1%BB%E5%88%AB">9.1、server.xml组件类别</a></li>
+<li><a href="#92-%E7%BB%84%E4%BB%B6%E8%AF%A6%E8%A7%A3">9.2、组件详解</a></li>
+<li><a href="#93-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E8%AF%A6%E8%A7%A3">9.3、配置文件详解</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>Tomcat是Apache软件基金会（Apache Software Foundation）的Jakarta 项目中的一个核心项目，由Apache、Sun和其他一些公司及个人共同开发而成。<br>
+Tomcat服务器是一个免费的开放源代码的Web应用服务器，属于轻量级应用服务器，在中小型系统和并发访问用户不是很多的场合下被普遍使用，是开发和调试JSP程序的首选。<br>
+Tomcat和Nginx、Apache(httpd)、lighttpd等Web服务器一样，具有处理HTML页面的功能，另外它还是一个Servlet和JSP容器，独立的Servlet容器是Tomcat的默认模式。不过，Tomcat处理静态HTML的能力不如Nginx/Apache服务器。</p>
+</blockquote>
+<h2 id="1-软件包准备">1、软件包准备</h2>
+<p>环境说明<br>
+系统版本：CentOS 7.2 x86_64<br>
+软件版本：jdk-8u171、tomcat-8.0.27<br>
+<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">Jdk的下载地址</a><br>
+<a href="https://tomcat.apache.org/">Tomcat的下载地址</a></p>
+<h2 id="2-部署java环境">2、部署java环境</h2>
+<p>部署方法为rpm包安装jdk或二进制安装jdk</p>
+<h3 id="21-rpm安装">2.1、rpm安装</h3>
+<pre><code>[root@tomcat ~]# mkdir -p /service/tools
+[root@tomcat ~]# cd /service/tools
+[root@tomcat tools]# rpm -ivh jdk-8u171-linux-x64.rpm
+[root@tomcat tools]# java -version
+java version &quot;1.8.0_171&quot;
+Java(TM) SE Runtime Environment (build 1.8.0_171-b11)
+Java HotSpot(TM) 64-Bit Server VM (build 25.171-b11, mixed mode)
+</code></pre>
+<h3 id="22-二进制安装">2.2、二进制安装</h3>
+<pre><code>[root@tomcat tools]# mkdir /application
+[root@tomcat ~]# mkdir -p /service/tools
+[root@tomcat ~]# cd /service/tools
+[root@tomcat tools]# tar xf jdk-8u171-linux-x64.tar.gz -C /application/
+[root@tomcat tools]# ln -s /application/jdk1.8.0_171 /application/jdk
+[root@jenkins tools]# vim /etc/profile		#配置环境变量
+export JAVA_HOME=/application/jdk
+export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+export PATH=$JAVA_HOME/bin:$PATH 
+[root@tomcat tools]# source /etc/profile	#使环境变量生效
+[root@tomcat tools]# java -version
+java version &quot;1.8.0_171&quot;
+Java(TM) SE Runtime Environment (build 1.8.0_171-b11)
+Java HotSpot(TM) 64-Bit Server VM (build 25.171-b11, mixed mode)
+</code></pre>
+<h2 id="3-安装tomcat及tomcat目录介绍">3、安装tomcat及tomcat目录介绍</h2>
+<pre><code>[root@tomcat tools]# tar xf apache-tomcat-8.0.27.tar.gz 
+[root@tomcat tools]# mkdir /application
+[root@tomcat tools]# mv apache-tomcat-8.0.27 /application/
+[root@tomcat tools]# ln -s /application/apache-tomcat-8.0.27 /application/tomcat
+[root@tomcat tools]# ll /application/
+总用量 0
+drwxr-xr-x 9 root root 149 6月  24 17:36 apache-tomcat-8.0.27
+lrwxrwxrwx 1 root root  33 6月  24 17:36 tomcat -&gt; /application/apache-tomcat-8.0.27
+[root@tomcat tomcat]# tree -L 1
+/application/tomcat/
+├── bin         	#→用以启动、关闭Tomcat或者其它功能的脚本（.bat文件和.sh文件）
+├── conf        	#→用以配置Tomcat的XML及DTD文件
+├── lib         	#→存放web应用能访问的JAR包
+├── LICENSE
+├── logs        	#→Catalina和其它Web应用程序的日志文件
+├── NOTICE
+├── RELEASE-NOTES
+├── RUNNING.txt
+├── temp        	#→临时文件
+├── webapps     #→Web应用程序根目录
+└── work        	#→用以产生有JSP编译出的Servlet的.java和.class文件
+7 directories, 4 files
+[root@tomcat tomcat]# ll webapps/
+总用量 8
+drwxr-xr-x 14 root root 4096 6月  24 17:36 docs				#→tomcat帮助文档
+drwxr-xr-x  6 root root   78 6月  24 17:36 examples		#web应用实例
+drwxr-xr-x  5 root root   82 6月  24 17:36 host-manager		#管理
+drwxr-xr-x  5 root root   97 6月  24 17:36 manager			#管理
+drwxr-xr-x  3 root root 4096 6月  24 17:36 ROOT			#默认网站根目录
+</code></pre>
+<h2 id="4-启动tomcat">4、启动tomcat</h2>
+<pre><code>[root@tomcat tomcat]# /application/tomcat/bin/startup.sh
+[root@tomcat tomcat]# /application/tomcat/bin/shutdown.sh
+[root@tomcat conf]# netstat -lntup|grep java
+tcp6       0      0 :::8009                 :::*                    LISTEN      1930/java           
+tcp6       0      0 :::8080                 :::*                    LISTEN      1930/java           
+tcp6       0      0 127.0.0.1:8005          :::*                    LISTEN      1930/java
+</code></pre>
+<p>启动tomcat的时候，会发现启动较慢。通过查看日志catalina.out发现耗时是session引起随机数问题导致的。Tomcat的Session ID通过SHA1算法计算得到的，计算Session ID的时候必须有1个秘钥，为了提高安全性Tomcat在启动的时候通过随机数生成秘钥。生成这个秘钥会消耗时间，从而导致Tomcat启动慢或失败，影响随机数的强度的是生成用的熵。查看是否有足够的熵来用于产生随机数，可以通过如下命令来查看</p>
+<pre><code>[root@tomcat tomcat]# cat /proc/sys/kernel/random/entropy_avail 
+148
+</code></pre>
+<p>解决方案</p>
+<ul>
+<li>方案一：使用rngd 软件增大熵池（建议采用，对系统所有产生随机数的应用程序都有好处）</li>
+</ul>
+<pre><code>grep  rdrand /proc/cpuinfo #需要cpu支持  
+yum install rng-tools # 安装rngd服务（熵服务，增大熵池） 
+systemctl start rngd  # 启动服务
+</code></pre>
+<ul>
+<li>方案二：修改配置文件（只是解决java应用程序问题）</li>
+</ul>
+<pre><code>vim /usr/java/jdk1.8.0_171-amd64/jre/lib/security/java.security
+securerandom.source=file:/dev/urandom
+</code></pre>
+<h2 id="5-访问网站">5、访问网站</h2>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20180715-01.png" alt=""></figure>
+<h2 id="6-tomcat日志">6、tomcat日志</h2>
+<pre><code>[root@tomcat ~]# cd /application/tomcat/logs/
+[root@tomcat logs]# ls
+catalina.2018-06-24.log  host-manager.2018-06-24.log  localhost_access_log.2018-06-24.txt
+catalina.out             localhost.2018-06-24.log     manager.2018-06-24.log
+</code></pre>
+<p>日志类别说明：</p>
+<pre><code>catalina.out：控制台输出的日志（tomcat实时日志）
+catalina.2018-06-24.log ：Cataline引擎的日志文件 
+localhost.2018-06-24.log ：Tomcat下内部代码丢出的日志
+</code></pre>
+<h2 id="7-tomcat配置文件">7、tomcat配置文件</h2>
+<pre><code>[root@tomcat conf]# pwd
+/application/tomcat/conf
+[root@tomcat conf]# ll -h
+总用量 212K
+drwxr-xr-x 3 root root   22 6月  24 17:45 Catalina
+-rw------- 1 root root  13K 9月  28 2015 catalina.policy
+-rw------- 1 root root 7.0K 9月  28 2015 catalina.properties
+-rw------- 1 root root 1.6K 9月  28 2015 context.xml
+-rw------- 1 root root 3.4K 9月  28 2015 logging.properties
+-rw------- 1 root root 6.4K 9月  28 2015 server.xml			#主配置文件
+-rw------- 1 root root 1.8K 9月  28 2015 tomcat-users.xml		#tomcat管理用户配置文件
+-rw------- 1 root root 1.9K 9月  28 2015 tomcat-users.xsd
+-rw------- 1 root root 164K 9月  28 2015 web.xml
+</code></pre>
+<h2 id="8-tomcat管理">8、tomcat管理</h2>
+<p>Tomcat管理功能用于对Tomcat自身以及部署在Tomcat上的应用进行管理的web应用。在默认情况下是处于禁用状态的。如果需要开启这个功能，就需要配置管理用户，该功能用于测试环境下</p>
+<pre><code>[root@tomcat conf]# pwd
+/application/tomcat/conf
+[root@tomcat conf]# vim tomcat-users.xml
+……
+&lt;role rolename=&quot;manager-gui&quot;/&gt;
+&lt;role rolename=&quot;admin-gui&quot;/&gt;
+&lt;user username=&quot;tomcat&quot; password=&quot;tomcat&quot; roles=&quot;manager-gui,admin-gui&quot;/&gt;
+&lt;/tomcat-users&gt;  #→在此行前加入上面三行
+[root@tomcat ~]# /application/tomcat/bin/shutdown.sh		#关闭tomcat
+[root@tomcat ~]# /application/tomcat/bin/startup.sh		#启动tomcat
+</code></pre>
+<p>点击按钮或浏览器访问http://10.0.0.7:8080/manager和http://10.0.0.7:8080/host-manager并输入用户名tomcat和密码tomcat登录进入管理界面<br>
+<img src="https://image.ssgeek.com/20180715-02.png" alt=""></p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20180715-03.png" alt=""></figure>
+<h2 id="9-tomcat主配置文件serverxml详解">9、tomcat主配置文件server.xml详解</h2>
+<h3 id="91-serverxml组件类别">9.1、server.xml组件类别</h3>
+<p>顶级组件：位于整个配置的顶层，如server。<br>
+容器类组件：可以包含其它组件的组件，如service、engine、host、context。<br>
+连接器组件：连接用户请求至tomcat，如connector。<br>
+被嵌套类组件：位于一个容器当中，不能包含其他组件，如Valve、logger</p>
+<pre><code>&lt;server&gt;
+     &lt;service&gt;
+     &lt;connector /&gt;
+     &lt;engine&gt;
+     &lt;host&gt;
+     &lt;context&gt;&lt;/context&gt;
+     &lt;/host&gt;
+     &lt;host&gt;
+     &lt;context&gt;&lt;/context&gt;
+     &lt;/host&gt;
+     &lt;/engine&gt;
+     &lt;/service&gt;
+&lt;/server&gt;
+</code></pre>
+<h3 id="92-组件详解">9.2、组件详解</h3>
+<ul>
+<li>engine：核心容器组件，catalina引擎，负责通过connector接收用户请求，并处理请求，将请求转至对应的虚拟主机host。</li>
+<li>host：类似于httpd中的虚拟主机，一般而言支持基于FQDN的虚拟主机。</li>
+<li>context：定义一个应用程序，是一个最内层的容器类组件（不能再嵌套）。配置context的主要目的指定对应对的webapp的根目录，类似于httpd的alias，其还能为webapp指定额外的属性，如部署方式等。</li>
+<li>connector：接收用户请求，类似于httpd的listen配置监听端口的。</li>
+<li>service（服务）：将connector关联至engine，因此一个service内部可以有多个connector，但只能有一个引擎engine。service内部有两个connector，一个engine。因此，一般情况下一个server内部只有一个service，一个service内部只有一个engine，但一个service内部可以有多个connector。</li>
+<li>server：表示一个运行于JVM中的tomcat实例。</li>
+<li>Valve：阀门，拦截请求并在将其转至对应的webapp前进行某种处理操作，可以用于任何容器中，比如记录日志(access log valve)、基于IP做访问控制(remote address filter valve)。</li>
+<li>logger：日志记录器，用于记录组件内部的状态信息，可以用于除context外的任何容器中。</li>
+<li>realm：可以用于任意容器类的组件中，关联一个用户认证库，实现认证和授权。可以关联的认证库有两种：UserDatabaseRealm、MemoryRealm和JDBCRealm。</li>
+<li>UserDatabaseRealm：使用JNDI自定义的用户认证库。</li>
+<li>MemoryRealm：认证信息定义在tomcat-users.xml中。</li>
+<li>JDBCRealm：认证信息定义在数据库中，并通过JDBC连接至数据库中查找认证用户</li>
+</ul>
+<h3 id="93-配置文件详解">9.3、配置文件详解</h3>
+<pre><code>&lt;?xml version='1.0' encoding='utf-8'?&gt;
+&lt;!--
+&lt;Server&gt;元素代表整个容器,是Tomcat实例的顶层元素.由org.apache.catalina.Server接口来定义.它包含一个&lt;Service&gt;元素.并且它不能做为任何元素的子元素.
+    port指定Tomcat监听shutdown命令端口.终止服务器运行时,必须在Tomcat服务器所在的机器上发出shutdown命令.该属性是必须的.
+    shutdown指定终止Tomcat服务器运行时,发给Tomcat服务器的shutdown监听端口的字符串.该属性必须设置
+--&gt;
+&lt;Server port=&quot;8005&quot; shutdown=&quot;SHUTDOWN&quot;&gt;
+  &lt;Listener className=&quot;org.apache.catalina.startup.VersionLoggerListener&quot; /&gt;
+  &lt;Listener className=&quot;org.apache.catalina.core.AprLifecycleListener&quot; SSLEngine=&quot;on&quot; /&gt;
+  &lt;Listener className=&quot;org.apache.catalina.core.JreMemoryLeakPreventionListener&quot; /&gt;
+  &lt;Listener className=&quot;org.apache.catalina.mbeans.GlobalResourcesLifecycleListener&quot; /&gt;
+  &lt;Listener className=&quot;org.apache.catalina.core.ThreadLocalLeakPreventionListener&quot; /&gt;
+  &lt;GlobalNamingResources&gt;
+    &lt;Resource name=&quot;UserDatabase&quot; auth=&quot;Container&quot;
+              type=&quot;org.apache.catalina.UserDatabase&quot;
+              description=&quot;User database that can be updated and saved&quot;
+              factory=&quot;org.apache.catalina.users.MemoryUserDatabaseFactory&quot;
+              pathname=&quot;conf/tomcat-users.xml&quot; /&gt;
+  &lt;/GlobalNamingResources&gt;
+  &lt;!--service服务组件--&gt;
+  &lt;Service name=&quot;Catalina&quot;&gt;
+    &lt;!--
+    connector：接收用户请求，类似于httpd的listen配置监听端口.
+        port指定服务器端要创建的端口号，并在这个端口监听来自客户端的请求。
+        address：指定连接器监听的地址，默认为所有地址（即0.0.0.0）
+        protocol连接器使用的协议，支持HTTP和AJP。AJP（Apache Jserv Protocol）专用于tomcat与apache建立通信的， 在httpd反向代理用户请求至tomcat时使用（可见Nginx反向代理时不可用AJP协议）。
+        minProcessors服务器启动时创建的处理请求的线程数
+        maxProcessors最大可以创建的处理请求的线程数
+        enableLookups如果为true，则可以通过调用request.getRemoteHost()进行DNS查询来得到远程客户端的实际主机名，若为false则不进行DNS查询，而是返回其ip地址
+        redirectPort指定服务器正在处理http请求时收到了一个SSL传输请求后重定向的端口号
+        acceptCount指定当所有可以使用的处理请求的线程数都被使用时，可以放到处理队列中的请求数，超过这个数的请求将不予处理
+        connectionTimeout指定超时的时间数(以毫秒为单位)
+    --&gt;
+    &lt;Connector port=&quot;8080&quot; protocol=&quot;HTTP/1.1&quot;
+               connectionTimeout=&quot;20000&quot;
+               redirectPort=&quot;8443&quot; /&gt;
+    &lt;Connector port=&quot;8009&quot; protocol=&quot;AJP/1.3&quot; redirectPort=&quot;8443&quot; /&gt;
+    &lt;!--engine,核心容器组件,catalina引擎,负责通过connector接收用户请求,并处理请求,将请求转至对应的虚拟主机host
+        defaultHost指定缺省的处理请求的主机名，它至少与其中的一个host元素的name属性值是一样的
+    --&gt;
+    &lt;Engine name=&quot;Catalina&quot; defaultHost=&quot;localhost&quot;&gt;
+      &lt;!--Realm表示存放用户名，密码及role的数据库--&gt;
+      &lt;Realm className=&quot;org.apache.catalina.realm.LockOutRealm&quot;&gt;
+        &lt;Realm className=&quot;org.apache.catalina.realm.UserDatabaseRealm&quot;
+               resourceName=&quot;UserDatabase&quot;/&gt;
+      &lt;/Realm&gt;
+      &lt;!--
+      host表示一个虚拟主机
+        name指定主机名
+        appBase应用程序基本目录，即存放应用程序的目录.一般为appBase=&quot;webapps&quot; ，相对于CATALINA_HOME而言的，也可以写绝对路径。
+        unpackWARs如果为true，则tomcat会自动将WAR文件解压，否则不解压，直接从WAR文件中运行应用程序
+        autoDeploy：在tomcat启动时，是否自动部署。
+        xmlValidation：是否启动xml的校验功能，一般xmlValidation=&quot;false&quot;。
+        xmlNamespaceAware：检测名称空间，一般xmlNamespaceAware=&quot;false&quot;。
+      --&gt;
+      &lt;Host name=&quot;localhost&quot;  appBase=&quot;webapps&quot;
+            unpackWARs=&quot;true&quot; autoDeploy=&quot;true&quot;&gt;
+        &lt;!--
+        Context表示一个web应用程序，通常为WAR文件
+            docBase应用程序的路径或者是WAR文件存放的路径,也可以使用相对路径，起始路径为此Context所属Host中appBase定义的路径。
+            path表示此web应用程序的url的前缀，这样请求的url为http://localhost:8080/path/****
+            reloadable这个属性非常重要，如果为true，则tomcat会自动检测应用程序的/WEB-INF/lib 和/WEB-INF/classes目录的变化，自动装载新的应用程序，可以在不重启tomcat的情况下改变应用程序
+        --&gt;
+        &lt;Context path=&quot;&quot; docBase=&quot;&quot; debug=&quot;&quot;/&gt;
+        &lt;Valve className=&quot;org.apache.catalina.valves.AccessLogValve&quot; directory=&quot;logs&quot;
+               prefix=&quot;localhost_access_log&quot; suffix=&quot;.txt&quot;
+               pattern=&quot;%h %l %u %t &amp;quot;%r&amp;quot; %s %b&quot; /&gt;
+      &lt;/Host&gt;
+    &lt;/Engine&gt;
+  &lt;/Service&gt;
+&lt;/Server&gt;
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/tomcat" class="tag">
+                    tomcat
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/centos72-an-zhuang-lepus-shu-ju-ku-jian-kong-xi-tong">
+                  <h3 class="post-title">
+                    CentOS7.2安装lepus数据库监控系统
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

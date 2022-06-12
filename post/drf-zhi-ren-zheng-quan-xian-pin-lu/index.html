@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>drf之认证、权限、频率 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">drf之认证、权限、频率</h2>
+            <div class="post-date">2020-07-27</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E8%AE%A4%E8%AF%81">1、认证</a>
+<ul>
+<li><a href="#11-%E8%AE%A4%E8%AF%81%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA">1.1 认证类的构建</a></li>
+<li><a href="#12-%E8%AE%A4%E8%AF%81%E7%B1%BB%E7%9A%84%E4%BD%BF%E7%94%A8">1.2 认证类的使用</a></li>
+</ul>
+</li>
+<li><a href="#2-%E6%9D%83%E9%99%90">2 权限</a>
+<ul>
+<li><a href="#21-%E6%9D%83%E9%99%90%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA">2.1 权限类的构建</a></li>
+<li><a href="#22-%E6%9D%83%E9%99%90%E7%B1%BB%E7%9A%84%E4%BD%BF%E7%94%A8">2.2 权限类的使用</a></li>
+<li><a href="#23-drf%E5%86%85%E7%BD%AE%E7%9A%84%E6%9D%83%E9%99%90%E7%B1%BB">2.3 drf内置的权限类</a></li>
+</ul>
+</li>
+<li><a href="#3-%E9%A2%91%E7%8E%87">3 频率</a>
+<ul>
+<li><a href="#31-%E9%A2%91%E7%8E%87%E7%B1%BB%E7%9A%84%E6%9E%84%E5%BB%BA">3.1 频率类的构建</a></li>
+<li><a href="#32-%E9%A2%91%E7%8E%87%E7%B1%BB%E7%9A%84%E4%BD%BF%E7%94%A8">3.2 频率类的使用</a></li>
+<li><a href="#33-df%E5%86%85%E7%BD%AE%E7%9A%84%E9%A2%91%E7%8E%87%E9%99%90%E5%88%B6%E7%B1%BB">3.3 df内置的频率限制类</a></li>
+</ul>
+</li>
+<li><a href="#4-%E8%BF%87%E6%BB%A4%E4%B8%8E%E6%8E%92%E5%BA%8F">4 过滤与排序</a>
+<ul>
+<li><a href="#41-%E8%BF%87%E6%BB%A4">4.1 过滤</a></li>
+<li><a href="#42-%E6%8E%92%E5%BA%8F">4.2 排序</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-认证">1、认证</h2>
+<h3 id="11-认证类的构建">1.1 认证类的构建</h3>
+<p>新建一个自定义类，该类继承rest_framework.authentication中的<code>BaseAuthentication</code> 类，重写其中的<code>authenticate</code> 方法。将需要的认证逻辑写在里面。当认证通过是需要返回两个值，其中一个值最终给了<code>Request</code> 的<code>user</code> 。认证失败时，抛出异常：<code>APIException</code>或者<code>AuthenticationFailed</code> 。其中该方法必须重写，如不重写其中没有认证逻辑，则直接抛出异常。</p>
+<p>为方便管理，认证类写在新建的.py文件中。</p>
+<pre><code class="language-python">from rest_framework.authentication import BaseAuthentication
+from rest_framework.exceptions import AuthenticationFailed
+
+from app01 import models	# 自定义模型
+
+
+class MyAuthentication(BaseAuthentication):
+    def authenticate(self, request):
+        # 从META中取出请求中带的登录接口返回给前端的token
+        token = request.META.get('HTTP_TOKEN')
+        if token:
+            user_token = models.Token.objects.filter(Token=token).first()
+            if user_token:
+                return user_token.user, token
+            else:
+                raise AuthenticationFailed('认证失败')
+        else:
+            raise AuthenticationFailed('需要认证')
+</code></pre>
+<h3 id="12-认证类的使用">1.2 认证类的使用</h3>
+<ul>
+<li>
+<p><strong>全局使用：</strong></p>
+<p>在settings.py 中的<code>REST_FRAMEWORK</code>中添加<code>DEFAULT_AUTHENTICATION_CLASSES</code> 。如下所示：</p>
+</li>
+</ul>
+<pre><code class="language-python">REST_FRAMEWORK={
+    &quot;DEFAULT_AUTHENTICATION_CLASSES&quot;:[&quot;app01.user_auth.MyAuthentication&quot;,] #可以有多个
+}
+</code></pre>
+<ul>
+<li>
+<p><strong>局部使用：</strong></p>
+<p>在需要进行认证的视图类中添加<code>authentication_classes</code> 。如下所示：</p>
+</li>
+</ul>
+<pre><code class="language-python">class BookAPIView(ModelViewSet):
+    authentication_classes = [MyAuthentication, ]  
+    '''
+    可以是元组也可以是列表，里面可以有多个值，当有多个值的时候，从左到右依次认证。其中第一个认证不能有两个返回值，否则只能进行第一个认证。有多个认证时，需要将返回值为两个的放到最后
+    '''
+    queryset = models.Book.objects.all()
+    serializer_class = BookModelSerializer
+</code></pre>
+<ul>
+<li>
+<p><strong>局部禁用：</strong></p>
+<p>在需要禁用认证的视图类中，将<code>authentication_classes</code> 设置为空。如下所示：</p>
+<pre><code class="language-python">class LoginView(APIView):
+    authentication_classes = ()  
+    def post(self, request):
+       ...
+</code></pre>
+</li>
+</ul>
+<h2 id="2-权限">2 权限</h2>
+<h3 id="21-权限类的构建">2.1 权限类的构建</h3>
+<p>新建一个类，继承rest_framework.permissions中的BasePermission，并重写其中的has_permission方法，其中是验证权限的逻辑。如果验证通过则return True，如果验证失败则返回False。</p>
+<p>示例：</p>
+<pre><code class="language-Python">from rest_framework.permissions import BasePermission
+
+class UserPermission(BasePermission):
+    def  has_permission(self, request, view):
+        '''
+        在进行权限验证之前，drf会首先对请求进行认证操作，当其认证通过时之后才会进行权限认证。此时request中已经包含了登录用户的信息，我们可以将其取出进行权限验证。
+        '''
+        user=request.user  # 当前登录用户
+        if user.user_type==1:
+            return True
+        else:
+            return False
+</code></pre>
+<h3 id="22-权限类的使用">2.2 权限类的使用</h3>
+<p>同认证类相似，权限类也有全局使用，局部使用和局部禁用。</p>
+<p>其中全局使用的配置是：</p>
+<pre><code class="language-python">REST_FRAMEWORK={
+    &quot;DEFAULT_AUTHENTICATION_CLASSES&quot;:[&quot;app01.app_auth.MyAuthentication&quot;,],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'app01.app_auth.UserPermission',
+    ],
+}
+</code></pre>
+<p>局部使用则是在相应的视图类中添加 permission_classes 属性。比如：</p>
+<pre><code class="language-python">class TestView(APIView):
+	permission_classes = [app_auth.UserPermission,]
+    pass
+</code></pre>
+<p>将视图类中的permission_classes 设置为空即可在全局配置了权限的情况下实现，权限的局部禁用。</p>
+<h3 id="23-drf内置的权限类">2.3 drf内置的权限类</h3>
+<p>drf为我们内置了几个权限类，当我们的的需求类似时，可以直接使用其内置的权限类，避免代码冗余。这几个权限类依次是</p>
+<ul>
+<li><code>IsAdminUser</code> 校验Django自带用户表中的is_staff字段，判断认证用户是否是管理员（注意：其判断的不是is_superuser字段，而是is_staff，即该用户是职员状态是就可以通过权限认证）。</li>
+<li><code>IsAuthenticated</code>  所有通过认证的请求都可以通过权限验证，都会返回True。</li>
+<li><code>IsAuthenticatedOrReadOnly</code> 当请求通过认证或者请求是'<code>GET</code>', '<code>HEAD</code>', '<code>OPTIONS</code>'方式时，可以通过权限验证。</li>
+<li><code>AllowAny</code> 所有请求都可以通过权限校验，当你没有配置权限类的时候就会默认使用AllowAny 。</li>
+</ul>
+<blockquote>
+<p>权限的校验依靠于认证类返回的结果，所以我们使用时必须要搭配相应的认证类使用。</p>
+</blockquote>
+<h2 id="3-频率">3 频率</h2>
+<h3 id="31-频率类的构建">3.1 频率类的构建</h3>
+<p>新建一个频率类。继承rest_framework.throttling中的SimpleRateThrottle，重写get_cache_key 方法。其中可以取出请求中的ip，user，设备信息等，将选用的频率限制标准返回即可。即返回ip即按照ip限制访问频率，返回用户名或用户对象即根据用户进行限制。</p>
+<p>示例：</p>
+<pre><code class="language-python">from rest_framework.throttling import SimpleRateThrottle
+class MyThrottle(SimpleRateThrottle):
+    scope='ip' 
+    '''
+    其中scope属性为配置中访问频率设置的关键字，必须在频率类中对该属性进行赋值，且与sttings中要一一对应。
+    '''
+    def get_cache_key(self, request, view):
+        return request.META.get('REMOTE_ADDR')
+</code></pre>
+<h3 id="32-频率类的使用">3.2 频率类的使用</h3>
+<ul>
+<li>
+<p>全局使用</p>
+<pre><code class="language-python">REST_FRAMEWORK={
+    'DEFAULT_THROTTLE_CLASSES': (
+        'utils.throttling.MyThrottle',
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'ip': '3/m'  # key要跟类中的scop对应 格式可为'3/m','3/h','3/d'等
+    },
+     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',)
+}
+</code></pre>
+</li>
+<li>
+<p>局部使用：在相应的类中添加<code>throttle_classes</code> 属性即可。示例：</p>
+<pre><code class="language-python">class TestView(APIView):
+	throttle_classes = [MyThrottle,]
+    pass
+</code></pre>
+</li>
+<li>
+<p>将视图类中的<code>throttle_classes</code> 设置为空即可在全局配置了频率限制的情况下实现，频率限制的局部禁用。</p>
+</li>
+</ul>
+<h3 id="33-df内置的频率限制类">3.3 df内置的频率限制类</h3>
+<p>drf为我们内置了几个权限类，依次为：</p>
+<ul>
+<li><code>UserRateThrottle</code> ：对登录用户进行频率限制。如果登录用户经过了认证，则限制的依据是该用户的user_id，否则就是该请求的ip地址。setting中的scope为<code>user</code> 。</li>
+<li><code>AnonRateThrottle</code>  ：对未登录用户进行频率限制，限制依据是用户请求中的ip地址，setting中的scope为<code>anon</code> 。</li>
+</ul>
+<h2 id="4-过滤与排序">4 过滤与排序</h2>
+<h3 id="41-过滤">4.1 过滤</h3>
+<ol>
+<li>
+<p>安装第三方插件：<code>pip3 install django-filter</code></p>
+</li>
+<li>
+<p>在Django中注册app</p>
+</li>
+<li>
+<p>全局配置或者局部配置。</p>
+<p>示例：</p>
+<pre><code class="language-python">REST_FRAMEWORK={
+     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',)
+}
+</code></pre>
+<pre><code class="language-python">class BookView(ListAPIView):
+    ...
+    filter_fields = ('name',)  #配置可以按照哪个字段来过滤
+</code></pre>
+</li>
+</ol>
+<h3 id="42-排序">4.2 排序</h3>
+<p>示例：</p>
+<pre><code class="language-python"># 视图
+from rest_framework.filters import OrderingFilter
+
+class BooksView(ListAPIView):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    filter_backends = [OrderingFilter]
+    ordering_fields = ('id', 'price')
+    
+# urls.py
+path('books/', views.BooksView.as_view()),
+
+# 使用
+http://127.0.0.1:8000/books/?ordering=-price
+http://127.0.0.1:8000/books/?ordering=price
+http://127.0.0.1:8000/books/?ordering=-id
+</code></pre>
+<blockquote>
+<p>Author：Laoqi</p>
+</blockquote>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/VEfPb2dUj" class="tag">
+                    django
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/vhKLQmmvn" class="tag">
+                    python
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/drf-fen-ye-qi">
+                  <h3 class="post-title">
+                    drf分页器
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

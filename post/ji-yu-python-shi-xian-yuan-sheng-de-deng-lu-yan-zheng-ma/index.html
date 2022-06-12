@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>基于Python实现原生的登录验证码 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">基于Python实现原生的登录验证码</h2>
+            <div class="post-date">2021-10-14</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">1、概述</a></li>
+<li><a href="#2-%E9%AA%8C%E8%AF%81%E7%A0%81%E5%AE%9E%E7%8E%B0%E7%9A%84%E6%BC%94%E8%BF%9B%E8%BF%87%E7%A8%8B">2、验证码实现的演进过程</a>
+<ul>
+<li><a href="#21-%E8%B7%AF%E7%94%B1%E5%8F%8A%E9%A1%B5%E9%9D%A2">2.1 路由及页面</a></li>
+<li><a href="#22-%E8%A7%86%E5%9B%BE%E5%87%BD%E6%95%B0%E4%B8%AD%E9%AA%8C%E8%AF%81%E7%A0%81%E7%9A%84%E6%8E%A8%E5%AF%BC">2.2 视图函数中验证码的推导</a>
+<ul>
+<li><a href="#221-%E5%9B%BE%E7%89%87%E5%8F%91%E9%80%81%E5%88%B0%E5%89%8D%E7%AB%AF">2.2.1 图片发送到前端</a></li>
+<li><a href="#222-%E5%BC%95%E5%85%A5%E5%8A%A8%E6%80%81%E5%9B%BE%E7%89%87">2.2.2 引入动态图片</a></li>
+<li><a href="#223-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%A8%A1%E5%9D%97%E5%9B%BE%E7%89%87">2.2.3 内存管理模块图片</a></li>
+<li><a href="#224-%E5%AE%8C%E6%95%B4%E5%9B%BE%E7%89%87%E9%AA%8C%E8%AF%81%E7%A0%81">2.2.4 完整图片验证码</a></li>
+</ul>
+</li>
+<li><a href="#23-%E7%99%BB%E5%BD%95%E9%AA%8C%E8%AF%81%E4%B8%AD%E4%BD%BF%E7%94%A8%E9%AA%8C%E8%AF%81%E7%A0%81">2.3 登录验证中使用验证码</a></li>
+<li><a href="#24-%E5%89%8D%E7%AB%AF%E9%A1%B5%E9%9D%A2%E7%82%B9%E5%87%BB%E8%87%AA%E5%8A%A8%E5%88%B7%E6%96%B0">2.4 前端页面点击自动刷新</a></li>
+</ul>
+</li>
+<li><a href="#3-%E6%95%88%E6%9E%9C%E5%B1%95%E7%A4%BA">3、效果展示</a></li>
+<li><a href="#4-%E5%B0%8F%E7%BB%93">4、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20211014-03.png" alt=""></figure>
+<h2 id="1-概述">1、概述</h2>
+<p>在前面的文章中，我有分享到<a href="https://www.ssgeek.com/post/vuedrfdi-san-fang-hua-dong-yan-zheng-ma-de-jie-ru-shi-xian/">vue+drf+第三方滑动验证码的接入实现</a>（文中也留了坑分享图片验证码功能的实现），即本文将要分享的是基于<code>python</code>实现原生的登录验证码</p>
+<p>通常的验证码，人眼看上去更像是一张小图片</p>
+<p>在<code>html</code>语法中，嵌入一张图片一般用<code>img</code>标签实现，而<code>img</code>标签对应的<code>src</code>一般有以下几种写法</p>
+<ul>
+<li>图片的本地路径</li>
+<li>图片的url</li>
+<li>图片的二进制数据（base64编码）</li>
+</ul>
+<p>其中前两种方法都需要外部具有实际存在的图片，第三种方法则是将图片进行编码后填充到<code>img</code>标签的<code>src</code>下</p>
+<h2 id="2-验证码实现的演进过程">2、验证码实现的演进过程</h2>
+<h3 id="21-路由及页面">2.1 路由及页面</h3>
+<p>为了实现验证码的功能，需要开设一个<code>url</code>单独处理验证码功能，修改全局路由</p>
+<pre><code class="language-python">urlpatterns = [
+    ......
+    url(r'^login/', views.login, name='login'),
+    # 图片验证码
+    url(r'^get_code/', views.get_code, name='gc'),
+    ...
+]
+</code></pre>
+<p>然后修改前端登录页面<code>login.html</code>的验证码部分</p>
+<pre><code class="language-html">...
+&lt;div class=&quot;form-group&quot;&gt;
+    &lt;label for=&quot;&quot;&gt;验证码&lt;/label&gt;
+    &lt;div class=&quot;row&quot;&gt;
+        &lt;div class=&quot;col-md-6&quot;&gt;
+            &lt;input type=&quot;text&quot; name=&quot;code&quot; id=&quot;id_code&quot; class=&quot;form-control&quot;&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;col-md-6&quot;&gt;
+            &lt;img src=&quot;/get_code/&quot; alt=&quot;&quot; width=&quot;430&quot; height=&quot;35&quot; id=&quot;id_img&quot;&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+&lt;/div&gt;
+&lt;input type=&quot;button&quot; class=&quot;btn btn-success&quot; value=&quot;登陆&quot; id=&quot;id_commit&quot;&gt;
+...
+</code></pre>
+<h3 id="22-视图函数中验证码的推导">2.2 视图函数中验证码的推导</h3>
+<h4 id="221-图片发送到前端">2.2.1 图片发送到前端</h4>
+<p>前端界面实现了一个简单的包含验证码的登录框，首先定义一个视图函数将后端的测试图片以二进制的形式发送到前端进行测试</p>
+<pre><code class="language-python">def get_code(request):
+    # 直接获取后端现成的图片二进制数据发送给前端
+    with open(r'static/img/test.jpg','rb') as f:
+        data = f.read()
+    return HttpResponse(data)
+</code></pre>
+<h4 id="222-引入动态图片">2.2.2 引入动态图片</h4>
+<p>为了操作图片，主要利用的是<code>pillow</code>模块</p>
+<pre><code class="language-shell">pip3 install pillow
+</code></pre>
+<p>主要用到了<code>Image</code>、<code>ImageDraw</code>、<code>ImageFont</code></p>
+<ul>
+<li>Image：生成图片</li>
+<li>ImageDraw：在图片上定义内容</li>
+<li>ImageFont：控制字体样式</li>
+</ul>
+<p>因此，利用<code>pillow</code>模块动态产生图片的方法为</p>
+<pre><code class="language-python">import random
+from PIL import Image, ImageDraw, ImageFont
+
+def get_random():
+    return random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
+
+
+def get_code(request):
+    # 利用pillow模块动态产生图片
+    # img_obj = Image.new('RGB',(430,35),'green')  # RGB组合、图片尺寸、颜色
+    img_obj = Image.new('RGB',(430,35),get_random())  # 通过色值指定颜色
+    # 先将图片对象保存起来
+    with open('xxx.png','wb') as f:
+        img_obj.save(f,'png')
+    # 再将图片对象读取出来
+    with open('xxx.png','rb') as f:
+        data = f.read()
+    return HttpResponse(data)
+</code></pre>
+<h4 id="223-内存管理模块图片">2.2.3 内存管理模块图片</h4>
+<p>上面将图片对象保存在读取有些麻烦，文件存储繁琐<code>IO</code>操作效率低 ，可以借助于内存管理器模块实现</p>
+<p>其中又分为<code>BytesIO</code>和<code>StringIO</code>两种</p>
+<ul>
+<li>BytesIO:临时存储数据，返回的时候数据是二进制</li>
+<li>StringIO:临时存储数据，返回的时候数据是字符串</li>
+</ul>
+<p>内存管理对象就相当于上面的文件句柄</p>
+<pre><code class="language-python">import random
+from PIL import Image, ImageDraw, ImageFont
+
+def get_random():
+    return random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
+
+
+def get_code(request):
+    img_obj = Image.new('RGB', (430, 35), get_random())
+    io_obj = BytesIO()  # 生成一个内存管理器对象  你可以看成是文件句柄
+    img_obj.save(io_obj,'png')
+    return HttpResponse(io_obj.getvalue())  # 从内存管理器中读取二进制的图片数据返回给前端
+</code></pre>
+<p>这样一来，图片的生成以及返回就比较友好了</p>
+<h4 id="224-完整图片验证码">2.2.4 完整图片验证码</h4>
+<p>上面解决了图片如何传递到前端页面的问题，剩下的就是如何生成对应的随机验证码了</p>
+<p>例如随机验证码为五位数的随机验证码，包含数字、小写字母、大写字母</p>
+<pre><code class="language-python">import random
+from PIL import Image, ImageDraw, ImageFont
+
+def get_random():
+    return random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
+
+
+def get_code(request):
+    # 写图片验证码
+    img_obj = Image.new('RGB', (430, 35), get_random())
+    img_draw = ImageDraw.Draw(img_obj)  # 产生一个画笔对象
+    # 引入本地的字体文件，指定字体样式及字体大小
+    img_font = ImageFont.truetype('static/font/222.ttf', 30) 
+    # 随机验证码 五位数的随机验证码  数字 小写字母 大写字母
+    code = ''
+    for i in range(5):
+        random_upper = chr(random.randint(65, 90))  # 随机大写字母
+        random_lower = chr(random.randint(97, 122))  # 随机小写字母
+        random_int = str(random.randint(0, 9))  # 随机数字
+        # 每次从上面三个里面随机选择一个
+        tmp = random.choice([random_lower, random_upper, random_int])
+        # 将产生的随机字符串写入到图片上，需要调整每个字体所在的坐标变换
+        img_draw.text((i * 60 + 60, -2), tmp, get_random(), img_font)
+        # 拼接随机字符串
+        code += tmp
+    print(code)
+    # 随机验证码在登陆的视图函数里面需要要比对,所以要找地方存起来并且其他视图函数也能拿到
+    request.session['code'] = code
+    io_obj = BytesIO()
+    img_obj.save(io_obj, 'png')
+    return HttpResponse(io_obj.getvalue())
+</code></pre>
+<p>这里有一点，在写入随机文字的时候一个个写而不是生成好了之后再写，是因为一个个写能够控制每个字体的间隙。而生成好之后再写的话，间隙就没法控制了</p>
+<h3 id="23-登录验证中使用验证码">2.3 登录验证中使用验证码</h3>
+<p>上面将每次生成的验证码存储到了<code>session</code>中，这样在前端传过来的验证码，登录校验时就可以进行比对了</p>
+<pre><code class="language-python">......
+def login(request):
+    if request.method == 'POST':
+        back_dic = {'code': 1000, 'msg': ''}
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        code = request.POST.get('code')
+        # 1 先校验验证码是否正确  自己决定是否忽略大小写 统一转大写或小写再比较
+        if request.session.get('code').upper() == code.upper():
+            # 校验用户名和密码是否正确
+            user_obj = auth.authenticate(request,username=username,password=password)
+            if user_obj:
+                # 保存用户状态
+                auth.login(request,user_obj)
+                back_dic['url'] = '/home/'
+            else:
+                back_dic['code'] = 2000
+                back_dic['msg'] = '用户名或密码错误'
+        else:
+            back_dic['code'] = 3000
+            back_dic['msg'] = '验证码错误'
+        return JsonResponse(back_dic)
+    return render(request, 'login.html')
+</code></pre>
+<h3 id="24-前端页面点击自动刷新">2.4 前端页面点击自动刷新</h3>
+<p>最后，还留下一点小问题，前端在输入验证码错误后不会自动刷新，如果点击验证码也不会进行刷新，只能通过刷新登录页面才能刷新验证码，因此需要想办法让用户在点击验证码时自动刷新（单独触发验证码的视图函数）</p>
+<p>每次在点击时，修改对应<code>src</code>的值即可，可以通过一小段<code>js</code>实现</p>
+<pre><code class="language-html">...
+       &lt;div class=&quot;form-group&quot;&gt;
+            &lt;label for=&quot;&quot;&gt;验证码&lt;/label&gt;
+
+            &lt;div class=&quot;row&quot;&gt;
+                &lt;div class=&quot;col-md-6&quot;&gt;
+                    &lt;input type=&quot;text&quot; name=&quot;code&quot; id=&quot;id_code&quot; class=&quot;form-control&quot;&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;col-md-6&quot;&gt;
+                    &lt;img src=&quot;/get_code/&quot; alt=&quot;&quot; width=&quot;430&quot; height=&quot;35&quot; id=&quot;id_img&quot;&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+
+        &lt;/div&gt;
+        &lt;input type=&quot;button&quot; class=&quot;btn btn-success&quot; value=&quot;登陆&quot; id=&quot;id_commit&quot;&gt;
+...
+&lt;script&gt;
+    $(&quot;#id_img&quot;).click(function () {
+        // 获取标签之前的src
+        let oldVal = $(this).attr('src');
+        $(this).attr('src',oldVal += '?')
+    })
+&lt;/script&gt;
+</code></pre>
+<h2 id="3-效果展示">3、效果展示</h2>
+<p>最终前端的验证码效果如图</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20211014-01.png" alt=""></figure>
+<h2 id="4-小结">4、小结</h2>
+<p>本文基于<code>python</code>以及相关的库原生实现了登录验证码逻辑~</p>
+<p>其实写本文也是因为之前有过想法但是一段时间就忘了，最近通过某银行手机银行<code>app</code>重置登录密码的时候，发现其验证码显示效果和本文效果竟然神似~，于是捡起来写了此文</p>
+<p>其手机<code>app</code>验证码效果如下</p>
+<img src="https://image.ssgeek.com/20211014-02.png" alt="20211014-02" style="zoom: 50%;" />
+<p>See you ~</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/VEfPb2dUj" class="tag">
+                    django
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/vhKLQmmvn" class="tag">
+                    python
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/golang-kai-fa-ming-ling-xing-gong-ju-zhi-flag-bao-de-shi-yong">
+                  <h3 class="post-title">
+                    Golang开发命令行工具之flag包的使用
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

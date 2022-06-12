@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>两大grafana实用插件快速监控kubernetes | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">两大grafana实用插件快速监控kubernetes</h2>
+            <div class="post-date">2020-05-25</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E7%8E%AF%E5%A2%83%E8%AF%B4%E6%98%8E">1、环境说明</a></li>
+<li><a href="#2-grafana-kubernetes-app%E6%8F%92%E4%BB%B6">2、grafana-kubernetes-app插件</a>
+<ul>
+<li><a href="#21-%E6%8F%92%E4%BB%B6%E4%BB%8B%E7%BB%8D">2.1、插件介绍</a></li>
+<li><a href="#22-%E6%8F%92%E4%BB%B6%E5%AE%89%E8%A3%85">2.2、插件安装</a></li>
+<li><a href="#23-%E6%8F%92%E4%BB%B6%E9%85%8D%E7%BD%AE">2.3、插件配置</a></li>
+<li><a href="#24-%E6%8F%92%E4%BB%B6%E6%95%88%E6%9E%9C">2.4、插件效果</a></li>
+</ul>
+</li>
+<li><a href="#3-devopsprodigy-kubegraf-app%E6%8F%92%E4%BB%B6">3、devopsprodigy-kubegraf-app插件</a>
+<ul>
+<li><a href="#31-%E6%8F%92%E4%BB%B6%E4%BB%8B%E7%BB%8D">3.1、插件介绍</a></li>
+<li><a href="#32-%E6%8F%92%E4%BB%B6%E5%AE%89%E8%A3%85">3.2、插件安装</a></li>
+<li><a href="#33-%E6%8F%92%E4%BB%B6%E9%85%8D%E7%BD%AE">3.3、插件配置</a></li>
+<li><a href="#34-%E6%8F%92%E4%BB%B6%E6%95%88%E6%9E%9C">3.4、插件效果</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>监控k8s的主流方案是prometheus+grafana两大套件，为了快速部署并监控k8s，目前有两款主流grafana插件提供给了我们方案</p>
+</blockquote>
+<h2 id="1-环境说明">1、环境说明</h2>
+<p>本文环境是二进制部署的<code>k8s</code>集群，<code>prometheus</code>和<code>grafana</code>通过<code>yaml</code>部署（非operator）</p>
+<pre><code># kubectl version
+Client Version: version.Info{Major:&quot;1&quot;, Minor:&quot;15&quot;, GitVersion:&quot;v1.15.0&quot;, GitCommit:&quot;e8462b5b5dc2584fdcd18e6bcfe9f1e4d970a529&quot;, GitTreeState:&quot;clean&quot;, BuildDate:&quot;2019-06-19T16:40:16Z&quot;, GoVersion:&quot;go1.12.5&quot;, Compiler:&quot;gc&quot;, Platform:&quot;linux/amd64&quot;}
+Server Version: version.Info{Major:&quot;1&quot;, Minor:&quot;15&quot;, GitVersion:&quot;v1.15.0&quot;, GitCommit:&quot;e8462b5b5dc2584fdcd18e6bcfe9f1e4d970a529&quot;, GitTreeState:&quot;clean&quot;, BuildDate:&quot;2019-06-19T16:32:14Z&quot;, GoVersion:&quot;go1.12.5&quot;, Compiler:&quot;gc&quot;, Platform:&quot;linux/amd64&quot;}
+# kubectl get pods -n kube-system -l k8s-app=prometheus
+NAME           READY   STATUS    RESTARTS   AGE
+prometheus-0   2/2     Running   0          1m
+# kubectl get pods -n kube-system -l app=grafana
+NAME        READY   STATUS    RESTARTS   AGE
+grafana-0   1/1     Running   0          1m
+</code></pre>
+<h2 id="2-grafana-kubernetes-app插件">2、grafana-kubernetes-app插件</h2>
+<p><a href="https://grafana.com/grafana/plugins/grafana-kubernetes-app">插件地址</a></p>
+<h3 id="21-插件介绍">2.1、插件介绍</h3>
+<p><code>Grafana Kubernetes App</code>可监控Kubernetes集群的性能。它包括4个仪表板，即集群，节点，<code>Pod</code>/容器和部署。它允许自动部署所需的<code>Prometheus</code>导出器，并使用默认的<code>scrape</code>配置与您的集群内<code>Prometheus</code>部署一起使用。收集的指标是高级集群和节点统计信息，以及较低级别的<code>pod</code>和容器统计信息。使用高级指标进行警报，使用低级指标进行故障排除。</p>
+<p><strong>要求</strong><br>
+目前仅支持<code>Prometheus</code><br>
+为了自动部署<code>exporter</code>，则需要<code>Kubernetes 1.6</code>或更高版本。<br>
+<code>Grafana 5.0.0+</code></p>
+<p><strong>特征</strong></p>
+<ul>
+<li>该应用程序使用<code>Kubernetes</code>标签来过滤<code>Pod</code>指标。<code>Kubernetes</code>集群往往有很多<code>Pod</code>和很多<code>Pod</code>指标。<code>Pod / Container</code>仪表板利用了<code>pod</code>标签，因此可以轻松找到相关的<code>pod</code>。</li>
+<li>轻松安装<code>exporter</code>，从<code>Grafana</code>一键式部署，或使用<code>kubectl</code>手动部署</li>
+<li><code>Heapster</code>中不可用的群集级别指标，例如<code>CPU</code>容量与<code>CPU</code>使用率。</li>
+</ul>
+<p><strong>集群指标</strong></p>
+<ul>
+<li>Pod容量/用途</li>
+<li>内存容量/使用率</li>
+<li>CPU容量/使用率</li>
+<li>磁盘容量/使用率</li>
+<li>节点，容器和容器概述</li>
+</ul>
+<p><strong>节点指标</strong></p>
+<ul>
+<li>中央处理器</li>
+<li>可用内存</li>
+<li>每个CPU的负载</li>
+<li>读取IOPS</li>
+<li>写入IOPS</li>
+<li>实用率</li>
+<li>网络流量/秒</li>
+<li>网络数据包/秒</li>
+<li>网络错误/秒</li>
+</ul>
+<p><strong>Pod/容器指标</strong></p>
+<ul>
+<li>内存使用情况</li>
+<li>网络流量</li>
+<li>CPU使用率</li>
+<li>读取IOPS</li>
+<li>写入IOPS</li>
+</ul>
+<h3 id="22-插件安装">2.2、插件安装</h3>
+<p>进入<code>pod</code>或者将插件离线下载后上传到<code>/var/lib/grafana/plugins</code>目录</p>
+<pre><code># kubectl get pods -n kube-system -l app=grafana
+NAME        READY   STATUS    RESTARTS   AGE
+grafana-0   1/1     Running   0          123m
+# kubectl -n kube-system exec -it grafana-0 bash
+bash-5.0$ grafana-cli plugins install grafana-kubernetes-app
+installing grafana-kubernetes-app @ 1.0.1
+from: https://grafana.com/api/plugins/grafana-kubernetes-app/versions/1.0.1/download
+into: /var/lib/grafana/plugins
+
+✔ Installed grafana-kubernetes-app successfully
+
+Restart grafana after installing plugins . &lt;service grafana-server restart&gt;
+</code></pre>
+<p>提示需要重启服务，此处直接删除<code>pod</code>，让其重新拉起即可</p>
+<pre><code># kubectl -n kube-system delete pods grafana-0
+</code></pre>
+<h3 id="23-插件配置">2.3、插件配置</h3>
+<p>重新访问grafana界面查看插件列表，找到<code>kubernetes</code>插件并启用</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20200525-02.png" alt=""></figure>
+<p>选择创建集群</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20200525-03.png" alt=""></figure>
+<p>配置项如下</p>
+<ul>
+<li>name：名称，自定义</li>
+<li>URL：<code>api-server</code>的地址</li>
+<li>Auth：认证信息，勾选<code>TLS Client Auth</code>和<code>With CA Cert</code>
+<ul>
+<li>TLS Auth Details<br>
+此处配置的是插件连接<code>k8s</code>的认证信息，这里我们可以新建一个<code>kubeconfig</code>文件也可以沿用<code>kubectl</code>使用的<code>kubeconfig</code>文件，在<code>kubeconfig</code>文件中的内容使经过<code>base64</code>编码后的，在这里需要将这些内容解码，类似<code>echo &quot;key内容&quot; | base64 -d</code>
+<ul>
+<li>CA Cert 对应<code>kubeconfig</code>中的<code>certificate-authority-data</code></li>
+<li>Client Cert 对应<code>kubeconfig</code>中的<code>client-certificate-data</code></li>
+<li>Client Key 对应<code>kubeconfig</code>中的<code>client-key-data</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Datasource：数据源，选择之前配置好的<code>prometheus</code></li>
+<li>除上面内容外，还可以选择通过此插件自动在集群中注入<code>prometheus</code>的配置及部署<code>node_exporter</code>，这里已经部署过了，就不再部署了</li>
+</ul>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20200525-04.png" alt=""></figure>
+<p>如上图所示，填写完后点击<code>Save</code>，然后等待一会儿查看是否成功</p>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20200525-05.png" alt=""></figure>
+<h3 id="24-插件效果">2.4、插件效果</h3>
+<p>按照上面的操作成功配置后，插件会自动在<code>grafana</code>中添加多个实用的<code>dashboard</code>，下图展示其中一个</p>
+<figure data-type="image" tabindex="5"><img src="https://image.ssgeek.com/20200525-06.png" alt=""></figure>
+<h2 id="3-devopsprodigy-kubegraf-app插件">3、devopsprodigy-kubegraf-app插件</h2>
+<p><a href="https://grafana.com/grafana/plugins/devopsprodigy-kubegraf-app">插件地址</a></p>
+<h3 id="31-插件介绍">3.1、插件介绍</h3>
+<p><code>DevOpsProdigy KubeGraf</code>是一个非常优秀的<code>Grafana Kubernetes</code>插件，是<code>Grafana</code>官方的<code>Kubernetes</code>插件的升级版本，该插件可以用来可视化和分析<code>Kubernetes</code>集群的性能，通过各种图形直观的展示了<code>Kubernetes</code>集群的主要服务的指标和特征，还可以用于检查应用程序的生命周期和错误日志。</p>
+<p><strong>要求</strong><br>
+要安装使用 <code>DevOpsProdigy KubeGraf</code> 插件需要满足以下要求：</p>
+<ul>
+<li><code>Grafana</code> &gt; 5.0.0 版本</li>
+<li>需要在<code>Kubernetes</code>集群上部署<code>Prometheus + node-exporter + kube-state-metrics</code></li>
+<li>依赖<code>Grafana-piechart-panel</code>插件</li>
+</ul>
+<p><strong>特征</strong><br>
+该插件包含3个主要的信息页面，其中包含有关<code>Kubernetes</code>集群的详细信息</p>
+<p><strong>应用概述</strong><br>
+该插件可以显示 Kubernetes 集群上面的应用的一些基本监控信息</p>
+<ul>
+<li>应用程序逻辑图</li>
+<li>Kubernetes 对象的分布</li>
+<li>可视化应用程序的生命周期和基本特征信息</li>
+<li>在集群中允许访问的服务端口的描述信息</li>
+</ul>
+<p><strong>集群状态</strong></p>
+<ul>
+<li>关于群集及其中的节点的状态的摘要</li>
+<li>监视应用程序生命周期的详细信息</li>
+<li>集群服务器中服务所在位置的可视化表示</li>
+</ul>
+<p><strong>节点概述</strong></p>
+<ul>
+<li>集群节点摘要</li>
+<li>有关已用和已分配资源（RAM，CPU利用率）以及容器数量的信息</li>
+<li>豆荚的物理分布</li>
+</ul>
+<p><strong>Dashboards</strong><br>
+除了在插件主页上提供了常见的信息之外，该插件还提供了另外5个<code>Dashboard</code>供我们来跟踪集群的各种性能指标</p>
+<ul>
+<li>node dashboard<br>
+带有节点指标的<code>Dashboard</code>，它可以显示资源的使用情况，例如<code>CPU</code>利用率、内存消耗、空闲/<code>iowait</code>模式下的<code>CPU</code>时间百分比以及磁盘和网络的状态</li>
+<li>pod dashboard<br>
+可以根据所选择的<code>Pod</code>来显示对应的资源使用情况</li>
+<li>deployments dashboard<br>
+以<code>Deployment</code>为维度来显示对应的资源对象相关的资源使用情况</li>
+<li>statefulsets dashboard<br>
+以<code>Statefulset</code>为维度来显示对应的资源对象相关的资源使用情况</li>
+<li>daemonsets dashboard<br>
+以<code>Daemonset</code>为维度来显示对应的资源对象相关的资源使用情况</li>
+</ul>
+<p>上面三个<code>Dashboard</code>显示了可用/不可用的应用程序的副本数量以及这些应用程序的容器状态，还会跟踪容器的重启</p>
+<h3 id="32-插件安装">3.2、插件安装</h3>
+<p>进入<code>pod</code>或者将插件离线下载后上传到<code>/var/lib/grafana/plugins</code>目录</p>
+<pre><code># kubectl get pods -n kube-system -l app=grafana
+NAME        READY   STATUS    RESTARTS   AGE
+grafana-0   1/1     Running   0          130m
+# kubectl -n kube-system exec -it grafana-0 bash
+bash-5.0$ grafana-cli plugins install devopsprodigy-kubegraf-app
+installing devopsprodigy-kubegraf-app @ 1.3.0
+from: https://grafana.com/api/plugins/devopsprodigy-kubegraf-app/versions/1.3.0/download
+into: /var/lib/grafana/plugins
+
+✔ Installed devopsprodigy-kubegraf-app successfully 
+
+Restart grafana after installing plugins . &lt;service grafana-server restart&gt;
+
+bash-5.0$ grafana-cli plugins install Grafana-piechart-panel #按照前面的提示如果没有安装Grafana-piechart-panel插件也需要安装
+installing Grafana-piechart-panel @ 1.5.0
+from: https://grafana.com/api/plugins/Grafana-piechart-panel/versions/1.5.0/download
+into: /var/lib/grafana/plugins
+
+✔ Installed Grafana-piechart-panel successfully 
+
+Restart grafana after installing plugins . &lt;service grafana-server restart&gt;
+</code></pre>
+<p>提示需要重启服务，此处直接删除<code>pod</code>，让其重新拉起即可</p>
+<pre><code># kubectl -n kube-system delete pods grafana-0
+</code></pre>
+<h3 id="33-插件配置">3.3、插件配置</h3>
+<p>同样的，重新访问<code>grafana</code>界面查看插件列表，找到<code>DevOpsProdigy KubeGraf</code>插件并启用<br>
+点击 <code>Set up your first k8s-cluster</code> 创建一个新的<code>Kubernetes</code>集群</p>
+<figure data-type="image" tabindex="6"><img src="https://image.ssgeek.com/20200525-07.png" alt=""></figure>
+<p>配置和<code>Kubernetes App</code>插件一样，这里不再赘述，如图所示</p>
+<figure data-type="image" tabindex="7"><img src="https://image.ssgeek.com/20200525-08.png" alt=""></figure>
+<h3 id="34-插件效果">3.4、插件效果</h3>
+<figure data-type="image" tabindex="8"><img src="https://image.ssgeek.com/20200525-09.png" alt=""></figure>
+<figure data-type="image" tabindex="9"><img src="https://image.ssgeek.com/20200525-10.png" alt=""></figure>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/app" class="tag">
+                    实用程序
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/jenkinspipeline-yu-fa-gai-yao">
+                  <h3 class="post-title">
+                    JenkinsPipeline语法概要
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

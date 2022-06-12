@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>mysql分库备份与分表备份 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">mysql分库备份与分表备份</h2>
+            <div class="post-date">2019-03-14</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%88%86%E5%BA%93%E5%A4%87%E4%BB%BD">1、分库备份</a></li>
+<li><a href="#2-%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8%E5%A4%87%E4%BB%BD">2、分库分表备份</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-分库备份">1、分库备份</h2>
+<p>要求：将mysql数据库中的用户数据库备份，备份的数据库文件以时间命名<br>
+脚本内容如下：</p>
+<pre><code>#!/bin/bash
+mysql_user=root
+mysql_pass=123456
+mkdir -p /backup
+for n in `mysql -u$mysql_user -p$mysql_pass -e 'show databases;' 2&gt;/dev/null|grep -Ev '_schema|mysql'|sed '1d'`;
+do
+	mysqldump -u$mysql_user -p$mysql_pass -B $n 2&gt;/dev/null&gt;/backup/${n}_`date +%Y_%m_%d`.sql
+done
+</code></pre>
+<p>执行脚本进行测试：</p>
+<pre><code>[root@db01 scripts]# sh -x backup_database.sh 
++ mysql_user=root
++ mysql_pass=123456
++ mkdir -p /backup
+++ mysql -uroot -p123456 -e 'show databases;'
+++ grep -Ev '_schema|mysql'
+++ sed 1d
++ for n in '`mysql -u$mysql_user -p$mysql_pass -e '\''show databases;'\'' 2&gt;/dev/null|grep -Ev '\''_schema|mysql'\''|sed '\''1d'\''`'
++ mysqldump -uroot -p123456 -B test1
++ for n in '`mysql -u$mysql_user -p$mysql_pass -e '\''show databases;'\'' 2&gt;/dev/null|grep -Ev '\''_schema|mysql'\''|sed '\''1d'\''`'
++ mysqldump -uroot -p123456 -B test2
++ for n in '`mysql -u$mysql_user -p$mysql_pass -e '\''show databases;'\'' 2&gt;/dev/null|grep -Ev '\''_schema|mysql'\''|sed '\''1d'\''`'
++ mysqldump -uroot -p123456 -B test
+[root@db01 scripts]# 
+</code></pre>
+<p>检查备份情况：</p>
+<pre><code>[root@db01 scripts]# tree /backup/
+/backup/
+├── test1_2018_07_04.sql
+├── test2_2018_07_04.sql
+└── test_2018_07_04.sql
+
+0 directories, 3 files
+[root@db01 scripts]# 
+</code></pre>
+<h2 id="2-分库分表备份">2、分库分表备份</h2>
+<p>要求：备份每个数据库的表，同一个库中的表，放在对应数据库名字命名的目录下<br>
+脚本内容如下：</p>
+<pre><code>[root@db01 scripts]# vim backup_tables.sh
+#!/bin/bash
+mysql_user=root
+mysql_pass=123456
+mkdir -p /backup
+for n in `mysql -u$mysql_user -p$mysql_pass -e 'show databases;' 2&gt;/dev/null|grep -Ev '_schema|mysql'|sed '1d'`;
+do
+	mkdir -p /backup/$n
+	for m in `mysql -u$mysql_user -p$mysql_pass $n -e &quot;show tables;&quot; 2&gt;/dev/null|sed '1d'`;
+	do
+		mysqldump -u$mysql_user -p$mysql_pass $n $m 2&gt;/dev/null&gt;/backup/${n}/${m}_`date +%Y_%m_%d`.sql
+	done
+done
+</code></pre>
+<p>执行脚本进行测试：</p>
+<pre><code>[root@db01 scripts]# sh -x backup_tables.sh 
++ mysql_user=root
++ mysql_pass=123456
++ mkdir -p /backup
+++ mysql -uroot -p123456 -e 'show databases;'
+++ grep -Ev '_schema|mysql'
+++ sed 1d
++ for n in '`mysql -u$mysql_user -p$mysql_pass -e '\''show databases;'\'' 2&gt;/dev/null|grep -Ev '\''_schema|mysql'\''|sed '\''1d'\''`'
++ mkdir -p /backup/test1
+++ sed 1d
+++ mysql -uroot -p123456 test1 -e 'show tables;'
++ for m in '`mysql -u$mysql_user -p$mysql_pass $n -e &quot;show tables;&quot; 2&gt;/dev/null|sed '\''1d'\''`'
++ mysqldump -uroot -p123456 test1 students
++ for m in '`mysql -u$mysql_user -p$mysql_pass $n -e &quot;show tables;&quot; 2&gt;/dev/null|sed '\''1d'\''`'
++ mysqldump -uroot -p123456 test1 test
++ for m in '`mysql -u$mysql_user -p$mysql_pass $n -e &quot;show tables;&quot; 2&gt;/dev/null|sed '\''1d'\''`'
++ mysqldump -uroot -p123456 test1 test2
++ for n in '`mysql -u$mysql_user -p$mysql_pass -e '\''show databases;'\'' 2&gt;/dev/null|grep -Ev '\''_schema|mysql'\''|sed '\''1d'\''`'
++ mkdir -p /backup/test2
+++ mysql -uroot -p123456 test2 -e 'show tables;'
+++ sed 1d
++ for m in '`mysql -u$mysql_user -p$mysql_pass $n -e &quot;show tables;&quot; 2&gt;/dev/null|sed '\''1d'\''`'
++ mysqldump -uroot -p123456 test2 test3
++ for n in '`mysql -u$mysql_user -p$mysql_pass -e '\''show databases;'\'' 2&gt;/dev/null|grep -Ev '\''_schema|mysql'\''|sed '\''1d'\''`'
++ mkdir -p /backup/test
+++ mysql -uroot -p123456 test -e 'show tables;'
+++ sed 1d
++ for m in '`mysql -u$mysql_user -p$mysql_pass $n -e &quot;show tables;&quot; 2&gt;/dev/null|sed '\''1d'\''`'
++ mysqldump -uroot -p123456 test test4
+[root@db01 scripts]# 
+</code></pre>
+<p>检查备份情况：</p>
+<pre><code>[root@db01 scripts]# tree /backup/
+/backup/
+├── test1
+│   ├── students_2018_07_04.sql
+│   ├── test_2018_07_04.sql
+│   └── test2_2018_07_04.sql
+├── test2
+│   └── test3_2018_07_04.sql
+└── test
+    └── test4_2018_07_04.sql
+
+3 directories, 5 files
+[root@db01 scripts]# 
+</code></pre>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/bian-yi-an-zhuang-mysql-5640">
+                  <h3 class="post-title">
+                    编译安装mysql 5.6.40
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

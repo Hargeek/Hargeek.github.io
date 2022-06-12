@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>七牛云图床和Markdown使用 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">七牛云图床和Markdown使用</h2>
+            <div class="post-date">2019-05-12</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%9B%BE%E5%BA%8A%E6%98%AF%E4%BB%80%E4%B9%88">1、图床是什么？</a></li>
+<li><a href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E4%BD%BF%E7%94%A8%E5%9B%BE%E5%BA%8A">2、为什么要使用图床？</a></li>
+<li><a href="#3-%E4%B8%83%E7%89%9B%E4%BA%91%E5%9B%BE%E5%BA%8A%E4%BB%8B%E7%BB%8D">3、七牛云图床介绍</a></li>
+<li><a href="#4-%E4%B8%83%E7%89%9B%E4%BA%91%E5%9B%BE%E5%BA%8A%E7%9A%84%E4%BD%BF%E7%94%A8">4、七牛云图床的使用</a>
+<ul>
+<li><a href="#41-%E8%B4%A6%E5%8F%B7%E6%B3%A8%E5%86%8C">4.1 账号注册</a></li>
+<li><a href="#42-%E5%88%9B%E5%BB%BA%E5%AD%98%E5%82%A8%E6%9C%8D%E5%8A%A1">4.2 创建存储服务</a></li>
+<li><a href="#43-%E9%85%8D%E7%BD%AE%E5%AD%98%E5%82%A8%E6%9C%8D%E5%8A%A1">4.3 配置存储服务</a></li>
+<li><a href="#44-%E9%85%8D%E7%BD%AE%E5%9F%9F%E5%90%8D%E8%A7%A3%E6%9E%90">4.4 配置域名解析</a></li>
+<li><a href="#45-%E9%85%8D%E7%BD%AE%E5%A4%96%E9%93%BE%E9%BB%98%E8%AE%A4%E5%9F%9F%E5%90%8D">4.5 配置外链默认域名</a></li>
+<li><a href="#46-accesskeysecretkey">4.6 AccessKey/SecretKey</a></li>
+<li><a href="#47-qshell">4.7 qshell</a></li>
+</ul>
+</li>
+<li><a href="#5-markdown%E6%96%87%E4%BB%B6%E4%BD%BF%E7%94%A8%E4%B8%83%E7%89%9B%E4%BA%91%E5%9B%BE%E5%BA%8A">5、Markdown文件使用七牛云图床</a>
+<ul>
+<li><a href="#51-markdown%E7%BC%96%E8%BE%91%E5%99%A8">5.1 Markdown编辑器</a></li>
+<li><a href="#52-%E5%9B%BE%E5%BA%8A%E5%B7%A5%E5%85%B7">5.2 图床工具</a></li>
+<li><a href="#53-typora-picgo">5.3 Typora + PicGo</a></li>
+<li><a href="#54-mweb">5.4 MWeb</a></li>
+</ul>
+</li>
+<li><a href="#6-%E5%B0%8F%E7%BB%93">6、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-图床是什么">1、图床是什么？</h2>
+<p>图床一般是指储存图片的服务器，有国内和国外之分。国外的图床由于有空间距离等因素决定访问速度很慢影响图片显示速度。国内也分为单线空间、多线空间和cdn加速三种。<a href="https://baike.baidu.com/item/%E5%9B%BE%E5%BA%8A/10721348?fr=aladdin">来自百度百科</a></p>
+<h2 id="2-为什么要使用图床">2、为什么要使用图床？</h2>
+<p>目前的网站、博客等站点中，除了大型网站，官方网站等会自建图片、视频等专用于存放文件的服务器。其他站点如果是这类文件很多，而且具有较强的依赖性质(服务迁移等情况)的话，那么将是一件复杂的事情，因为每个站点的文件存储方式不同。目前主流站点文章的写作方案是<code>Markdown</code>格式，<code>Markdown</code>是一种纯文本格式的标记语言。通过简单的标记语法,它可以使普通文本内容具有一定的格式。编写<code>Markdown</code>格式的文章，往文章中插入图片等资源是一个问题，因为如果你使用了本地的存储，那么文章发表后，图片链接都需要调整。<br>
+基于上述情况，我们有了一种只要有网络，就能实现图片文件固定链接访问的需求。因此，图床服务是较完美的选择，<br>
+图床对比：</p>
+<ul>
+<li>微博图床类，获取<code>url</code>方式：经济实惠，但稳定性差，近期微博图床开启了防盗链，大拨外链图片不能正常使用</li>
+<li><code>cdn</code>加速，公有云类：需要购买云存储空间，例如阿里云对象存储<code>oss</code>、腾讯云对象存储<code>cos</code>、微博图床、七牛云图床、又拍云图床等</li>
+<li>自建图床：如果是仅仅个人使用的话会费劲又费钱</li>
+<li>国外图床：例如像<code>Github</code>图床这类，既不收费用户也多，但唯一的不足就是<code>墙墙墙</code>！</li>
+</ul>
+<h2 id="3-七牛云图床介绍">3、七牛云图床介绍</h2>
+<p>选择七牛云图床在于七牛云是专注于打造数据为核心的场景化Pass服务商，在静态资源的资源分发，加载速度、只能压缩方面可能会相对好一些，当然各个大厂都有其专注点，本文没有针对性。<br>
+对于小站点来说，建议选择的是七牛云，七牛云推出了更多的<a href="https://blog.qiniu.com/archives/8874">CDN回源优惠政策</a>，有10G免费空间可以选择（少花钱当然更好）</p>
+<h2 id="4-七牛云图床的使用">4、七牛云图床的使用</h2>
+<h3 id="41-账号注册">4.1 账号注册</h3>
+<p>使用前需要注册一个七牛云的账号并进行实名认证，实名认证需要一定的审核时间，注册地址为：https://portal.qiniu.com/signup</p>
+<h3 id="42-创建存储服务">4.2 创建存储服务</h3>
+<p>登录到控制台，新建一个存储空间，输入存储空间的名称，选择存储区域，本存储空间是用于站点图床，所以选择访问控制类型为公开空间，如下所示<br>
+<img src="https://image.ssgeek.com/20190512-01.png" alt=""></p>
+<h3 id="43-配置存储服务">4.3 配置存储服务</h3>
+<p>存储服务创建完成后，需要配置一个<code>融合CDN域名</code>，融合CDN域名简单来说就是指资源对象的外链域名，七牛云提供了融合CDN的测试域名，官方提示为：七牛融合 CDN 测试域名（以 clouddn.com/qiniucdn.com/qiniudn.com/qnssl.com/qbox.me 结尾），每个域名每日限总流量 10GB，每个测试域名自创建起 30 个自然日后系统会自动回收，仅供测试使用并且不支持 Https 访问。因此需要我们自己配置一个CDN加速域名，以本站点为例，控制台中点击创建域名，域名类型选择普通域名，其他配置默认或根据需求优化配置即可<br>
+<img src="https://image.ssgeek.com/20190512-02.png" alt=""></p>
+<h3 id="44-配置域名解析">4.4 配置域名解析</h3>
+<p>配置完成后跳转到域名管理界面，显示了一个<code>cname</code>记录，这就是配置好七牛云存储提供的的cdn加速域名，<code>ssgeek.com</code>的域名服务器是阿里云旗下的万网，这里配置的<code>image.ssgeek.com</code>域名和对应的<code>cname</code>记录需要<br>
+在阿里云的域名控制台中添加一条解析记录<br>
+<img src="https://image.ssgeek.com/20190512-03.png" alt=""><br>
+解析记录添加完成后，需要等待一段时间才能生效<br>
+<img src="https://image.ssgeek.com/20190512-04.png" alt=""></p>
+<h3 id="45-配置外链默认域名">4.5 配置外链默认域名</h3>
+<p>在存储空间列表，内容管理，选择外链默认域名为配置的域名而不是测试域名<br>
+<img src="https://image.ssgeek.com/20190512-05.png" alt=""></p>
+<h3 id="46-accesskeysecretkey">4.6 AccessKey/SecretKey</h3>
+<p><code>AccessKey</code>和<code>SecretKey</code>是访问和操作对象存储的密钥对，其中<code>AccessKey</code>会在传输中包含，而用户必须保管好<code>SecretKey</code>不在网络上传输以防止被窃取。在控制台点击个人中心，密钥管理即可查看到密钥对。</p>
+<h3 id="47-qshell">4.7 qshell</h3>
+<p>七牛云提供了一个对象存储的shell客户端命令行工具<a href="https://developer.qiniu.com/kodo/tools/1302/qshell">qshell</a><br>
+qshell用户go语言编写，所以只需要将二进制文件下载下来并配置好上面的密钥<code>AccessKey/SecretKey</code>即可操作对象存储，具体命令用法可见官方文档<br>
+配置方法为</p>
+<pre><code>qshell account ak sk name
+</code></pre>
+<p>其中name表示该账号的名称, 如果ak, sk, name首字母是&quot;-&quot;, 需要使用如下的方式添加账号, 这样避免把该项识别成命令行选项</p>
+<pre><code>qshell account -- ak sk name
+</code></pre>
+<h2 id="5-markdown文件使用七牛云图床">5、Markdown文件使用七牛云图床</h2>
+<h3 id="51-markdown编辑器">5.1 Markdown编辑器</h3>
+<p><code>Markdown</code>格式文件编辑器有很多，常用的如<code>CmdMarkdown</code>、<code>Typora</code>、<code>Atom</code>、<code>MWeb</code>等等，需要注意的是<code>CmdMarkdown</code>收费版本也提供了自带的图床服务，除此之外，一些ide开发工具比如<code>VS Code</code>也支持编写<code>Markdown</code>格式文件</p>
+<h3 id="52-图床工具">5.2 图床工具</h3>
+<p>使用图床的客户端工具也有很多，在Windows平台下有图床神器<code>Mpic</code>，在Mac平台下有<code>PicGo</code>、<code>iPic</code>(收费)、<code>CuImage</code>等。<br>
+有mac开发大佬利用mac下的效率神器<code>Alfred</code>工具强大的<code>WorkFlow</code>功能开发的提升 <code>markdown</code> 贴图体验的实用小工具也还不错，可参考其<a href="https://github.com/jiwenxing/qimage-mac">Github</a>地址下载，并按照说明配置快捷键及参数即可使用。</p>
+<h3 id="53-typora-picgo">5.3 Typora + PicGo</h3>
+<p>利用编辑器<code>Typora</code>和图床工具<code>PicGo</code>可实现Markdown文件使用七牛云图床图片，具体步骤如下：<br>
+在<code>PicGo</code>中配置七牛图床并设置为默认图床<br>
+<img src="https://image.ssgeek.com/20190512-06.png" alt=""><br>
+其中图床的存储区域代号，可以参照<a href="https://developer.qiniu.com/kodo/manual/1671/region-endpoint">七牛云存储区域说明</a>填写<br>
+<img src="https://image.ssgeek.com/20190512-07.png" alt=""><br>
+配置完成后，在上传区点击选择图片或者拖拽进行上传，链接格式选择Markdown<br>
+<img src="https://image.ssgeek.com/20190512-08.png" alt=""><br>
+提示上传成功后点击相册，即可查看对应图片并复制插入到Markdown文件中的链接，粘贴进入Markdown编辑器中即可<br>
+<img src="https://image.ssgeek.com/20190512-09.png" alt=""><br>
+<img src="https://image.ssgeek.com/20190512-10.png" alt=""></p>
+<h3 id="54-mweb">5.4 MWeb</h3>
+<p>MWeb是mac和ios平台下的一款优秀的Markdown编辑器，可以说包含你想要的所有功能！该编辑器自带图床功能(包含七牛云，又拍云等多种图床)和文章发布功能(包含印象笔记，wordpress，语雀等多站点平台)<br>
+在发布服务中添加已增加的本地图片上传服务(图床)，添加完成可以点击验证，选择图片上传进行验证<br>
+<img src="https://image.ssgeek.com/20190512-11.png" alt=""><br>
+文章中直接添加本地的图片，点击“发布”——&gt;“把本地图片传至图床，发布至微信，知乎等”选项，根据提示，程序会自动上传本地图片到所选的图床中，然后把文档中的本地图片地址换成上传后的地址。。。。。总之，发布后你只需要<code>CMD</code>+<code>V</code>即可使用图床的资源<br>
+<img src="https://image.ssgeek.com/20190512-12.png" alt=""></p>
+<h2 id="6-小结">6、小结</h2>
+<p>图床很好的解决了Markdown文件图片存储的问题，而且还能有效减少我们自己站点服务器的资源，最后，附上本文中涉及到的图片在七牛云控制台中的列表大图<br>
+<img src="https://image.ssgeek.com/20190512-13png.png" alt=""></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/app" class="tag">
+                    实用程序
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/linux" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/li-yong-shell-ming-ling-fen-xi-fu-wu-qi-ri-zhi">
+                  <h3 class="post-title">
+                    利用shell命令分析服务器日志
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

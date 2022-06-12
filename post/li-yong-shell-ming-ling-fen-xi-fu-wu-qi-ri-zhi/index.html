@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>利用shell命令分析服务器日志 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">利用shell命令分析服务器日志</h2>
+            <div class="post-date">2019-05-10</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%9F%A5%E7%9C%8B%E6%9C%89%E5%A4%9A%E5%B0%91%E4%B8%AAip%E8%AE%BF%E9%97%AE">1、查看有多少个ip访问</a></li>
+<li><a href="#2-%E6%9F%A5%E7%9C%8B%E6%9F%90%E4%B8%80%E4%B8%AA%E9%A1%B5%E9%9D%A2%E8%A2%AB%E8%AE%BF%E9%97%AE%E7%9A%84%E6%AC%A1%E6%95%B0">2、查看某一个页面被访问的次数</a></li>
+<li><a href="#3-%E6%9F%A5%E7%9C%8B%E6%AF%8F%E4%B8%80%E4%B8%AAip%E8%AE%BF%E9%97%AE%E4%BA%86%E5%A4%9A%E5%B0%91%E4%B8%AA%E9%A1%B5%E9%9D%A2">3、查看每一个IP访问了多少个页面</a></li>
+<li><a href="#4-%E5%B0%86%E6%AF%8F%E4%B8%AAip%E8%AE%BF%E9%97%AE%E7%9A%84%E9%A1%B5%E9%9D%A2%E6%95%B0%E8%BF%9B%E8%A1%8C%E4%BB%8E%E5%B0%8F%E5%88%B0%E5%A4%A7%E6%8E%92%E5%BA%8F">4、将每个IP访问的页面数进行从小到大排序</a></li>
+<li><a href="#5-%E6%9F%A5%E7%9C%8B%E6%9F%90%E4%B8%80%E4%B8%AAip%E8%AE%BF%E9%97%AE%E4%BA%86%E5%93%AA%E4%BA%9B%E9%A1%B5%E9%9D%A2">5、查看某一个IP访问了哪些页面</a></li>
+<li><a href="#6-%E5%8E%BB%E6%8E%89%E6%90%9C%E7%B4%A2%E5%BC%95%E6%93%8E%E7%BB%9F%E8%AE%A1%E7%9A%84%E9%A1%B5%E9%9D%A2">6、去掉搜索引擎统计的页面</a></li>
+<li><a href="#7-%E6%9F%A5%E7%9C%8B2015%E5%B9%B48%E6%9C%8816%E6%97%A514%E6%97%B6%E8%BF%99%E4%B8%80%E4%B8%AA%E5%B0%8F%E6%97%B6%E5%86%85%E6%9C%89%E5%A4%9A%E5%B0%91ip%E8%AE%BF%E9%97%AE">7、查看2015年8月16日14时这一个小时内有多少IP访问</a></li>
+<li><a href="#8-%E6%9F%A5%E7%9C%8B%E8%AE%BF%E9%97%AE%E5%89%8D%E5%8D%81%E4%B8%AAip%E5%9C%B0%E5%9D%80">8、查看访问前十个ip地址</a></li>
+<li><a href="#9-%E8%AE%BF%E9%97%AE%E6%AC%A1%E6%95%B0%E6%9C%80%E5%A4%9A%E7%9A%8410%E4%B8%AA%E6%96%87%E4%BB%B6%E6%88%96%E9%A1%B5%E9%9D%A2">9、访问次数最多的10个文件或页面</a></li>
+<li><a href="#10-%E9%80%9A%E8%BF%87%E5%AD%90%E5%9F%9F%E5%90%8D%E8%AE%BF%E9%97%AE%E6%AC%A1%E6%95%B0%E4%BE%9D%E6%8D%AEreferer%E6%9D%A5%E8%AE%A1%E7%AE%97%E7%A8%8D%E6%9C%89%E4%B8%8D%E5%87%86">10、通过子域名访问次数，依据referer来计算，稍有不准</a></li>
+<li><a href="#11-%E5%88%97%E5%87%BA%E4%BC%A0%E8%BE%93%E5%A4%A7%E5%B0%8F%E6%9C%80%E5%A4%A7%E7%9A%84%E5%87%A0%E4%B8%AA%E6%96%87%E4%BB%B6">11、列出传输大小最大的几个文件</a></li>
+<li><a href="#12-%E5%88%97%E5%87%BA%E8%BE%93%E5%87%BA%E5%A4%A7%E4%BA%8E200000byte%E7%BA%A6200kb%E7%9A%84%E9%A1%B5%E9%9D%A2%E4%BB%A5%E5%8F%8A%E5%AF%B9%E5%BA%94%E9%A1%B5%E9%9D%A2%E5%8F%91%E7%94%9F%E6%AC%A1%E6%95%B0">12、列出输出大于200000byte(约200kb)的页面以及对应页面发生次数</a></li>
+<li><a href="#13-%E5%A6%82%E6%9E%9C%E6%97%A5%E5%BF%97%E6%9C%80%E5%90%8E%E4%B8%80%E5%88%97%E8%AE%B0%E5%BD%95%E7%9A%84%E6%98%AF%E9%A1%B5%E9%9D%A2%E6%96%87%E4%BB%B6%E4%BC%A0%E8%BE%93%E6%97%B6%E9%97%B4%E5%88%99%E6%9C%89%E5%88%97%E5%87%BA%E5%88%B0%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%9C%80%E8%80%97%E6%97%B6%E7%9A%84%E9%A1%B5%E9%9D%A2">13、如果日志最后一列记录的是页面文件传输时间，则有列出到客户端最耗时的页面</a></li>
+<li><a href="#14-%E5%88%97%E5%87%BA%E6%9C%80%E6%9C%80%E8%80%97%E6%97%B6%E7%9A%84%E9%A1%B5%E9%9D%A2%E8%B6%85%E8%BF%8760%E7%A7%92%E7%9A%84%E7%9A%84%E4%BB%A5%E5%8F%8A%E5%AF%B9%E5%BA%94%E9%A1%B5%E9%9D%A2%E5%8F%91%E7%94%9F%E6%AC%A1%E6%95%B0">14、列出最最耗时的页面(超过60秒的)的以及对应页面发生次数</a></li>
+<li><a href="#15-%E5%88%97%E5%87%BA%E4%BC%A0%E8%BE%93%E6%97%B6%E9%97%B4%E8%B6%85%E8%BF%87-30-%E7%A7%92%E7%9A%84%E6%96%87%E4%BB%B6">15、列出传输时间超过 30 秒的文件</a></li>
+<li><a href="#16-%E5%88%97%E5%87%BA%E5%BD%93%E5%89%8D%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%AF%8F%E4%B8%80%E8%BF%9B%E7%A8%8B%E8%BF%90%E8%A1%8C%E7%9A%84%E6%95%B0%E9%87%8F%E5%80%92%E5%BA%8F%E6%8E%92%E5%88%97">16、列出当前服务器每一进程运行的数量，倒序排列</a></li>
+<li><a href="#17-%E6%9F%A5%E7%9C%8Bapache%E5%BD%93%E5%89%8D%E5%B9%B6%E5%8F%91%E8%AE%BF%E9%97%AE%E6%95%B0">17、查看apache当前并发访问数</a></li>
+<li><a href="#18-%E6%9F%A5%E7%9C%8B%E7%BD%91%E7%BB%9C%E8%BF%9E%E6%8E%A5%E7%8A%B6%E6%80%81">18、查看网络连接状态</a></li>
+<li><a href="#19-%E8%BE%93%E5%87%BA%E6%AF%8F%E4%B8%AAip%E7%9A%84%E8%BF%9E%E6%8E%A5%E6%95%B0%E4%BB%A5%E5%8F%8A%E6%80%BB%E7%9A%84%E5%90%84%E4%B8%AA%E7%8A%B6%E6%80%81%E7%9A%84%E8%BF%9E%E6%8E%A5%E6%95%B0">19、输出每个ip的连接数，以及总的各个状态的连接数</a></li>
+<li><a href="#20-%E5%85%B6%E4%BB%96%E7%9A%84%E6%94%B6%E9%9B%86">20、其他的收集</a></li>
+</ul>
+</li>
+</ul>
+<br>
+在没有专业日志分析系统的情况下，我们有时需要对日志进行简单的分析，下面列出一些常用的shell命令分析日志的方法，一定要收藏</p>
+<h2 id="1-查看有多少个ip访问">1、查看有多少个ip访问</h2>
+<pre><code>awk '{print $1}' log_file|sort|uniq|wc -l
+</code></pre>
+<h2 id="2-查看某一个页面被访问的次数">2、查看某一个页面被访问的次数</h2>
+<pre><code>grep &quot;/index.php&quot; log_file | wc -l
+</code></pre>
+<h2 id="3-查看每一个ip访问了多少个页面">3、查看每一个IP访问了多少个页面</h2>
+<pre><code>awk '{++S[$1]} END {for (a in S) print a,S[a]}' log_file &gt; log.txt
+sort -n -t ' ' -k 2 log.txt 配合sort进一步排序
+</code></pre>
+<h2 id="4-将每个ip访问的页面数进行从小到大排序">4、将每个IP访问的页面数进行从小到大排序</h2>
+<pre><code>awk '{++S[$1]} END {for (a in S) print S[a],a}' log_file | sort -n
+</code></pre>
+<h2 id="5-查看某一个ip访问了哪些页面">5、查看某一个IP访问了哪些页面</h2>
+<pre><code>grep ^111.111.111.111 log_file| awk '{print $1,$7}'
+</code></pre>
+<h2 id="6-去掉搜索引擎统计的页面">6、去掉搜索引擎统计的页面</h2>
+<pre><code>awk '{print $12,$1}' log_file | grep ^\&quot;Mozilla | awk '{print $2}' |sort | uniq | wc -l
+</code></pre>
+<h2 id="7-查看2015年8月16日14时这一个小时内有多少ip访问">7、查看2015年8月16日14时这一个小时内有多少IP访问</h2>
+<pre><code>awk '{print $4,$1}' log_file | grep 16/Aug/2015:14 | awk '{print $2}'| sort | uniq | wc -l
+</code></pre>
+<h2 id="8-查看访问前十个ip地址">8、查看访问前十个ip地址</h2>
+<pre><code>awk '{print $1}' |sort|uniq -c|sort -nr |head -10 access_log
+</code></pre>
+<p>uniq -c 相当于分组统计并把统计数放在最前面</p>
+<pre><code>cat access.log|awk '{print $1}'|sort|uniq -c|sort -nr|head -10
+cat access.log|awk '{counts[$(11)]+=1}; END {for(url in counts) print counts[url], url}
+</code></pre>
+<h2 id="9-访问次数最多的10个文件或页面">9、访问次数最多的10个文件或页面</h2>
+<pre><code>cat log_file|awk '{print $11}'|sort|uniq -c|sort -nr | head -10
+cat log_file|awk '{print $11}'|sort|uniq -c|sort -nr|head -20
+</code></pre>
+<p>访问量最大的前20个ip</p>
+<pre><code>awk '{print $1}' log_file |sort -n -r |uniq -c | sort -n -r | head -20 
+</code></pre>
+<h2 id="10-通过子域名访问次数依据referer来计算稍有不准">10、通过子域名访问次数，依据referer来计算，稍有不准</h2>
+<pre><code>cat access.log | awk '{print $11}' | sed -e ' s/http:\/\///' -e ' s/\/.*//' | sort | uniq -c | sort -rn | head -20
+</code></pre>
+<h2 id="11-列出传输大小最大的几个文件">11、列出传输大小最大的几个文件</h2>
+<pre><code>cat www.access.log |awk '($7~/\.php/){print $10 &quot; &quot; $1 &quot; &quot; $4 &quot; &quot; $7}'|sort -nr|head -100
+</code></pre>
+<h2 id="12-列出输出大于200000byte约200kb的页面以及对应页面发生次数">12、列出输出大于200000byte(约200kb)的页面以及对应页面发生次数</h2>
+<pre><code>cat www.access.log |awk '($10 &gt; 200000 &amp;&amp; $7~/\.php/){print $7}'|sort -n|uniq -c|sort -nr|head -100
+</code></pre>
+<h2 id="13-如果日志最后一列记录的是页面文件传输时间则有列出到客户端最耗时的页面">13、如果日志最后一列记录的是页面文件传输时间，则有列出到客户端最耗时的页面</h2>
+<pre><code>cat www.access.log |awk '($7~/\.php/){print $NF &quot; &quot; $1 &quot; &quot; $4 &quot; &quot; $7}'|sort -nr|head -100
+</code></pre>
+<h2 id="14-列出最最耗时的页面超过60秒的的以及对应页面发生次数">14、列出最最耗时的页面(超过60秒的)的以及对应页面发生次数</h2>
+<pre><code>cat www.access.log |awk '($NF &gt; 60 &amp;&amp; $7~/\.php/){print $7}'|sort -n|uniq -c|sort -nr|head -100
+</code></pre>
+<h2 id="15-列出传输时间超过-30-秒的文件">15、列出传输时间超过 30 秒的文件</h2>
+<pre><code>cat www.access.log |awk '($NF &gt; 30){print $7}'|sort -n|uniq -c|sort -nr|head -20
+</code></pre>
+<h2 id="16-列出当前服务器每一进程运行的数量倒序排列">16、列出当前服务器每一进程运行的数量，倒序排列</h2>
+<pre><code>ps -ef | awk -F ' ' '{print $8 &quot; &quot; $9}' |sort | uniq -c |sort -nr |head -20
+</code></pre>
+<h2 id="17-查看apache当前并发访问数">17、查看apache当前并发访问数</h2>
+<p>对比httpd.conf中MaxClients的数字差距多少</p>
+<pre><code>netstat -an | grep ESTABLISHED | wc -l
+</code></pre>
+<h2 id="18-查看网络连接状态">18、查看网络连接状态</h2>
+<pre><code>ps -ef|grep httpd|wc -l
+1388
+</code></pre>
+<p>统计httpd进程数，连个请求会启动一个进程，使用于Apache服务器。 表示Apache能够处理1388个并发请求，这个值Apache可根据负载情况自动调整</p>
+<pre><code>netstat -nat|grep -i &quot;80&quot;|wc -l
+4341
+</code></pre>
+<p>netstat -an会打印系统当前网络链接状态，而grep -i &quot;80&quot;是用来提取与80端口有关的连接的，wc -l进行连接数统计。 最终返回的数字就是当前所有80端口的请求总数</p>
+<pre><code>netstat -na|grep ESTABLISHED|wc -l
+376
+</code></pre>
+<p>netstat -an会打印系统当前网络链接状态，而grep ESTABLISHED 提取出已建立连接的信息。 然后wc -l统计 最终返回的数字就是当前所有80端口的已建立连接的总数。</p>
+<pre><code>netstat -nat||grep ESTABLISHED|wc
+</code></pre>
+<p>可查看所有建立连接的详细记录</p>
+<h2 id="19-输出每个ip的连接数以及总的各个状态的连接数">19、输出每个ip的连接数，以及总的各个状态的连接数</h2>
+<pre><code>netstat -n | awk '/^tcp/ {n=split($(NF-1),array,&quot;:&quot;);if(n&lt;=2)++S[array[(1)]];else++S[array[(4)]];++s[$NF];++N} END {for(a in S){printf(&quot;%-20s %s\n&quot;, a, S[a]);++I}printf(&quot;%-20s %s\n&quot;,&quot;TOTAL_IP&quot;,I);for(a in s) printf(&quot;%-20s %s\n&quot;,a, s[a]);printf(&quot;%-20s %s\n&quot;,&quot;TOTAL_LINK&quot;,N);}'
+</code></pre>
+<h2 id="20-其他的收集">20、其他的收集</h2>
+<p>分析日志文件下 2012-05-04 访问页面最高 的前20个 URL 并排序</p>
+<pre><code>cat access.log |grep '04/May/2012'| awk '{print $11}'|sort|uniq -c|sort -nr|head -20
+</code></pre>
+<p>查询受访问页面的URL地址中 含有 www.abc.com 网址的 IP 地址</p>
+<pre><code>cat access_log | awk '($11~/\www.abc.com/){print $1}'|sort|uniq -c|sort -nr
+</code></pre>
+<p>获取访问最高的10个IP地址 同时也可以按时间来查询</p>
+<pre><code>cat linewow-access.log|awk '{print $1}'|sort|uniq -c|sort -nr|head -10
+</code></pre>
+<p>时间段查询日志时间段的情况</p>
+<pre><code>cat log_file | egrep '15/Aug/2015|16/Aug/2015' |awk '{print $1}'|sort|uniq -c|sort -nr|head -10
+</code></pre>
+<p>分析2015/8/15 到 2015/8/16 访问&quot;/index.php?g=Member&amp;m=Public&amp;a=sendValidCode&quot;的IP倒序排列</p>
+<pre><code>cat log_file | egrep '15/Aug/2015|16/Aug/2015' | awk '{if($7 == &quot;/index.php?g=Member&amp;m=Public&amp;a=sendValidCode&quot;) print $1,$7}'|sort|uniq -c|sort -nr
+</code></pre>
+<p>(7 /.php/)7里面包含.php的就输出,本句的意思是最耗时的一百个PHP页面</p>
+<pre><code>cat log_file |awk '($7~/\.php/){print $NF &quot; &quot; $1 &quot; &quot; $4 &quot; &quot; $7}'|sort -nr|head -100
+</code></pre>
+<p>列出最最耗时的页面(超过60秒的)的以及对应页面发生次数</p>
+<pre><code>cat access.log |awk '($NF &gt; 60 &amp;&amp; $7~/\.php/){print $7}'|sort -n|uniq -c|sort -nr|head -100
+</code></pre>
+<p>统计网站流量（G)</p>
+<pre><code>cat access.log |awk '{sum+=$10} END {print sum/1024/1024/1024}'
+</code></pre>
+<p>统计404的连接</p>
+<pre><code>awk '($9 ~/404/)' access.log | awk '{print $9,$7}' | sort
+</code></pre>
+<p>统计http status</p>
+<pre><code>cat access.log |awk '{counts[$(9)]+=1}; END {for(code in counts) print code, counts[code]}' 
+cat access.log |awk '{print $9}'|sort|uniq -c|sort -rn
+</code></pre>
+<p>每秒并发</p>
+<pre><code>watch &quot;awk '{if($9~/200|30|404/)COUNT[$4]++}END{for( a in COUNT) print a,COUNT[a]}' log_file|sort -k 2 -nr|head -n10&quot;
+</code></pre>
+<p>带宽统计</p>
+<pre><code>cat apache.log |awk '{if($7~/GET/) count++}END{print &quot;client_request=&quot;count}' 
+cat apache.log |awk '{BYTE+=$11}END{print &quot;client_kbyte_out=&quot;BYTE/1024&quot;KB&quot;}'
+</code></pre>
+<p>找出某天访问次数最多的10个IP</p>
+<pre><code>cat /tmp/access.log | grep &quot;20/Mar/2011&quot; |awk '{print $3}'|sort |uniq -c|sort -nr|head
+</code></pre>
+<p>当天ip连接数最高的ip都在干些什么</p>
+<pre><code>cat access.log | grep &quot;10.0.21.17&quot; | awk '{print $8}' | sort | uniq -c | sort -nr | head -n 10
+</code></pre>
+<p>小时单位里ip连接数最多的10个时段</p>
+<pre><code>awk -vFS=&quot;[:]&quot; '{gsub(&quot;-.*&quot;,&quot;&quot;,$1);num[$2&quot; &quot;$1]++}END{for(i in num)print i,num[i]}' log_file | sort -n -k 3 -r | head -10
+</code></pre>
+<p>找出访问次数最多的几个分钟</p>
+<pre><code>awk '{print $1}' access.log | grep &quot;20/Mar/2011&quot; |cut -c 14-18|sort|uniq -c|sort -nr|head
+</code></pre>
+<p>取5分钟日志</p>
+<pre><code>if [ $DATE_MINUTE != $DATE_END_MINUTE ] ;then #则判断开始时间戳与结束时间戳是否相等
+START_LINE=sed -n &quot;/$DATE_MINUTE/=&quot; $APACHE_LOG|head -n1 #如果不相等，则
+取出开始时间戳的行号，与结束时间戳的行号
+</code></pre>
+<p>查看tcp的链接状态</p>
+<pre><code>netstat -nat |awk '{print $6}'|sort|uniq -c|sort -rn  
+netstat -n | awk '/^tcp/ {++S[$NF]};END {for(a in S) print a, S[a]}' 
+netstat -n | awk '/^tcp/ {++state[$NF]}; END {for(key in state) print key,&quot;\t&quot;,state[key]}'  
+netstat -n | awk '/^tcp/ {++arr[$NF]};END {for(k in arr) print k,&quot;\t&quot;,arr[k]}' 
+netstat -n |awk '/^tcp/ {print $NF}'|sort|uniq -c|sort -rn  
+netstat -ant | awk '{print $NF}' | grep -v '[a-z]' | sort | uniq -c
+netstat -ant|awk '/ip:80/{split($5,ip,&quot;:&quot;);++S[ip[1]]}END{for (a in S) print S[a],a}' |sort -n  
+netstat -ant|awk '/:80/{split($5,ip,&quot;:&quot;);++S[ip[1]]}END{for (a in S) print S[a],a}' |sort -rn|head -n 10 
+awk 'BEGIN{printf (&quot;http_code\tcount_num\n&quot;)}{COUNT[$10]++}END{for (a in COUNT) printf a&quot;\t\t&quot;COUNT[a]&quot;\n&quot;}'
+</code></pre>
+<p>查找请求数前20个IP（常用于查找攻来源）</p>
+<pre><code>netstat -anlp|grep 80|grep tcp|awk '{print $5}'|awk -F: '{print $1}'|sort|uniq -c|sort -nr|head -n20 
+netstat -ant |awk '/:80/{split($5,ip,&quot;:&quot;);++A[ip[1]]}END{for(i in A) print A[i],i}' |sort -rn|head -n20
+</code></pre>
+<p>用tcpdump嗅探80端口的访问看看谁最高</p>
+<pre><code>tcpdump -i eth0 -tnn dst port 80 -c 1000 | awk -F&quot;.&quot; '{print $1&quot;.&quot;$2&quot;.&quot;$3&quot;.&quot;$4}' | sort | uniq -c | sort -nr |head -20
+</code></pre>
+<p>查找较多time_wait连接</p>
+<pre><code>netstat -n|grep TIME_WAIT|awk '{print $5}'|sort|uniq -c|sort -rn|head -n20
+</code></pre>
+<p>找查较多的SYN连接</p>
+<pre><code>netstat -an | grep SYN | awk '{print $5}' | awk -F: '{print $1}' | sort | uniq -c | sort -nr | more
+</code></pre>
+<p>根据端口列进程</p>
+<pre><code>netstat -ntlp | grep 80 | awk '{print $7}' | cut -d/ -f1
+</code></pre>
+<p>查看了连接数和当前的连接数</p>
+<pre><code>netstat -ant | grep $ip:80 | wc -l 
+netstat -ant | grep $ip:80 | grep EST | wc -l
+</code></pre>
+<p>查看IP访问次数</p>
+<pre><code>netstat -nat|grep &quot;:80&quot;|awk '{print $5}' |awk -F: '{print $1}' | sort| uniq -c|sort -n
+</code></pre>
+<p>Linux命令分析当前的链接状况</p>
+<pre><code>netstat -n | awk '/^tcp/ {++S[$NF]} END {for(a in S) print a, S[a]}'
+watch &quot;netstat -n | awk '/^tcp/ {++S[\$NF]} END {for(a in S) print a, S[a]}'&quot; # 通过watch可以一直监控
+</code></pre>
+<p>LASTACK 5 #关闭一个TCP连接需要从两个方向上分别进行关闭，双方都是通过发送FIN来表示单方向数据的关闭，当通信双方发送了最后一个FIN的时候，发送方此时处于LASTACK状态，当发送方收到对方的确认（Fin的Ack确认）后才真正关闭整个TCP连接； SYNRECV 30 # 表示正在等待处理的请求数； ESTABLISHED 1597 # 表示正常数据传输状态；  FINWAIT1 51 # 表示server端主动要求关闭tcp连接；  FINWAIT2 504 # 表示客户端中断连接；  TIMEWAIT 1057 # 表示处理完毕，等待超时结束的请求数；</p>
+<p>文章来源：https://segmentfault.com/a/1190000009745139</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/linux" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/gao-ke-yong-shu-ju-ku-zhu-cong-fu-zhi-yan-shi-de-jie-jue">
+                  <h3 class="post-title">
+                    高可用数据库主从复制延时的解决
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

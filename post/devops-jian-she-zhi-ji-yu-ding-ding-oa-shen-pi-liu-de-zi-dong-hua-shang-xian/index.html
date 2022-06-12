@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>DevOps建设之基于钉钉OA审批流的自动化上线 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">DevOps建设之基于钉钉OA审批流的自动化上线</h2>
+            <div class="post-date">2021-03-15</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">1、概述</a>
+<ul>
+<li><a href="#11-%E7%8E%B0%E6%9C%89%E4%B8%8A%E7%BA%BF%E6%B5%81%E7%A8%8B%E6%8F%8F%E8%BF%B0">1.1 现有上线流程描述</a></li>
+<li><a href="#12-%E9%92%89%E9%92%89oa%E5%AE%A1%E6%89%B9%E4%B8%8E%E7%94%9F%E4%BA%A7%E4%B8%8A%E7%BA%BF%E7%9A%84%E7%BB%93%E5%90%88">1.2 钉钉OA审批与生产上线的结合</a></li>
+</ul>
+</li>
+<li><a href="#2-%E6%80%BB%E4%BD%93%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF">2、总体实现思路</a></li>
+<li><a href="#3-%E6%B5%81%E7%A8%8B%E6%8F%8F%E8%BF%B0">3、流程描述</a>
+<ul>
+<li><a href="#31-%E6%B3%B3%E9%81%93%E5%9B%BE">3.1 泳道图</a></li>
+<li><a href="#32-%E6%B5%81%E7%A8%8B%E6%8F%8F%E8%BF%B0">3.2 流程描述</a></li>
+</ul>
+</li>
+<li><a href="#4-%E5%85%B3%E9%94%AE%E5%AE%9E%E7%8E%B0">4、关键实现</a>
+<ul>
+<li><a href="#41-%E8%BF%9E%E6%8E%A5%E5%99%A8%E7%9A%84%E5%88%9B%E5%BB%BA">4.1、连接器的创建</a></li>
+<li><a href="#42-%E5%AE%A1%E6%89%B9%E5%8D%95%E7%9A%84%E5%88%9B%E5%BB%BA">4.2、审批单的创建</a></li>
+<li><a href="#43-%E6%8E%A5%E5%8F%A3%E7%A8%8B%E5%BA%8F%E5%BC%80%E5%8F%91">4.3、接口程序开发</a></li>
+</ul>
+</li>
+<li><a href="#5-%E5%B0%8F%E7%BB%93">5、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210315-07.png" alt=""></figure>
+<blockquote>
+<p>“DevOps”一词是由英文 Development（开发）和 Operations （运维）组合而成，但它所代表的理念和实践要比这广阔的多。DevOps 涵盖了安全、协作方式、数据分析等许多方面。但它是什么呢？</p>
+<p>DevOps 强调通过一系列手段来实现既快又稳的工作流程，使每个想法（比如一个新的软件功能，一个功能增强请求或者一个 bug 修复）在从开发到生产环境部署的整个流程中，都能不断地为用户带来价值。这种方式需要开发团队和运维团队密切交流、高效协作并且彼此体谅。此外，DevOps 还要能够方便扩展，灵活部署。有了 DevOps，需求最迫切的工作就能通过自助服务和自动化得到解决；通常在标准开发环境编写代码的开发人员也可与 IT 运维人员紧密合作，加速软件的构建、测试和发布，同时保障开发成果的稳定可靠。</p>
+<p>当然，这意味着更改代码会更频繁，基础架构的使用也会更灵活。所以传统的管理策略无法满足这种需求。您也需要应势而变，赢得先机。</p>
+<p>DevOps是一个循环递进的过程。通过文化的指引，打造符合当前组织和文化的相关工具链，固化协作的规范、流程；然后随着工具落地、实践推广，促使组织更快地发展和改进产品，从而进一步加强协作文化和方式。</p>
+<p>引文参考：https://www.redhat.com/zh/topics/devops</p>
+</blockquote>
+<h2 id="1-概述">1、概述</h2>
+<h3 id="11-现有上线流程描述">1.1 现有上线流程描述</h3>
+<p>随着<code>DevOps</code>在公司的不断实践落地，基于环境现状，目前已经发展成较为成熟和稳定的工作流。负责<code>DevOps</code>建设的团队目前的工作是内部<code>Ops</code>平台开发和不断发现挖掘内部人员的需求以进一步优化。得益于容器以及<code>k8s</code>相关技术使得业务稳定性提高，基于<code>Jenkins Pipeline</code>流水线的任务构建及各类环境的部署发布也变得容易，<code>Prod</code>生产环境和<code>Pre</code>预生产环境的上线发版还是由测试或运维人员负责在平台进行点击和确认发布。</p>
+<h3 id="12-钉钉oa审批与生产上线的结合">1.2 钉钉OA审批与生产上线的结合</h3>
+<p>在企业沟通协作软件的应用中，除了很少企业有足够的能力、成本用来自建即时通讯或完全内网环境下的通讯软件，大部分企业中基本都是以常用的企业沟通协作软件为主，例如腾讯系的企业微信、阿里系的钉钉、字节跳动的飞书等等。</p>
+<blockquote>
+<p>可以参考我之前的文章<a href="https://www.ssgeek.com/post/jenkinssharelibrary-shi-jian-zhi-zi-ding-yi-tong-zhi-qi/">JenkinsShareLibrary实践之自定义钉钉通知器</a></p>
+</blockquote>
+<p>以钉钉为例，钉钉的<code>OA</code>审批是一个常用的工具，其自带的应用场景包含请假、调休、加班、用印申请等等。</p>
+<p>由于对协作软件钉钉的“重度依赖”，加上内部运维相关平台中还没有成熟的审核上线机制，因此作为一个<code>DevOps er</code>，将钉钉<code>OA</code>审批与<code>DevOps</code>工作流中的生产上线流程进行结合是我很想做的。</p>
+<p>近期通过对钉钉<code>OA</code>审批功能的调研，发现钉钉产品大约在<code>2020</code>年<code>12</code>月上线了叫做<code>系统集成</code>的功能，下面是来自钉钉关于<code>系统集成</code>的介绍</p>
+<blockquote>
+<p>系统集成是新型的云集成服务，利用统一的数据模型和编排引擎，通过配置化快速实现钉钉与外部系统的集成对接，将企业不同系统整合到统一平台，享受钉钉高效移动办公体验。</p>
+<p>借助钉钉系统集成服务，企业可以打通钉钉审批与钉钉其他官方应用、SaaS应用以及企业内部应用，目前系统集成示例包含智能人事、用友U8、金蝶、SAP等。</p>
+</blockquote>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210315-01.png" alt=""></figure>
+<p>简单来说，钉钉<code>OA</code>给我们开放了一个<code>系统集成</code>（也叫做连接器）的功能，这个功能能够实现钉钉<code>OA</code>审批单与钉钉外部系统的对接，从而实现不同系统间的数据整合，进一步提高办公效率。</p>
+<p>经过调研，这个功能是收费的（尽管是收费，但相比花费在云厂商的服务器费用只能算是九牛一毛），这个功能叫做<code>OA</code>审批高级版，可以在正式使用前以企业身份申请短期试用。</p>
+<h2 id="2-总体实现思路">2、总体实现思路</h2>
+<p>借助钉钉<code>OA</code>自定义审批，让提交人例如测试人员发起上线审批，将相关上线信息填写在审批单中，然后提交到审批人，例如部门领导、项目经理等人员进行审批，审批通过后由程序自动执行上线发版操作。对于相关上线的信息，当然还是要以直观的、能够进行选择的更为友好，因此审批单中的部分上线信息需要借助调用外部接口生成。</p>
+<p>这里以<code>Jenkins</code>工具为例，前提条件是我们已经有了稳定和对业务环境来说较为完善的发版上线流水线（其中包含各种常用参数化构建、发布类型等等），<code>Jenkins</code>的相关<code>API</code>中，<code>RESTful</code>风格的<code>API</code>最为通用。通过<code>API</code>相关方法获取<code>Jenkins</code>上的<code>Job</code>信息、<code>Job</code>的构建参数相关信息、提供到OA审批单让用户进行选择，这就和在<code>Jenkins</code>上进行参数化构建是一样的。</p>
+<h2 id="3-流程描述">3、流程描述</h2>
+<h3 id="31-泳道图">3.1 泳道图</h3>
+<p>这里以本不专业的画图功底简要画了个泳道图（如果哪里不对，欢迎留言指出）</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210315-02.png" alt=""></figure>
+<h3 id="32-流程描述">3.2 流程描述</h3>
+<p>按照上面的泳道图简要进行描述：</p>
+<ul>
+<li>自定义的接口程序从<code>Jenkins</code>服务器获取所有正常可用的<code>Job</code>相关信息（名称、发布参数、发布类型等），组装成特定的数据格式提供给<code>OA</code>审批表单连接器</li>
+<li>连接器请求接口并接收入参，将数据映射到自定义的<code>OA</code>表单</li>
+<li>发起人按照格式填写审批单</li>
+<li>审批单进行基础校验，首先根据用户选项判断是否有数据库变更，如果有数据库变更但未完成则提示用户先进行数据库变更再发起审批，如果审批人确认没有数据库变更，提交给审批人</li>
+<li>审批人进行审批，审批通过后提醒审批发起人审批通过并将数据提交到接口程序</li>
+<li>接口程序根据解析出来的请求参数，入库记录并调用<code>Jenkins API</code>进行触发</li>
+<li><code>Job</code>开始运行，运行完成后向审批人、发起人发送上线成功的通知</li>
+</ul>
+<h2 id="4-关键实现">4、关键实现</h2>
+<h3 id="41-连接器的创建">4.1、连接器的创建</h3>
+<p>首先，重要的一点是要向管理员申请企业钉钉工作台<code>OA</code>模块的子管理员操作权限。钉钉后台登录界面如下</p>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20210315-03.png" alt=""></figure>
+<p>有了权限之后，申请<code>OA</code>高级版的试用，试用开通后，就能进入到钉钉<code>OA</code>后台创建连接器了</p>
+<p>系统集成分为连接器和集成流两种，两者相比后者能定制一些更为复杂的逻辑。对于本文的场景，选择连接器即可</p>
+<p>连接器的创建流程是先输入连接器名称和描述创建连接器，然后基于创建的连接器创建动作。当然，也可以给每个动作创建单独的连接器，每个连接器下仅包含一个动作。</p>
+<p>根据上面的泳道图，整个流程涉及到了两次连接器的数据交互。其实我这里是三次，表单交互一次，关联表单一次，最终触发一次</p>
+<ul>
+<li>
+<p>第一个连接器动作：请求外部数据，获取到可读的<code>Job</code>中文名称列表，并将数据渲染到表单第一个“项目名称”单选框</p>
+</li>
+<li>
+<p>第二个连接器动作：根据用户选择的“项目名称”，作为条件再次请求外部数据，获取到该项目下所有的子<code>Job</code>任务名称并渲染到第二个“应用名称”单选框</p>
+</li>
+<li>
+<p>第三个连接器动作：将审批通过后，发起人填写的所有数据提交到接口进行处理</p>
+</li>
+</ul>
+<p>连接器的创建界面，以第一个连接器为例，我这里叫做“加载项目名称”，需要填写鉴权方式、接口URL、加密密钥、请求方式、入参参数、出参参数</p>
+<figure data-type="image" tabindex="5"><img src="https://image.ssgeek.com/20210315-05.png" alt=""></figure>
+<h3 id="42-审批单的创建">4.2、审批单的创建</h3>
+<p>连接器创建好后，创建<code>OA</code>审批表单，通过图形界面可视化低代码模式进行创建，如下所示</p>
+<figure data-type="image" tabindex="6"><img src="https://image.ssgeek.com/20210315-04.png" alt=""></figure>
+<p>审批单表单设计完成后，需要设计流程设计，即审批流程，我这里有一个表单校验功能是让用户确认是否有数据库变更，只有在没有数据库变更或者已完成变更的情况下，发起人才能提交审批，如下所示</p>
+<figure data-type="image" tabindex="7"><img src="https://image.ssgeek.com/20210315-06.png" alt=""></figure>
+<h3 id="43-接口程序开发">4.3、接口程序开发</h3>
+<p>(这里也许是所有人关注的重点)由于<code>Jenkins</code>的<code>API</code>接口提供的只是一些通用的接口方法，而钉钉<code>OA</code>审批单由仅限于提交数据发起审批，所以需要开发一个接口程序来处理，接口程序是钉钉<code>OA</code>审批和<code>Jenkins</code>服务器之间的桥梁，本文记录的实践是以<code>Django REST framework</code>为基础技术框架实现的，基于我的应用场景，目前此接口包含的主要核心功能如下：</p>
+<ul>
+<li>
+<p>主要获取<code>Jenkins</code>的<code>Job</code>等信息组装成特定格式，序列化后提供给钉钉<code>OA</code>连接器</p>
+</li>
+<li>
+<p>接收连接器<code>POST</code>过来的“项目名称”，返回项目下的所有“应用名称”</p>
+</li>
+<li>
+<p>接收连接器最终<code>POST</code>过来的表单数据，进行校验</p>
+</li>
+<li>
+<p>根据数据判断是立即触发还是定时触发<code>Jenkins</code>执行构建</p>
+</li>
+<li>
+<p>数据的缓存与入库记录等等</p>
+</li>
+</ul>
+<blockquote>
+<p>这里有个小坑，自动触发<code>jenkins</code>流水线执行并不难，但我的流水线之前定义了在构建后还需要接收用户<code>input</code>的步骤，想要自动绕过或自动<code>input</code>需要一点小技巧，这个下次再聊</p>
+</blockquote>
+<p>由于篇幅有限，这里也就不多展开，后面有机会的话会将此接口程序开源，这里仅仅进行介绍和简要分析。</p>
+<h2 id="5-小结">5、小结</h2>
+<p>到这里，基于钉钉<code>OA</code>审批流完成自动化上线发布操作就完成了，带来的好处多多：统一了相关人员常用的协作平台、在正常情况下完全无需运维人员介入，极大提高了工作效率，缩短了上线时间。</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/VEfPb2dUj" class="tag">
+                    django
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/JgJeOdy01" class="tag">
+                    jenkins
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/devops" class="tag">
+                    devops
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/shi-yong-kube-prometheus-bu-shu-k8s-jian-kong-zui-xin-ban">
+                  <h3 class="post-title">
+                    使用kube-prometheus部署k8s监控(最新版)
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

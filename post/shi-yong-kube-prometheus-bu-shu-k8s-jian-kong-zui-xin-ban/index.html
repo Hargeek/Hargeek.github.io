@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>使用kube-prometheus部署k8s监控(最新版) | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">使用kube-prometheus部署k8s监控(最新版)</h2>
+            <div class="post-date">2021-02-26</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">1、概述</a>
+<ul>
+<li><a href="#11-%E5%9C%A8k8s%E4%B8%AD%E9%83%A8%E7%BD%B2prometheus%E7%9B%91%E6%8E%A7%E7%9A%84%E6%96%B9%E6%B3%95">1.1 在k8s中部署Prometheus监控的方法</a></li>
+<li><a href="#12-%E4%BB%80%E4%B9%88%E6%98%AFprometheus-operator">1.2 什么是Prometheus Operator</a></li>
+<li><a href="#13-%E4%B8%BA%E4%BB%80%E4%B9%88%E7%94%A8prometheus-operator">1.3 为什么用Prometheus Operator</a></li>
+<li><a href="#14-kube-prometheus%E9%A1%B9%E7%9B%AE%E4%BB%8B%E7%BB%8D">1.4 kube-prometheus项目介绍</a></li>
+</ul>
+</li>
+<li><a href="#2-%E7%8E%AF%E5%A2%83%E4%BB%8B%E7%BB%8D">2、环境介绍</a></li>
+<li><a href="#3-%E6%B8%85%E5%8D%95%E5%87%86%E5%A4%87">3、清单准备</a></li>
+<li><a href="#4-%E5%BC%80%E5%A7%8B%E9%83%A8%E7%BD%B2">4、开始部署</a></li>
+<li><a href="#5-%E8%A7%A3%E5%86%B3controllermanager-scheduler%E7%9B%91%E6%8E%A7%E9%97%AE%E9%A2%98">5、解决ControllerManager、Scheduler监控问题</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p><code>kubernetes</code>的最新版本已经到了<code>1.20.x</code>，利用假期时间搭建了最新的<code>k8s v1.20.2</code>版本，截止我整理此文为止，发现官方最新的<code>release</code>已经更新到了<code>v1.20.4</code>。</p>
+</blockquote>
+<h2 id="1-概述">1、概述</h2>
+<h3 id="11-在k8s中部署prometheus监控的方法">1.1 在k8s中部署Prometheus监控的方法</h3>
+<p>通常在<code>k8s</code>中部署<code>prometheus</code>监控可以采取的方法有以下三种</p>
+<ul>
+<li>通过yaml手动部署</li>
+<li>operator部署</li>
+<li>通过helm chart部署</li>
+</ul>
+<h3 id="12-什么是prometheus-operator">1.2 什么是Prometheus Operator</h3>
+<p><code>Prometheus Operator</code>的本职就是一组用户自定义的<code>CRD</code>资源以及<code>Controller</code>的实现，<code>Prometheus Operator</code>负责监听这些自定义资源的变化，并且根据这些资源的定义自动化的完成如<code>Prometheus Server</code>自身以及配置的自动化管理工作。以下是<code>Prometheus Operator</code>的架构图</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210226-01.png" alt=""></figure>
+<p>图片来源：</p>
+<p>https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/master/Documentation/user-guides/images/architecture.png</p>
+<h3 id="13-为什么用prometheus-operator">1.3 为什么用Prometheus Operator</h3>
+<p>由于<code>Prometheus</code>本身没有提供管理配置的<code>AP</code>接口（尤其是管理监控目标和管理警报规则），也没有提供好用的多实例管理手段，因此这一块往往要自己写一些代码或脚本。为了简化这类应用程序的管理复杂度，<code>CoreOS</code>率先引入了<code>Operator</code>的概念，并且首先推出了针对在<code>Kubernetes</code>下运行和管理<code>Etcd</code>的<code>Etcd Operator</code>。并随后推出了<code>Prometheus Operator</code></p>
+<h3 id="14-kube-prometheus项目介绍">1.4 kube-prometheus项目介绍</h3>
+<p>prometheus-operator官方地址：https://github.com/prometheus-operator/prometheus-operator<br>
+kube-prometheus官方地址：https://github.com/prometheus-operator/kube-prometheus</p>
+<p>两个项目的关系：前者只包含了<code>Prometheus Operator</code>，后者既包含了<code>Operator</code>，又包含了<code>Prometheus</code>相关组件的部署及常用的<code>Prometheus</code>自定义监控，具体包含下面的组件</p>
+<ul>
+<li>The Prometheus Operator：创建CRD自定义的资源对象</li>
+<li>Highly available Prometheus：创建高可用的Prometheus</li>
+<li>Highly available Alertmanager：创建高可用的告警组件</li>
+<li>Prometheus node-exporter：创建主机的监控组件</li>
+<li>Prometheus Adapter for Kubernetes Metrics APIs：创建自定义监控的指标工具（例如可以通过nginx的request来进行应用的自动伸缩）</li>
+<li>kube-state-metrics：监控k8s相关资源对象的状态指标</li>
+<li>Grafana：进行图像展示</li>
+</ul>
+<h2 id="2-环境介绍">2、环境介绍</h2>
+<p>本文的<code>k8s</code>环境是通过<code>kubeadm</code>搭建的<code>v 1.20.2</code>版本，由1<code>master</code>+2<code>node</code>组合</p>
+<p>持久化存储为<code>storageclass</code>动态存储，底层由<code>ceph-rbd</code>提供</p>
+<pre><code class="language-yaml">➜  kubectl version -o yaml
+clientVersion:
+  buildDate: &quot;2020-12-08T17:59:43Z&quot;
+  compiler: gc
+  gitCommit: af46c47ce925f4c4ad5cc8d1fca46c7b77d13b38
+  gitTreeState: clean
+  gitVersion: v1.20.0
+  goVersion: go1.15.5
+  major: &quot;1&quot;
+  minor: &quot;20&quot;
+  platform: darwin/amd64
+serverVersion:
+  buildDate: &quot;2021-01-13T13:20:00Z&quot;
+  compiler: gc
+  gitCommit: faecb196815e248d3ecfb03c680a4507229c2a56
+  gitTreeState: clean
+  gitVersion: v1.20.2
+  goVersion: go1.15.5
+  major: &quot;1&quot;
+  minor: &quot;20&quot;
+  platform: linux/amd64
+➜  kubectl get nodes                                     
+NAME       STATUS   ROLES                  AGE   VERSION
+k8s-m-01   Ready    control-plane,master   11d    v1.20.2
+k8s-n-01   Ready    &lt;none&gt;                 11d    v1.20.2
+k8s-n-02   Ready    &lt;none&gt;                 11d    v1.20.2
+➜  manifests kubectl get sc                                              
+NAME                            PROVISIONER                                   RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE
+dynamic-ceph-rbd (default)      ceph.com/rbd                                  Delete          Immediate           false                  7d23h
+</code></pre>
+<p><code>kube-prometheus</code>的兼容性说明（https://github.com/prometheus-operator/kube-prometheus#kubernetes-compatibility-matrix），按照兼容性说明，部署的是最新的<code>release-0.7</code>版本</p>
+<table>
+<thead>
+<tr>
+<th>kube-prometheus stack</th>
+<th>Kubernetes 1.16</th>
+<th>Kubernetes 1.17</th>
+<th>Kubernetes 1.18</th>
+<th>Kubernetes 1.19</th>
+<th>Kubernetes 1.20</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>release-0.4</code></td>
+<td>✔ (v1.16.5+)</td>
+<td>✔</td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+</tr>
+<tr>
+<td><code>release-0.5</code></td>
+<td>✗</td>
+<td>✗</td>
+<td>✔</td>
+<td>✗</td>
+<td>✗</td>
+</tr>
+<tr>
+<td><code>release-0.6</code></td>
+<td>✗</td>
+<td>✗</td>
+<td>✔</td>
+<td>✔</td>
+<td>✗</td>
+</tr>
+<tr>
+<td><code>release-0.7</code></td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>✔</td>
+<td>✔</td>
+</tr>
+<tr>
+<td><code>HEAD</code></td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>✔</td>
+<td>✔</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-清单准备">3、清单准备</h2>
+<p>从官方的地址获取最新的<code>release-0.7</code>分支，或者直接打包下载<code>release-0.7</code></p>
+<pre><code class="language-shell">➜  git clone https://github.com/prometheus-operator/kube-prometheus.git
+➜  git checkout release-0.7
+或者
+➜  wget -c https://github.com/prometheus-operator/kube-prometheus/archive/v0.7.0.zip
+</code></pre>
+<p>默认下载下来的文件较多，建议把文件进行归类处理，将相关<code>yaml</code>文件移动到对应目录下</p>
+<pre><code class="language-shell">➜  cd kube-prometheus/manifests
+➜  mkdir -p serviceMonitor prometheus adapter node-exporter kube-state-metrics grafana alertmanager operator other
+</code></pre>
+<p>最终结构如下</p>
+<pre><code class="language-shell">➜  manifests tree .
+.
+├── adapter
+│   ├── prometheus-adapter-apiService.yaml
+│   ├── prometheus-adapter-clusterRole.yaml
+│   ├── prometheus-adapter-clusterRoleAggregatedMetricsReader.yaml
+│   ├── prometheus-adapter-clusterRoleBinding.yaml
+│   ├── prometheus-adapter-clusterRoleBindingDelegator.yaml
+│   ├── prometheus-adapter-clusterRoleServerResources.yaml
+│   ├── prometheus-adapter-configMap.yaml
+│   ├── prometheus-adapter-deployment.yaml
+│   ├── prometheus-adapter-roleBindingAuthReader.yaml
+│   ├── prometheus-adapter-service.yaml
+│   └── prometheus-adapter-serviceAccount.yaml
+├── alertmanager
+│   ├── alertmanager-alertmanager.yaml
+│   ├── alertmanager-secret.yaml
+│   ├── alertmanager-service.yaml
+│   └── alertmanager-serviceAccount.yaml
+├── grafana
+│   ├── grafana-dashboardDatasources.yaml
+│   ├── grafana-dashboardDefinitions.yaml
+│   ├── grafana-dashboardSources.yaml
+│   ├── grafana-deployment.yaml
+│   ├── grafana-service.yaml
+│   └── grafana-serviceAccount.yaml
+├── kube-state-metrics
+│   ├── kube-state-metrics-clusterRole.yaml
+│   ├── kube-state-metrics-clusterRoleBinding.yaml
+│   ├── kube-state-metrics-deployment.yaml
+│   ├── kube-state-metrics-service.yaml
+│   └── kube-state-metrics-serviceAccount.yaml
+├── node-exporter
+│   ├── node-exporter-clusterRole.yaml
+│   ├── node-exporter-clusterRoleBinding.yaml
+│   ├── node-exporter-daemonset.yaml
+│   ├── node-exporter-service.yaml
+│   └── node-exporter-serviceAccount.yaml
+├── operator
+│   ├── 0namespace-namespace.yaml
+│   ├── prometheus-operator-0alertmanagerConfigCustomResourceDefinition.yaml
+│   ├── prometheus-operator-0alertmanagerCustomResourceDefinition.yaml
+│   ├── prometheus-operator-0podmonitorCustomResourceDefinition.yaml
+│   ├── prometheus-operator-0probeCustomResourceDefinition.yaml
+│   ├── prometheus-operator-0prometheusCustomResourceDefinition.yaml
+│   ├── prometheus-operator-0prometheusruleCustomResourceDefinition.yaml
+│   ├── prometheus-operator-0servicemonitorCustomResourceDefinition.yaml
+│   ├── prometheus-operator-0thanosrulerCustomResourceDefinition.yaml
+│   ├── prometheus-operator-clusterRole.yaml
+│   ├── prometheus-operator-clusterRoleBinding.yaml
+│   ├── prometheus-operator-deployment.yaml
+│   ├── prometheus-operator-service.yaml
+│   └── prometheus-operator-serviceAccount.yaml
+├── other
+├── prometheus
+│   ├── prometheus-clusterRole.yaml
+│   ├── prometheus-clusterRoleBinding.yaml
+│   ├── prometheus-prometheus.yaml
+│   ├── prometheus-roleBindingConfig.yaml
+│   ├── prometheus-roleBindingSpecificNamespaces.yaml
+│   ├── prometheus-roleConfig.yaml
+│   ├── prometheus-roleSpecificNamespaces.yaml
+│   ├── prometheus-rules.yaml
+│   ├── prometheus-service.yaml
+│   └── prometheus-serviceAccount.yaml
+└── serviceMonitor
+    ├── alertmanager-serviceMonitor.yaml
+    ├── grafana-serviceMonitor.yaml
+    ├── kube-state-metrics-serviceMonitor.yaml
+    ├── node-exporter-serviceMonitor.yaml
+    ├── prometheus-adapter-serviceMonitor.yaml
+    ├── prometheus-operator-serviceMonitor.yaml
+    ├── prometheus-serviceMonitor.yaml
+    ├── prometheus-serviceMonitorApiserver.yaml
+    ├── prometheus-serviceMonitorCoreDNS.yaml
+    ├── prometheus-serviceMonitorKubeControllerManager.yaml
+    ├── prometheus-serviceMonitorKubeScheduler.yaml
+    └── prometheus-serviceMonitorKubelet.yaml
+
+9 directories, 67 files
+</code></pre>
+<p>修改yaml，增加prometheus和grafana的持久化存储</p>
+<p>manifests/prometheus/prometheus-prometheus.yaml</p>
+<pre><code class="language-yaml">...
+  serviceMonitorSelector: {}
+  version: v2.22.1
+  retention: 3d
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: dynamic-ceph-rbd
+        resources:
+          requests:
+            storage: 5Gi
+</code></pre>
+<p>manifests/grafana/grafana-deployment.yaml</p>
+<pre><code class="language-yaml">...
+      serviceAccountName: grafana
+      volumes:
+#      - emptyDir: {}
+#        name: grafana-storage
+      - name: grafana-storage
+        persistentVolumeClaim:
+          claimName: grafana-data
+</code></pre>
+<p>新增grafana的pvc，manifests/other/grafana-pvc.yaml</p>
+<pre><code class="language-yaml">kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: grafana-data
+  namespace: monitoring
+  annotations:
+    volume.beta.kubernetes.io/storage-class: &quot;dynamic-ceph-rbd&quot;
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+</code></pre>
+<h2 id="4-开始部署">4、开始部署</h2>
+<p>部署清单</p>
+<pre><code class="language-shell">➜  kubectl create -f other/grafana-pvc.yaml 
+➜  kubectl create -f operator/
+➜  kubectl create -f adapter/ -f alertmanager/ -f grafana/ -f kube-state-metrics/ -f node-exporter/ -f prometheus/ -f serviceMonitor/ 
+</code></pre>
+<p>查看状态</p>
+<pre><code class="language-shell">➜  kubectl get po,svc -n monitoring 
+NAME                                       READY   STATUS    RESTARTS   AGE
+pod/alertmanager-main-0                    2/2     Running   0          15m
+pod/alertmanager-main-1                    2/2     Running   0          10m
+pod/alertmanager-main-2                    2/2     Running   0          15m
+pod/grafana-d69dcf947-wnspk                1/1     Running   0          22m
+pod/kube-state-metrics-587bfd4f97-bffqv    3/3     Running   0          22m
+pod/node-exporter-2vvhv                    2/2     Running   0          22m
+pod/node-exporter-7nsz5                    2/2     Running   0          22m
+pod/node-exporter-wggpp                    2/2     Running   0          22m
+pod/prometheus-adapter-69b8496df6-cjw6w    1/1     Running   0          23m
+pod/prometheus-k8s-0                       2/2     Running   1          75s
+pod/prometheus-k8s-1                       2/2     Running   0          9m33s
+pod/prometheus-operator-7649c7454f-nhl72   2/2     Running   0          28m
+
+NAME                            TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)                      AGE
+service/alertmanager-main       ClusterIP   10.1.189.238   &lt;none&gt;        9093/TCP                     23m
+service/alertmanager-operated   ClusterIP   None           &lt;none&gt;        9093/TCP,9094/TCP,9094/UDP   23m
+service/grafana                 ClusterIP   10.1.29.30     &lt;none&gt;        3000/TCP                     23m
+service/kube-state-metrics      ClusterIP   None           &lt;none&gt;        8443/TCP,9443/TCP            23m
+service/node-exporter           ClusterIP   None           &lt;none&gt;        9100/TCP                     23m
+service/prometheus-adapter      ClusterIP   10.1.75.64     &lt;none&gt;        443/TCP                      23m
+service/prometheus-k8s          ClusterIP   10.1.111.121   &lt;none&gt;        9090/TCP                     23m
+service/prometheus-operated     ClusterIP   None           &lt;none&gt;        9090/TCP                     14m
+service/prometheus-operator     ClusterIP   None           &lt;none&gt;        8443/TCP                     28m
+</code></pre>
+<p>为<code>prometheus</code>、<code>grafana</code>、<code>alertmanager</code>创建<code>ingress</code></p>
+<p>manifests/other/ingress.yaml</p>
+<pre><code class="language-yaml">apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prom-ingress
+  namespace: monitoring
+  annotations:
+    kubernetes.io/ingress.class: &quot;nginx&quot;
+    prometheus.io/http_probe: &quot;true&quot;
+spec:
+  rules:
+  - host: alert.k8s-1.20.2.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: alertmanager-main
+            port:
+              number: 9093
+  - host: grafana.k8s-1.20.2.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana
+            port:
+              number: 3000
+  - host: prom.k8s-1.20.2.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: prometheus-k8s
+            port:
+              number: 9090
+</code></pre>
+<h2 id="5-解决controllermanager-scheduler监控问题">5、解决ControllerManager、Scheduler监控问题</h2>
+<p>默认安装后访问<code>prometheus</code>，会发现有以下有三个报警：</p>
+<p><code>Watchdog</code>、<code>KubeControllerManagerDown</code>、<code>KubeSchedulerDown</code></p>
+<p><code>Watchdog</code>是一个正常的报警，这个告警的作用是：如果<code>alermanger</code>或者<code>prometheus</code>本身挂掉了就发不出告警了，因此一般会采用另一个监控来监控<code>prometheus</code>，或者自定义一个持续不断的告警通知，哪一天这个告警通知不发了，说明监控出现问题了。<code>prometheus operator</code>已经考虑了这一点，本身携带一个<code>watchdog</code>，作为对自身的监控。</p>
+<p>如果需要关闭，删除或注释掉<code>Watchdog</code>部分</p>
+<p>prometheus-rules.yaml</p>
+<pre><code class="language-shell">...
+  - name: general.rules
+    rules:
+    - alert: TargetDown
+      annotations:
+        message: 'xxx'
+      expr: 100 * (count(up == 0) BY (job, namespace, service) / count(up) BY (job, namespace, service)) &gt; 10
+      for: 10m
+      labels:
+        severity: warning
+#    - alert: Watchdog
+#      annotations:
+#        message: |
+#          This is an alert meant to ensure that the entire alerting pipeline is functional.
+#          This alert is always firing, therefore it should always be firing in Alertmanager
+#          and always fire against a receiver. There are integrations with various notification
+#          mechanisms that send a notification when this alert is not firing. For example the
+#          &quot;DeadMansSnitch&quot; integration in PagerDuty.
+#      expr: vector(1)
+#      labels:
+#        severity: none
+</code></pre>
+<p><code>KubeControllerManagerDown</code>、<code>KubeSchedulerDown</code>的解决</p>
+<p>原因是因为在prometheus-serviceMonitorKubeControllerManager.yaml中有如下内容，但默认安装的集群并没有给系统<code>kube-controller-manager</code>组件创建<code>svc</code></p>
+<pre><code class="language-yaml">  selector:
+    matchLabels:
+      k8s-app: kube-controller-manager
+</code></pre>
+<p>修改<code>kube-controller-manager</code>的监听地址</p>
+<pre><code class="language-shell"># vim /etc/kubernetes/manifests/kube-controller-manager.yaml
+...
+spec:
+  containers:
+  - command:
+    - kube-controller-manager
+    - --allocate-node-cidrs=true
+    - --authentication-kubeconfig=/etc/kubernetes/controller-manager.conf
+    - --authorization-kubeconfig=/etc/kubernetes/controller-manager.conf
+    - --bind-address=0.0.0.0
+# netstat -lntup|grep kube-contro                                      
+tcp6       0      0 :::10257                :::*                    LISTEN      38818/kube-controll
+</code></pre>
+<p>创建一个<code>service</code>和<code>endpoint</code>，以便<code>serviceMonitor</code>监听</p>
+<p>other/kube-controller-namager-svc-ep.yaml</p>
+<pre><code class="language-yaml">apiVersion: v1
+kind: Service
+metadata:
+  name: kube-controller-manager
+  namespace: kube-system
+  labels:
+    k8s-app: kube-controller-manager
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: https-metrics
+    port: 10257
+    targetPort: 10257
+    protocol: TCP
+
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: kube-controller-manager
+  namespace: kube-system
+  labels:
+    k8s-app: kube-controller-manager
+subsets:
+- addresses:
+  - ip: 172.16.1.71
+  ports:
+    - name: https-metrics
+      port: 10257
+      protocol: TCP
+</code></pre>
+<p><code>kube-scheduler</code>同理，修改<code>kube-scheduler</code>的监听地址</p>
+<pre><code class="language-shell"># vim /etc/kubernetes/manifests/kube-scheduler.yaml
+...
+spec:
+  containers:
+  - command:
+    - kube-scheduler
+    - --authentication-kubeconfig=/etc/kubernetes/scheduler.conf
+    - --authorization-kubeconfig=/etc/kubernetes/scheduler.conf
+    - --bind-address=0.0.0.0
+# netstat -lntup|grep kube-sched
+tcp6       0      0 :::10259                :::*                    LISTEN      100095/kube-schedul
+</code></pre>
+<p>创建一个<code>service</code>和<code>endpoint</code>，以便<code>serviceMonitor</code>监听</p>
+<p>kube-scheduler-svc-ep.yaml</p>
+<pre><code class="language-yaml">apiVersion: v1
+kind: Service
+metadata:
+  name: kube-scheduler
+  namespace: kube-system
+  labels:
+    k8s-app: kube-scheduler
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: https-metrics
+    port: 10259
+    targetPort: 10259
+    protocol: TCP
+
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: kube-scheduler
+  namespace: kube-system
+  labels:
+    k8s-app: kube-scheduler
+subsets:
+- addresses:
+  - ip: 172.16.1.71
+  ports:
+    - name: https-metrics
+      port: 10259
+      protocol: TCP
+</code></pre>
+<p>再次查看<code>prometheus</code>的<code>alert</code>界面，全部恢复正常</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210226-02.png" alt=""></figure>
+<p>登录到<code>grafana</code>，查看相关图像展示</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210226-03.png" alt=""></figure>
+<p>至此，通过<code>kube-prometheus</code>部署<code>k8s</code>监控已经基本完成了，后面再分享自定义监控和告警、告警通知、高可用、规模化部署等相关内容</p>
+<blockquote>
+<p>参考：https://github.com/prometheus-operator/kube-prometheus</p>
+</blockquote>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/0U-LGnveY" class="tag">
+                    prometheus
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/ji-yu-k8s-shou-dong-bu-shu-rabbitmq-ji-qun">
+                  <h3 class="post-title">
+                    基于k8s手动部署rabbitmq集群
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

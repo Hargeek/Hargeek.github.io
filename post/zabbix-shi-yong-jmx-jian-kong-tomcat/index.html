@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>zabbix使用jmx监控tomcat | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">zabbix使用jmx监控tomcat</h2>
+            <div class="post-date">2018-07-12</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li><a href="#1-%E7%9B%91%E6%8E%A7%E5%8E%9F%E7%90%86">1、监控原理</a></li>
+<li><a href="#2-zabbix-server%E5%AE%89%E8%A3%85zabbix-java-gateway">2、zabbix server安装Zabbix-Java-gateway</a></li>
+<li><a href="#3-%E9%85%8D%E7%BD%AEzabbix-server%E7%AB%AF">3、配置zabbix server端</a></li>
+<li><a href="#4-%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%85%8D%E7%BD%AE">4、客户端配置</a></li>
+<li><a href="#5-%E6%B5%8B%E8%AF%95">5、测试</a>
+<ul>
+<li><a href="#51-jconsole%E6%B5%8B%E8%AF%95">5.1 Jconsole测试</a></li>
+<li><a href="#52-%E5%91%BD%E4%BB%A4%E8%A1%8C%E6%B5%8B%E8%AF%95">5.2 命令行测试</a></li>
+<li><a href="#53-%E5%9C%A8zabbix%E7%9A%84web%E7%95%8C%E9%9D%A2%E6%B7%BB%E5%8A%A0%E4%B8%BB%E6%9C%BA">5.3 在zabbix的web界面添加主机</a></li>
+</ul>
+</li>
+<li><a href="#6-%E6%9F%A5%E7%9C%8B%E6%9C%80%E6%96%B0%E6%95%B0%E6%8D%AE">6、查看最新数据</a></li>
+</ul>
+</p>
+<h1 id="1-监控原理">1、监控原理</h1>
+<p>当Zabbix-Server需要知道java应用程序的某项性能的时候，会启动自身的一个Zabbix-JavaPollers进程去连接Zabbix-JavaGateway请求数据，而ZabbixJavagateway收到请求后使用“JMXmanagementAPI”去查询特定的应用程序，而前提是应用程序这端在开启时需要“-Dcom.sun.management.jmxremote”参数来开启JMX远程查询就行。Java程序会启动自身的一个简单的小程序端口12345向Zabbix-JavaGateway提供请求数据。</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20180712-01.png" alt=""></figure>
+<p>从上面的原理图中可以看出，配置Zabbix监控Java应用程序的关键点在于：配置Zabbix-JavaGateway、让Zabbix-Server能够连接Zabbix-JavaGateway、Tomcat开启JVM远程监控功能等</p>
+<h1 id="2-zabbix-server安装zabbix-java-gateway">2、zabbix server安装Zabbix-Java-gateway</h1>
+<p>Java-gateway不安装在zabbix-server上也可以，仅仅是作为一个采集器！</p>
+<pre><code class="language-shell">[root@zabbix ~]# yum install -y zabbix-java-gateway
+[root@zabbix ~]# java -version
+openjdk version &quot;1.8.0_171&quot;
+OpenJDK Runtime Environment (build 1.8.0_171-b10)
+OpenJDK 64-Bit Server VM (build 25.171-b10, mixed mode)
+</code></pre>
+<h1 id="3-配置zabbix-server端">3、配置zabbix server端</h1>
+<pre><code class="language-shell">[root@zabbix ~]# vim /etc/zabbix/zabbix_java_gateway.conf
+LISTEN_IP=&quot;0.0.0.0&quot;	#监听地址
+LISTEN_PORT=10052	#监听端口
+PID_FILE=”/var/run/zabbix/zabbix_java.pid”#PID_FILE文件
+START_POLLERS=5		#开启的工作线程数
+[root@zabbix ~]# systemctl start zabbix-java-gateway.service 
+[root@zabbix ~]# systemctl enable zabbix-java-gateway.service
+[root@zabbix ~]# vim /etc/zabbix/zabbix_server.conf
+JavaGateway=127.0.0.1		#java_gateway的地址
+JavaGatewayPort=10052	#java_gateway的端口
+StartJavaPollers=5		#采集进程数，与java_gateway配置相同
+[root@zabbix ~]# systemctl restart zabbix-server.service		#重启zabbix-server
+</code></pre>
+<p>注意：如果是编译安装zabbix server需要加上--enable-java以支持jmx监控，如果之前的zabbix server没加，那么请重新编译安装，参考编译参数</p>
+<pre><code class="language-shell">./configure --prefix=/user/local/zabbix --enable-server --enable-agent --enable-java --enable-ipv6 --with-mysql=/application/mysql-5.5.49/bin/mysql_config --with-net-snmp --with-libcurl --with-libxml2 --with-openipmi --with-unixodbc --with-openssl
+</code></pre>
+<h1 id="4-客户端配置">4、客户端配置</h1>
+<p>配置tomcat开启jmx remote，配置zabbix-agent客户端Tomcat JMX，即tomcat的远程调用脚本</p>
+<pre><code class="language-shell">[root@tomcat ~]# vim /application/tomcat/bin/catalina.sh
+#!/bin/sh
+CATALINA_OPTS=&quot;-Dcom.sun.management.jmxremote 		#开启远程监控
+-Dcom.sun.management.jmxremote.authenticate=false 		#关闭权限认证
+-Dcom.sun.management.jmxremote.ssl=false 				#远程ssl验证为false
+-Djava.rmi.server.hostname=192.168.1.7					#部署了tomcat的主机地址 
+-Dcom.sun.management.jmxremote.port=12345&quot;			#远程监控端口
+[root@tomcat ~]# vim /etc/hosts		#设置本地host解析，不然会报错，12345端口无法查看，报错信息可在catalina日志中查看
+10.0.0.7 	tomcat
+[root@tomcat ~]# /application/tomcat/bin/shutdown.sh		#重启tomcat
+[root@tomcat ~]# /application/tomcat/bin/startup.sh
+[root@tomcat ~]# netstat -lntup
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+tcp        0      0 0.0.0.0:3306            0.0.0.0:*               LISTEN      2647/mysqld         
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      1774/sshd           
+tcp6       0      0 :::8009                 :::*                    LISTEN      5946/java           
+tcp6       0      0 :::55404                :::*                    LISTEN      5946/java           
+tcp6       0      0 :::8080                 :::*                    LISTEN      5946/java           
+tcp6       0      0 :::22                   :::*                    LISTEN      1774/sshd           
+tcp6       0      0 :::12345                :::*                    LISTEN      5946/java           
+tcp6       0      0 :::53819                :::*                    LISTEN      5946/java           
+tcp6       0      0 127.0.0.1:8005          :::*                    LISTEN      5946/java           
+udp6       0      0 :::5353                 :::*                                5946/java           
+udp6       0      0 :::33848                :::*                                5946/java
+</code></pre>
+<h1 id="5-测试">5、测试</h1>
+<h2 id="51-jconsole测试">5.1 Jconsole测试</h2>
+<p>JConsole是jdk安装之后在windows下的一款监控测试工具，首先下载windows下的jdk应用程序并安装，安装好后在安装路径下即C:\Program Files\Java\jdk1.8.0_171\bin找到jconsole程序并打开</p>
+<p>新建连接</p>
+<img src="https://image.ssgeek.com/20180712-02.png" style="zoom:67%;" />
+<p>连接成功后界面如下</p>
+<img src="https://image.ssgeek.com/20180712-03.png" style="zoom:67%;" />
+<p>查看某个监控项的具体信息，监控对象的名字ObjectName与zabbix中的对应，可以利用此在zabbix中自定义监控项，创建模板</p>
+<p>如</p>
+<img src="https://image.ssgeek.com/20180712-04.png" style="zoom:67%;" />
+<h2 id="52-命令行测试">5.2 命令行测试</h2>
+<p>在有java环境的机器上下载cmdline-jmxclient-0.10.3.jar包进行测试</p>
+<pre><code class="language-shell">[root@zabbix tools]# java -jar cmdline-jmxclient-0.10.3.jar - 192.168.1.7:12345 java.lang:type=Memory NonHeapMemoryUsage
+06/26/2018 14:44:55 +0800 org.archive.jmx.Client NonHeapMemoryUsage: 
+committed: 117006336
+init: 2555904
+max: -1
+used: 113687744
+</code></pre>
+<p>成功取到值！</p>
+<h2 id="53-在zabbix的web界面添加主机">5.3 在zabbix的web界面添加主机</h2>
+<p>添加主机，选择jmx接口，输入tomcat主机的ip地址</p>
+<img src="https://image.ssgeek.com/20180712-05.png" style="zoom:67%;" />
+<p>为主机链接模板，模板选择需要适合当前的tomcat版本，其中的Template JMX Tomcat模板较老，不适合监控tomcat8.0以上版本，导入新版模板</p>
+<img src="https://image.ssgeek.com/20180712-06.png" style="zoom:67%;" />
+<p>稍等片刻等待主机的jmx连接成功变为绿色</p>
+<h1 id="6-查看最新数据">6、查看最新数据</h1>
+<img src="https://image.ssgeek.com/20180712-07.png" style="zoom: 67%;" />
+<p>至此，zabbix监控tomcat完成！</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/zabbix" class="tag">
+                    zabbix
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/about">
+                  <h3 class="post-title">
+                    关于
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

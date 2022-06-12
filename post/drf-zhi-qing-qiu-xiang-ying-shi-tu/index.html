@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>drf之请求、响应、视图 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">drf之请求、响应、视图</h2>
+            <div class="post-date">2020-07-09</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E8%AF%B7%E6%B1%82%E4%B8%8E%E5%93%8D%E5%BA%94">1、请求与响应</a>
+<ul>
+<li><a href="#11-request%E8%AF%B7%E6%B1%82">1.1 Request（请求）</a></li>
+<li><a href="#12-response%E5%93%8D%E5%BA%94">1.2 Response（响应）</a>
+<ul>
+<li><a href="#121-%E6%9E%84%E9%80%A0%E6%96%B9%E5%BC%8F">1.2.1 构造方式</a></li>
+<li><a href="#122-%E5%B8%B8%E7%94%A8%E5%B1%9E%E6%80%A7">1.2.2 常用属性</a></li>
+<li><a href="#123-%E7%8A%B6%E6%80%81%E7%A0%81">1.2.3 状态码</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#2-%E8%A7%86%E5%9B%BE">2、视图</a>
+<ul>
+<li><a href="#21-%E4%B8%A4%E4%B8%AA%E8%A7%86%E5%9B%BE%E5%9F%BA%E7%B1%BB">2.1 两个视图基类</a>
+<ul>
+<li><a href="#211-apiview">2.1.1 APIView</a></li>
+<li><a href="#212-genericapiview%E9%80%9A%E7%94%A8%E8%A7%86%E5%9B%BE%E7%B1%BB">2.1.2 GenericAPIView（通用视图类）</a></li>
+</ul>
+</li>
+<li><a href="#22-%E4%BA%94%E4%B8%AA%E8%A7%86%E5%9B%BE%E6%8B%93%E5%B1%95%E7%B1%BB">2.2 五个视图拓展类</a></li>
+<li><a href="#23-genericapiview%E7%9A%84%E8%A7%86%E5%9B%BE%E5%AD%90%E7%B1%BB">2.3 GenericAPIView的视图子类</a></li>
+</ul>
+</li>
+<li><a href="#3-%E8%A7%86%E5%9B%BE%E9%9B%86">3、视图集</a>
+<ul>
+<li><a href="#31-%E5%B8%B8%E7%94%A8%E7%9A%84%E8%A7%86%E5%9B%BE%E9%9B%86%E7%88%B6%E7%B1%BB">3.1 常用的视图集父类</a></li>
+<li><a href="#32-action">3.2 action</a></li>
+</ul>
+</li>
+<li><a href="#4-%E6%80%BB%E7%BB%93-%E8%A7%86%E5%9B%BE%E7%B1%BB%E4%B9%8B%E9%97%B4%E7%9A%84%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB%E5%9B%BE">4、总结-视图类之间的继承关系图</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-请求与响应">1、请求与响应</h2>
+<h3 id="11-request请求">1.1 Request（请求）</h3>
+<p><code>drf</code> 传入视图的<code>request</code> 不再是Django默认的HttpRequest对象，而是<code>drf</code> 提供的拓展了HttpRequest 类的<code>Request</code> 类的对象。</p>
+<p>drf提供了Parser解析器，在接收到请求之后会根据Content-Type指明的请求数据类型（json、表单等）将请求数据进行解析，解析为类字典<code>&lt;QueryDict&gt;</code> 对象保存到R<code>equest</code> 对象之中。</p>
+<p>Request对象的数据是根据前端发送数据的格式进行解析之后的结果。不论前端发送的是那种格式的数据，我们都可以使用统一的方式读取数据。</p>
+<p><strong>常用属性：</strong></p>
+<ul>
+<li>
+<p>.data</p>
+<p><code>request.data</code> 返回解析之后的请求体数据。类似于Django中标准的<code>request.POST</code>和 <code>request.FILES</code>属性，但提供如下特性：</p>
+<pre><code class="language-Python">1 包含了解析之后的文件和非文件数据
+2 包含了对POST、PUT、PATCH请求方式解析后的数据
+3 利用了REST framework的parsers解析器，不仅支持表单类型数据，也支持JSON数据
+</code></pre>
+</li>
+<li>
+<p>.query_params</p>
+<p><code>request.query_params</code>与Django标准的<code>request.GET</code>相同，只是更换了更正确的名称而已。</p>
+</li>
+</ul>
+<h3 id="12-response响应">1.2 Response（响应）</h3>
+<p><code>drf</code> 提供了一个响应类<code>Response</code>，使用该类构造响应对象时，响应的具体数据内容会被转换（render渲染）成符合前端需求的类型。</p>
+<p><code>drf</code> 提供了<code>Renderer</code> 渲染器，用来根据请求头中的<code>Accept</code>（接收数据类型声明）来自动转换响应数据到对应格式。如果前端请求中未进行Accept声明，则会采用默认方式处理响应数据，我们可以通过配置来修改默认响应格式。</p>
+<p>可以在<code>rest_framework.settings</code> 查找所有的drf默认配置项。其中配置响应格式的配置项为：</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/1594192554676.png" alt="1594192554676"></figure>
+<p>在<strong>局部配置</strong>使用，即只对某一个视图类配置生效。在视图类中加入以下代码：</p>
+<pre><code class="language-Python">from rest_framework.renderers import JSONRenderer，BrowsableAPIRenderer
+renderer_classes=[JSONRenderer,]  #配置使用json渲染器
+# renderer_classes=[BrowsableAPIRenderer,] # 配置使用浏览API渲染器
+</code></pre>
+<p>在全局配置使用，即对所有的视图类、所有的请求都生效。在<code>setting.py</code> 中加入以下代码：</p>
+<pre><code class="language-Python">REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': (  # 默认响应渲染类
+        'rest_framework.renderers.JSONRenderer',  # json渲染器
+        'rest_framework.renderers.BrowsableAPIRenderer',  # 浏览API渲染器
+    )
+}
+</code></pre>
+<h4 id="121-构造方式">1.2.1 构造方式</h4>
+<p>找到<code>drf</code> 中的Response类，可以获知其有以下代码：</p>
+<pre><code class="language-Python">class Response(SimpleTemplateResponse):
+        def __init__(self, data=None, status=None,
+                 template_name=None, headers=None,
+                 exception=False, content_type=None):
+            ...
+</code></pre>
+<p>则Response对象的构造方式为：</p>
+<pre><code class="language-Python">Response(data, status=None, template_name=None, headers=None, content_type=None)
+</code></pre>
+<p>其中data数据不要是render处理之后的数据，只需要传递你需要返回的数据。<code>drf</code> 会自动使用<code>renderer</code> 渲染器处理该数据。</p>
+<p><strong>参数说明：</strong></p>
+<ul>
+<li><code>data</code>: 为响应准备的序列化处理后的数据；</li>
+<li><code>status</code>: 状态码，默认200；</li>
+<li><code>template_name</code>: 模板名称，如果使用<code>HTMLRenderer</code> 时需指明；</li>
+<li><code>headers</code>: 用于存放响应头信息的字典；</li>
+<li><code>content_type</code>: 响应数据的Content-Type，通常此参数无需传递，REST framework会根据前端所需类型数据来设置该参数。</li>
+</ul>
+<h4 id="122-常用属性">1.2.2 常用属性</h4>
+<ul>
+<li>.data   传给Response对象的，序列化后但尚未render处理的数据</li>
+<li>.status_code  状态码的数字</li>
+<li>.content   经过render处理后的响应数据</li>
+</ul>
+<h4 id="123-状态码">1.2.3 状态码</h4>
+<p>为了方便设置状态码，<code>drf</code> 在<code>rest_framework.status</code> 模块中提供了常用状态码常量。</p>
+<ul>
+<li>
+<p>信息告知 - 1xx</p>
+<pre><code class="language-Python">HTTP_100_CONTINUE = 100
+HTTP_101_SWITCHING_PROTOCOLS = 101
+</code></pre>
+</li>
+<li>
+<p>成功 - 2xx</p>
+<pre><code class="language-Python">HTTP_200_OK = 200
+HTTP_201_CREATED = 201
+HTTP_202_ACCEPTED = 202
+HTTP_203_NON_AUTHORITATIVE_INFORMATION = 203
+HTTP_204_NO_CONTENT = 204
+HTTP_205_RESET_CONTENT = 205
+HTTP_206_PARTIAL_CONTENT = 206
+HTTP_207_MULTI_STATUS = 207
+HTTP_208_ALREADY_REPORTED = 208
+HTTP_226_IM_USED = 226
+</code></pre>
+</li>
+<li>
+<p>重定向 - 3xx</p>
+<pre><code class="language-Python">HTTP_300_MULTIPLE_CHOICES = 300
+HTTP_301_MOVED_PERMANENTLY = 301
+HTTP_302_FOUND = 302
+HTTP_303_SEE_OTHER = 303
+HTTP_304_NOT_MODIFIED = 304
+HTTP_305_USE_PROXY = 305
+HTTP_306_RESERVED = 306
+HTTP_307_TEMPORARY_REDIRECT = 307
+HTTP_308_PERMANENT_REDIRECT = 308
+</code></pre>
+</li>
+<li>
+<p>客户端错误 - 4xx</p>
+<pre><code class="language-Python">HTTP_400_BAD_REQUEST = 400
+HTTP_401_UNAUTHORIZED = 401
+HTTP_402_PAYMENT_REQUIRED = 402
+HTTP_403_FORBIDDEN = 403
+HTTP_404_NOT_FOUND = 404
+HTTP_405_METHOD_NOT_ALLOWED = 405
+HTTP_406_NOT_ACCEPTABLE = 406
+HTTP_407_PROXY_AUTHENTICATION_REQUIRED = 407
+HTTP_408_REQUEST_TIMEOUT = 408
+HTTP_409_CONFLICT = 409
+HTTP_410_GONE = 410
+HTTP_411_LENGTH_REQUIRED = 411
+HTTP_412_PRECONDITION_FAILED = 412
+HTTP_413_REQUEST_ENTITY_TOO_LARGE = 413
+HTTP_414_REQUEST_URI_TOO_LONG = 414
+HTTP_415_UNSUPPORTED_MEDIA_TYPE = 415
+HTTP_416_REQUESTED_RANGE_NOT_SATISFIABLE = 416
+HTTP_417_EXPECTATION_FAILED = 417
+HTTP_422_UNPROCESSABLE_ENTITY = 422
+HTTP_423_LOCKED = 423
+HTTP_424_FAILED_DEPENDENCY = 424
+HTTP_426_UPGRADE_REQUIRED = 426
+HTTP_428_PRECONDITION_REQUIRED = 428
+HTTP_429_TOO_MANY_REQUESTS = 429
+HTTP_431_REQUEST_HEADER_FIELDS_TOO_LARGE = 431
+HTTP_451_UNAVAILABLE_FOR_LEGAL_REASONS = 451
+</code></pre>
+</li>
+<li>
+<p>服务器错误- 5xx</p>
+<pre><code class="language-Python">HTTP_500_INTERNAL_SERVER_ERROR = 500
+HTTP_501_NOT_IMPLEMENTED = 501
+HTTP_502_BAD_GATEWAY = 502
+HTTP_503_SERVICE_UNAVAILABLE = 503
+HTTP_504_GATEWAY_TIMEOUT = 504
+HTTP_505_HTTP_VERSION_NOT_SUPPORTED = 505
+HTTP_506_VARIANT_ALSO_NEGOTIATES = 506
+HTTP_507_INSUFFICIENT_STORAGE = 507
+HTTP_508_LOOP_DETECTED = 508
+HTTP_509_BANDWIDTH_LIMIT_EXCEEDED = 509
+HTTP_510_NOT_EXTENDED = 510
+HTTP_511_NETWORK_AUTHENTICATION_REQUIRED = 511
+</code></pre>
+</li>
+</ul>
+<h2 id="2-视图">2、视图</h2>
+<p><code>drf</code> 的提供的视图的主要作用有：</p>
+<ul>
+<li>控制序列化器的执行（检验、保存、转换数据）</li>
+<li>控制数据库查询的执行</li>
+</ul>
+<p>它还提供了许多的视图基类和拓展类，用于简化视图的编写。</p>
+<h3 id="21-两个视图基类">2.1 两个视图基类</h3>
+<h4 id="211-apiview">2.1.1 APIView</h4>
+<p><code>APIView</code>是<code>drf</code> 提供的所有视图的基类，继承自Django的<code>View</code>父类。</p>
+<p><code>APIView</code>与<code>View</code>的不同之处在于：</p>
+<ul>
+<li>传入到视图方法中的是REST framework的<code>Request</code>对象，而不是Django的<code>HttpRequeset</code>对象；</li>
+<li>视图方法可以返回REST framework的<code>Response</code>对象，视图会为响应数据设置（render）符合前端要求的格式；</li>
+<li>任何<code>APIException</code>异常都会被捕获到，并且处理成合适的响应信息；</li>
+<li>在进行dispatch()分发前，会对请求进行身份认证、权限检查、流量控制。</li>
+</ul>
+<p>在<code>APIView</code>中仍以常规的类视图定义方法来实现get() 、post() 或者其他请求方式的方法。例如使用APIView简单的实现五个增删查改的API接口。</p>
+<p>在<code>models.py</code> 创建数据模型类：</p>
+<pre><code class="language-Python">from django.db import models
+
+class Book(models.Model):
+    name=models.CharField(max_length=32)
+    price=models.DecimalField(max_digits=5,decimal_places=2)
+    publish=models.CharField(max_length=32)
+</code></pre>
+<p>在<code>urls.py</code> 中创建路由匹配：</p>
+<pre><code class="language-Python">from django.urls import path,re_path
+from app01 import views
+
+urlpatterns = [
+    path('books/', views.BookView.as_view()),
+    re_path('books/(?P&lt;pk&gt;\d+)', views.BookDetailView.as_view()),
+]
+</code></pre>
+<p>在<code>ser.py</code> 中创建<code>ModelSerializer</code> 类：</p>
+<pre><code class="language-Python">from rest_framework import serializers
+from app01.models import Book
+
+class BookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Book
+        fields='__all__'
+</code></pre>
+<p>在<code>views.py</code>中基于APIView创建视图类</p>
+<pre><code class="language-Python">from rest_framework.views import  APIView
+from app01.models import Book
+from app01.ser import BookSerializer
+
+class BookView(APIView):
+    def get(self,request):
+        book_list=Book.objects.all()
+        book_ser=BookSerializer(book_list,many=True)
+
+        return Response(book_ser.data)
+    def post(self,request):
+        book_ser = BookSerializer(data=request.data)
+        if book_ser.is_valid():
+            book_ser.save()
+            return Response(book_ser.data)
+        else:
+            return Response({'status':101,'msg':'校验失败'})
+
+class BookDetailView(APIView):
+    def get(self, request, pk):
+        book = Book.objects.all().filter(pk=pk).first()
+        book_ser = BookSerializer(book)
+        return Response(book_ser.data)
+
+    def put(self, request, pk):
+        book = Book.objects.all().filter(pk=pk).first()
+        book_ser = BookSerializer(instance=book,data=request.data)
+        if book_ser.is_valid():
+            book_ser.save()
+            return Response(book_ser.data)
+        else:
+            return Response({'status': 101, 'msg': '校验失败'})
+
+    def delete(self,request, pk):
+        ret=Book.objects.filter(pk=pk).delete()
+        return Response({'status': 100, 'msg': '删除成功'})
+</code></pre>
+<h4 id="212-genericapiview通用视图类">2.1.2 GenericAPIView（通用视图类）</h4>
+<p>导入：</p>
+<pre><code class="language-Python">from rest_framework.generics import GenericAPIView
+</code></pre>
+<p>继承关系如下：</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/rest_framework.generics.svg" alt=""></figure>
+<p><code>GenericAPIView</code> 继承自<code>APIVIew</code>，主要增加了操作序列化器和数据库查询的方法，作用是为下面Mixin扩展类的执行提供方法支持。通常在使用时，可搭配一个或多个Mixin扩展类。</p>
+<p><strong>提供的关于序列化器使用的属性与方法</strong></p>
+<ul>
+<li>
+<p>属性：<code>serializer_class</code>  指明视图使用的序列化器</p>
+</li>
+<li>
+<p>方法：</p>
+<p><code>get_serializer_class(self)</code> :  当出现一个视图类中调用多个序列化器时,那么可以通过条件判断在get_serializer_class方法中通过返回不同的序列化器类名就可以让视图方法执行不同的序列化器对象了。返回序列化器类，默认返回<code>serializer_class</code>，可以重写。</p>
+<p><code>get_serializer(self, *args, **kwargs)</code> ：返回序列化器对象，主要用来提供给Mixin扩展类使用，如果我们在视图中想要获取序列化器对象，也可以直接调用此方法。</p>
+<p>注意：</p>
+<pre><code class="language-Python">该方法在提供序列化器对象的时候，会向序列化器对象的context属性补充三个数据：request、format、view，这三个数据对象可以在定义序列化器时使用。
+
+-request	当前视图的请求对象
+-view		当前请求的类视图对象
+-format		当前请求期望返回的数据格式
+</code></pre>
+</li>
+</ul>
+<p><strong>提供的关于数据库查询的属性与方法</strong></p>
+<ul>
+<li>
+<p>属性：<code>queryset</code>  指明使用的数据查询集</p>
+</li>
+<li>
+<p>方法：</p>
+<p><code>get_queryset(self)</code> ：返回视图使用的查询集，主要用来提供给Mixin扩展类使用，是列表视图与详情视图获取数据的基础，默认返回<code>queryset</code>属性，可以重写</p>
+<p><code>get_object(self)</code> ：返回详情视图所需的模型类数据对象，主要用来提供给Mixin扩展类使用。在试图中可以调用该方法获取详情信息的模型类对象。**若详情访问的模型类对象不存在，会返回404。**该方法会默认使用APIView提供的check_object_permissions方法检查当前对象是否有权限被访问。</p>
+</li>
+</ul>
+<p>示例：使用<code>GenericAPIView</code> 将之前创建的接口进行改写：</p>
+<p><code>urls.py</code> :</p>
+<pre><code class="language-python">from django.urls import path,re_path
+from app01 import views
+
+urlpatterns = [
+    # 使用GenericAPIView重写的
+    path('books2/', views.Book2View.as_view()),
+    re_path('books2/(?P&lt;pk&gt;\d+)', views.Book2DetailView.as_view()),
+]
+</code></pre>
+<p><code>views.py</code> :</p>
+<pre><code class="language-Python">class Book2View(GenericAPIView):
+    # queryset要传queryset对象，查询了所有的图书
+    # serializer_class使用哪个序列化类来序列化这堆数据
+    queryset = Book.objects
+    # queryset=Book.objects.all()
+    serializer_class = BookSerializer
+
+    def get(self, request):
+        book_list = self.get_queryset()
+        book_ser = self.get_serializer(book_list, many=True)
+
+        return Response(book_ser.data)
+
+    def post(self, request):
+        book_ser = self.get_serializer(data=request.data)
+        if book_ser.is_valid():
+            book_ser.save()
+            return Response(book_ser.data)
+        else:
+            return Response({'status': 101, 'msg': '校验失败'})
+
+
+class Book2DetailView(GenericAPIView):
+    queryset = Book.objects
+    serializer_class = BookSerializer
+
+    def get(self, request, pk):
+        book = self.get_object()
+        book_ser = self.get_serializer(book)
+        return Response(book_ser.data)
+
+    def put(self, request, pk):
+        book = self.get_object()
+        book_ser = self.get_serializer(instance=book, data=request.data)
+        if book_ser.is_valid():
+            book_ser.save()
+            return Response(book_ser.data)
+        else:
+            return Response({'status': 101, 'msg': '校验失败'})
+
+    def delete(self, request, pk):
+        ret = self.get_object().delete()
+        return Response({'status': 100, 'msg': '删除成功'})
+
+</code></pre>
+<h3 id="22-五个视图拓展类">2.2 五个视图拓展类</h3>
+<p><strong>作用：</strong></p>
+<p>​	提供了几种后端视图（对数据资源进行曾删改查）处理流程的实现，如果需要编写的视图属于这五种，则视图可以通过继承相应的扩展类来复用代码，减少自己编写的代码量。</p>
+<p>​	这五个扩展类需要搭配<code>GenericAPIView</code> 父类，因为五个扩展类的实现需要调用<code>GenericAPIView</code>  提供的序列化器与数据库查询的方法。</p>
+<p><strong>导入：</strong></p>
+<pre><code class="language-Python">from rest_framework.mixins import ListModelMixin, CreateModelMixin, UpdateModelMixin
+from rest_framework.mixins import DestroyModelMixin, RetrieveModelMixin
+</code></pre>
+<ul>
+<li>
+<p><code>ListModelMixin</code> ：列表视图扩展类，提供<code>list(request, *args, **kwargs)</code>方法快速实现列表视图，返回200状态码。该Mixin的list方法会对数据进行过滤和分页。</p>
+</li>
+<li>
+<p><code>RetrieveModelMixin</code> ：详情视图扩展类，提供<code>retrieve(request, *args, **kwargs)</code>方法，可以快速实现返回一个存在的数据对象。如果存在，返回200， 否则返回404。</p>
+</li>
+<li>
+<p><code>CreateModelMixin</code> ：创建视图扩展类，提供<code>create(request, *args, **kwargs)</code>方法快速实现创建资源的视图，成功返回201状态码。如果序列化器对前端发送的数据验证失败，返回400错误。</p>
+</li>
+<li>
+<p><code>UpdateModelMixin</code> ：更新视图扩展类，提供<code>update(request, *args, **kwargs)</code>方法，可以快速实现更新一个存在的数据对象。同时也提供<code>partial_update(request, *args, **kwargs)</code>方法，可以实现局部更新。</p>
+<p>成功返回200，序列化器校验数据失败时，返回400错误。</p>
+</li>
+<li>
+<p><code>DestroyModelMixin</code> ： 删除视图扩展类，提供<code>destroy(request, *args, **kwargs)</code>方法，可以快速实现删除一个存在的数据对象。成功返回204，不存在返回404。</p>
+</li>
+</ul>
+<p>使用示例，基于GenericAPIView和5个视图拓展类改写接口：</p>
+<p><code>urls.py</code> :</p>
+<pre><code class="language-Python">from django.urls import path,re_path
+from app01 import views
+
+urlpatterns = [
+    # 使用GenericAPIView+5 个视图扩展类 
+    path('books3/', views.Book3View.as_view()),
+    re_path('books3/(?P&lt;pk&gt;\d+)', views.Book3DetailView.as_view()),
+]
+</code></pre>
+<p><code>views.py</code> ：</p>
+<pre><code class="language-Python">from rest_framework.mixins import ListModelMixin, CreateModelMixin, UpdateModelMixin, DestroyModelMixin, \
+    RetrieveModelMixin
+
+
+class Book3View(GenericAPIView, ListModelMixin, CreateModelMixin):
+    queryset = Book.objects
+    serializer_class = BookSerializer
+
+    def get(self, request):
+        return self.list(request)
+
+    def post(self, request):
+        return self.create(request)
+
+
+class Book3DetailView(GenericAPIView, RetrieveModelMixin, DestroyModelMixin, UpdateModelMixin):
+    queryset = Book.objects
+    serializer_class = BookSerializer
+
+    def get(self, request, pk):
+        return self.retrieve(request, pk)
+
+    def put(self, request, pk):
+        return self.update(request, pk)
+
+    def delete(self, request, pk):
+        return self.destroy(request, pk)
+</code></pre>
+<h3 id="23-genericapiview的视图子类">2.3 GenericAPIView的视图子类</h3>
+<p>导入：</p>
+<pre><code class="language-Python">from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView, RetrieveAPIView, DestroyAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveDestroyAPIView, RetrieveUpdateAPIView
+</code></pre>
+<p>这些视图子类分别部分提供了<code>get</code> <code>post</code> <code>put</code> <code>patch</code> <code>delete</code> 方法，继承自<code>GenericAPIView</code>及其拓展类。</p>
+<p>应用示例：</p>
+<p><code>urls.py</code> ：</p>
+<pre><code class="language-Python">from django.urls import path,re_path
+from app01 import views
+
+urlpatterns = [
+    path('books4/', views.Book4View.as_view()),
+    re_path('books4/(?P&lt;pk&gt;\d+)', views.Book4DetailView.as_view()),
+]
+</code></pre>
+<p><code>views.py</code> ：</p>
+<pre><code class="language-Python">from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView, RetrieveAPIView, DestroyAPIView, \
+    ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveDestroyAPIView, RetrieveUpdateAPIView
+
+
+# class Book4View(ListAPIView,CreateAPIView):  #获取所有，新增一个
+class Book4View(ListCreateAPIView):  # 获取所有，新增一个
+    queryset = Book.objects
+    serializer_class = BookSerializer
+
+
+# class Book4DetailView(UpdateAPIView,RetrieveAPIView,DestroyAPIView):
+class Book4DetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Book.objects
+    serializer_class = BookSerializer
+</code></pre>
+<h2 id="3-视图集">3、视图集</h2>
+<p>使用视图集<code>ViewSet</code>，可以将一系列逻辑相关的动作放到一个类中：</p>
+<ul>
+<li><code>list()</code> 提供一组数据</li>
+<li><code>retrieve()</code> 提供单个数据</li>
+<li><code>create()</code> 创建数据</li>
+<li><code>update()</code> 保存数据</li>
+<li><code>destory()</code> 删除数据</li>
+</ul>
+<p><code>ViewSet</code>视图集类不再实现<code>get()</code>、<code>post()</code>等方法，而是实现动作 <code>action</code>  如 list() 、create() 等。</p>
+<p>视图集只在使用<code>as_view()</code>方法的时候，才会将<code>action</code> 动作与具体请求方式对应上。</p>
+<h3 id="31-常用的视图集父类">3.1 常用的视图集父类</h3>
+<ul>
+<li><code>ViewSet</code> ： 继承自APIView与ViewSetMixin，作用也与APIView基本类似，提供了身份认证、权限校验、流量管理等。**ViewSet主要通过继承ViewSetMixin来实现在调用as_view()时传入字典（如{‘get’:’list’}）的映射处理工作。**在ViewSet中，没有提供任何动作action方法，需要我们自己实现action方法。</li>
+<li><code>GenericViewSet</code> ：使用ViewSet通常并不方便，因为list、retrieve、create、update、destory等方法都需要自己编写，而这些方法与前面讲过的Mixin扩展类提供的方法同名，所以我们可以通过继承Mixin扩展类来复用这些方法而无需自己编写。但是Mixin扩展类依赖与GenericAPIView，所以还需要继承GenericAPIView 。GenericViewSet就帮助我们完成了这样的继承工作，继承自GenericAPIView与ViewSetMixin，在实现了调用as_view()时传入字典（如<code>{'get':'list'}</code>）的映射处理工作的同时，还提供了GenericAPIView提供的基础方法，可以直接搭配Mixin扩展类使用。</li>
+<li><code>ModelViewSet</code> ：继承自<code>GenericViewSet</code>，同时包括了ListModelMixin、RetrieveModelMixin、CreateModelMixin、UpdateModelMixin、DestoryModelMixin。</li>
+<li><code>ReadOnlyModelViewSet</code> ：继承自<code>GenericViewSet</code>，同时包括了ListModelMixin、RetrieveModelMixin。</li>
+</ul>
+<h3 id="32-action">3.2 action</h3>
+<p>在视图集中，我们可以通过action对象属性来获取当前请求视图集时的action动作是哪个。除了默认的方法动作外，还可以添加自定义动作。</p>
+<p>示例：</p>
+<pre><code class="language-Python">from rest_framework.viewsets import ModelViewSet,ReadOnlyModelViewSet
+class StudentModelViewSet(ModelViewSet):
+    queryset = Student.objects.all()
+    serializer_class = StudentModelSerializer
+
+    def login(self,request):
+        &quot;&quot;&quot;学生登录功能&quot;&quot;&quot;
+        return Response({&quot;message&quot;:&quot;登录成功&quot;})
+</code></pre>
+<p>url的定义：</p>
+<pre><code class="language-Python">urlpatterns = [
+    path(&quot;students/&quot;, views.StudentModelViewSet.as_view({&quot;get&quot;: &quot;list&quot;, &quot;post&quot;: &quot;create&quot;})),
+    re_path(&quot;students/(?P&lt;pk&gt;\d+)/&quot;,
+            views.StudentModelViewSet.as_view({&quot;get&quot;: &quot;retrieve&quot;, &quot;put&quot;: &quot;update&quot;, &quot;delete&quot;: &quot;destroy&quot;})),
+   path(&quot;stu/login/&quot;,views.StudentModelViewSet.as_view({&quot;get&quot;:&quot;login&quot;}))
+
+]
+</code></pre>
+<p>视图集应用改写接口示例：</p>
+<p><code>urls.py</code> ：</p>
+<pre><code class="language-Python">urlpatterns = [
+    # 使用ModelViewSet编写5个接口
+    path('books5/', views.Book5View.as_view(actions={'get': 'list', 'post': 'create'})),
+    # 当路径匹配，又是get请求，会执行Book5View的list方法
+    re_path('books5/(?P&lt;pk&gt;\d+)',
+            views.Book5View.as_view(actions={'get': 'retrieve', 'put': 'update', 'delete': 'destroy'})),
+]
+</code></pre>
+<p><code>views.py</code>：</p>
+<pre><code class="language-Python"># 使用ModelViewSet编写5个接口
+from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+
+class Book5View(ModelViewSet):
+    queryset = Book.objects
+    serializer_class = BookSerializer
+    
+# class Book5View(ReadOnlyModelViewSet):  # 2个接口，获取一条，和获取所有两个
+#     queryset = Book.objects
+#     serializer_class = BookSerializer
+</code></pre>
+<h2 id="4-总结-视图类之间的继承关系图">4、总结-视图类之间的继承关系图</h2>
+<p>GenericAPIView的视图子类继承关系：</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/DestroyAPIView.svg" alt=""></figure>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/ListAPIView.svg" alt="ListAPIView"></figure>
+<figure data-type="image" tabindex="5"><img src="https://image.ssgeek.com/ListCreateAPIView.svg" alt="ListCreateAPIView"></figure>
+<figure data-type="image" tabindex="6"><img src="https://image.ssgeek.com/RetrieveUpdateAPIView.svg" alt="RetrieveUpdateAPIView"></figure>
+<figure data-type="image" tabindex="7"><img src="https://image.ssgeek.com/RetrieveDestroyAPIView.svg" alt="RetrieveDestroyAPIView"></figure>
+<figure data-type="image" tabindex="8"><img src="https://image.ssgeek.com/UpdateAPIView.svg" alt="UpdateAPIView"></figure>
+<figure data-type="image" tabindex="9"><img src="https://image.ssgeek.com/RetrieveAPIView.svg" alt="RetrieveAPIView"></figure>
+<figure data-type="image" tabindex="10"><img src="https://image.ssgeek.com/CreateAPIView.svg" alt="CreateAPIView"></figure>
+<figure data-type="image" tabindex="11"><img src="https://image.ssgeek.com/RetrieveUpdateDestroyAPIView.svg" alt="RetrieveUpdateDestroyAPIView"></figure>
+<p>视图集：</p>
+<figure data-type="image" tabindex="12"><img src="https://image.ssgeek.com/ViewSet.svg" alt="ViewSet"></figure>
+<figure data-type="image" tabindex="13"><img src="https://image.ssgeek.com/GenericViewSet.svg" alt=""></figure>
+<figure data-type="image" tabindex="14"><img src="https://image.ssgeek.com/ModelViewSet.svg" alt="ModelViewSet"></figure>
+<figure data-type="image" tabindex="15"><img src="https://image.ssgeek.com/ReadOnlyModelViewSet.svg" alt="ReadOnlyModelViewSet"></figure>
+<blockquote>
+<p>Author：Laoqi</p>
+</blockquote>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/VEfPb2dUj" class="tag">
+                    django
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/vhKLQmmvn" class="tag">
+                    python
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/django-xu-lie-hua-qi-de-jian-dan-shi-yong">
+                  <h3 class="post-title">
+                    Django序列化器的简单使用
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Tomcat调优(不定期更新) | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Tomcat调优(不定期更新)</h2>
+            <div class="post-date">2020-01-02</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#1-%E9%9A%90%E8%97%8F%E7%89%88%E6%9C%AC%E5%8F%B7">1、隐藏版本号</a></li>
+<li><a href="#2-%E7%A6%81%E7%94%A8%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E6%96%B9%E6%B3%95">2、禁用不安全的方法</a></li>
+<li><a href="#3-%E9%94%99%E8%AF%AF%E9%A1%B5%E9%9D%A2%E8%B7%B3%E8%BD%AC">3、错误页面跳转</a></li>
+<li><a href="#4-%E4%BD%BFtomcat%E6%94%AF%E6%8C%81%E8%BD%AF%E9%93%BE%E6%8E%A5">4、使tomcat支持软链接</a></li>
+<li><a href="#5-tomcat%E5%A2%9E%E5%8A%A0http%E5%AE%89%E5%85%A8%E5%93%8D%E5%BA%94%E5%A4%B4">5、tomcat增加http安全响应头</a></li>
+<li><a href="#6-%E7%A6%81%E7%94%A8%E7%AE%A1%E7%90%86%E7%AB%AF%E5%BC%BA%E5%88%B6%E6%88%96%E4%BD%BF%E7%94%A8nginx%E9%85%8D%E7%BD%AE%E8%A7%84%E5%88%99">6、禁用管理端，强制或使用nginx配置规则</a></li>
+<li><a href="#7-server-header%E9%87%8D%E5%86%99">7、Server header重写</a></li>
+<li><a href="#8-%E8%AE%BF%E9%97%AE%E6%97%A5%E5%BF%97%E8%A7%84%E8%8C%83">8、访问日志规范</a></li>
+<li><a href="#9-tomcat%E8%AE%BE%E7%BD%AE%E5%AD%97%E7%AC%A6%E9%9B%86utf-8">9、tomcat设置字符集UTF-8</a></li>
+<li><a href="#10-%E4%BF%AE%E5%A4%8D%E6%9F%90%E4%BA%9B%E9%A1%B9%E7%9B%AEjava%E4%B8%AD%E6%96%87%E5%AD%97%E4%BD%93%E4%B8%8D%E6%98%BE%E7%A4%BA%E4%B8%AD%E6%96%87%E4%B9%B1%E7%A0%81%E9%97%AE%E9%A2%98">10、修复某些项目Java中文字体不显示（中文乱码问题）</a></li>
+<li><a href="#11-tomcat%E9%81%B5%E5%BE%AAjvm%E7%9A%84delegate%E6%9C%BA%E5%88%B6">11、tomcat遵循JVM的delegate机制</a></li>
+<li><a href="#12-tomcat8%E9%9D%99%E6%80%81%E8%B5%84%E6%BA%90%E7%BC%93%E5%AD%98%E9%85%8D%E7%BD%AE">12、tomcat8静态资源缓存配置</a></li>
+<li><a href="#13-%E6%9C%AA%E5%AE%8C%E5%BE%85%E7%BB%AD">13、未完待续。。。</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>本文只记录工作中遇到的Tomcat配置、性能、安全等方面的调优处理，所以不会有长篇大论，毕竟如今已经是<code>java -jar</code>的时代了~ ~ ~</p>
+</blockquote>
+<blockquote>
+<p>本文会不定期更新完善</p>
+</blockquote>
+<h3 id="1-隐藏版本号">1、隐藏版本号</h3>
+<p>进入<code>tomcat</code>的<code>lib</code>目录找到<code>catalina.jar</code>文件</p>
+<pre><code>unzip catalina.jar
+</code></pre>
+<p>之后会多出两个文件夹<br>
+进入<code>org/apache/catalina/util</code>编辑配置文件<code>ServerInfo.properties</code><br>
+修改为</p>
+<pre><code>server.info=Apache Tomcat
+server.number=0.0.0.0
+server.built=Nov 7 2016 20:05:27 UTC
+</code></pre>
+<p>将修改后的信息压缩回jar包</p>
+<pre><code>cd  /tomcat/lib
+jar uvf catalina.jar org/apache/catalina/util/ServerInfo.properties
+</code></pre>
+<h3 id="2-禁用不安全的方法">2、禁用不安全的方法</h3>
+<p><code>tomcat</code>限制不安全<code>http</code>方法，如<code>put</code>、<code>delete</code>等等，设置方法在<code>conf/web.xml</code>里添加限制如下格式：</p>
+<pre><code>&lt;security-constraint&gt; 
+        &lt;web-resource-collection&gt; 
+            &lt;url-pattern&gt;/*&lt;/url-pattern&gt; 
+            &lt;http-method&gt;PUT&lt;/http-method&gt; 
+            &lt;http-method&gt;DELETE&lt;/http-method&gt; 
+            &lt;http-method&gt;HEAD&lt;/http-method&gt; 
+            &lt;http-method&gt;OPTIONS&lt;/http-method&gt;  
+            &lt;http-method&gt;TRACE&lt;/http-method&gt; 
+        &lt;/web-resource-collection&gt; 
+        &lt;auth-constraint&gt; 
+        &lt;/auth-constraint&gt; 
+&lt;/security-constraint&gt;
+</code></pre>
+<h3 id="3-错误页面跳转">3、错误页面跳转</h3>
+<p><code>tomcat</code>的<code>404、502、403</code>等等错误页面的跳转设置为指定跳转页面，设置方法在<code>conf/web.xml</code>里添加跳转如下格式：</p>
+<pre><code>    &lt;error-page&gt; 
+        &lt;exception-type&gt;java.lang.Exception&lt;/exception-type&gt; 
+        &lt;location&gt;/404.html&lt;/location&gt; 
+    &lt;/error-page&gt; 
+    &lt;error-page&gt; 
+        &lt;error-code&gt;404&lt;/error-code&gt; 
+        &lt;location&gt;/404.html&lt;/location&gt; 
+    &lt;/error-page&gt; 
+    &lt;error-page&gt; 
+        &lt;error-code&gt;400&lt;/error-code&gt; 
+        &lt;location&gt;/404.html&lt;/location&gt; 
+    &lt;/error-page&gt; 
+    &lt;error-page&gt; 
+        &lt;error-code&gt;500&lt;/error-code&gt; 
+        &lt;location&gt;/404.html&lt;/location&gt; 
+    &lt;/error-page&gt; 
+</code></pre>
+<h3 id="4-使tomcat支持软链接">4、使tomcat支持软链接</h3>
+<p>修改<code>conf/context.xml</code>文件：</p>
+<p><code>tomcat7</code>配置方法：</p>
+<pre><code>&lt;!-- The contents of this file will be loaded for each web application --&gt;
+&lt;Context allowLinking=&quot;true&quot;&gt;
+</code></pre>
+<p><code>tomcat8</code>配置方法：</p>
+<pre><code>&lt;Context&gt;
+    &lt;Resources allowLinking=&quot;true&quot; /&gt;
+&lt;/Context&gt;
+</code></pre>
+<h3 id="5-tomcat增加http安全响应头">5、tomcat增加http安全响应头</h3>
+<p>修改<code>web.xml</code>文件：</p>
+<p>配置方法：</p>
+<pre><code>    &lt;filter&gt;
+        &lt;filter-name&gt;httpHeaderSecurity&lt;/filter-name&gt;
+        &lt;filter-class&gt;org.apache.catalina.filters.HttpHeaderSecurityFilter&lt;/filter-class&gt;
+        &lt;async-supported&gt;true&lt;/async-supported&gt;
+        &lt;init-param&gt;
+          &lt;param-name&gt;antiClickJackingEnabled&lt;/param-name&gt;
+          &lt;param-value&gt;true&lt;/param-value&gt;
+        &lt;/init-param&gt;
+        &lt;init-param&gt;
+          &lt;param-name&gt;antiClickJackingOption&lt;/param-name&gt;
+          &lt;param-value&gt;SAMEORIGIN&lt;/param-value&gt;
+        &lt;/init-param&gt;
+        &lt;init-param&gt;
+          &lt;param-name&gt;blockContentTypeSniffingEnabled&lt;/param-name&gt;
+          &lt;param-value&gt;false&lt;/param-value&gt;
+        &lt;/init-param&gt;
+    &lt;/filter&gt;
+
+    &lt;filter-mapping&gt;
+        &lt;filter-name&gt;httpHeaderSecurity&lt;/filter-name&gt;
+        &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
+        &lt;dispatcher&gt;REQUEST&lt;/dispatcher&gt;
+    &lt;/filter-mapping&gt;
+</code></pre>
+<h3 id="6-禁用管理端强制或使用nginx配置规则">6、禁用管理端，强制或使用nginx配置规则</h3>
+<ul>
+<li>删除默认的{Tomcat安装目录}/conf/tomcat-users.xml文件(强制)</li>
+<li>删除{Tomcat安装目录}/webapps下默认的所有目录和文件(强制)</li>
+</ul>
+<h3 id="7-server-header重写">7、Server header重写</h3>
+<p>当<code>tomcat HTTP</code>端口直接提供<code>web</code>服务时此配置生效，加入此配置，将会替换<code>http</code>响应<code>Server header</code>部分的默认配置，默认是<code>Apache-Coyote/1.1</code></p>
+<p>修改<code>conf/server.xml</code>：</p>
+<pre><code>    &lt;Connector port=&quot;8080&quot; protocol=&quot;HTTP/1.1&quot;
+               connectionTimeout=&quot;20000&quot;
+               redirectPort=&quot;8443&quot; 
+               server=&quot;webserver&quot; /&gt;
+</code></pre>
+<h3 id="8-访问日志规范">8、访问日志规范</h3>
+<p>开启<code>Tomcat</code>默认访问日志中的<code>Referer</code>和<code>User-Agent</code>记录，一旦出现安全问题能够更好的根据日志进行问题排查；<br>
+<code>X-Forwarded-For</code>用于<code>nginx</code>作为反向代理服务器时，获取客户端真实的<code>IP</code></p>
+<p>修改<code>conf/server.xml</code>：</p>
+<pre><code>&lt;Valve className=&quot;org.apache.catalina.valves.AccessLogValve&quot; directory=&quot;logs&quot;
+       prefix=&quot;localhost_access_log&quot; suffix=&quot;.txt&quot;
+       pattern=&quot;%{X-Forwarded-For}i %l %u %t %r %s %b %{Referer}i %{User-Agent}i %D&quot; resolveHosts=&quot;false&quot; /&gt;
+</code></pre>
+<h3 id="9-tomcat设置字符集utf-8">9、tomcat设置字符集UTF-8</h3>
+<p>修改<code>conf/server.xml</code>：</p>
+<pre><code>&lt;Connector port=&quot;8080&quot; protocol=&quot;HTTP/1.1&quot;
+    connectionTimeout=&quot;20000&quot;
+    redirectPort=&quot;8443&quot; URIEncoding=&quot;UTF-8&quot; /&gt;
+</code></pre>
+<h3 id="10-修复某些项目java中文字体不显示中文乱码问题">10、修复某些项目Java中文字体不显示（中文乱码问题）</h3>
+<p>这种情况有可能是项目代码以及项目编译时的编码问题，也有可能是项目使用了特殊的中文字体，如果有特殊的中文字体，需要将字体文件放到<code>jdk</code>目录下</p>
+<p>例如：<br>
+在<code>jdk</code>中新建目录</p>
+<pre><code>/jdk1.8.0_191/jre/lib/fonts/fallback
+</code></pre>
+<p>将系统中<code>simsun.ttc</code>字体文件拷贝到此目录，并重命名为<code>simsun.ttf</code></p>
+<h3 id="11-tomcat遵循jvm的delegate机制">11、tomcat遵循JVM的delegate机制</h3>
+<p>修改<code>conf/context.xml</code></p>
+<pre><code>&lt;Loader delegate=&quot;true&quot;/&gt;
+&lt;/Context&gt;
+</code></pre>
+<p><code>Loader</code>对象可出现在<code>Context</code>中以控制<code>Java</code>类的加载。属性：<code>delegate</code>、含义：<code>True</code>代表使用正式的<code>Java</code>代理模式(先询问父类的加载器)；<code>false</code>代表先在<code>Web</code>应用程序中寻找。默认值：<code>FALSE</code></p>
+<p><code>True</code>，表示<code>tomcat</code>将遵循<code>JVM</code>的<code>delegate</code>机制，即一个<code>WebAppClassLoader</code>在加载类文件时，会先递交给<code>SharedClassLoader</code>加载，<code>SharedClassLoader</code>无法加载成功，会继续向自己的父类委托，一直到<code>BootstarpClassLoader</code>，如果都没有加载成功，则最后由<code>WebAppClassLoader</code>自己进行加载。</p>
+<p><code>False</code>，表示将不遵循这个<code>delegate</code>机制，即<code>WebAppClassLoader</code>在加载类文件时，会优先自己尝试加载，如果加载失败，才会沿着继承链，依次委托父类加载。</p>
+<h3 id="12-tomcat8静态资源缓存配置">12、tomcat8静态资源缓存配置</h3>
+<p>tomcat8增加了静态资源缓存的配置，<code>.cacheMaxSize</code>：静态资源缓存最大值，以<code>KB</code>为单位，默认值为<code>10240KB</code> <code>.cachingAllowed</code>：是否允许静态资源缓存，默认为<code>true</code><br>
+解决缓存溢出的办法<br>
+对应两个参数，解决方法有两种:<br>
+1：考虑增加cache的最大大小<br>
+2：关闭缓存<br>
+修改conf/context.xml</p>
+<pre><code>&lt;Resources cachingAllowed=&quot;true&quot; cacheMaxSize=&quot;1048576&quot; &gt;&lt;/Resources&gt;
+</code></pre>
+<h3 id="13-未完待续">13、未完待续。。。</h3>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/tomcat" class="tag">
+                    tomcat
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/python-fen-xi-nginx-ri-zhi">
+                  <h3 class="post-title">
+                    Python分析Nginx日志
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

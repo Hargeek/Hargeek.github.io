@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>私有镜像仓库Harbor | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">私有镜像仓库Harbor</h2>
+            <div class="post-date">2019-07-09</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-harbor%E6%A6%82%E8%BF%B0">1、Harbor概述</a></li>
+<li><a href="#2-harbor%E9%83%A8%E7%BD%B2">2、harbor部署</a>
+<ul>
+<li><a href="#21-%E5%AE%89%E8%A3%85docker-compose">2.1、安装docker-compose</a></li>
+<li><a href="#22-%E5%AE%89%E8%A3%85harbor">2.2、安装harbor</a></li>
+<li><a href="#23-%E9%85%8D%E7%BD%AEhttps">2.3、配置https</a>
+<ul>
+<li><a href="#231-%E5%88%9B%E5%BB%BAca%E5%AF%86%E9%92%A5%E5%AF%B9">2.3.1 创建CA密钥对</a></li>
+<li><a href="#232-%E5%88%9B%E5%BB%BAweb%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%AB%AF%E7%A7%98%E9%92%A5%E5%AF%B9">2.3.2 创建web服务器端秘钥对</a></li>
+<li><a href="#233-%E4%BD%BFweb%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%88%B0ca%E8%BF%9B%E8%A1%8C%E7%AD%BE%E7%BA%A6">2.3.3 使web服务器到CA进行签约</a></li>
+<li><a href="#234-%E9%85%8D%E7%BD%AEharborcfg">2.3.4 配置harbor.cfg</a></li>
+<li><a href="#235-%E7%94%9F%E6%88%90%E9%85%8D%E7%BD%AE%E5%92%8C%E5%AE%89%E8%A3%85">2.3.5 生成配置和安装</a></li>
+</ul>
+</li>
+<li><a href="#24-docker%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%B8%BB%E6%9C%BA%E9%85%8D%E7%BD%AE">2.4、docker客户端主机配置</a></li>
+<li><a href="#25-%E6%95%85%E9%9A%9C%E6%8E%92%E9%99%A4">2.5、故障排除</a></li>
+<li><a href="#26-harbor%E5%90%AF%E7%94%A8%E9%95%9C%E5%83%8F%E7%AD%BE%E5%90%8D-%E6%BC%8F%E6%B4%9E%E6%89%AB%E6%8F%8F%E5%8F%8Ahelm-chart%E5%8A%9F%E8%83%BD">2.6、harbor启用镜像签名、漏洞扫描及helm chart功能</a></li>
+</ul>
+</li>
+<li><a href="#3-harbor%E9%AB%98%E5%8F%AF%E7%94%A8">3、harbor高可用</a>
+<ul>
+<li><a href="#31-%E6%96%B0%E5%A2%9E%E5%A4%8D%E5%88%B6%E7%9B%AE%E6%A0%87">3.1、新增复制目标</a></li>
+<li><a href="#32-%E6%96%B0%E5%A2%9E%E5%A4%8D%E5%88%B6%E8%A7%84%E5%88%99">3.2、新增复制规则</a></li>
+<li><a href="#33-%E6%B5%8B%E8%AF%95">3.3、测试</a></li>
+</ul>
+</li>
+<li><a href="#4-harbor%E5%B8%B8%E8%A7%84%E6%93%8D%E4%BD%9C">4、harbor常规操作</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-harbor概述">1、Harbor概述</h2>
+<blockquote>
+<p>Habor是由VMWare公司开源的容器镜像仓库。事实上，Habor是在Docker Registry上进行了相应的企业级扩展，从而获得了更加广泛的应用，这些新的企业级特性包括：管理用户界面，基于角色的访问控制 ，AD/LDAP集成以及审计日志等，足以满足基本企业需求。<br>
+官方地址：https://vmware.github.io/harbor/cn/</p>
+</blockquote>
+<p>各组件功能如下：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">组件</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">harbor-adminserver</td>
+<td>配置管理中心</td>
+</tr>
+<tr>
+<td style="text-align:center">harbor-db</td>
+<td>Mysql数据库</td>
+</tr>
+<tr>
+<td style="text-align:center">harbor-jobservice</td>
+<td>负责镜像复制</td>
+</tr>
+<tr>
+<td style="text-align:center">harbor-log</td>
+<td>记录操作日志</td>
+</tr>
+<tr>
+<td style="text-align:center">harbor-ui</td>
+<td>Web管理页面和API</td>
+</tr>
+<tr>
+<td style="text-align:center">nginx</td>
+<td>前端代理，负责前端页面和镜像上传/下载转发</td>
+</tr>
+<tr>
+<td style="text-align:center">redis</td>
+<td>会话</td>
+</tr>
+<tr>
+<td style="text-align:center">registry</td>
+<td>镜像存储</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-harbor部署">2、harbor部署</h2>
+<p>Harbor安装有3种方式：</p>
+<ul>
+<li>在线安装：从Docker Hub下载Harbor相关镜像，因此安装软件包非常小</li>
+<li>离线安装：安装包包含部署的相关镜像，因此安装包比较大</li>
+<li>OVA安装程序：当用户具有vCenter环境时，使用此安装程序，在部署OVA后启动Harbor<br>
+本文记录通过离线安装的方式部署。<br>
+版本说明：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>版本说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>docker-compose</td>
+<td>1.24.0</td>
+</tr>
+<tr>
+<td>harbor</td>
+<td>1.7.5</td>
+</tr>
+</tbody>
+</table>
+<h3 id="21-安装docker-compose">2.1、安装docker-compose</h3>
+<pre><code>$ curl -L &quot;https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)&quot; -o /usr/local/bin/docker-compose
+$ chmod +x /usr/local/bin/docker-compose
+</code></pre>
+<h3 id="22-安装harbor">2.2、安装harbor</h3>
+<pre><code>$ tar zxvf harbor-offline-installer-v1.7.5.tgz -C /usr/local
+$ cd /usr/local/harbor
+$ vim harbor.cfg
+hostname = 192.168.10.10
+ui_url_protocol = http
+harbor_admin_password = Harbor12345
+$ ./prepare
+$ ./install.sh
+</code></pre>
+<h3 id="23-配置https">2.3、配置https</h3>
+<blockquote>
+<p>上面步骤2.2已经可以满足harbor作为实验安装，但是大多数情况我们需要harbor能够更为安全一些，harbor的一些新的功能特性也在新版本更新说明中有相应说明，例如此1.7.5版本就额外具备着镜像签名，镜像漏洞扫描，存储helm chart、垃圾回收等功能。<br>
+https方式分为自签https和向官方机构申请颁发获得https证书，其中后种方式需要的步骤更少，下面内容为自签https步骤。</p>
+</blockquote>
+<h4 id="231-创建ca密钥对">2.3.1 创建CA密钥对</h4>
+<pre><code>[root@registry harbor]# pwd
+/usr/local/harbor
+[root@registry harbor]# openssl genrsa -out ca.key 4096
+[root@registry harbor]# openssl req -x509 -new -nodes -sha512 -days 36500 -subj &quot;/C=SC/ST=BeiJing/L=BeiJing/O=example/OU=Personal/CN=yourdomain.com&quot; -key ca.key -out ca.crt
+</code></pre>
+<h4 id="232-创建web服务器端秘钥对">2.3.2 创建web服务器端秘钥对</h4>
+<pre><code>[root@registry harbor]# openssl genrsa -out yourdomain.com.key 4096
+[root@registry harbor]# openssl req -sha512 -new -subj &quot;/C=SC/ST=BeiJing/L=BeiJing/O=example/OU=Personal/CN=yourdomain.com&quot; -key yourdomain.com.key -out yourdomain.com.csr
+</code></pre>
+<h4 id="233-使web服务器到ca进行签约">2.3.3 使web服务器到CA进行签约</h4>
+<blockquote>
+<p>无论是使用类似yourdomain.com的 FQDN 还是IP来连接注册表主机，运行此命令以生成符合主题备用名称（SAN）和x509 v3扩展要求的注册表主机证书</p>
+</blockquote>
+<pre><code>cat &gt; v3.ext &lt;&lt;-EOF
+authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+extendedKeyUsage = serverAuth 
+subjectAltName = @alt_names
+[alt_names]
+DNS.1=yourdomain.com
+DNS.2=yourdomain
+DNS.3=hostname
+EOF
+[root@registry harbor]# openssl x509 -req -sha512 -days 3650 -extfile v3.ext -CA ca.crt -CAkey ca.key -CAcreateserial -in yourdomain.com.csr -out yourdomain.com.crt
+Signature ok
+subject=/C=SC/ST=BeiJing/L=BeiJing/O=example/OU=Personal/CN=yourdomain.com
+Getting CA Private Key
+</code></pre>
+<h4 id="234-配置harborcfg">2.3.4 配置harbor.cfg</h4>
+<pre><code>[root@registry harbor]# vim harbor.cfg 
+ui_url_protocol = https
+......
+#The path of cert and key files for nginx, they are applied only the protocol is set to https
+ssl_cert = /usr/local/harbor/harbor.test.cn.crt
+ssl_cert_key = /usr/local/harbor/harbor.test.cn.key
+#The path of secretkey storage
+</code></pre>
+<h4 id="235-生成配置和安装">2.3.5 生成配置和安装</h4>
+<pre><code>[root@registry harbor]# ./prepare
+[root@registry harbor]# ./install.sh
+</code></pre>
+<h3 id="24-docker客户端主机配置">2.4、docker客户端主机配置</h3>
+<p>Docker守护进程将.crt文件解释为CA证书，将.cert文件解释为客户端证书。<br>
+所以需要将服务器转换yourdomain.com.crt为yourdomain.com.cert</p>
+<pre><code>[root@registry harbor]# openssl x509 -inform PEM -in yourdomain.com.crt -out yourdomain.com.cert
+</code></pre>
+<p>拷贝yourdomain.com.cert，yourdomain.com.key和ca.crt到需要访问仓库的docker主机</p>
+<pre><code>  cp yourdomain.com.cert /etc/docker/certs.d/yourdomain.com/
+  cp yourdomain.com.key /etc/docker/certs.d/yourdomain.com/
+  cp ca.crt /etc/docker/certs.d/yourdomain.com/
+</code></pre>
+<p>以下说明了使用自定义证书的配置</p>
+<pre><code>/etc/docker/certs.d/
+    └── yourdomain.com:port   
+       ├── yourdomain.com.cert  &lt;-- Server certificate signed by CA
+       ├── yourdomain.com.key   &lt;-- Server key signed by CA
+       └── ca.crt               &lt;-- Certificate authority that signed the registry certificate
+</code></pre>
+<p>配置完成后登录</p>
+<pre><code>[root@node02 ~]# docker login yourdomain.com
+Username: admin
+Password: 
+WARNING! Your password will be stored unencrypted in /root/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+Login Succeeded
+</code></pre>
+<h3 id="25-故障排除">2.5、故障排除</h3>
+<p>1、可以从证书颁发者那里获得中间证书。在这种情况下，应该将中间证书与您自己的证书合并以创建证书包。您可以通过以下命令实现此目的：</p>
+<pre><code>cat intermediate-certificate.pem &gt;&gt; yourdomain.com.crt 
+</code></pre>
+<p>2、在某些运行docker守护程序的系统上，您可能需要在操作系统级别信任该证书。<br>
+在Ubuntu上，可以通过以下命令完成：</p>
+<pre><code>cp yourdomain.com.crt /usr/local/share/ca-certificates/yourdomain.com.crt 
+update-ca-certificates
+</code></pre>
+<p>在Red Hat（CentOS等）上，命令是：</p>
+<pre><code>cp yourdomain.com.crt /etc/pki/ca-trust/source/anchors/yourdomain.com.crt 
+update-ca-trust
+</code></pre>
+<p>3、经实验如果是从证书颁发者获得的证书，则不需要在客户端主机配置证书，因为此证书是可信任的，直接在docker客户端主机执行docker login即可成功登录</p>
+<h3 id="26-harbor启用镜像签名-漏洞扫描及helm-chart功能">2.6、harbor启用镜像签名、漏洞扫描及helm chart功能</h3>
+<blockquote>
+<p>镜像签名简单来说就是为了验证镜像的正确性，保证在镜像传输过程中没有中间人篡改；<br>
+漏洞扫描功能是利用的开源clair工具，利用网络更新漏洞库，并且对镜像进行扫描；<br>
+helm chart是kubernetes的包管理器helm的相关应用文件，相当于Linux的yum。<br>
+要启用这些功能，只需要在安装时添加参数&quot;--with-notary --with-clair --with-chartmuseum&quot;即可：</p>
+</blockquote>
+<pre><code>[root@registry harbor]# ./prepare --with-notary --with-clair --with-chartmuseum
+Generated and saved secret to file: /usr/local/harbor/secretkey
+Generated configuration file: ./common/config/nginx/nginx.conf
+Generated configuration file: ./common/config/adminserver/env
+Generated configuration file: ./common/config/core/env
+Generated configuration file: ./common/config/registry/config.yml
+Generated configuration file: ./common/config/db/env
+Generated configuration file: ./common/config/jobservice/env
+Generated configuration file: ./common/config/jobservice/config.yml
+Generated configuration file: ./common/config/log/logrotate.conf
+Generated configuration file: ./common/config/registryctl/env
+Generated configuration file: ./common/config/core/app.conf
+Generated certificate, key file: ./common/config/core/private_key.pem, cert file: ./common/config/registry/root.crt
+Copying sql file for notary DB
+Generated certificate, key file: ./cert_tmp/notary-signer-ca.key, cert file: ./cert_tmp/notary-signer-ca.crt
+Generated certificate, key file: ./cert_tmp/notary-signer.key, cert file: ./cert_tmp/notary-signer.crt
+Copying certs for notary signer
+Copying notary signer configuration file
+Generated configuration file: ./common/config/notary/signer-config.postgres.json
+Generated configuration file: ./common/config/notary/server-config.postgres.json
+Copying nginx configuration file for notary
+Generated configuration file: ./common/config/nginx/conf.d/notary.server.conf
+Generated and saved secret to file: /usr/local/harbor/defaultalias
+Generated configuration file: ./common/config/notary/signer_env
+Generated configuration file: ./common/config/clair/postgres_env
+Generated configuration file: ./common/config/clair/config.yaml
+Generated configuration file: ./common/config/clair/clair_env
+The configuration files are ready, please use docker-compose to start the service.
+[root@registry harbor]# ./install.sh --with-notary --with-clair --with-chartmuseum
+
+[Step 0]: checking installation environment ...
+
+Note: docker version: 18.06.1
+
+Note: docker-compose version: 1.24.0
+
+[Step 1]: loading Harbor images ...
+Loaded image: goharbor/harbor-adminserver:v1.7.5
+Loaded image: goharbor/harbor-portal:v1.7.5
+Loaded image: goharbor/harbor-db:v1.7.5
+Loaded image: goharbor/registry-photon:v2.6.2-v1.7.5
+Loaded image: goharbor/harbor-migrator:v1.7.5
+Loaded image: goharbor/harbor-core:v1.7.5
+Loaded image: goharbor/harbor-log:v1.7.5
+Loaded image: goharbor/redis-photon:v1.7.5
+Loaded image: goharbor/nginx-photon:v1.7.5
+Loaded image: goharbor/harbor-registryctl:v1.7.5
+Loaded image: goharbor/chartmuseum-photon:v0.8.1-v1.7.5
+Loaded image: goharbor/harbor-jobservice:v1.7.5
+Loaded image: goharbor/notary-server-photon:v0.6.1-v1.7.5
+Loaded image: goharbor/notary-signer-photon:v0.6.1-v1.7.5
+Loaded image: goharbor/clair-photon:v2.0.8-v1.7.5
+
+
+[Step 2]: preparing environment ...
+Clearing the configuration file: ./common/config/adminserver/env
+Clearing the configuration file: ./common/config/core/env
+Clearing the configuration file: ./common/config/core/app.conf
+Clearing the configuration file: ./common/config/core/private_key.pem
+Clearing the configuration file: ./common/config/db/env
+Clearing the configuration file: ./common/config/jobservice/env
+Clearing the configuration file: ./common/config/jobservice/config.yml
+Clearing the configuration file: ./common/config/registry/config.yml
+Clearing the configuration file: ./common/config/registry/root.crt
+Clearing the configuration file: ./common/config/registryctl/env
+Clearing the configuration file: ./common/config/registryctl/config.yml
+Clearing the configuration file: ./common/config/nginx/conf.d/notary.upstream.conf
+Clearing the configuration file: ./common/config/nginx/conf.d/notary.server.conf
+Clearing the configuration file: ./common/config/nginx/cert/harbor.test.cn.crt
+Clearing the configuration file: ./common/config/nginx/cert/harbor.test.cn.key
+Clearing the configuration file: ./common/config/nginx/nginx.conf
+Clearing the configuration file: ./common/config/log/logrotate.conf
+Clearing the configuration file: ./common/config/notary/notary-signer.crt
+Clearing the configuration file: ./common/config/notary/notary-signer.key
+Clearing the configuration file: ./common/config/notary/notary-signer-ca.crt
+Clearing the configuration file: ./common/config/notary/root.crt
+Clearing the configuration file: ./common/config/notary/signer-config.postgres.json
+Clearing the configuration file: ./common/config/notary/server-config.postgres.json
+Clearing the configuration file: ./common/config/notary/signer_env
+Clearing the configuration file: ./common/config/notary/server_env
+Clearing the configuration file: ./common/config/clair/postgresql-init.d/README.md
+Clearing the configuration file: ./common/config/clair/postgres_env
+Clearing the configuration file: ./common/config/clair/config.yaml
+Clearing the configuration file: ./common/config/clair/clair_env
+loaded secret from file: /usr/local/harbor/secretkey
+Generated configuration file: ./common/config/nginx/nginx.conf
+Generated configuration file: ./common/config/adminserver/env
+Generated configuration file: ./common/config/core/env
+Generated configuration file: ./common/config/registry/config.yml
+Generated configuration file: ./common/config/db/env
+Generated configuration file: ./common/config/jobservice/env
+Generated configuration file: ./common/config/jobservice/config.yml
+Generated configuration file: ./common/config/log/logrotate.conf
+Generated configuration file: ./common/config/registryctl/env
+Generated configuration file: ./common/config/core/app.conf
+Generated certificate, key file: ./common/config/core/private_key.pem, cert file: ./common/config/registry/root.crt
+Copying sql file for notary DB
+Generated certificate, key file: ./cert_tmp/notary-signer-ca.key, cert file: ./cert_tmp/notary-signer-ca.crt
+Generated certificate, key file: ./cert_tmp/notary-signer.key, cert file: ./cert_tmp/notary-signer.crt
+Copying certs for notary signer
+Copying notary signer configuration file
+Generated configuration file: ./common/config/notary/signer-config.postgres.json
+Generated configuration file: ./common/config/notary/server-config.postgres.json
+Copying nginx configuration file for notary
+Generated configuration file: ./common/config/nginx/conf.d/notary.server.conf
+loaded secret from file: /usr/local/harbor/defaultalias
+Generated configuration file: ./common/config/notary/signer_env
+Copying offline data file for clair DB
+Generated configuration file: ./common/config/clair/postgres_env
+Generated configuration file: ./common/config/clair/config.yaml
+Generated configuration file: ./common/config/clair/clair_env
+The configuration files are ready, please use docker-compose to start the service.
+
+
+[Step 3]: checking existing instance of Harbor ...
+
+
+[Step 4]: starting Harbor ...
+Creating network &quot;harbor_harbor&quot; with the default driver
+Creating harbor-log ... done
+Creating redis              ... done
+Creating registry           ... done
+Creating harbor-db          ... done
+Creating registryctl        ... done
+Creating harbor-adminserver ... done
+Creating clair              ... done
+Creating notary-signer      ... done
+Creating harbor-core        ... done
+Creating notary-server      ... done
+Creating harbor-jobservice  ... done
+Creating harbor-portal      ... done
+Creating nginx              ... done
+
+✔ ----Harbor has been installed and started successfully.----
+
+Now you should be able to visit the admin portal at https://harbor.test.cn. 
+For more details, please visit https://github.com/goharbor/harbor . 
+</code></pre>
+<p>上述功能的具体使用，可参考官方文档</p>
+<h2 id="3-harbor高可用">3、harbor高可用</h2>
+<blockquote>
+<p>为了使harbor高可用，即harbor内保存的镜像能够高可用，在一个harbor down掉的时候，还有另外一个存储着相同镜像的harbor仓库供使用，harbor后期的版本包括此版本支持了镜像复制的功能。<br>
+在使用镜像复制功能之前，当然是需要安装两个harbor服务（一主一备）</p>
+</blockquote>
+<h3 id="31-新增复制目标">3.1、新增复制目标</h3>
+<p>“系统管理”—&gt;“仓库管理”—&gt;“新建目标”<br>
+填写目标名，目标URL，用户名，密码等<br>
+<img src="https://image.ssgeek.com/20190709-01.png" alt=""></p>
+<h3 id="32-新增复制规则">3.2、新增复制规则</h3>
+<p>“系统管理”—&gt;“复制管理”—&gt;“新建规则”<br>
+填写名称、描述、源项目、过滤器、目标、触发模式等<br>
+<img src="https://image.ssgeek.com/20190709-02.png" alt=""><br>
+其中过滤器支持以下写法：<br>
+*：匹配任何非分隔符字符序列/。<br>
+**：匹配任何字符序列，包括路径分隔符/。<br>
+？：匹配任何单个非分隔符/。<br>
+{alt1，...}：如果其中一个以逗号分隔的替代项匹配，则匹配一系列字符。</p>
+<h3 id="33-测试">3.3、测试</h3>
+<p>按照设置的规则，观察是否立即复制或者push镜像到主harbor中，观察备harbor中的镜像是否被复制</p>
+<h2 id="4-harbor常规操作">4、harbor常规操作</h2>
+<p>暂停<code>harbor docker-compose stop</code>             docker容器stop，并不删除容器<br>
+恢复<code>harbor docker-compose start</code>            恢复docker容器运行<br>
+停止<code>harbor docker-compose down -v</code>      停止并删除docker容器<br>
+启动<code>harbor docker-compose up -d</code>           启动所有docker容器<br>
+修改harbor的运行配置，需要如下步骤：<br>
+停止harbor<br>
+<code>docker-compose down -v</code><br>
+修改配置<br>
+<code>vim harbor.cfg</code><br>
+执行./prepare已更新配置到docker-compose.yml文件<br>
+<code>./prepare</code><br>
+启动 harbor<br>
+<code>docker-compose up -d</code></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/docker" class="tag">
+                    docker
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/minio-dui-xiang-cun-chu">
+                  <h3 class="post-title">
+                    Minio对象存储
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

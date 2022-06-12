@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>基于阿里云RAM+ACK托管版集群的RBAC授权 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">基于阿里云RAM+ACK托管版集群的RBAC授权</h2>
+            <div class="post-date">2022-02-23</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E8%83%8C%E6%99%AF">1、背景</a></li>
+<li><a href="#2-%E6%8E%88%E6%9D%83%E4%BD%93%E7%B3%BB%E6%A6%82%E8%BF%B0">2、授权体系概述</a>
+<ul>
+<li><a href="#21-k8s%E6%8E%88%E6%9D%83%E4%BD%93%E7%B3%BB">2.1 k8s授权体系</a></li>
+<li><a href="#22-%E9%98%BF%E9%87%8C%E4%BA%91ram%E9%81%87%E4%B8%8Arbac">2.2 阿里云RAM遇上RBAC</a></li>
+</ul>
+</li>
+<li><a href="#3-%E6%8E%88%E6%9D%83%E8%BF%87%E7%A8%8B">3、授权过程</a>
+<ul>
+<li><a href="#31-%E5%88%9B%E5%BB%BAram%E7%94%A8%E6%88%B7%E5%B9%B6%E6%8E%88%E6%9D%83">3.1 创建RAM用户并授权</a></li>
+<li><a href="#32-ack%E9%9B%86%E7%BE%A4%E4%B8%AD%E5%88%9B%E5%BB%BAclusterrole">3.2 ACK集群中创建ClusterRole</a></li>
+<li><a href="#33-%E6%8E%A7%E5%88%B6%E5%8F%B0%E6%8E%88%E6%9D%83%E7%BB%91%E5%AE%9A">3.3 控制台授权绑定</a></li>
+<li><a href="#34-%E8%8E%B7%E5%8F%96%E8%BF%9E%E6%8E%A5%E9%9B%86%E7%BE%A4%E7%9A%84config">3.4 获取连接集群的config</a></li>
+</ul>
+</li>
+<li><a href="#4-%E5%B0%8F%E7%BB%93">4、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20220223-01.png" alt=""></figure>
+<h2 id="1-背景">1、背景</h2>
+<p>使用阿里云<code>ack</code>托管版运行<code>k8s</code>集群，有时需要对团队内成员授权集群非管理员的权限，以及某些服务需要调用<code>k8s</code>相关<code>api</code>做特定操作，例如在指定的某<code>namespace</code>下创建某控制器（例如<code>deployment</code>）的权限</p>
+<p>由于在<code>ack</code>托管版环境下，集群的<code>master</code>节点由阿里云托管，对租户不可见，因此除了基于<code>k8s</code>的<code>RBAC</code>权限外，还需要授予阿里云的授权体系，即<code>RAM</code></p>
+<h2 id="2-授权体系概述">2、授权体系概述</h2>
+<h3 id="21-k8s授权体系">2.1 k8s授权体系</h3>
+<p>先来回忆一下<code>k8s</code>的<code>RBAC</code>（Role-Based Access Control）基于角色的访问控制授权体系</p>
+<p>这是一种很常见并通用的授权体系，在<code>k8s</code>中，<code>RBAC</code>使用<code>rbac.authorization.k8s.io</code> API Group 来实现授权决策</p>
+<p><code>Kubernetes</code>从<code>1.6</code>版本开始支持<code>RBAC</code>，集群管理员可以对用户或服务账号的角色进行更精确的资源访问控制。允许管理员通过<code>Kubernetes API</code>动态配置策略，在<code>RBAC</code>中，权限与角色相关联，用户通过成为适当角色的成员而得到这些角色的权限。这就极大地简化了权限的管理。在一个组织中，角色是为了完成各种工作而创造，用户则依据它的责任和资格来被指派相应的角色，用户可以很容易地从一个角色被指派到另一个角色</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20220223-02.png" alt=""></figure>
+<p>如上图所示，左边对于<code>Pod</code>资源的<code>get</code>、<code>list</code>操作（称为请求动词）类似于常见的<code>CRUD</code>，对<code>k8s</code>的相关资源操作都是以<code>REST API</code>形式发起，每一类请求动词对应<code>http</code>请求如下表</p>
+<table>
+<thead>
+<tr>
+<th>HTTP 动词</th>
+<th>请求动词</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST</td>
+<td>create</td>
+</tr>
+<tr>
+<td>GET, HEAD</td>
+<td>get （针对单个资源）、list（针对集合）</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td>update</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td>patch</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td>delete（针对单个资源）、deletecollection（针对集合）</td>
+</tr>
+</tbody>
+</table>
+<p><code>k8s</code>中的资源和<code>API Group</code>关联，不同的资源属于不同的<code>API Group</code>，例如<code>Pod</code>属于<code>Core API Group</code>，<code>Deployements</code>属于<code>apps API Group</code></p>
+<p>资源操作的集合叫做<code>Rule</code>，<code>RBAC</code>中的角色，在k8s中分为<code>Role</code>和<code>ClusterRole</code>，其区别就是前者是命名空间级别下，后者不限命名空间（集群范围内生效）</p>
+<p>上图最右边即用户，<code>k8s</code>中的<code>用户</code>可以分为三类：User、Group、Service Account，<code>User</code>即传统意义上的用户，这个用户一般由外部服务管理；<code>Group</code>用来关联多个账户；而<code>Service Account</code>（服务帐号）就是通过<code>Kubernetes API</code>来管理的一些用户帐号，适用于集群内部运行的应用程序。所有的用户称作一个<code>Subject</code></p>
+<p>有了角色和用户，就需要两者之间的绑定关系，由于角色有<code>Role</code>和<code>ClusterRole</code>两类，因此绑定关系也分为<code>RoleBinding</code>和<code>ClusterRoleBinding</code>，即把声明的<code>Subject</code>和想要绑定的<code>Role</code>进行绑定（给某个用户绑定上某些操作的权限），二者作用范围和角色类似</p>
+<h3 id="22-阿里云ram遇上rbac">2.2 阿里云RAM遇上RBAC</h3>
+<p>如文章封面图所示，<code>ACK</code>的授权体系包含对基础资源层的<code>RAM</code>授权和对<code>ACK</code>集群层的<code>RBAC</code>授权两部分</p>
+<ul>
+<li><code>RAM</code>授权对应<code>ACK</code>集群的运维操作，需要获取<code>ACK</code>产品及其所依赖阿里云云产品的<code>OpenAPI</code>操作权限，主要包括以下操作：
+<ul>
+<li>集群：创建、查看、升级、删除</li>
+<li>节点池：创建、修改、扩缩容</li>
+<li>授权管理</li>
+<li>集群监控、日志、事件</li>
+</ul>
+</li>
+<li><code>RBAC</code>授权对应的是运行于<code>ACK</code>集群中<code>Kubernetes</code>应用的运维操作，需要获取ACK集群及其命名空间的操作权限，主要包括对以下<code>Kubernetes</code>对象的增删改查操作：
+<ul>
+<li>工作负载：Deployment、StatefulSet、DaemonSet、Job、CronJob、Pod、ReplicaSet、HPA等</li>
+<li>网络：Service、Ingress、NetworkPolicy等</li>
+<li>存储：PV、PVC、StorageClass等</li>
+<li>Namespace、ConfigMap 、Secrets等</li>
+</ul>
+</li>
+</ul>
+<p>因此当<code>RAM</code>用户或<code>RAM</code>角色需要进行集群运维和应用运维时，需要依次对其进行<code>RAM</code>授权和<code>RBAC</code>授权</p>
+<p>对于<code>RAM</code>这里不再深入，因为阿里云<code>RAM</code>关联了很多很多不同的云产品统一进行授权，因此很复杂，也不做过多研究</p>
+<h2 id="3-授权过程">3、授权过程</h2>
+<p>上面对阿里云<code>RAM</code>和<code>k8s</code>的<code>RBAC</code>两个体系做了简要介绍和回顾，接下来根据一个实际场景简要介绍授权的整个过程以及需要注意的踩坑点</p>
+<p>需求如下：</p>
+<p>研发或集群外服务需要操作某集群，例如<code>dev</code>（开发）<code>ack</code>集群，具有<code>dev</code>命名空间的创建、删除<code>deployment</code>、<code>service</code>、<code>ingress</code>这三类资源的权限</p>
+<p>若服务在集群内，那么就可以通过<code>ServiceAccount</code>方式，假设服务在集群外，目的是要生成一个给<code>kubectl</code>使用的<code>config</code>文件</p>
+<h3 id="31-创建ram用户并授权">3.1 创建RAM用户并授权</h3>
+<p>由于用户最终只能通过控制台才能获取<code>config</code>文件，因此需要创建一个可以登录控制台，并对<code>ack</code>具有只读权限的用户</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20220223-03.png" alt=""></figure>
+<p>然后对用户进行授权，记录下用户的密码</p>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20220223-04.png" alt=""></figure>
+<h3 id="32-ack集群中创建clusterrole">3.2 ACK集群中创建ClusterRole</h3>
+<p>在集群中创建相关授权通常是通过编写对应的<code>yaml</code>资源清单</p>
+<p>这里推荐一个图形化的工具<code>Permission manager</code>，是一个简单便捷的<code>RBAC</code>管理界面工具，支持通过<code>web</code>界面创建用户，分配<code>Namespace</code>权限，并可以生成<code>kubeconfig</code>文件，项目地址https://github.com/sighupio/permission-manager</p>
+<p>前面需求提到是指定命名空间下的权限，但这里是创建<code>ClusterRole</code>而不是<code>Role</code>，这个问题后面解释</p>
+<p><code>ClusterRole</code>的内容如下</p>
+<pre><code class="language-yaml">kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: project-rbac-role
+rules:
+  - apiGroups: [&quot;extensions&quot;, &quot;apps&quot;]
+    resources: [&quot;deployments&quot;]
+    verbs: [&quot;create&quot;, &quot;delete&quot;]
+  - apiGroups: [&quot;&quot;]
+    resources: [&quot;service&quot;]
+    verbs: [&quot;create&quot;, &quot;delete&quot;]
+  - apiGroups: [&quot;networking.k8s.io&quot;]
+    resources: [&quot;ingress&quot;]
+    verbs: [&quot;create&quot;, &quot;delete&quot;]
+
+</code></pre>
+<p>使用<code>kubectl</code>进行创建</p>
+<pre><code class="language-shell">➜  rbac git:(master) ✗ kubectl apply -f clusterrole.yaml
+</code></pre>
+<h3 id="33-控制台授权绑定">3.3 控制台授权绑定</h3>
+<p>在<code>ack</code>的控制台对<code>ram</code>用户授权，点击到某个集群——&gt;安全管理——&gt;授权，选择上面创建的<code>ram</code>子账号，点击“管理权限”，选择集群（这里虽然已经进入到了特定集群，但依然可以选择其他集群，或许是<code>ack</code>产品设计上有点不合理），选择对应要授权的命名空间，访问权限选择“自定义”，然后下拉就能找到上面创建的名为<code>project-rbac-role</code>的<code>ClusterRole</code></p>
+<p>上面提到了创建<code>ClusterRole</code>而不是<code>Role</code>，原因就在这里，因为这里下拉只能读取到集群中存在的<code>ClusterRole</code>，选择完成后点击下一步，授权成功</p>
+<figure data-type="image" tabindex="5"><img src="https://image.ssgeek.com/20220223-05.png" alt=""></figure>
+<p>那么，既然已经使用了<code>ClusterRole</code>，又选定了命名空间，因此相当于还是基于<code>Role</code>的权限？</p>
+<p>没错，实际上这里的操作是对应的在<code>ack</code>集群中创建了一个<code>Rolebinding</code>绑定集群的<code>ClusterRole</code>，正常来说应该是<code>Rolebinding</code>绑定集群的<code>Role</code>，<code>ClusterRolebinding</code>绑定集群的<code>ClusterRole</code>，这里相当于交叉绑定了，但实际上这个<code>ClusterRole</code>的权限范围缩小了</p>
+<p>可以通过如下方式查看集群中的<code>Rolebinding</code>，名称大致为“ram用户的uid-命名空间-clusterrole的名称-rolebinding”，关联的<code>subjects</code>用户正是<code>ram</code>用户的<code>uid</code></p>
+<pre><code class="language-shell">➜  rbac git:(master) ✗ kubectl get rolebinding -n dev|grep 29xxxxxxxxxxx1
+29xxxxxxxxxxx1-dev-project-rbac-role-rolebinding   ClusterRole/project-rbac-role    41m
+➜  rbac git:(master) ✗ kubectl -n dev get rolebinding 29xxxxxxxxxxx1-dev-project-rbac-role-rolebinding -o yaml|kubectl neat
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: 29xxxxxxxxxxx1-dev-project-rbac-role-rolebinding
+  namespace: dev
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: project-rbac-role
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: &quot;29xxxxxxxxxxx1&quot;
+</code></pre>
+<p>到这里授权就完成了</p>
+<h3 id="34-获取连接集群的config">3.4 获取连接集群的config</h3>
+<p>用上面创建的<code>readonly</code>这个<code>ram</code>用户登录到<code>ack</code>的每个集群控制台，获取这个<code>ram</code>用户的集群连接信息即<code>config</code>内容，保存成文件即可</p>
+<h2 id="4-小结">4、小结</h2>
+<p>使用<code>ack</code>托管版对集群授权需要关联<code>ram</code>用户和集群<code>RBAC</code>的<code>ClusterRole</code>，无需在集群中手动创建其他资源，整个过程中有一定的小坑和个人感觉设计不太合理的地方仅供参考~</p>
+<p>See you ~</p>
+<blockquote>
+<p>参考</p>
+<p>https://kubernetes.io/zh/docs/reference/access-authn-authz/authorization/</p>
+<p>https://help.aliyun.com/document_detail/119596.html</p>
+</blockquote>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/fu-wu-wang-ge-he-istio-chu-shi-xu">
+                  <h3 class="post-title">
+                    服务网格和Istio初识-续
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

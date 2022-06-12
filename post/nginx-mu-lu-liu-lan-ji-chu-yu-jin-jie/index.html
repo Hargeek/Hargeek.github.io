@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Nginx目录浏览基础与进阶 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Nginx目录浏览基础与进阶</h2>
+            <div class="post-date">2021-01-03</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li><a href="#1-%E7%AE%80%E8%BF%B0">1、简述</a></li>
+<li><a href="#2-%E9%85%8D%E7%BD%AE%E7%9B%AE%E5%BD%95%E6%B5%8F%E8%A7%88">2、配置目录浏览</a></li>
+<li><a href="#3-%E8%BF%9B%E9%98%B6%E7%89%88%E9%85%8D%E7%BD%AE">3、进阶版配置</a>
+<ul>
+<li><a href="#31-%E6%B7%BB%E5%8A%A0%E7%AC%AC%E4%B8%89%E6%96%B9%E6%A8%A1%E5%9D%97">3.1 添加第三方模块</a></li>
+<li><a href="#32-%E4%BF%AE%E6%94%B9%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">3.2 修改配置文件</a></li>
+<li><a href="#33-%E9%87%8D%E5%90%AF%E6%B5%8B%E8%AF%95">3.3 重启测试</a></li>
+<li><a href="#34-%E8%87%AA%E5%AE%9A%E4%B9%89%E4%B8%BB%E9%A2%98">3.4 自定义主题</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h1 id="1-简述">1、简述</h1>
+<p><code>Nginx</code>作为一款优秀的<code>web</code>服务器，其默认不允许列出站点的整个目录，如果需要配置，需要单独打开此功能</p>
+<p>此功能一般用于单独开设虚拟主机供内网如下载文件等功能使用，其他情况下为了安全，一般不会开启此功能</p>
+<h1 id="2-配置目录浏览">2、配置目录浏览</h1>
+<pre><code class="language-shell">server {
+   listen       80;
+   index index.html index.htm;
+   server_name downloads.ssgeek.com;
+   root /data/downloads;
+   autoindex on;  # 开启目录浏览功能
+   autoindex_localtime on;  # 显示本地时间
+   autoindex_format html;  # 输入格式，可选项为html、xml、json、jsonp
+   autoindex_exact_size off;  # 显示精确字节大小还是显示友好可读的大小
+   charset utf-8,gbk;  # 保证以中文命名的文件显示不会乱码
+}
+</code></pre>
+<p>除上述配置之外，还可以利用<code>basic_auth</code>为目录浏览功能，加上认证功能以增加一定的安全性</p>
+<p>配置完成后重启<code>Nginx</code>，效果如下</p>
+<img src="https://image.ssgeek.com/20210103-07.png" style="zoom:67%;" />
+<h1 id="3-进阶版配置">3、进阶版配置</h1>
+<p><code>Nginx</code>自带的目录浏览功能看起来并不是那么美观，可以使用第三方模块<a href="https://github.com/aperezdc/ngx-fancyindex">ngx-fancyindex</a>插件来美化目录浏览功能。</p>
+<h2 id="31-添加第三方模块">3.1 添加第三方模块</h2>
+<p>查看现有<code>nginx</code>版本及编译参数</p>
+<pre><code class="language-shell"># /usr/local/nginx/sbin/nginx -V
+nginx version: nginx/1.14.2
+built by gcc 4.8.5 20150623 (Red Hat 4.8.5-39) (GCC) 
+built with OpenSSL 1.0.2l  25 May 2017
+TLS SNI support enabled
+configure arguments: --user=www --group=www --prefix=/usr/local/nginx --with-http_stub_status_module --without-http-cache --with-http_ssl_module --with-pcre=/usr/local/pcre-8.39 --with-zlib=/usr/local/zlib-1.2.11 --with-openssl=/usr/local/openssl-1.0.2l --sbin-path=/usr/local/nginx/sbin/nginx --conf-path=/usr/local/nginx/conf/nginx.conf --error-log-path=/usr/local/nginx/log/error.log --http-log-path=/usr/local/nginx/log/access.log --pid-path=/usr/local/nginx/run/nginx.pid
+</code></pre>
+<p>下载第三方模块源码并解压</p>
+<pre><code class="language-shell"># wget -c https://github.com/aperezdc/ngx-fancyindex/archive/v0.5.1.tar.gz
+# tar xf v0.5.1.tar.gz
+</code></pre>
+<p>在已经安装的<code>nginx</code>下添加新的第三方模块</p>
+<pre><code class="language-shell"># pwd
+/root
+# cd nginx-1.14.2/
+# ./configure --user=www --group=www --prefix=/usr/local/nginx --with-http_stub_status_module --without-http-cache --with-http_ssl_module --with-pcre=/usr/local/pcre-8.39 --with-zlib=/usr/local/zlib-1.2.11 --with-openssl=/usr/local/openssl-1.0.2l --sbin-path=/usr/local/nginx/sbin/nginx --conf-path=/usr/local/nginx/conf/nginx.conf --error-log-path=/usr/local/nginx/log/error.log --http-log-path=/usr/local/nginx/log/access.log --pid-path=/usr/local/nginx/run/nginx.pid --add-module=/root/ngx-fancyindex-0.5.1
+# make # 只编译不安装
+# /usr/local/nginx/sbin/nginx -s stop
+# mv /usr/local/nginx/sbin/nginx /usr/local/nginx/sbin/nginx.bak
+# cp objs/nginx /usr/local/nginx/sbin/
+# chown www:www /usr/local/nginx/sbin/nginx
+</code></pre>
+<h2 id="32-修改配置文件">3.2 修改配置文件</h2>
+<p>配置文件的详细配置参考如下</p>
+<pre><code class="language-shell">server {
+   listen       80;
+   index index.html index.htm;
+   server_name downloads.ssgeek.com;
+   charset utf-8,gbk;
+   location / {
+       root /data/downloads;
+       # 防止浏览器预览打开
+       if ($request_filename ~* ^.*?\.(txt|doc|pdf|rar|gz|zip|docx|exe|xlsx|ppt|pptx)$){
+           add_header Content-Disposition attachment;
+       }
+       fancyindex on;  # 开启第三方模块的目录浏览
+    #    fancyindex_default_sort name;  # 排序规则，默认name，可选项name、size、date、name_desc、size_des、date_desc
+    #    fancyindex_directories_first on; # 是否将目录分组在一起并在所有常规文件之前对它们进行排序，默认启用
+    #    fancyindex_css_href &quot;&quot;;  # 插入指向CSS样式表的链接
+       fancyindex_exact_size off;  # 显示精确字节大小还是显示友好可读的大小
+       fancyindex_name_length 500;  # 定义最大文件名长度限制（以字节为单位）
+    #    fancyindex_footer &quot;&quot;;  # 定义在目录列表的底部插入哪个文件
+    #    fancyindex_header &quot;&quot;;  # 定义在目录列表的顶部插入哪个文件
+    #    fancyindex_show_path on;  # 在标题之后是否输出路径和结束&lt;/ h1&gt;标记，默认启用
+    #    fancyindex_show_dotfiles on;  # 是否列出以点开头的文件，默认关闭
+    #    fancyindex_ignore &quot;&quot;;  # 指定不显示的文件名列表
+    #    fancyindex_hide_symlinks off;  # 是否隐藏符号链接，默认关闭
+    #    fancyindex_hide_parent_dir on;  # 是否隐藏父目录，默认关闭
+       fancyindex_localtime on;  # 时间显示为本地时间，默认关闭，显示为格林尼治标准时间
+       fancyindex_time_format &quot;%Y-%b-%d %H:%M&quot;;  # 显示的时间格式，默认为%Y-%b-%d %H:%M
+   }
+}
+</code></pre>
+<p>这里我的配置如下</p>
+<pre><code class="language-shell">   location / {
+       root /data/downloads;
+       if ($request_filename ~* ^.*?\.(txt|doc|pdf|rar|gz|zip|docx|exe|xlsx|ppt|pptx)$){
+           add_header Content-Disposition attachment;
+       }
+       fancyindex on;
+       fancyindex_exact_size off;
+       fancyindex_name_length 500;
+       fancyindex_show_dotfiles on;
+       fancyindex_localtime on;
+       fancyindex_time_format &quot;%Y-%m-%d %H:%M:%S&quot;;
+   }
+</code></pre>
+<h2 id="33-重启测试">3.3 重启测试</h2>
+<p>修改完配置文件后，重启进行测试，效果如下</p>
+<img src="https://image.ssgeek.com/20210103-01.png" style="zoom:67%;" />
+<h2 id="34-自定义主题">3.4 自定义主题</h2>
+<p>如果觉得上面的还不是太好看，项目中也提供了更多主题供配置，主题的地址如下</p>
+<p><a href="https://github.com/TheInsomniac/Nginx-Fancyindex-Theme">主题一</a>：使用自定义的页眉和页脚</p>
+<p><a href="https://github.com/Naereen/Nginx-Fancyindex-Theme">主题二</a>：使用自定义页眉和页脚，页眉包含搜索字段，可使用JavaScript按文件名过滤</p>
+<p><a href="https://github.com/fraoustin/Nginx-Fancyindex-Theme">主题三</a>：使用Material Design元素的响应主题</p>
+<p><a href="https://github.com/alehaa/nginx-fancyindex-flat-theme">主题四</a>：基于Bootstrap 4和FontAwesome的简单扁平主题</p>
+<p>四个主题的配置和效果分别如下</p>
+<ul>
+<li>主题一</li>
+</ul>
+<p>下载主题相关样式代码，目录结构如下</p>
+<pre><code class="language-shell"># tree -L 1 /data/downloads/fancyindex
+/data/downloads/fancyindex
+├── css
+├── fonts
+├── footer.html
+├── header.html
+├── icons
+├── images
+└── js
+</code></pre>
+<p>配置文件</p>
+<pre><code class="language-shell">...
+   location / {
+       /data/downloads;
+       if ($request_filename ~* ^.*?\.(txt|doc|pdf|rar|gz|zip|docx|exe|xlsx|ppt|pptx)$){
+           add_header Content-Disposition attachment;
+       }
+       fancyindex on;
+       fancyindex_exact_size off;
+       fancyindex_name_length 500;
+       fancyindex_show_dotfiles on;
+       fancyindex_ignore &quot;fancyindex&quot;;
+       fancyindex_header &quot;/fancyindex/header.html&quot;;
+       fancyindex_footer &quot;/fancyindex/footer.html&quot;;
+       fancyindex_localtime on;
+       fancyindex_time_format &quot;%Y-%m-%d %H:%M:%S&quot;;
+   }
+...
+</code></pre>
+<p>效果如下</p>
+<img src="https://image.ssgeek.com/20210103-02.png" style="zoom:67%;" />
+<ul>
+<li>主题二</li>
+</ul>
+<p>下载主题相关样式代码，目录结构如下</p>
+<pre><code class="language-shell"># # tree -L 1 /data/downloads/Nginx-Fancyindex-Theme-dark
+/data/downloads/Nginx-Fancyindex-Theme-dark
+├── addNginxFancyIndexForm.js
+├── footer.html
+├── header.html
+├── jquery.min.js
+├── showdown.min.js
+└── styles.css
+</code></pre>
+<p>配置文件</p>
+<pre><code class="language-shell">...
+   location / {
+       root /data/downloads;
+       if ($request_filename ~* ^.*?\.(txt|doc|pdf|rar|gz|zip|docx|exe|xlsx|ppt|pptx)$){
+           add_header Content-Disposition attachment;
+       }
+       fancyindex on;
+       fancyindex_exact_size off;
+       fancyindex_name_length 500;
+       fancyindex_show_dotfiles on;
+       fancyindex_ignore &quot;Nginx-Fancyindex-Theme-dark&quot;;
+       fancyindex_header &quot;/Nginx-Fancyindex-Theme-dark/header.html&quot;;
+       fancyindex_footer &quot;/Nginx-Fancyindex-Theme-dark/footer.html&quot;;
+       fancyindex_localtime on;
+       fancyindex_time_format &quot;%Y-%m-%d %H:%M:%S&quot;;
+   }
+...
+</code></pre>
+<p>效果如下</p>
+<img src="https://image.ssgeek.com/20210103-03.png" style="zoom:67%;" />
+<ul>
+<li>主题三</li>
+</ul>
+<p>下载主题相关样式代码，目录结构如下</p>
+<pre><code class="language-shell"># tree -L 1 /data/downloads/fancyindex
+/data/downloads/fancyindex
+├── clipboard.min.js
+├── dialog-polyfill.css
+├── dialog-polyfill.js
+├── fancyindex.css
+├── fancyindex.js
+├── font
+├── footer.html
+├── header.html
+├── images
+├── material-icons.css
+├── mdl
+├── README.md
+└── roboto.css
+</code></pre>
+<p>配置文件同主题一</p>
+<pre><code class="language-shell">...
+   location / {
+       root /data/downloads;
+       if ($request_filename ~* ^.*?\.(txt|doc|pdf|rar|gz|zip|docx|exe|xlsx|ppt|pptx)$){
+           add_header Content-Disposition attachment;
+       }
+       fancyindex on;
+       fancyindex_exact_size off;
+       fancyindex_name_length 500;
+       fancyindex_show_dotfiles on;
+       fancyindex_ignore &quot;fancyindex&quot;;
+       fancyindex_header &quot;/fancyindex/header.html&quot;;
+       fancyindex_footer &quot;/fancyindex/footer.html&quot;;
+       fancyindex_localtime on;
+       fancyindex_time_format &quot;%Y-%m-%d %H:%M:%S&quot;;
+   }
+...
+</code></pre>
+<p>效果如下</p>
+<img src="https://image.ssgeek.com/20210103-04.png" style="zoom:67%;" />
+<ul>
+<li>主题四</li>
+</ul>
+<p>下载主题相关样式代码，目录结构如下</p>
+<pre><code class="language-shell"># tree -L 1 /data/downloads/theme
+/data/downloads/theme
+├── footer.html
+├── header.html
+├── js
+├── less
+├── LICENSE
+├── Makefile
+├── README.md
+└── theme.less
+</code></pre>
+<p>配置文件</p>
+<pre><code class="language-shell">...
+   location / {
+       root /data/downloads;
+       if ($request_filename ~* ^.*?\.(txt|doc|pdf|rar|gz|zip|docx|exe|xlsx|ppt|pptx)$){
+           add_header Content-Disposition attachment;
+       }
+       fancyindex on;
+       fancyindex_exact_size off;
+       fancyindex_name_length 500;
+       fancyindex_show_dotfiles on;
+       fancyindex_ignore &quot;theme&quot;;
+       fancyindex_header &quot;/theme/header.html&quot;;
+       fancyindex_footer &quot;/theme/footer.html&quot;;
+       fancyindex_localtime on;
+       fancyindex_time_format &quot;%Y-%m-%d %H:%M:%S&quot;;
+   }
+...
+</code></pre>
+<p>效果如下</p>
+<img src="https://image.ssgeek.com/20210103-05.png" style="zoom:67%;" />
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/nginx" class="tag">
+                    nginx
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/gong-zhong-hao">
+                  <h3 class="post-title">
+                    公众号开通
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

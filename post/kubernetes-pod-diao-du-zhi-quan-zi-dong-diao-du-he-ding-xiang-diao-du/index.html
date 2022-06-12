@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Kubernetes Pod资源调度之全自动调度和定向调度 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Kubernetes Pod资源调度之全自动调度和定向调度</h2>
+            <div class="post-date">2020-04-19</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%8E%A7%E5%88%B6%E5%99%A8%E7%B1%BB%E5%9E%8B">1、控制器类型</a></li>
+<li><a href="#2-%E5%85%A8%E8%87%AA%E5%8A%A8%E8%B0%83%E5%BA%A6">2、全自动调度</a></li>
+<li><a href="#3-%E5%AE%9A%E5%90%91%E8%B0%83%E5%BA%A6">3、定向调度</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-控制器类型">1、控制器类型</h2>
+<p>在<code>Kubernetes</code>上，很少会直接创建一个<code>Pod</code>，在大多数情况下，会通过<code>RC</code>、<code>Deployment</code>、<code>DaemonSet</code>、<code>Job</code>等控制器完成对一组<code>Pod</code>副本的创建、调度和整个生命周期的自动化控制。</p>
+<p>在最早的<code>Kubernetes</code>版本里没有这么多<code>Pod</code>副本控制器的，只有一 个<code>Pod</code>副本控制器<code>RC</code>（Replication Controller），这个控制器是这样设计 实现的：<code>RC</code>独立于所控制的<code>Pod</code>，并通过<code>Label</code>标签这个松耦合关联关系 控制目标<code>Pod</code>实例的创建和销毁，随着<code>Kubernetes</code>的发展，<code>RC</code>也出现了新的继任者<code>Deployment</code>，用于更加自动地完成<code>Pod</code>副本的部署、版 本更新、回滚等功能。</p>
+<p>严谨地说，<code>RC</code>的继任者其实并不是<code>Deployment</code>，而是<code>ReplicaSet</code>， 因为<code>ReplicaSet</code>进一步增强了<code>RC</code>标签选择器的灵活性。之前<code>RC</code>的标签选择器只能选择一个标签，而<code>ReplicaSet</code>拥有集合式的标签选择器，可以选择多个<code>Pod</code>标签，如下所示</p>
+<pre><code>    selector:
+      matchLables:
+        tier: frontend
+      matchExpressions:
+        - {key: tier, operator: In, values: [frontend]}
+</code></pre>
+<p>与<code>RC</code>不同，<code>ReplicaSet</code>被设计成能控制多个不同标签的<code>Pod</code>副本。 一种常见的应用场景是，应用<code>MyApp</code>目前发布了<code>v1</code>与<code>v2</code>两个版本，用户 希望<code>MyApp</code>的<code>Pod</code>副本数保持为<code>3</code>个，可以同时包含<code>v1</code>和<code>v2</code>版本的<code>Pod</code>， 就可以用<code>ReplicaSet</code>来实现这种控制，写法如下</p>
+<pre><code>    selector:
+      matchLables:
+        version: v2
+      matchExpressions:
+        - {key: version, operator: In, values: [v1,v2]}
+</code></pre>
+<p><code>Kubernetes</code>的滚动升级就是巧妙运用<code>ReplicaSet</code>的这个特性来实现的，同时，<code>Deployment</code>也是通过<code>ReplicaSet</code>来实现<code>Pod</code>副本自动控制功能的。我们不应该直接使用底层的<code>ReplicaSet</code>来控制<code>Pod</code>副本，而应该 使用管理<code>ReplicaSet</code>的<code>Deployment</code>对象来控制副本，这是来自官方的建议。</p>
+<h2 id="2-全自动调度">2、全自动调度</h2>
+<p>全自动调度的控制器是<code>Deployment</code>或<code>RC</code>，<code>Deployment</code>或<code>RC</code>的主要功能之一就是自动部署一个容器应用的 份副本，以及持续监控副本的数量，在集群内始终维持用户指定的副本数量。</p>
+<p>下面是一个<code>Deployment</code>配置的例子，使用这个配置文件可以创建一个<code>ReplicaSet</code>，这个<code>ReplicaSet</code>会创建<code>3</code>个<code>Nginx</code>应用的<code>Pod</code></p>
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+</code></pre>
+<p>运行<code>kubectl create</code>命令创建这个<code>Deployment</code></p>
+<pre><code># kubectl apply -f nginx-deployment.yaml 
+deployment.apps/nginx-deployment created
+</code></pre>
+<p>查看<code>Deployment</code>、<code>RS</code>、<code>Pod</code>的状态</p>
+<pre><code># kubectl get deployment
+NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment        3/3     3            3           58s
+# kubectl get rs
+NAME                               DESIRED   CURRENT   READY   AGE
+nginx-deployment-7bffc778db        3         3         3       85s
+# kubectl get pods
+NAME                                     READY   STATUS    RESTARTS   AGE
+nginx-deployment-7bffc778db-j5czg        1/1     Running   0          1m34s
+nginx-deployment-7bffc778db-lbpjg        1/1     Running   0          1m34s
+nginx-deployment-7bffc778db-zcn6m        1/1     Running   0          1m34s
+</code></pre>
+<p>从调度策略上来说，这<code>3</code>个<code>Nginx Pod</code>由系统全自动完成调度。它们各自最终运行在哪个节点上，完全由<code>Master</code>的<code>Scheduler</code>经过一系列算法计算得出，用户无法干预调度过程和结果。</p>
+<pre><code># kubectl get pods -o wide
+NAME                                     READY   STATUS    RESTARTS   AGE     IP             NODE         NOMINATED NODE   READINESS GATES
+nginx-deployment-7bffc778db-j5czg        1/1     Running   0          3m36s   172.20.3.229   k8s-node-1   &lt;none&gt;           &lt;none&gt;
+nginx-deployment-7bffc778db-lbpjg        1/1     Running   0          3m36s   172.20.4.27    k8s-node-2   &lt;none&gt;           &lt;none&gt;
+nginx-deployment-7bffc778db-zcn6m        1/1     Running   0          3m36s   172.20.5.203   k8s-node-3   &lt;none&gt;           &lt;none&gt;
+</code></pre>
+<h2 id="3-定向调度">3、定向调度</h2>
+<p>定向调度通过<code>NodeSelector</code>标签实现， <code>Master</code>上的<code>Scheduler</code>服务（<code>kube-scheduler</code>进程）负责实现<code>Pod</code>的调度，整个调度过程通过执行一系列复杂的算法，最终为每个<code>Pod</code>都计算出一个最佳的目标节点，这一过程是自动完成的，通常我们 无法知道<code>Pod</code>最终会被调度到哪个节点上。在实际情况下，也可能需要将<code>Pod</code>调度到指定的一些<code>Node</code>上，可以通过<code>Node</code>的标签（<code>Label</code>）和<code>Pod</code>的<code>nodeSelector</code>属性相匹配，来达到上述目的。</p>
+<p>首先通过<code>kubectl label</code>命令给目标<code>Node</code>打上一些标签</p>
+<pre><code># kubectl label nodes k8s-node-1 zone=north
+</code></pre>
+<p>然后，在<code>Pod</code>的定义中加上<code>nodeSelector</code>的设置，以<code>redismaster-controller.yaml</code>为例</p>
+<pre><code>apiVersion: v1
+kind: ReplicationController 
+metadata:
+  name: redis-master
+  labels:
+    name: redis-master 
+spec:
+  replicas: 1
+  selector:
+    name: redis-master
+  template:
+    metadata:
+      labels:
+        name: redis-master
+    spec:
+      containers:
+      - name: master
+        image: redis
+        ports:
+        - containerPort: 6379
+      nodeSelector:
+        zone: north
+</code></pre>
+<p>创建<code>Pod</code>，<code>scheduler</code>就会将该<code>Pod</code>调度到拥有<code>zone=north</code>标签的<code>Node</code>上</p>
+<p>如果我们给多个<code>Node</code>都定义了相同的标签（例如<code>zone=north</code>），则<code>scheduler</code>会根据调度算法从这组<code>Node</code>中挑选一个可用的<code>Node</code>进行<code>Pod</code>调度。</p>
+<p>通过基于<code>Node</code>标签的调度方式，我们可以把集群中具有不同特点的<code>Node</code>都贴上不同的标签，例 如<code>role=frontend</code>、<code>role=backend``、role=database</code>等标签，在部署应用时就可以根据应用的需求设置<code>NodeSelector</code>来进行指定<code>Node</code>范围的调度。</p>
+<p>如果我们指定了<code>Pod</code>的<code>nodeSelector</code>条件，且在集群中不存在包含相应标签的<code>Node</code>，则即使在集群中还有其他可供使用的<code>Node</code>，这个<code>Pod</code>也无法被成功调度。</p>
+<p>除了用户可以自行给<code>Node</code>添加标签，<code>Kubernetes</code>也会给<code>Node</code>预定义 一些标签，包括</p>
+<ul>
+<li>kubernetes.io/hostname</li>
+<li>beta.kubernetes.io/os（从1.14版本开始更新为稳定版，到1.18版 本删除）</li>
+<li>beta.kubernetes.io/arch（从1.14版本开始更新为稳定版，到1.18 版本删除）</li>
+<li>kubernetes.io/os（从1.14版本开始启用）</li>
+<li>kubernetes.io/arch（从1.14版本开始启用）</li>
+</ul>
+<p>也可以使用这些系统标签进行Pod的定向调度。</p>
+<p>NodeSelector通过标签的方式，简单实现了限制<code>Pod</code>所在节点的方法。亲和性调度机制则极大扩展了<code>Pod</code>的调度能力，主要的增强功能如 下。</p>
+<ul>
+<li>更具表达力（不仅仅是“符合全部”的简单情况）</li>
+<li>可以使用软限制、优先采用等限制方式，代替之前的硬限制， 这样调度器在无法满足优先需求的情况下，会退而求其次，继续运行该<code>Pod</code></li>
+<li>可以依据节点上正在运行的其他<code>Pod</code>的标签来进行限制，而非节点本身的标签。这样就可以定义一种规则来描述<code>Pod</code>之间的亲和或互斥关系</li>
+</ul>
+<p>亲和性调度功能包括节点亲和性<code>NodeAffinity</code>和<code>Pod</code>亲和性<code>PodAffinity</code>两个维度的设置。节点亲和性与<code>NodeSelector</code>类似，增 强了上述前两点优势；<code>Pod</code>的亲和与互斥限制则通过<code>Pod</code>标签而不是节点标签来实现，也就是上面所陈述的方式，同时具有前两点提到的优点。</p>
+<p><code>NodeSelector</code>将会继续使用，随着节点亲和性越来越能够表达<code>nodeSelector</code>的功能，最终<code>NodeSelector</code>会被废弃。</p>
+<p>文章参考来源：《kubernetes权威指南-第4版》</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/kubernetes-pod-zi-yuan-diao-du-gai-shu">
+                  <h3 class="post-title">
+                    Kubernetes Pod资源调度概述
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

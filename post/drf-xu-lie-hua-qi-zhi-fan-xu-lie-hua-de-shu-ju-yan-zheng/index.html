@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>drf序列化器之反序列化的数据验证 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">drf序列化器之反序列化的数据验证</h2>
+            <div class="post-date">2020-09-24</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C">1、准备工作</a></li>
+<li><a href="#2-%E5%AD%97%E6%AE%B5%E9%AA%8C%E8%AF%81">2、字段验证</a></li>
+<li><a href="#3-validate_%E5%AD%97%E6%AE%B5%E5%90%8D%E9%AA%8C%E8%AF%81">3、validate_字段名验证</a></li>
+<li><a href="#4-validate%E9%AA%8C%E8%AF%81">4、validate验证</a></li>
+<li><a href="#5-validators%E9%AA%8C%E8%AF%81%E5%99%A8%E9%AA%8C%E8%AF%81">5、validators验证器验证</a></li>
+<li><a href="#6-%E5%B0%8F%E7%BB%93">6、小结</a></li>
+<li><a href="#%E9%99%84%E5%B8%B8%E7%94%A8%E5%AD%97%E6%AE%B5%E5%92%8C%E5%8F%82%E6%95%B0">附：常用字段和参数</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<p>使用序列化器进行反序列化时，需要对数据进行验证后，才能获取验证成功的数据或保存成模型类对象。</p>
+<p>在获取反序列化的客户端数据前，必须在视图中调用序列化对象的<strong>is_valid()<strong>方法，序列化器内部是在</strong>is_valid</strong>方法内部调用验证选项和验证方法进行验证，验证成功返回True，否则返回False。</p>
+<p>验证失败，可以通过序列化器对象的<strong>errors</strong>属性获取错误信息，返回字典，包含了字段和字段的错误提示。如果是非字段错误，可以通过修改REST framework配置中的<strong>NON_FIELD_ERRORS_KEY</strong>来控制错误字典中的键名。</p>
+<p>验证成功，可以通过序列化器对象的<strong>validated_data</strong>属性获取数据。</p>
+<p>在定义序列化器时，指明每个字段的序列化类型和选项参数，本身就是一种验证行为。</p>
+<h2 id="1-准备工作">1、准备工作</h2>
+<p>注册一个图书app及图书表模型</p>
+<pre><code class="language-python">python manage.py startapp unsers
+</code></pre>
+<p>在配置文件<code>setting.py</code>中注册子应用</p>
+<pre><code class="language-python">INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'rest_framework',  # 把drf框架注册到django项目中
+    'unsers',  # 演示反序列化
+]
+</code></pre>
+<p>注释<code>csrf</code>校验，因为提交数据涉及到<code>post</code>方法提交数据，把<code>settings.py</code>中的中间件的<code>csrf</code>暂时关闭</p>
+<pre><code class="language-python">MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+</code></pre>
+<p>创建表模型</p>
+<pre><code class="language-python">from django.db import models
+
+
+# Create your models here.
+class BookInfo(models.Model):
+    &quot;&quot;&quot;图书信息&quot;&quot;&quot;
+    title = models.CharField(max_length=20, verbose_name='标题')
+    pub_date = models.DateField(verbose_name='发布日期')
+    # 设置存储文件的子目录为avatar，总目录不写的话是在settings中配置，不填则没有
+    image = models.ImageField(upload_to=&quot;avatar&quot;, verbose_name='图书封面')
+    price = models.DecimalField(max_digits=8, decimal_places=2, verbose_name=&quot;价格&quot;)
+    read = models.IntegerField(verbose_name='阅读量')
+    comment = models.IntegerField(verbose_name='评论量')
+
+    class Meta:
+        # db_table = &quot;表名&quot;
+        db_table = &quot;tb_book_info&quot;
+        verbose_name = &quot;图书&quot;
+        verbose_name_plural = verbose_name
+</code></pre>
+<p>注意：因为当前模型中， 设置到图片上传处理，运行起来后会有提示，所以需要安装<code>PIL</code>库</p>
+<pre><code class="language-python">pip3 install Pillow
+</code></pre>
+<p>执行数据迁移</p>
+<pre><code class="language-python">python3 manage.py makemigrations
+python3 manage.py migrate
+</code></pre>
+<h2 id="2-字段验证">2、字段验证</h2>
+<p>经过上面的准备工作，接下来就可以给图书信息增加图书的功能，需要对来自客户端的数据进行处理，例如，验证和保存到数据库中。此时，就可以使用序列化器的反序列化器，接下来，定义一个图书的序列化器，此序列化器主要用于反序列化器阶段，在unsers子应用，创建serializers.py，代码如下</p>
+<pre><code class="language-python">from rest_framework import serializers
+
+class BookInfoSerializer(serializers.Serializer):
+    # 这里声明的字段用于进行反序列化器
+    # 字段名 = serializers.字段类型(验证选项)
+    # read_only=True，设置id为只读字段，当字段设置为read_only为True，则当前字段只会在序列化阶段使用
+    id = serializers.IntegerField(read_only=True)
+    title = serializers.CharField(required=True, min_length=1, max_length=20, label=&quot;标题&quot;, help_text=&quot;标题&quot;, error_messages={
+        &quot;required&quot;: &quot;标题不能为空！&quot;,
+        &quot;max_length&quot;: &quot;标题不能超过6个字符&quot;,
+    })
+    # required=True 当前字段必填
+    # write_only=True 表示当前字段只会在反序列化阶段使用，客户端提交数据的时候使用，不会提供给客户端
+    pub_date = serializers.DateField(required=True,label=&quot;发布日期&quot;, help_text=&quot;发布日期&quot;)
+    price = serializers.DecimalField(max_digits=8, decimal_places=2, required=True, label=&quot;价格&quot;, help_text=&quot;价格&quot;)
+    read  = serializers.IntegerField(min_value=0, default=0, label=&quot;阅读量&quot;, help_text=&quot;阅读量&quot;)
+    comment = serializers.IntegerField(min_value=0, default=0, label=&quot;评论量&quot;, help_text=&quot;评论量&quot;)
+</code></pre>
+<p>通过构造序列化器对象，并将要反序列化的数据传递给data构造参数，进而进行验证，编写视图类如下</p>
+<pre><code class="language-python"># Create your views here.
+from django.views import View
+from .models import BookInfo
+from django.http.response import JsonResponse
+from .serializers import BookInfoSerializer
+
+
+class BookInfoView(View):
+    def post(self, request):
+        &quot;&quot;&quot;反序列化,验证和添加数据&quot;&quot;&quot;
+        # 接收并实例化序列化器对象
+        serializer = BookInfoSerializer(data=request.POST)
+        # 启动验证
+        # is_valid 有个可选参数raise_exception，用于显示序列化器抛出的异常，直接终止视图代码的执行
+        # 如果设置了raise_exception=True,则下面的18~21行代码，就不要开发者自己编写，系统会自动根据请求的方式自动返回错误给客户端。
+        # 如果是ajax请求，则自动返回json格式的错误信息
+        # 如果是表单请求，则自动返回html格式的错误信息
+        result = serializer.is_valid()
+        # result = serializer.is_valid(raise_exception=True)
+        print(result)  # 验证结果，True表示验证通过了，开发时一般不需要接收
+        if not result:
+            # 当验证失败，则错误信息属性就有内容
+            print(serializer.errors)
+            return JsonResponse(serializer.errors)
+        else:
+            # 获取验证完成后的客户端数据 如果验证失败，则vcalidated_data是空字典
+            print(serializer.validated_data)
+            # 把数据保存到数据库中
+            instance = BookInfo.objects.create(**serializer.validated_data)
+            # instance = serializer.create(serializer.validated_data)
+            # 序列化器实例化时，如果有save参数，则save相当于update，否则就是create
+            # instance = serializer.save()
+            # 返回结果，也是需要使用序列化进行转换的
+            serializer = BookInfoSerializer(instance=instance)
+            return JsonResponse(serializer.data)
+</code></pre>
+<p>注册url</p>
+<pre><code class="language-python">from django.urls import path
+from . import views
+urlpatterns = [
+    path(&quot;books/&quot;, views.BookInfoView.as_view()),
+]
+</code></pre>
+<p>利用postman测试向此接口提交数据<br>
+<img src="https://image.ssgeek.com/20200924-01.png" alt=""></p>
+<p>此时查看数据库中的记录，已经成功被写入</p>
+<h2 id="3-validate_字段名验证">3、validate_字段名验证</h2>
+<p>对<code>&lt;field_name&gt;</code>字段进行验证，在序列化器中编写如下内容：</p>
+<pre><code class="language-python">def validate_title(self, data):
+    # 验证单个字段时，方法名必须固定为validate_字段，这里的data代表的就是字段值，
+    if &quot;测试&quot; in data:
+        &quot;&quot;&quot;抛出异常&quot;&quot;&quot;
+        raise serializers.ValidationError(&quot;对不起，当前标题不能出现关键字&quot;)
+
+    # 验证方法必须要有返回值，这里的返回值将会被填写到 serailzier对象的validated_data里面
+    return data  # 验证通过以后，必须要返回验证的结果数据，否则序列化器的validated_data无法得到当前字段的结果
+</code></pre>
+<p>利用postman测试向此接口提交数据<br>
+<img src="https://image.ssgeek.com/20200924-02.png" alt=""></p>
+<h2 id="4-validate验证">4、validate验证</h2>
+<p>在序列化器中需要同时对多个字段进行比较验证时，可以定义validate方法来验证</p>
+<pre><code class="language-python">def validate(self, data):
+    &quot;&quot;&quot;验证多个字段时，方法名必须为validate，
+    参数data代表了所有字段的数据值，其实就是视图代码中实例化序列化器对象时的data参数
+    开发中，类似 密码和确认密码，此时这2个字段，必须进行比较才能通过验证
+    &quot;&quot;&quot;
+    print(data)
+    # 例如，我们要求图书的评论必须比阅读量要少
+    read = data.get(&quot;read&quot;)
+    comment = data.get(&quot;comment&quot;)
+    if read &lt; comment:
+        raise serializers.ValidationError(&quot;对不起，阅读量必须比评论量大&quot;)
+
+    # 验证密码和确认密码
+    # 验证方法必须要有返回值
+    return data
+</code></pre>
+<p>利用postman测试向此接口提交数据<br>
+<img src="https://image.ssgeek.com/20200924-03.png" alt=""></p>
+<h2 id="5-validators验证器验证">5、validators验证器验证</h2>
+<p>验证器类似于验证方法，但是验证方法只属于当前序列化器，如果有多个序列化器共用同样的验证功能，则可以把验证代码分离到序列化器外部，作为一个普通函数，由<code>validators</code>加载到序列化器中使用。</p>
+<p>在字段中添加validators选项参数，也可以补充验证行为，如下</p>
+<pre><code class="language-python"># 在序列化器的外面声明一个验证函数
+def check_price(data):  # data代表要验证的数据
+    if data &lt; 0:
+        raise serializers.ValidationError(&quot;对不起，价格不能出现负数&quot;)
+    # 验证函数也必须把数据返回
+    return data
+    
+...
+class BookInfoSerializer(serializers.Serializer):
+...
+    # 调用验证器validators，这里的参数是一个列表，列表的成员是函数，函数名不能加引号
+    # price = serializers.DecimalField(required=True, max_digits=8, decimal_places=2)
+    price = serializers.DecimalField(required=True, max_digits=8, decimal_places=2, validators=[check_price])
+</code></pre>
+<p>利用postman测试向此接口提交数据<br>
+<img src="https://image.ssgeek.com/20200924-04.png" alt=""></p>
+<h2 id="6-小结">6、小结</h2>
+<p><code>is_valid</code>实际上内部执行了三种不同的验证方式：</p>
+<ul>
+<li>先执行了字段内置的验证选项</li>
+<li>在执行了<code>validators</code>自定义选项</li>
+<li>最后执行了<code>validate</code>自定义验证方法[包含了validate_&lt;字段&gt;, validate]</li>
+</ul>
+<h2 id="附常用字段和参数">附：常用字段和参数</h2>
+<p><strong>常用字段类型</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>字段构造方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>BooleanField</strong></td>
+<td>BooleanField()</td>
+</tr>
+<tr>
+<td><strong>NullBooleanField</strong></td>
+<td>NullBooleanField()</td>
+</tr>
+<tr>
+<td><strong>CharField</strong></td>
+<td>CharField(max_length=None, min_length=None, allow_blank=False, trim_whitespace=True)</td>
+</tr>
+<tr>
+<td><strong>EmailField</strong></td>
+<td>EmailField(max_length=None, min_length=None, allow_blank=False)</td>
+</tr>
+<tr>
+<td><strong>RegexField</strong></td>
+<td>RegexField(regex, max_length=None, min_length=None, allow_blank=False)</td>
+</tr>
+<tr>
+<td><strong>SlugField</strong></td>
+<td>SlugField(max<em>length=50, min_length=None, allow_blank=False) 正则字段，验证正则模式 [a-zA-Z0-9</em>-]+</td>
+</tr>
+<tr>
+<td><strong>URLField</strong></td>
+<td>URLField(max_length=200, min_length=None, allow_blank=False)</td>
+</tr>
+<tr>
+<td><strong>UUIDField</strong></td>
+<td>UUIDField(format='hex_verbose')  format:  1) <code>'hex_verbose'</code> 如<code>&quot;5ce0e9a5-5ffa-654b-cee0-1238041fb31a&quot;</code>  2） <code>'hex'</code> 如 <code>&quot;5ce0e9a55ffa654bcee01238041fb31a&quot;</code>  3）<code>'int'</code> - 如: <code>&quot;123456789012312313134124512351145145114&quot;</code>  4）<code>'urn'</code> 如: <code>&quot;urn:uuid:5ce0e9a5-5ffa-654b-cee0-1238041fb31a&quot;</code></td>
+</tr>
+<tr>
+<td><strong>IPAddressField</strong></td>
+<td>IPAddressField(protocol='both', unpack_ipv4=False, **options)</td>
+</tr>
+<tr>
+<td><strong>IntegerField</strong></td>
+<td>IntegerField(max_value=None, min_value=None)</td>
+</tr>
+<tr>
+<td><strong>FloatField</strong></td>
+<td>FloatField(max_value=None, min_value=None)</td>
+</tr>
+<tr>
+<td><strong>DecimalField</strong></td>
+<td>DecimalField(max_digits, decimal_places, coerce_to_string=None, max_value=None, min_value=None) max_digits: 最多位数 decimal_palces: 小数点位置</td>
+</tr>
+<tr>
+<td><strong>DateTimeField</strong></td>
+<td>DateTimeField(format=api_settings.DATETIME_FORMAT, input_formats=None)</td>
+</tr>
+<tr>
+<td><strong>DateField</strong></td>
+<td>DateField(format=api_settings.DATE_FORMAT, input_formats=None)</td>
+</tr>
+<tr>
+<td><strong>TimeField</strong></td>
+<td>TimeField(format=api_settings.TIME_FORMAT, input_formats=None)</td>
+</tr>
+<tr>
+<td><strong>DurationField</strong></td>
+<td>DurationField()</td>
+</tr>
+<tr>
+<td><strong>ChoiceField</strong></td>
+<td>ChoiceField(choices) choices与Django的用法相同</td>
+</tr>
+<tr>
+<td><strong>MultipleChoiceField</strong></td>
+<td>MultipleChoiceField(choices)</td>
+</tr>
+<tr>
+<td><strong>FileField</strong></td>
+<td>FileField(max_length=None, allow_empty_file=False, use_url=UPLOADED_FILES_USE_URL)</td>
+</tr>
+<tr>
+<td><strong>ImageField</strong></td>
+<td>ImageField(max_length=None, allow_empty_file=False, use_url=UPLOADED_FILES_USE_URL)</td>
+</tr>
+<tr>
+<td><strong>ListField</strong></td>
+<td>ListField(child=, min_length=None, max_length=None)</td>
+</tr>
+<tr>
+<td><strong>DictField</strong></td>
+<td>DictField(child=)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>选项参数：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>max_length</strong></td>
+<td>最大长度[适用于字符串，列表，文件]</td>
+</tr>
+<tr>
+<td><strong>min_lenght</strong></td>
+<td>最小长度[适用于字符串，列表，文件]</td>
+</tr>
+<tr>
+<td><strong>allow_blank</strong></td>
+<td>是否允许数据的值为空，如果使用这个选项，则前端传递过来的数据必须有这个属性。</td>
+</tr>
+<tr>
+<td><strong>trim_whitespace</strong></td>
+<td>是否截断空白字符</td>
+</tr>
+<tr>
+<td><strong>max_value</strong></td>
+<td>【数值】最小值</td>
+</tr>
+<tr>
+<td><strong>min_value</strong></td>
+<td>【数值】最大值</td>
+</tr>
+</tbody>
+</table>
+<p>通用参数：</p>
+<table>
+<thead>
+<tr>
+<th>参数名称</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>read_only</strong></td>
+<td>表明该字段仅用于序列化输出，默认False</td>
+</tr>
+<tr>
+<td><strong>write_only</strong></td>
+<td>表明该字段仅用于反序列化输入，默认False</td>
+</tr>
+<tr>
+<td><strong>required</strong></td>
+<td>表明该字段在反序列化时必须输入，默认True</td>
+</tr>
+<tr>
+<td><strong>default</strong></td>
+<td>反序列化时使用的默认值</td>
+</tr>
+<tr>
+<td><strong>allow_null</strong></td>
+<td>表明该字段是否允许传入None，默认False</td>
+</tr>
+<tr>
+<td><strong>validators</strong></td>
+<td>该字段使用的验证器</td>
+</tr>
+<tr>
+<td><strong>error_messages</strong></td>
+<td>包含错误编号与错误信息的字典</td>
+</tr>
+<tr>
+<td><strong>label</strong></td>
+<td>用于HTML展示API页面时，显示的字段名称</td>
+</tr>
+<tr>
+<td><strong>help_text</strong></td>
+<td>用于HTML展示API页面时，显示的字段帮助提示信息</td>
+</tr>
+</tbody>
+</table>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/VEfPb2dUj" class="tag">
+                    django
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/vhKLQmmvn" class="tag">
+                    python
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/kubernetes-hostpath-he-local-volume">
+                  <h3 class="post-title">
+                    Kubernetes hostpath和local volume
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

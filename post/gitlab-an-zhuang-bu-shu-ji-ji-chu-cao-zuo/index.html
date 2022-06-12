@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Gitlab安装部署及基础操作 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Gitlab安装部署及基础操作</h2>
+            <div class="post-date">2018-07-18</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%AE%89%E8%A3%85">1、安装</a></li>
+<li><a href="#2-%E6%B1%89%E5%8C%96">2、汉化</a></li>
+<li><a href="#3-%E7%99%BB%E5%BD%95%E5%B9%B6%E8%BF%9B%E8%A1%8C%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C">3、登录并进行基本操作</a>
+<ul>
+<li><a href="#31-%E4%BD%BF%E7%94%A8%E5%89%8D%E5%8F%AF%E9%80%89%E6%93%8D%E4%BD%9C">3.1 使用前可选操作</a></li>
+<li><a href="#32-%E5%88%9B%E5%BB%BA%E7%A9%BA%E7%99%BD%E9%A1%B9%E7%9B%AE">3.2、创建空白项目</a></li>
+<li><a href="#33-%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%94%9F%E6%88%90%E5%AF%86%E9%92%A5%E6%96%87%E4%BB%B6">3.3、客户端生成密钥文件</a></li>
+<li><a href="#34-%E5%AF%BC%E5%85%A5%E6%96%B0%E9%A1%B9%E7%9B%AE%E6%96%87%E4%BB%B6%E5%88%B0%E4%BB%93%E5%BA%93">3.4、导入新项目文件到仓库</a></li>
+<li><a href="#35-%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AA%E6%96%B0%E7%9A%84%E4%BB%93%E5%BA%93">3.5、创建一个新的仓库</a></li>
+<li><a href="#36-%E5%B7%B2%E5%AD%98%E5%9C%A8git%E7%89%88%E6%9C%AC%E5%BA%93">3.6、已存在git版本库</a></li>
+<li><a href="#37-%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C%E6%80%BB%E7%BB%93%E5%8F%8A%E5%85%B6%E4%BB%96%E4%BA%A4%E4%BA%92%E6%93%8D%E4%BD%9C">3.7、基本操作总结及其他交互操作</a></li>
+</ul>
+</li>
+<li><a href="#4-gitlab%E9%82%AE%E4%BB%B6%E5%8A%9F%E8%83%BD%E9%85%8D%E7%BD%AE">4、gitlab邮件功能配置</a>
+<ul>
+<li><a href="#41-%E9%85%8D%E7%BD%AE">4.1、配置</a></li>
+<li><a href="#42-%E9%82%AE%E7%AE%B1%E6%B5%8B%E8%AF%95">4.2、邮箱测试</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>GitLab 是一个用于仓库管理系统的开源项目，使用Git作为代码管理工具，并在此基础上搭建起来的web服务。可通过Web界面进行访问公开的或者私人项目。它拥有与Github类似的功能，能够浏览源代码，管理缺陷和注释。可以管理团队对仓库的访问，它非常易于浏览提交过的版本并提供一个文件历史库。团队成员可以利用内置的简单聊天程序(Wall)进行交流。它还提供一个代码片段收集功能可以轻松实现代码复用。</p>
+</blockquote>
+<p>环境说明<br>
+系统版本  CentOS 7.2 x86_64（较新版本的gitlab集成了更多功能，顺利运行起来的硬件要求较高，这里给了3G内存）<br>
+软件版本  gitlab-ce-10.8.4</p>
+<h2 id="1-安装">1、安装</h2>
+<p>Gitlab的rpm包集成了它需要的软件，简化了安装步骤，所以直接安装rpm包即可，rpm包的获取从官方网站或者国内镜像源（如：<a href="https://mirrors.tuna.tsinghua.edu.cn/gitlab-ce/yum/el7/">清华</a>）获取，gitlab又分为社区版和企业版（收费），这里部署的是社区版本10.8.4</p>
+<pre><code>[root@gitlab ~]# mkdir -p /service/tools
+[root@gitlab ~]# cd /service/tools/
+[root@gitlab tools]# yum localinstall -y gitlab-ce-10.8.4-ce.0.el7.x86_64.rpm			#安装下载好的rpm包
+或者
+[root@gitlab ~]# rpm -ivh https://mirrors.tuna.tsinghua.edu.cn/gitlab-ce/yum/el7/gitlab-ce-10.8.4-ce.0.el7.x86_64.rpm		#执行rpm -ivh 在线安装
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20180718-01.png" alt=""></figure>
+<p>安装完成后出现上面的提示，按照提示修改配置文件中的url地址为本地服务器的地址</p>
+<pre><code>[root@gitlab tools]# vim /etc/gitlab/gitlab.rb
+external_url 'http://10.0.0.5'
+[root@gitlab tools]# gitlab-ctl reconfigure		#重新加载配置
+[root@gitlab tools]# gitlab-ctl stop		#停止gitlab，进行后面的汉化
+[root@gitlab tools]# cat /opt/gitlab/embedded/service/gitlab-rails/VERSION 
+10.8.4		#查看版本
+或
+[root@gitlab tools]# rpm -qa gitlab-ce
+gitlab-ce-10.8.4-ce.0.el7.x86_64		#查看版本
+[root@gitlab tools]# ls /opt/gitlab/				#相关目录
+bin                       embedded  init     LICENSES  sv   version-manifest.json
+dependency_licenses.json  etc       LICENSE  service   var  version-manifest.txt
+[root@gitlab tools]# ls /var/opt/gitlab				#相关目录
+alertmanager  git-data        gitlab-shell      node-exporter      public_attributes.json
+backups       gitlab-ci       gitlab-workhorse  postgres-exporter  redis
+bootstrapped  gitlab-monitor  logrotate         postgresql         trusted-certs-directory-hash
+gitaly        gitlab-rails    nginx             Prometheus
+</code></pre>
+<h2 id="2-汉化">2、汉化</h2>
+<p>默认的全英文界面对于英文水平低的来讲当然用着很不舒服，于是便需要来一波操作进行汉化，英文好的请自觉忽略<br>
+GitLab中文社区的项目，v7-v8.8是由Larry Li发起的<a href="https://gitlab.com/larryli/gitlab">GitLab中文社区版项目</a>，从v8.9之后由<a href="https://gitlab.com/xhang/gitlab">@xhang</a>开始继续汉化项目</p>
+<pre><code>[root@gitlab tools]# pwd
+/service/tools
+[root@gitlab tools]# mkdir /backup
+[root@gitlab tools]# cp /opt/gitlab/embedded/service/gitlab-rails/* /backup	#防止汉化失败，备份原文件
+[root@gitlab tools]# git clone https://gitlab.com/xhang/gitlab.git		#下载最新的汉化包
+</code></pre>
+<p>汉化包的版本更新速度不得而知，所以尽量不要安装最新版本的gitlab。如果是要下载老版本的汉化包，需要加上老版本的分支，如果想下载10.0.2，可以运行如下语句</p>
+<pre><code>[root@gitlab tools]# git clone https://gitlab.com/xhang/gitlab.git -b v10.0.2-zh
+[root@gitlab tools]# ls		#git下来的文件为gitlab
+gitlab  gitlab-ce-10.8.4-ce.0.el7.x86_64.rpm
+[root@gitlab tools]# \cp -rf gitlab/* /opt/gitlab/embedded/service/gitlab-rails/	#拷贝文件
+检验汉化
+[root@gitlab tools]# gitlab-ctl reconfigure			#加载配置（第一次执行此命令会启动，若只启动执行start）
+启动时查看控制台输出，需要等待一段时间，无输出后启动完成，执行free -m命令查看到当前的内存使用情况为
+[root@gitlab tools]# free -m
+              total        used        free      shared  buff/cache   available
+Mem:           2993        2123         156          62         713         597
+Swap:          2047           0        2047
+[root@gitlab tools]# netstat -lntup
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+tcp        0      0 127.0.0.1:9100          0.0.0.0:*               LISTEN      4319/node_exporter  
+tcp        0      0 127.0.0.1:9229          0.0.0.0:*               LISTEN      4628/gitlab-workhor 
+tcp        0      0 127.0.0.1:9168          0.0.0.0:*               LISTEN      4659/ruby           
+tcp        0      0 127.0.0.1:8080          0.0.0.0:*               LISTEN      4191/unicorn master 
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      4223/nginx: master  
+tcp        0      0 127.0.0.1:8082          0.0.0.0:*               LISTEN      4196/sidekiq 5.0.5  
+tcp        0      0 127.0.0.1:9236          0.0.0.0:*               LISTEN      4642/gitaly         
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      1439/sshd           
+tcp        0      0 0.0.0.0:8060            0.0.0.0:*               LISTEN      4223/nginx: master  
+tcp        0      0 0.0.0.0:6783            0.0.0.0:*               LISTEN      4696/alertmanager   
+tcp        0      0 127.0.0.1:9121          0.0.0.0:*               LISTEN      4425/redis_exporter 
+tcp        0      0 127.0.0.1:9090          0.0.0.0:*               LISTEN      4681/prometheus     
+tcp        0      0 127.0.0.1:9187          0.0.0.0:*               LISTEN      4710/postgres_expor 
+tcp        0      0 127.0.0.1:9093          0.0.0.0:*               LISTEN      4696/alertmanager   
+tcp6       0      0 ::1:9168                :::*                    LISTEN      4659/ruby           
+tcp6       0      0 :::22                   :::*                    LISTEN      1439/sshd
+</code></pre>
+<p>浏览器访问，第一次登录需要修改密码（不小于8位），汉化成功！！！</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20180718-02.png" alt=""></figure>
+<h2 id="3-登录并进行基本操作">3、登录并进行基本操作</h2>
+<p>GitLab终端常用命令</p>
+<pre><code>gitlab-ctl start    			#启动所有 gitlab 组件；
+gitlab-ctl stop        		#停止所有 gitlab 组件；
+gitlab-ctl restart        	#重启所有 gitlab 组件；
+gitlab-ctl status        		#查看服务状态；
+gitlab-ctl reconfigure       	#启动服务；
+vim /etc/gitlab/gitlab.rb     #修改默认的配置文件；
+gitlab-rake gitlab:check SANITIZE=true --trace    #检查gitlab；
+gitlab-ctl tail        		#查看日志；
+修改密码后进行登录，登录的用户名为root
+</code></pre>
+<h3 id="31-使用前可选操作">3.1 使用前可选操作</h3>
+<ul>
+<li>修改web端口</li>
+</ul>
+<p>如果80和8080端口被占用可以修改</p>
+<pre><code>[root@gitlab tools]# vim /var/opt/gitlab/gitlab-rails/etc/unicorn.rb
+listen &quot;127.0.0.1:8080&quot;, :tcp_nopush =&gt; true
+修改nginx端口
+[root@gitlab tools]# vim /var/opt/gitlab/nginx/conf/gitlab-http.conf
+server {
+  listen *:80;
+</code></pre>
+<ul>
+<li>修改Prometheus端口</li>
+</ul>
+<pre><code>[root@gitlab tools]# vim /etc/gitlab/gitlab.rb
+external_url 'http://10.0.0.5:port'		#根据需要修改端口
+</code></pre>
+<p>修改后需要重新加载配置并启动<br>
+登录使用</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20180718-03.png" alt=""></figure>
+<h3 id="32-创建空白项目">3.2、创建空白项目</h3>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20180718-04.png" alt=""></figure>
+<p>选择项目路径，输入项目名称，项目描述，选择项目等级（私人的，内部的，公开的），这里测试时使用网上的开源java cms项目jeesns</p>
+<figure data-type="image" tabindex="5"><img src="https://image.ssgeek.com/20180718-05.png" alt=""></figure>
+<p>创建项目成功，此时若客户端想使用该项目还需要建立与客户端的密钥文件以进行客户端对项目的操作</p>
+<figure data-type="image" tabindex="6"><img src="https://image.ssgeek.com/20180718-06.png" alt=""></figure>
+<h3 id="33-客户端生成密钥文件">3.3、客户端生成密钥文件</h3>
+<pre><code>[root@gitlab-client ~]# ssh-keygen 
+Generating public/private rsa key pair.
+Enter file in which to save the key (/root/.ssh/id_rsa): 
+Created directory '/root/.ssh'.
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /root/.ssh/id_rsa.
+Your public key has been saved in /root/.ssh/id_rsa.pub.
+The key fingerprint is:
+07:f8:5c:75:83:aa:c2:a6:5c:25:d9:87:d0:4e:7a:1c root@gitlab-client
+The key's randomart image is:
++--[ RSA 2048]----+
+|       .    ..o  |
+|      ..E  ... . |
+|      .O.o..     |
+|      +oBoo      |
+|     . +So.      |
+|      = ..       |
+|   . + .         |
+|    o            |
+|                 |
++-----------------+
+[root@gitlab-client ~]# cat .ssh/id_rsa.pub 		#查看公钥
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDI5yMQBjSftxN9PHg3ogCwaTxPNZ3n5+TZRwJZBKO5sQGNirAzNdq8wFwbUFqtFDqYFxU3mTBh5LG3Fk1Zh8R8abpzmHijP09gdgB4Ae31axRAPcngXss//flKQCSHoQlvwI+ZWozMGItmFMcmRCla4BTq/e3mVJuIdR8VQwSG32SeRqReZIrjbvsa8hp3D5nbLa5KWRiAuOj4OhPBwHOG8hx/wSnplyI8rtMayj6BjuczDdrZNotyv0IntxFZPoUQJ/+pN1azHGm6tI1TmKyh1lmmc5Tu0a7TxTf7Ve+P/srbxlqb7CWT168fZRzziglXcR5e2Ge7tNrkXo+dl2tf root@gitlab-client
+</code></pre>
+<p>将上面的公钥文件复制到gitlab中</p>
+<figure data-type="image" tabindex="7"><img src="https://image.ssgeek.com/20180718-07.png" alt=""></figure>
+<p>ssh key添加完成</p>
+<figure data-type="image" tabindex="8"><img src="https://image.ssgeek.com/20180718-08.png" alt=""></figure>
+<p>点击项目，查看项目的ssh地址及http地址</p>
+<figure data-type="image" tabindex="9"><img src="https://image.ssgeek.com/20180718-09.png" alt=""></figure>
+<figure data-type="image" tabindex="10"><img src="https://image.ssgeek.com/20180718-10.png" alt=""></figure>
+<p>按照项目下面的提示进行简单配置</p>
+<figure data-type="image" tabindex="11"><img src="https://image.ssgeek.com/20180718-11.png" alt=""></figure>
+<p>在客户端操作<br>
+git全局设置</p>
+<pre><code>[root@gitlab-client ~]# git config --global user.name &quot;test&quot;			#配置使用Git仓库的人员姓名
+[root@gitlab-client ~]# git config --global user.email &quot;test@test.com&quot;	#配置使用Git仓库的人员email
+设置后提交记录才会在gitlab上显示带名字的记录
+[root@gitlab-client ~]# git config --list		#检查配置信息
+</code></pre>
+<h3 id="34-导入新项目文件到仓库">3.4、导入新项目文件到仓库</h3>
+<pre><code>[root@gitlab-client ~]# cd /service/tools/jeesns/
+[root@gitlab-client jeesns]# rm -rf .git		#在网站下载的jeesns有.git目录，删除该目录
+[root@gitlab-client jeesns]# git init		#初始化仓库(创建一个名为 .git 的子目录,这个子目录含有你初始化的 Git 仓库中所有的必须文件,这些文件是 Git 仓库的骨干)
+初始化空的 Git 版本库于 /service/tools/jeesns/.git/
+[root@gitlab-client jeesns]# git remote add origin git@10.0.0.5:root/jeesns.git		#添加远程项目地址（可从项目主页复制）
+[root@gitlab-client jeesns]# git add .	#将修改保存到索引区
+[root@gitlab-client jeesns]# git commit -m &quot;tijiao&quot;	#提交所有代码到本机的版本库
+[root@gitlab-client jeesns]# git push -u origin master		#将本地的更改提交到远程服务器
+The authenticity of host '10.0.0.5 (10.0.0.5)' can't be established.
+ECDSA key fingerprint is b7:9c:07:5c:a0:01:c3:00:50:f4:59:8e:e3:f5:f5:e2.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '10.0.0.5' (ECDSA) to the list of known hosts.
+Counting objects: 1932, done.
+Compressing objects: 100% (1851/1851), done.
+Writing objects: 100% (1932/1932), 37.69 MiB | 9.26 MiB/s, done.
+Total 1932 (delta 283), reused 0 (delta 0)
+remote: Resolving deltas: 100% (283/283), done.
+To git@10.0.0.5:root/jeesns.git
+ * [new branch]      master -&gt; master
+分支 master 设置为跟踪来自 origin 的远程分支 master。
+</code></pre>
+<p>此时查看项目，代码已经成功上传到gitlab</p>
+<figure data-type="image" tabindex="12"><img src="https://image.ssgeek.com/20180718-12.png" alt=""></figure>
+<h3 id="35-创建一个新的仓库">3.5、创建一个新的仓库</h3>
+<p>参照提示进行操作，首先在gitlab上创建新的版本库，接着客户端进行操作</p>
+<pre><code>git clone git@10.0.0.5:root/12345.git		#将远程服务器项目的内容clone下来
+cd 12345								#进入该项目的文件夹
+touch README.md						#新建readme文件
+git add README.md					#将新的文件添加到git的暂存区
+git commit -m &quot;add README&quot;			#将暂存区的文件提交到某一个版本保存下来，并加上注释
+git push -u origin master				#将本地的更改提交到远程服务器
+git 中clone过来的时候，git不会对比本地和服务器的文件，也就不会有冲突，建议确定完全覆盖本地的时候用clone，不确定会不会有冲突的时候用git pull，将远程服务器的代码download下来
+</code></pre>
+<h3 id="36-已存在git版本库">3.6、已存在git版本库</h3>
+<pre><code>cd existing_repo
+git remote rename origin old-origin				#重命名
+git remote add origin git@10.0.0.5:root/12345.git	#添加远程项目地址
+git push -u origin –all		#上传
+git push -u origin --tags		#上传tag（分支）
+</code></pre>
+<h3 id="37-基本操作总结及其他交互操作">3.7、基本操作总结及其他交互操作</h3>
+<pre><code>git init //初始化
+git add main.cpp //将某一个文件添加到暂存区
+git add .          //将文件夹下的所有的文件添加到暂存区
+git commit -m ‘note’ //将暂存区中的文件保存成为某一个版本
+git log             //查看所有的版本日志
+git status          //查看现在暂存区的状况
+git diff            //查看现在文件与上一个提交-commit版本的区别
+git reset --hard HEAD^ //回到上一个版本
+git reset --hard XXXXX //XXX为版本编号，回到某一个版本
+git pull origin master //从主分支pull到本地
+git push -u origin master //从本地push到主分支
+git pull                //pull默认主分支
+git push                //push默认主分支
+更多git命令可参考：https://www.yiibai.com/git/git_push.html
+</code></pre>
+<h2 id="4-gitlab邮件功能配置">4、gitlab邮件功能配置</h2>
+<h3 id="41-配置">4.1、配置</h3>
+<p>以163邮箱为例</p>
+<pre><code>[root@gitlab tools]# vim /etc/gitlab/gitlab.rb
+gitlab_rails['time_zone'] = 'Asia/Shanghai' 
+gitlab_rails['gitlab_email_enabled'] = true 
+gitlab_rails['gitlab_email_from'] = '邮件用户名@163.com' 
+gitlab_rails['gitlab_email_display_name'] = 'Gitlab CE' 
+gitlab_rails['smtp_enable'] = true 
+gitlab_rails['smtp_address'] = &quot;smtp.163.com&quot; 
+gitlab_rails['smtp_port'] = 25 
+gitlab_rails['smtp_user_name'] = &quot;邮件用户名@163.com&quot; 
+gitlab_rails['smtp_password'] = &quot;邮件帐号的授权码&quot; 
+gitlab_rails['smtp_domain'] = &quot;163.com&quot; 
+gitlab_rails['smtp_authentication'] = &quot;login&quot; 
+gitlab_rails['smtp_enable_starttls_auto'] = false 
+user['git_user_email'] = &quot;邮件用户名@163.com&quot;
+[root@gitlab tools]# gitlab-ctl reconfigure		#重新加载配置
+</code></pre>
+<p>qq邮箱配置</p>
+<pre><code>gitlab_rails['smtp_enable'] = true
+gitlab_rails['smtp_address'] = &quot;smtp.qq.com&quot;
+gitlab_rails['smtp_port'] = 465
+gitlab_rails['smtp_user_name'] = &quot;******@qq.com&quot;
+gitlab_rails['smtp_password'] = &quot;授权码&quot;
+gitlab_rails['smtp_domain'] = &quot;smtp.qq.com&quot;
+gitlab_rails['smtp_authentication'] = &quot;login&quot;
+gitlab_rails['smtp_enable_starttls_auto'] = true
+gitlab_rails['smtp_tls'] = true
+gitlab_rails['gitlab_email_from'] = '******@qq.com'
+</code></pre>
+<h3 id="42-邮箱测试">4.2、邮箱测试</h3>
+<p>命令行测试：</p>
+<pre><code>执行 gitlab-rails console进入控制台
+输入Notify.test_email('收件人邮箱', '邮件标题', '邮件正文').deliver_now
+</code></pre>
+<figure data-type="image" tabindex="13"><img src="https://image.ssgeek.com/20180718-13.png" alt=""></figure>
+<p>命令行测试成功，可以在邮箱中查收<br>
+为用户添加一个邮箱</p>
+<figure data-type="image" tabindex="14"><img src="https://image.ssgeek.com/20180718-14.png" alt=""></figure>
+<p>点击增加，并登陆邮箱查看，点击确认即可增加邮箱</p>
+<figure data-type="image" tabindex="15"><img src="https://image.ssgeek.com/20180718-15.png" alt=""></figure>
+<p>忘记密码邮箱发送邮件测试</p>
+<figure data-type="image" tabindex="16"><img src="https://image.ssgeek.com/20180718-16.png" alt=""></figure>
+<p>查看邮箱信息</p>
+<figure data-type="image" tabindex="17"><img src="https://image.ssgeek.com/20180718-17.png" alt=""></figure>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/UbW18jYN8" class="tag">
+                    gitlab
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/svn-fu-wu-de-bu-shu-ji-shi-yong">
+                  <h3 class="post-title">
+                    SVN服务的部署及使用
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

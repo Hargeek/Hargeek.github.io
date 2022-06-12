@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>浅谈Prometheus的数据存储 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">浅谈Prometheus的数据存储</h2>
+            <div class="post-date">2021-08-12</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">1、概述</a></li>
+<li><a href="#2-%E6%97%B6%E9%97%B4%E5%BA%8F%E5%88%97">2、时间序列</a></li>
+<li><a href="#3-%E4%BA%8C%E7%BB%B4%E6%A8%A1%E5%9E%8B">3、二维模型</a></li>
+<li><a href="#4-%E5%AD%98%E5%82%A8%E7%AD%96%E7%95%A5%E7%9A%84%E6%BC%94%E8%BF%9B">4、存储策略的演进</a>
+<ul>
+<li><a href="#41-1x%E7%89%88%E6%9C%AC">4.1 1.x版本</a></li>
+<li><a href="#42-2x%E7%89%88%E6%9C%AC">4.2 2.x版本</a>
+<ul>
+<li><a href="#421-%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E5%88%86%E5%9D%97">4.2.1 数据存储分块</a></li>
+<li><a href="#422-block%E5%90%88%E5%B9%B6">4.2.2 block合并</a></li>
+<li><a href="#423-%E6%95%B0%E6%8D%AE%E4%BF%9D%E7%95%99">4.2.3 数据保留</a></li>
+<li><a href="#424-%E6%9F%A5%E8%AF%A2%E5%92%8C%E7%B4%A2%E5%BC%95">4.2.4 查询和索引</a></li>
+<li><a href="#426-wal">4.2.6 WAL</a></li>
+<li><a href="#427-%E5%B0%8F%E7%BB%93">4.2.7 小结</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/prometheus.png" alt=""></figure>
+<blockquote>
+<p>本文是结合耗子叔的视频及Prometheus作者部分原文整理，加上部分个人理解而来，膜拜大神~</p>
+</blockquote>
+<h2 id="1-概述">1、概述</h2>
+<p><code>Prometheus</code>是一套开源的监控&amp;报警&amp;时间序列数据库的组合</p>
+<p><code>Prometheus</code>内部主要分为三大块，<code>Retrieval</code>是负责定时去暴露的目标页面上去抓取采样指标数据，<code>Storage</code>是负责将采样数据写磁盘，<code>PromQL</code>是<code>Prometheus</code>提供的查询语言模块</p>
+<p>其有着非常高效的时间序列数据存储方法，每个采样数据仅仅占用<code>3.5byte</code>左右空间</p>
+<p>在早期有一个单独的项目叫做 <code>TSDB</code>，但是，在<code>2.1.x</code>的某个版本，已经不单独维护这个项目了，直接将这个项目合并到了<code>prometheus</code>的主干上了</p>
+<p><code>prometheus</code>每次抓取的数据，对于操作者来说可见的格式（即在<code>prometheus</code>界面查询到的值）</p>
+<pre><code>requests_total{path=&quot;/status&quot;, method=&quot;GET&quot;, instance=&quot;10.0.0.1:80&quot;} @1534317560938 94355
+</code></pre>
+<p>意思就是在<code>1534317560938</code>这个时间点，<code>10.0.0.1:80</code>这个实例上，<code>GET /status</code> 这个请求的次数累计是 <code>94355</code>次</p>
+<p>最终存储在<code>TSDB</code>中的格式为</p>
+<pre><code>{__name__=&quot;requests_total&quot;, path=&quot;/status&quot;, method=&quot;GET&quot;, instance=&quot;10.0.0.1:80&quot;}
+</code></pre>
+<h2 id="2-时间序列">2、时间序列</h2>
+<ul>
+<li><code>Data scheme</code>数据标识</li>
+</ul>
+<pre><code>identifier -&gt; (t0, v0), (t1, v1), (t2, v2), (t3, v3), ...
+</code></pre>
+<ul>
+<li><code>Prometheus Data Model</code>数据模型</li>
+</ul>
+<pre><code>&lt;metric name&gt;{&lt;label name&gt;=&lt;label value&gt;, ...}
+</code></pre>
+<ul>
+<li><code>Typical set of series identifiers</code></li>
+</ul>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210812-01.png" alt=""></figure>
+<ul>
+<li>Query 查询</li>
+</ul>
+<p><code>__name__=&quot;requests_total&quot;</code>：查询所有属于<code>requests_total</code>的序列</p>
+<p><code>method=&quot;PUT|POST&quot;</code>：查询所有序列中方法是<code>PUT</code>或<code>POST</code>的序列</p>
+<h2 id="3-二维模型">3、二维模型</h2>
+<ul>
+<li>
+<p>Write写：每个目标暴露成百上千个不同的时间序列，写入模式是完全垂直和高度并发的，因为来自每个目标的样本是独立的</p>
+</li>
+<li>
+<p>Query查：查询数据时可以并行和批处理</p>
+</li>
+</ul>
+<pre><code>series
+  ^   
+  │   . . . . . . . . . . . . . . . . .   . . . . .   {__name__=&quot;request_total&quot;, method=&quot;GET&quot;}
+  │     . . . . . . . . . . . . . . . . . . . . . .   {__name__=&quot;request_total&quot;, method=&quot;POST&quot;}
+  │         . . . . . . .
+  │       . . .     . . . . . . . . . . . . . . . .                  ... 
+  │     . . . . . . . . . . . . . . . . .   . . . .   
+  │     . . . . . . . . . .   . . . . . . . . . . .   {__name__=&quot;errors_total&quot;, method=&quot;POST&quot;}
+  │           . . .   . . . . . . . . .   . . . . .   {__name__=&quot;errors_total&quot;, method=&quot;GET&quot;}
+  │         . . . . . . . . .       . . . . .
+  │       . . .     . . . . . . . . . . . . . . . .                  ... 
+  │     . . . . . . . . . . . . . . . .   . . . . 
+  v
+    &lt;-------------------- time ---------------------&gt;
+</code></pre>
+<p>二维模型中横轴表示时间，纵轴表示各数据点</p>
+<p>这类设计会带来的问题如下</p>
+<p>存储问题</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210812-02.png" alt=""></figure>
+<p>如上图所示，在二维模型中的读写差别是很大的</p>
+<p>（时间序列查询）读时带来的随机读问题和查询带来的随机写问题，（查询）读往往会比写更复杂，这是很慢的。尽管用了<code>SSD</code>，但会带来写放大的问题，<code>SSD</code>是<code>4k</code>写，<code>256k</code>删除，<code>SSD</code>之所以快，实际上靠的是算法，因此在文件碎片如此大的情况下，都是不能满足的<br>
+<img src="https://image.ssgeek.com/20210812-03.png" alt=""></p>
+<p>理想状态下的写应该是顺序写、批量写，对于相同的时间序列读应该也是顺序读</p>
+<h2 id="4-存储策略的演进">4、存储策略的演进</h2>
+<h3 id="41-1x版本">4.1 1.x版本</h3>
+<p>1.x版本下，存储情况是这样的</p>
+<ul>
+<li>每个时间序列都对应一个文件</li>
+<li>在内存中批量处理1kb的的chunk</li>
+</ul>
+<pre><code>   ┌──────────┬─────────┬─────────┬─────────┬─────────┐           series A
+   └──────────┴─────────┴─────────┴─────────┴─────────┘
+          ┌──────────┬─────────┬─────────┬─────────┬─────────┐    series B
+          └──────────┴─────────┴─────────┴─────────┴─────────┘ 
+                              . . .
+ ┌──────────┬─────────┬─────────┬─────────┬─────────┬─────────┐   series XYZ
+ └──────────┴─────────┴─────────┴─────────┴─────────┴─────────┘ 
+   chunk 1    chunk 2   chunk 3     ...
+</code></pre>
+<p>存在的问题：</p>
+<ul>
+<li>
+<p><code>chunk</code>保存在内存中，如果应用程序或节点崩溃，它可能会丢失</p>
+</li>
+<li>
+<p>由于时间序列的维度很多，对于的文件个数也会很多，这可能耗尽操作系统的<code>inode</code></p>
+</li>
+<li>
+<p>上千的<code>chunk</code>保存在硬盘需要持久化，可能会导致磁盘<code>I/O</code>非常繁忙</p>
+</li>
+<li>
+<p>磁盘<code>I/O</code>打开很多的文件，会导致非常高的延迟</p>
+</li>
+<li>
+<p>旧数据需要清理，这可能会导致<code>SSD</code>的写放大</p>
+</li>
+<li>
+<p>非常大的<code>CPU</code>、内存、磁盘资源消耗</p>
+</li>
+<li>
+<p>序列的丢失和变动</p>
+</li>
+</ul>
+<p>例如一些时间序列变得不活跃，而另一些时间序列变得活跃，原因在于例如<code>k8s</code>中应用程序的连续自动扩展和频繁滚动更新带来的实例的<code>ip</code>等变化，每天可能会创建数万个新应用程序实例，以及全新的时间序列集</p>
+<p>因此，即使整个基础设施的规模大致保持不变，随着时间的推移，数据库中的时间序列也会线性增长。即使<code>Prometheus</code>服务器能够收集<code>1000</code>万个时间序列的数据，但如果必须在<code>10</code>亿个序列中找到数据，查询性能会受到很大影响</p>
+<pre><code>series
+  ^
+  │   . . . . . .
+  │   . . . . . .
+  │   . . . . . .
+  │               . . . . . . .
+  │               . . . . . . .
+  │               . . . . . . .
+  │                             . . . . . .
+  │                             . . . . . .
+  │                                         . . . . .
+  │                                         . . . . .
+  │                                         . . . . .
+  v
+    &lt;-------------------- time ---------------------&gt;
+</code></pre>
+<h3 id="42-2x版本">4.2 2.x版本</h3>
+<p>2.x时代的存储布局</p>
+<p>https://github.com/prometheus/prometheus/blob/release-2.25/tsdb/docs/format/README.md</p>
+<h4 id="421-数据存储分块">4.2.1 数据存储分块</h4>
+<ul>
+<li>
+<p>01xxxxx 数据块</p>
+<p><code>ULID</code>，和<code>UUID</code>一样，但是是按照字典和编码的创建时间排序的</p>
+</li>
+<li>
+<p>chunk 目录</p>
+<p>包含各种系列的原始数据点块，但不再是每个序列对应一个单一的文件</p>
+</li>
+<li>
+<p>index 数据索引</p>
+<p>可以通过标签找到数据，这里保存了<code>Label</code>和<code>Series</code>的数据</p>
+</li>
+<li>
+<p>meta.json 可读元数据</p>
+<p>对应存储和它包含的数据的状态</p>
+</li>
+<li>
+<p>tombstone</p>
+<p>删除的数据将被记录到这个文件中，而不是从块文件中删除</p>
+</li>
+<li>
+<p>wal 预写日志Write-Ahead Log</p>
+<p><code>WAL</code>段将被截断到<code>checkpoint.X</code>目录中</p>
+</li>
+<li>
+<p>chunks_head</p>
+<p>在内存中的数据</p>
+</li>
+<li>
+<p>数据将每2小时保存到磁盘中</p>
+</li>
+<li>
+<p>WAL用于数据恢复</p>
+</li>
+<li>
+<p>2小时块可以高效查询范围数据</p>
+</li>
+</ul>
+<p>分块存储后，每个目录都是独立的存储目录，结构如下：</p>
+<pre><code class="language-shell">$ tree ./data
+./data
+├── b-000001
+│   ├── chunks
+│   │   ├── 000001
+│   │   ├── 000002
+│   │   └── 000003
+│   ├── index
+│   └── meta.json
+├── b-000004
+│   ├── chunks
+│   │   └── 000001
+│   ├── index
+│   └── meta.json
+├── b-000005
+│   ├── chunks
+│   │   └── 000001
+│   ├── index
+│   └── meta.json
+└── b-000006
+    ├── meta.json
+    └── wal
+        ├── 000001
+        ├── 000002
+        └── 000003
+</code></pre>
+<p>分块存储对应着<code>Blocks</code>，可以看做是小型数据库</p>
+<ul>
+<li>
+<p>将数据分成互不重叠的块</p>
+<p>每个块都充当一个完全独立的数据库</p>
+<p>包含其时间窗口的所有时间序列数据</p>
+<p>有自己的索引和块文件集</p>
+</li>
+<li>
+<p>每个数据块都是不可变的</p>
+</li>
+<li>
+<p>当前块可以追加数据</p>
+</li>
+<li>
+<p>所有新数据都写入内存数据库</p>
+</li>
+<li>
+<p>为了防止数据丢失，还写了一个临时WAL</p>
+</li>
+</ul>
+<pre><code>t0            t1             t2             t3             now
+ ┌───────────┐  ┌───────────┐  ┌───────────┐  ┌───────────┐
+ │           │  │           │  │           │  │           │                 ┌────────────┐
+ │           │  │           │  │           │  │  mutable  │ &lt;─── write ──── ┤ Prometheus │
+ │           │  │           │  │           │  │           │                 └────────────┘
+ └───────────┘  └───────────┘  └───────────┘  └───────────┘                        ^
+       └──────────────┴───────┬──────┴──────────────┘                              │
+                              │                                                  query
+                              │                                                    │
+                            merge ─────────────────────────────────────────────────┘
+</code></pre>
+<h4 id="422-block合并">4.2.2 block合并</h4>
+<p>上面分离了<code>block</code>后，会带来的问题</p>
+<ul>
+<li>当查询多个块时，必须将它们的结果合并到一个整体结果中</li>
+<li>如果我们需要一个星期的查询，它必须合并80多个block块</li>
+</ul>
+<pre><code>t0             t1            t2             t3             t4             now
+ ┌────────────┐  ┌──────────┐  ┌───────────┐  ┌───────────┐  ┌───────────┐
+ │ 1          │  │ 2        │  │ 3         │  │ 4         │  │ 5 mutable │    before
+ └────────────┘  └──────────┘  └───────────┘  └───────────┘  └───────────┘
+ ┌─────────────────────────────────────────┐  ┌───────────┐  ┌───────────┐
+ │ 1              compacted                │  │ 4         │  │ 5 mutable │    after (option A)
+ └─────────────────────────────────────────┘  └───────────┘  └───────────┘
+ ┌──────────────────────────┐  ┌──────────────────────────┐  ┌───────────┐
+ │ 1       compacted        │  │ 3      compacted         │  │ 5 mutable │    after (option B)
+ └──────────────────────────┘  └──────────────────────────┘  └───────────┘
+</code></pre>
+<h4 id="423-数据保留">4.2.3 数据保留</h4>
+<pre><code>                      |
+ ┌────────────┐  ┌────┼─────┐  ┌───────────┐  ┌───────────┐  ┌───────────┐
+ │ 1          │  │ 2  |     │  │ 3         │  │ 4         │  │ 5         │   . . .
+ └────────────┘  └────┼─────┘  └───────────┘  └───────────┘  └───────────┘
+                      |
+                      |
+             retention boundary
+</code></pre>
+<p>第<code>1</code>块可以被安全删除，第<code>2</code>块必须保持直到它完全超出边界</p>
+<p>块合并带来的影响</p>
+<ul>
+<li>块压缩可能使块太大而无法删除</li>
+<li>需要限制块的大小</li>
+</ul>
+<pre><code>最大块大小 = 保留窗口 * 10%
+</code></pre>
+<h4 id="424-查询和索引">4.2.4 查询和索引</h4>
+<p>主要特点</p>
+<ul>
+<li>
+<p>使用倒排索引，倒排索引提供基于其内容子集的数据项的快速查找。例如，可以查找所有具有标签的系列，<code>app=”nginx&quot;</code>而无需遍历每个系列并检查它是否包含该标签</p>
+</li>
+<li>
+<p>正向索引，为每个序列分配一个唯一的<code>ID</code>，通过它可以在恒定的时间内检索</p>
+</li>
+</ul>
+<p>一个目录中保存了很多<code>Series</code>，如果想要根据一个<code>Label</code>来查询对应的所有<code>Series</code>，具体流程是什么呢</p>
+<p>为每个<code>Series</code>中的所有<code>Label</code>都建立了一个倒排索引</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Label</th>
+<th style="text-align:left">Series</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>__name__=&quot;requests_total&quot;</code></td>
+<td style="text-align:left"><code>{__name__=&quot;requests_total&quot;, path=&quot;/status&quot;, method=&quot;GET&quot;, instance=”10.0.0.1:80”}</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>path=&quot;/status&quot;</code></td>
+<td style="text-align:left"><code>{__name__=&quot;requests_total&quot;, path=&quot;/status&quot;, method=&quot;GET&quot;, instance=”10.0.0.1:80”}</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>method=&quot;GET&quot;</code></td>
+<td style="text-align:left"><code>{__name__=&quot;requests_total&quot;, path=&quot;/status&quot;, method=&quot;GET&quot;, instance=”10.0.0.1:80”}</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>instance=”10.0.0.1:80”</code></td>
+<td style="text-align:left"><code>{__name__=&quot;requests_total&quot;, path=&quot;/status&quot;, method=&quot;GET&quot;, instance=”10.0.0.1:80”}</code></td>
+</tr>
+</tbody>
+</table>
+<p>正向索引的引入，给每个<code>Series</code>分配了一个<code>ID</code>，便于组合查询</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Label</th>
+<th style="text-align:left">SeriesID</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>__name__=&quot;requests_total&quot;</code></td>
+<td style="text-align:left">1001</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>path=&quot;/status&quot;</code></td>
+<td style="text-align:left">1001</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>method=&quot;GET&quot;</code></td>
+<td style="text-align:left">1001</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>instance=”10.0.0.1:80”</code></td>
+<td style="text-align:left">1001</td>
+</tr>
+</tbody>
+</table>
+<p>例如，如果查询的语句是：<code>__name __ =“requests_total” AND app =“nginx”</code></p>
+<p>需要先分别找出对应的倒排索引，再求交集，由此会带来一定的时间复杂度<code>O(N2</code>，为了减少时间复杂度，实际上倒排索引中的<code>SeriesID</code>是有序的，那么采取<code>ZigZag</code>的查找方式，可以保证在<code>O(N)</code>的时间复杂来找到最终的结果</p>
+<h4 id="426-wal">4.2.6 WAL</h4>
+<p>通过<code>mmap</code>(不经过文件系统的写数据方式)，同时在内存和<code>WAL</code>预写日志<code>Write-Ahead Log</code>中保存数据，即可以保证数据的持久不丢失，又可以保证崩溃之后从故障中恢复的时间很短，因为是从内存中恢复</p>
+<h4 id="427-小结">4.2.7 小结</h4>
+<p>新的存储结构带来的好处</p>
+<ul>
+<li>在查询某个时间范围时，可以轻松忽略该范围之外的所有数据块。它通过减少检查数据集来轻松解决数据流失问题</li>
+<li>当完成一个块时，可以通过顺序写入一些较大的文件来保存内存数据库中的数据。避免任何写放大，并同样为 <code>SSD</code>和<code>HDD</code>提供服务</li>
+<li>保留了<code>V2</code>的良好特性，即最近查询最多的块总是在内存中的</li>
+<li>不再受限于固定的<code>1KiB</code>块大小来更好地对齐磁盘上的数据。可以选择对单个数据点和所选压缩格式最有意义的任何大小</li>
+<li>删除旧数据变得非常便宜和即时，只需要删除一个目录。在旧版本的存储中，必须分析和重写多达数亿个文件，这可能需要数小时才能收敛</li>
+</ul>
+<blockquote>
+<p>参考<br>
+https://www.bilibili.com/video/BV1a64y1X7ys<br>
+https://fabxc.org/tsdb/<br>
+http://ganeshvernekar.com/blog/prometheus-tsdb-the-head-block/</p>
+</blockquote>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/0U-LGnveY" class="tag">
+                    prometheus
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/golang-dan-yuan-ce-shi">
+                  <h3 class="post-title">
+                    Golang单元测试
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>kubernetes Pod资源调度之亲和性调度 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">kubernetes Pod资源调度之亲和性调度</h2>
+            <div class="post-date">2020-04-22</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-node%E4%BA%B2%E5%92%8C%E6%80%A7%E8%B0%83%E5%BA%A6">1、Node亲和性调度</a>
+<ul>
+<li><a href="#11-node%E7%A1%AC%E4%BA%B2%E5%92%8C%E6%80%A7">1.1、Node硬亲和性</a></li>
+<li><a href="#12-node%E8%BD%AF%E4%BA%B2%E5%92%8C%E6%80%A7">1.2、Node软亲和性</a></li>
+</ul>
+</li>
+<li><a href="#2-pod%E4%BA%B2%E5%92%8C%E6%80%A7%E8%B0%83%E5%BA%A6">2、Pod亲和性调度</a>
+<ul>
+<li><a href="#21-%E4%BD%8D%E7%BD%AE%E6%8B%93%E6%89%91">2.1、位置拓扑</a></li>
+<li><a href="#22-pod%E7%A1%AC%E4%BA%B2%E5%92%8C">2.2、Pod硬亲和</a></li>
+<li><a href="#23-pod%E8%BD%AF%E4%BA%B2%E5%92%8C">2.3、Pod软亲和</a></li>
+<li><a href="#24-pod%E5%8F%8D%E4%BA%B2%E5%92%8C">2.4、Pod反亲和</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<p><code>Kubernetes</code>的默认调度器以预选、优选、选定机制完成将每个新的<code>Pod</code>资源绑定至为其选出的目标节点上，不过，它只是<code>Pod</code>对象的默认调度器，默认情况下调度器考虑的是资源足够，并且负载尽量平均。<br>
+在使用中，用户还可以自定义调度器插件，并在定义<code>Pod</code>资源配置清单时通过<code>spec.schedulerName</code>指定即可使用，这就是亲和性调度。</p>
+<h2 id="1-node亲和性调度">1、Node亲和性调度</h2>
+<p><code>NodeAffinity</code>意为<code>Node</code>节点亲和性的调度策略，是用于替换<code>NodeSelector</code>的全新调度策略。<br>
+这些规则基于节点上的自定义标签和<code>Pod</code>对象上指定的标签选择器进行定义 。 节点亲和性允许<code>Pod</code>对象定义针对一组可以调度于其上的节点的亲和性或反亲和性，不过，它无法具体到某个特定的节点 。<br>
+例如，将<code>Pod</code>调度至有着特殊<code>CPU</code>的节点或一个可用区域内的节点之上 。</p>
+<p>定义节点亲和性规则时有两种类型的节点亲和性规则 ：硬亲和性<code>required</code>和软亲和性<code>preferred</code>。 硬亲和性实现的是强制性规则，它是<code>Pod</code>调度时必须要满足的规则，而在不存在满足规则的节点时 ， <code>Pod</code>对象会被置为<code>Pending</code>状态。 而软亲和性规则实现的是一种柔性调度限制，它倾向于将<code>Pod</code>对象运行于某类特定的节点之上，而调度器也将尽量满足此需求，但在无法满足调度需求时它将退而求其次地选择一个不匹配规则的节点。</p>
+<p>定义节点亲和规则的关键点有两个，一是为节点配置合乎需求的标签，另一个是为<code>Pod</code>对象定义合理的标签选择器，从而能够基于标签选择出符合期望的目标节点。不过，如<code>preferredDuringSchedulinglgnoredDuringExecution</code>和<code>requiredDuringSchedulinglgnoredDuringExecution</code>名字中的后半段符串<code>lgnoredDuringExecution</code>隐含的意义所指，在<code>Pod</code>资源基于节点亲和性规则调度至某节点之后，节点标签发生了改变而不再符合此节点亲和性规则时 ，调度器不会将<code>Pod</code>对象从此节点上移出，因为，它仅对新建的<code>Pod</code>对象生效。 节点亲和性模型如图所示：</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20200421-01.png" alt=""></figure>
+<h3 id="11-node硬亲和性">1.1、Node硬亲和性</h3>
+<p>为<code>Pod</code>对象使用<code>nodeSelector</code>属性可以基于节点标签匹配的方式将<code>Pod</code>对象强制调度至某一类特定的节点之上 ，不过它仅能基于简单的等值关系定义标签选择器，而<code>nodeAffinity</code>中支持使用 <code>matchExpressions</code>属性构建更为复杂的标签选择机制。例如，下面的配置清单示例中定义的<code>Pod</code>对象，其使用节点硬亲和规则定义可将当前<code>Pod</code>对象调度至拥有<code>zone</code>标签且其值为<code>foo</code>的节点之上</p>
+<pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: with-required-nodeaffinity
+spec:
+  affinity:
+    nodeAffinity: 
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - {key: zone, operator: In, values: [&quot;foo&quot;]}
+  containers:
+  - name: nginx
+    image: nginx
+</code></pre>
+<p>将上面配置清单中定义的资源创建于集群之中，由其状态信息可知它处于<code>Pending</code>阶段，这是由于强制型的节点亲和限制场景中不存在能够满足匹配条件的节点所致：</p>
+<pre><code># kubectl apply -f required-nodeAffinity-pod.yaml 
+pod/with-required-nodeaffinity created
+# kubectl get pods with-required-nodeaffinity 
+NAME                         READY   STATUS    RESTARTS   AGE
+with-required-nodeaffinity   0/1     Pending   0          8s
+</code></pre>
+<p>通过<code>describe</code>查看对应的<code>events</code></p>
+<pre><code># kubectl describe pods with-required-nodeaffinity
+...
+Events:
+  Type     Reason            Age        From               Message
+  ----     ------            ----       ----               -------
+  Warning  FailedScheduling  &lt;unknown&gt;  default-scheduler  0/3 nodes are available: 3 node(s) didn't match node selector.
+</code></pre>
+<p>规划为各节点设置节点标签 ，这也是设置节点亲和性的前提之一</p>
+<pre><code># kubectl label node k8s-node-01 zone=foo
+node/k8s-node-01 labeled
+# kubectl label node k8s-node-02 zone=foo
+node/k8s-node-02 labeled
+# kubectl label node k8s-node-03 zone=bar
+node/k8s-node-03 labeled
+</code></pre>
+<p>查看调度结果</p>
+<pre><code># kubectl describe pods with-required-nodeaffinity
+...
+Events:
+  Type     Reason            Age        From                  Message
+  ----     ------            ----       ----                  -------
+  Warning  FailedScheduling  &lt;unknown&gt;  default-scheduler     0/3 nodes are available: 3 node(s) didn't match node selector.
+  Normal   Scheduled         &lt;unknown&gt;  default-scheduler     Successfully assigned default/with-required-nodeaffinity to k8s-node-01
+</code></pre>
+<p>在定义节点亲和性时，<code>requiredDuringSchedulinglgnoredDuringExecution</code>字段的值是一个对象列表，用于定义节点硬亲和性，它可由一到多个<code>nodeSelectorTerm</code>定义的对象组成， 彼此间为“逻辑或”的关系，进行匹配度检查时，在多个<code>nodeSelectorTerm</code>之间只要满足其中之一 即可。<code>nodeSelectorTerm</code>用于定义节点选择器条目，其值为对象列表，它可由一个或多个<code>matchExpressions</code>对象定义的匹配规则组成，多个规则彼此之间为“逻辑与”的关系， 这就意味着某节点的标签需要完全匹配同一个<code>nodeSelectorTerm</code>下所有的<code>matchExpression</code>对象定义的规则才算成功通过节点选择器条目的检查。而<code>matchExmpressions</code>又可由 一到多 个标签选择器组成，多个标签选择器彼此间为“逻辑与”的关系 。</p>
+<p>下面的资源配置清单示例中定义了调度拥有两个标签选择器的节点挑选条目，两个标签选择器彼此之间为“逻辑与”的关系，因此，满足其条件的节点为<code>node01</code>和<code>node03</code></p>
+<pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: with-required-nodeaffinity-2
+spec:
+  affinity:
+    nodeAffinity: 
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - {key: zone, operator: In, values: [&quot;foo&quot;, &quot;bar&quot;]}
+          - {key: ssd, operator: Exists, values: []}
+  containers:
+  - name: nginx
+    image: nginx
+</code></pre>
+<p>构建标签选择器表达式中支持使用操作符有<code>In</code>、<code>Notln</code>、<code>Exists</code>、<code>DoesNotExist</code>、<code>Lt</code>和<code>Gt</code>等</p>
+<ul>
+<li>In：<code>label</code>的值在某个列表中</li>
+<li>NotIn：<code>label</code>的值不在某个列表中</li>
+<li>Gt：<code>label</code>的值大于某个值</li>
+<li>Lt：<code>label</code>的值小于某个值</li>
+<li>Exists：某个<code>label</code>存在</li>
+<li>DoesNotExist：某个<code>label</code>不存在</li>
+</ul>
+<p>另外，调度器在调度<code>Pod</code>资源时，节点亲和性<code>MatchNodeSelector</code>仅是其节点预选策 略中遵循的预选机制之一，其他配置使用的预选策略依然正常参与节点预选过程。 例如将上面资源配置清单示例中定义的<code>Pod</code>对象容器修改为如下内容并进行测试</p>
+<pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: with-required-nodeaffinity-3
+spec:
+  affinity:
+    nodeAffinity: 
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - {key: zone, operator: In, values: [&quot;foo&quot;, &quot;bar&quot;]}
+          - {key: ssd, operator: Exists, values: []}
+  containers:
+  - name: nginx
+    image: nginx
+    resources:
+      requests:
+        cpu: 6
+        memory: 20Gi
+</code></pre>
+<p>在预选策略<code>PodFitsResources</code>根据节点资源可用性进行节点预选的过程中，它会获取给定节点的可分配资源量（资源问题减去已被运行于其上的各<code>Pod</code>对象的<code>requests</code>属性之和），去除那些无法容纳新<code>Pod</code>对象请求的资源量的节点，如果资源不够，同样会调度失败。</p>
+<p>由上述操作过程可知，节点硬亲和性实现的功能与节点选择器<code>nodeSelector</code>相似， 但亲和性支持使用匹配表达式来挑选节点，这一点提供了灵活且强大的选择机制，因此可被理解为新一代的节点选择器。</p>
+<h3 id="12-node软亲和性">1.2、Node软亲和性</h3>
+<p>节点软亲和性为节点选择机制提供了一种柔性控制逻辑，被调度的<code>Pod</code>对象不再是“必须”而是“应该”放置于某些特定节点之上，当条件不满足时它也能够接受被编排于其他不符合条件的节点之上。另外，它还为每种倾向性提供了<code>weight</code>属性以便用户定义其优先级，取值范围是<code>1 ～ 100</code>，数字越大优先级越高 。</p>
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-deploy-with-node-affinity
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      name: nginx
+      labels:
+        app: nginx
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 60
+            preference:
+              matchExpressions:
+              - {key: zone, operator: In, values: [&quot;foo&quot;]}
+          - weight: 30
+            preference:
+              matchExpressions:
+              - {key: ssd, operator: Exists, values: []}
+      containers:
+      - name: nginx
+        image: nginx
+</code></pre>
+<p><code>Pod</code>资源模板定义了节点软亲和性以选择运行在拥有<code>zone=foo</code>和<code>ssd</code>标签（无论其值为何）的节点之上， 其中<code>zone=foo</code>是更为重要的倾向性规则， 它的权重为<code>60</code>，相比较来说，<code>ssd</code>标签就没有那么关键， 它的权重为<code>30</code>。 这么一来， 如果集群中拥有足够多的节点，那么它将被此规则分为四类 ： 同时满足拥有<code>zone=foo</code>和<code>ssd</code>标签、仅具有<code>zoo=foo</code>标 签、 仅具有<code>ssd</code>标签， 以及不具备此两个标签， 如图所示</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20200421-02.png" alt=""></figure>
+<p>示例环境共有三个节点，相对于定义的节点亲和性规则来说，它们所拥有的倾向性权重分别如图所示。在创建需要<code>3</code>个<code>Pod</code>对象的副本时，其运行效果为三个<code>Pod</code>对象被分散运行于集群中的三个节点之上，而非集中运行于某一个节点 。</p>
+<p>之所以如此，是因为使用了节点软亲和性的预选方式，所有节点均能够通过调度器上<code>MatchNodeSelector</code>预选策略的筛选，因此，可用节点取决于其他预选策略的筛选结果。在第二阶段的优选过程中，除了<code>NodeAffinityPriority</code>优选函数之外，还有其他几个优选函数参与优先级评估，尤其是<code>SelectorSpreadPriority</code>，它会将同一个<code>ReplicaSet</code>控制器管控的所有<code>Pod</code>对象分散到不同的节点上运行以抵御节点故障带来的风险 。不过，这种节点亲和性的权重依然在发挥作用，如果把副本数量扩展至越过节点数很多，如<code>15</code>个， 那么它们将被调度器以接近节点亲和性权重比值<code>90:60:30</code>的方式分置于相关的节点之上。</p>
+<h2 id="2-pod亲和性调度">2、Pod亲和性调度</h2>
+<h3 id="21-位置拓扑">2.1、位置拓扑</h3>
+<p><code>Pod</code>亲和性调度需要各相关的<code>Pod</code>对象运行于“同一位置”， 而反亲和性调度则要求它们不能运行于“同一位置” 。同一位置取决于节点的位置拓扑， 拓扑的方式不同。</p>
+<p>如果以基于各节点的<code>kubernetes.io/hostname</code>标签作为评判标准，那么很显然，“同一位置” 意味着同一个节点，不同节点即不同的位置， 如图所示</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20200421-03.png" alt=""></figure>
+<p>如果是基于所划分的故障转移域来进行评判，同一位置， 而<code>server2</code>和<code>server3</code>属于另一个意义上的同一位置</p>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20200421-04.png" alt=""></figure>
+<p>因此，在定义<code>Pod</code>对象的亲和性与反亲和性时，需要借助于标签选择器来选择被依赖的<code>Pod</code>对象，并根据选出的<code>Pod</code>对象所在节点的标签来判定“同一位置”的具体意义。</p>
+<h3 id="22-pod硬亲和">2.2、Pod硬亲和</h3>
+<p><code>Pod</code>强制约束的亲和性调度也使用<code>requiredDuringSchedulinglgnoredDuringExecution</code>属性进行定义。<code>Pod</code>亲和性用于描述一个<code>Pod</code>对象与具有某特征的现存<code>Pod</code>对象运行位置的依赖关系，因此，测试使用<code>Pod</code>亲和性约束，需要事先存在被依赖的<code>Pod</code>对象，它们具有特别的识别标签。例如创建一个有着标签<code>app=tomcat</code>的<code>Deployment</code>资源部署一个<code>Pod</code>对象：</p>
+<pre><code>kubectl run tomcat -l app=tomcat --image tomcat:alpine
+</code></pre>
+<p>再通过资源清单定义一个<code>Pod</code>对象，它通过<code>labelSelector</code>定义的标签选择器挑选感兴趣的现存<code>Pod</code>对象， 而后根据挑选出的<code>Pod</code>对象所在节点的标签<code>kubernetes. io/hostname</code>来判断同一位置的具体含义，并将当前<code>Pod</code>对象调度至这一位置的某节点之上：</p>
+<pre><code>apiVersion: v1
+kind: Pod
+metadata:
+  name: with-pod-affinity-1
+spec:
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - {key: app, operator: In, values: [&quot;tomcat&quot;]}
+        topologyKey: kubernetes.io/hostname
+  containers:
+  - name: nginx
+    image: nginx
+</code></pre>
+<p>事实上，<code>kubernetes.io/hostname</code>标签是<code>Kubernetes</code>集群节点的内建标签，它的值为当前节点的节点主机名称标识，对于各个节点来说，各有不同。因此，新建的<code>Pod</code>象将被部署至被依赖的<code>Pod</code>对象的同一节点上，<code>requiredDuringSchedulingIgnoredDuringExecution</code>表示这种亲和性为强制约束。</p>
+<p>基于单一节点的<code>Pod</code>亲和性只在极个别的情况下才有可能会用到，较为常用的通常是基于同一地区 <code>region</code>、区域<code>zone</code>或机架<code>rack</code>的拓扑位置约束。例如部署应用程序服务<code>myapp</code>与数据库<code>db</code>服务相关的<code>Pod</code>时，<code>db Pod</code>可能会部署于如上图所示的<code>foo</code>或<code>bar</code>这两个区域中的某节点之上，依赖于数据服务的<code>myapp Pod</code>对象可部署于<code>db Pod</code>所在区域内的节点上。当然，如果<code>db Pod</code>在两个区域<code>foo</code>和<code>bar</code>中各有副本运行，那么<code>myapp Pod</code>将可以运行于这两个区域的任何节点之上。</p>
+<p>依赖于亲和于这两个<code>Pod</code>的其他<code>Pod</code>对象可运行于<code>zone</code>标签值为<code>foo</code>和<code>bar</code>的区域内的所有节点之上。资源配置清单如下</p>
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-with-pod-affinity
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      name: myapp
+      labels:
+        app: myapp
+    spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - {key: app, operator: In, values: [&quot;db&quot;]}
+            topologyKey: zone
+      containers:
+      - name: nginx
+        image: nginx
+</code></pre>
+<p>在调度示例中的<code>Deployment</code>控制器创建的<code>Pod</code>资源时，调度器首先会基于标签选择器 查询拥有标签<code>app=db</code>的所有<code>Pod</code>资源，接着获取到它们分别所属 的节点的<code>zone</code>标签值，接下来再查询拥有匹配这些标签值的所有节点，从而完成节点预选。而后根据优选函数计算这些节点的优先级，从而挑选出运行新建<code>Pod</code>对象的节点。</p>
+<p>需要注意的是，如果节点上的标签在运行时发生了更改，以致它不再满足<code>Pod</code>上的亲和性规则，但该<code>Pod</code>还将继续在该节点上运行，因此它仅会影响新建的<code>Pod</code>资源；另外，<code>labelSelector</code>属性仅匹配与被调度器的<code>Pod</code>在同一名称空间中的<code>Pod</code>资源，不过也可以通过为其添加 <code>namespace</code>字段以指定其他名称空间 。</p>
+<h3 id="23-pod软亲和">2.3、Pod软亲和</h3>
+<p>类似于节点亲和性机制，<code>Pod</code>也支持使用<code>preferredDuringSchedulinglgnoredDuringExecution</code>属性定义柔性亲和机制，调度器会尽力确保满足亲和约束的调度逻辑，然而在约束条 件不能得到满足时，它也允许将<code>Pod</code>对象调度至其他节点运行。下面是一个使用了<code>Pod</code>软亲和性调度机制的资源配置清单示例</p>
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-with-preferred-pod-affinity
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      name: myapp
+      labels:
+        app: myapp
+    spec:
+      affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 80
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - {key: app, operator: In, values: [&quot;cache&quot;]}
+              topologyKey: zone
+          - weight: 20
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - {key: app, operator: In, values: [&quot;db&quot;]}
+              topologyKey: zone
+      containers:
+      - name: nginx
+        image: nginx
+</code></pre>
+<p>它定义了两组亲和性判定机制，一个是选择<code>cache Pod</code>所在节点的<code>zone</code>标签，并赋予了较高的权重<code>80</code>，另一个是选择<code>db Pod</code>所在节点的 <code>zone</code>标签，它有着略低的权重<code>20</code>。于是，调度器会将目标节点分为四类 ：<code>cache Pod</code>和<code>db Pod</code>同时所属的<code>zone</code>、<code>cache Pod</code>单独所属的<code>zone</code>、<code>db Pod</code>单独所属的<code>zone</code>，以及其他所有的<code>zone</code>。</p>
+<h3 id="24-pod反亲和">2.4、Pod反亲和</h3>
+<p><code>podAffinity</code>用于定义<code>Pod</code>对象的亲和约束，对应地，将其替换为<code>podAntiAffinty</code>即可用于定义<code>Pod</code>对象的反亲和约束。不过，反亲和性调度一般用于分散同一类应用的<code>Pod</code>对象等，也包括将不同安全级别的<code>Pod</code>对象调度至不同的区域、机架或节点等。下面的资源配置清单中定义了由同一<code>Deployment</code>创建但彼此基于节点位置互斥的<code>Pod</code>对象：</p>
+<pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-with-pod-anti-affinity
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      name: myapp
+      labels:
+        app: myapp
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - {key: app, operator: In, values: [&quot;myapp&quot;]}
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: nginx
+        image: nginx
+</code></pre>
+<p>由于定义的强制性反亲和约束，因此，创建的<code>4</code>个<code>Pod</code>副本必须运行于不同的节点中。不过，如果集群中一共只存在<code>3</code>个节点，因此，必然地会有一个<code>Pod</code>对象处于<code>Pending</code>状态。</p>
+<p>类似地，<code>Pod</code>反亲和性调度也支持使用柔性约束机制，在调度时，它将尽量满足不把位置相斥的<code>Pod</code>对象调度于同一位置，但是，当约束关系无法得到满足时，也可以违反约束而调度。可参考<code>podAffinity</code>的柔性约束示例将上面的<code>Deployment</code>资源<code>myapp-with-pod-anti-affinity</code>修改为柔性约束并进行调度测试。</p>
+<p>文章参考来源：《kubernetes进阶实战》</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/kubernetes-pod-diao-du-zhi-quan-zi-dong-diao-du-he-ding-xiang-diao-du">
+                  <h3 class="post-title">
+                    Kubernetes Pod资源调度之全自动调度和定向调度
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

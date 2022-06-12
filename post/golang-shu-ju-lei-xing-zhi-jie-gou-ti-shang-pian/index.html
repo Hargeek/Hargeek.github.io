@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Golang数据类型之结构体-上篇 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Golang数据类型之结构体-上篇</h2>
+            <div class="post-date">2021-08-20</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E7%BB%93%E6%9E%84%E4%BD%93%E4%BB%8B%E7%BB%8D">1、结构体介绍</a></li>
+<li><a href="#2-%E7%BB%93%E6%9E%84%E4%BD%93%E7%9A%84%E5%AE%9A%E4%B9%89">2、结构体的定义</a></li>
+<li><a href="#3-%E6%9E%84%E9%80%A0%E7%BB%93%E6%9E%84%E4%BD%93%E5%AE%9E%E4%BE%8B">3、构造结构体实例</a></li>
+<li><a href="#4-%E5%A3%B0%E6%98%8E%E4%B8%8E%E5%88%9D%E5%A7%8B%E5%8C%96">4、声明与初始化</a></li>
+<li><a href="#5-%E5%B1%9E%E6%80%A7%E7%9A%84%E8%AE%BF%E9%97%AE%E5%92%8C%E4%BF%AE%E6%94%B9">5、属性的访问和修改</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/golang.png" alt=""></figure>
+<h2 id="1-结构体介绍">1、结构体介绍</h2>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210820-01.png" alt=""></figure>
+<ul>
+<li>为什么要有结构体？</li>
+</ul>
+<p>数组只能保存同一种类型的数据，当需要记录多种不同类型的数据，并聚集在一起用来描述复杂的实体时，怎么办?</p>
+<p>结构体就是用于解决这个问题的，结构体是由一系列具有相同类型或不同类型的数据构成的数据集合，方便容量任意类型的数据</p>
+<p>结构体的目的就是把数据聚集在一起，以便能够更加便捷的操作这些数据</p>
+<p>结构体是由一些列属性组成的复合数据类型，每个属性都具有名称、类型和值，结构体将属性组合在一起进行由程序进行处理</p>
+<ul>
+<li>结构体和类的概念</li>
+</ul>
+<p><code>go</code>里面没有类，<code>go</code>用一种特殊的方式，把结构体本身看做一个类</p>
+<p>一个成熟的类，具备成员变量和成员函数，结构体本身就有成员变量，再给他绑定上成员函数，就可以了</p>
+<ul>
+<li>结构体单例绑定</li>
+</ul>
+<p>如下，<code>sayHello()</code>用了指针的方式进行绑定，相当于给结构体绑定了函数，这个结构体等价于对象</p>
+<p>唯一的不同点就是如果使用<code>*</code>绑定函数，那么这种对象就是单例的，引用的是同一个结构体</p>
+<pre><code class="language-go">type People struct {
+	name 		string
+}
+
+func (p People) toString() {
+	fmt.Println(p.name)
+	fmt.Printf(&quot;p的地址 %p \n&quot;, &amp;p)
+}
+
+func (p *People) sayHello() {
+	fmt.Printf(&quot;Hello %v \n&quot;, p.name)
+	fmt.Printf(&quot;*P的地址 %p \n&quot;, p)
+}
+</code></pre>
+<h2 id="2-结构体的定义">2、结构体的定义</h2>
+<p>结构体定义使用<code>struct</code>标识，需要指定其包含的属性（名和类型），使用关键字<code>type</code>和<code>struct</code>来定义一个结构体</p>
+<p>结构体的定义格式如下</p>
+<pre><code class="language-go">type 类型名 struct {
+	字段1 类型1
+	字段2 类型2
+	//...
+}
+</code></pre>
+<p>以上各个部分的说明如下</p>
+<ul>
+<li>类型名：标识自定义结构体的名称，在同一个包内不能包含重复的类型名</li>
+<li>struct{}：表示结构体类型，type类型名struct{}可以被理解为将struct{}结构体定义为类型名的类型</li>
+<li>字段1、字段2......：表示结构体字段名。结构体中的字段名必须唯一</li>
+<li>类型1、类型2......：表示结构体各个字段的类型，结构体中的字段可以是任意类型：string、int、float；复合类型：map、slice、channel、struct</li>
+</ul>
+<p>在定义结构体时可以为结构体指定结构体名（命名结构体），用于后续声明结构体变量使用</p>
+<pre><code class="language-go">type struct_variable_type struct {
+   member definition
+   member definition
+   ...
+   member definition
+}
+</code></pre>
+<p>例如 用于描述一个人的特征</p>
+<p>如果单独使用变量描述应该如何描述？</p>
+<p>没有结构体</p>
+<pre><code class="language-go">var (
+    name          string
+    age           int
+    gender        string
+    weight        uint
+    favoriteColor []string
+)
+</code></pre>
+<p>使用结构体</p>
+<pre><code class="language-go">type Person struct {
+    Name          string
+    Age           int
+    Gender        string
+    Weight        uint
+    FavoriteColor []string
+}
+
+type User struct {
+	ID       int
+	Name     string
+	Birthday string
+	Addr     string
+	Tel      string
+	Remark   string
+}
+</code></pre>
+<p>如果某几个字段类型相同，可以缩写在同一行：</p>
+<pre><code class="language-go">type Person struct {
+    Name, City string
+    Age int
+}
+</code></pre>
+<p>可以看出结构体就像一个容器，这个容器里面装什么自己定义，这也是结构体的特点: 自定义化的程度很高，使用灵活</p>
+<p>一旦定义了结构体类型，则它就能用于变量的声明，语法格式如下</p>
+<pre><code>variable_name := struct_variable_type {value1, value2,...}
+</code></pre>
+<p>或</p>
+<pre><code>variable_name := struct_variable_type {key1: value1, key2: value2,...}
+</code></pre>
+<p>例如，定义一个名为<code>Book</code>的图书结构体，并打印出结构体的字段值的示例如下</p>
+<pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+type Book struct {
+	title   string
+	author  string
+	subject string
+	press   string
+}
+
+func main() {
+	// 创建一个新的结构体
+	fmt.Println(Book{&quot;Go基础&quot;, &quot;ssgeek&quot;, &quot;Go语言&quot;, &quot;Go语言教程&quot;})
+	// 也可以使用 key =&gt; value 格式
+	fmt.Println(Book{title: &quot;Go基础&quot;, author: &quot;ssgeek&quot;, subject: &quot;Go语言&quot;, press: &quot;Go语言教程&quot;})
+	// 忽略的字段为 0 或 空
+	fmt.Println(Book{title: &quot;Go基础&quot;, author: &quot;ssgeek&quot;})
+}
+</code></pre>
+<h2 id="3-构造结构体实例">3、构造结构体实例</h2>
+<p>定义了<code>struct</code>，就表示定义了一个数据结构，或者说数据类型，也或者说定义了一个类。总而言之，定义了<code>struct</code>，就具备了成员属性，就可以作为一个抽象的模板，可以根据这个抽象模板生成具体的实例，也就是所谓的&quot;对象&quot;, 也就是面向对象中的<code>Class</code>---&gt; <code>Object</code>, 如下图</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210820-02.png" alt=""></figure>
+<p>对应的结构体定义</p>
+<pre><code class="language-go">type Car struct {
+    Color string  // 颜色
+    Brand string  // 品牌
+    Model string  // 型号
+}
+
+var car Car   // 初始化一个Car实例, car就代表是一辆具体的车(Object)
+</code></pre>
+<p>这里的<code>car</code>就是一个具体的<code>Car</code>实例，它根据抽象的模板<code>Car</code>构造而出，具有具体的属性<code>Color</code>、<code>Brand</code>和<code>Model</code>的值，虽然初始化时它的各个字段都是&quot;&quot;值。换句话说，<code>car</code>是一个具体的车, 比如福特野马</p>
+<p><code>struct</code>初始化时，会做默认的赋<code>0</code>初始化，会给它的每个字段根据它们的数据类型赋予对应的<code>0</code>值。例如<code>int</code>类型是数值<code>0</code>，<code>string</code>类型是&quot;&quot;，引用类型是<code>nil</code>等</p>
+<pre><code class="language-go">var car Car
+fmt.Printf(&quot;%+v&quot;, car) // {Color: Brand: Model:}
+</code></pre>
+<p>也可以在声明的时候直接为成员变量赋值，通常把这个过程称之为构造结构体的实例, 语法如下:</p>
+<pre><code class="language-go">// 使用{k:v, k:v}这种方式来为结构体的成员赋值
+TypeName{filed1: value1, filed2: value2, ...}
+
+// 为了书写美观, 通常都把每一个k:v 独立写在一行，比如:
+TypeName{
+    file1: value1,
+    file2: value2,
+    ...
+}
+</code></pre>
+<p>一个具体的例子，比如要通过<code>Car</code>构造一个具体的汽车: 福特野马</p>
+<pre><code class="language-go">// 为了书写的简洁，采用简单声明的方式, 就像 a := 10 &lt;---&gt;  var a int; a = 10
+//
+var car Car
+fmt.Printf(&quot;%+v\n&quot;, car)
+
+car = Car{           // 当然也可以不然声明car的类型, 直接使用简短声明: car := Car{...}
+    Color: &quot;yellow&quot;, // 黄色
+    Brand: &quot;ford&quot;,   // 福特
+    Model: &quot;yema&quot;,   // 
+}
+fmt.Printf(&quot;%+v\n&quot;, car) // {Color:yellow Brand:ford Model:yema}
+
+// 注意，上面最后一个逗号&quot;,&quot;不能省略，Go会报错，这个逗号有助于去扩展这个结构
+</code></pre>
+<h2 id="4-声明与初始化">4、声明与初始化</h2>
+<p>声明结构体变量只需要定义变量类型为结构体名，变量中的每个属性被初始化为对应类型的零值</p>
+<p>也可声明结构体指针变量，此时变量被初始化为<code>nil</code></p>
+<p>遵循所有类型声明语法: <code>var struct_name struct_type</code></p>
+<p>使用结构体创建的变量叫做对应结构体的实例或者对象</p>
+<ul>
+<li>只声明不初始化</li>
+</ul>
+<p>比如下面初始化一个<code>person</code>的实例</p>
+<pre><code class="language-go">// 只声明
+var person Person
+var me User
+fmt.Printf(&quot;%T\n&quot;, me)  // main.User
+</code></pre>
+<p>可以看到声明后的结构体的所有属性都是初始值</p>
+<p><code>var</code>不加等号：初始化零值（对数值类型来说，零值是0；对字符串来说，零值是空字符串；对布尔类型，零值是<code>false</code>）</p>
+<pre><code class="language-go">var person Person
+fmt.Printf(&quot;%+v\n&quot;, person)
+// {Name: Age:0 Gender: Weight:0 FavoriteColor:[]}
+var me3 User = User{}
+fmt.Println(me3)  // {0  0001-01-01 00:00:00 +0000 UTC   }
+</code></pre>
+<ul>
+<li>
+<p>声明并初始化</p>
+<p>使用字面量初始化结构体值对象</p>
+</li>
+</ul>
+<pre><code class="language-go">var person Person = Person{
+    Name:          &quot;andy&quot;,
+    Age:           66,
+    Gender:        &quot;male&quot;,
+    Weight:        120,
+    FavoriteColor: []string{&quot;red&quot;, &quot;blue&quot;},
+}
+fmt.Printf(&quot;%+v\n&quot;, person)
+// {Name:andy Age:66 Gender:male Weight:120 FavoriteColor:[red blue]}
+fmt.Printf(&quot;%p\n&quot;, &amp;person.Name)  // 0xc0000ce080  地址相邻
+fmt.Printf(&quot;%p\n&quot;, &amp;person.Age)  // 0xc0000ce090  地址相邻
+
+var me2 User = User{
+	1,
+	&quot;geek&quot;,
+	time.Now().Format(&quot;2006-01-02&quot;),
+	&quot;北京市&quot;,
+	&quot;15588888888&quot;,
+	&quot;这是备注2&quot;,
+}
+fmt.Printf(&quot;%v\n&quot;, me2)  // {1 geek 2021-08-10 北京市 155888888888 这是备注2}
+</code></pre>
+<p>可以在函数外部使用，可以用来声明初始化全局变量</p>
+<p>注意，上面最后一个逗号&quot;,&quot;不能省略，<code>Go</code>会报错，这个逗号有助于去扩展这个结构体</p>
+<ul>
+<li>使用短变量声明</li>
+</ul>
+<pre><code class="language-go">// 变量 := 结构体{赋值}
+func TestPerson32(t *testing.T) {
+	p3 := Person3{
+		Name: &quot;ssgeek&quot;,
+		Age:  24,
+	}
+	fmt.Println(p3)
+}
+</code></pre>
+<ul>
+<li>通过属性名</li>
+</ul>
+<pre><code class="language-go">// 通过属性名指定，可以省略、无序
+	var me4 User = User{ID:1, Name: &quot;geek&quot;, Birthday: time.Now().Format(&quot;2006-01-02&quot;), Addr: &quot;北京市&quot;, Tel: &quot;15588888888&quot;}
+	fmt.Println(me4)
+</code></pre>
+<ul>
+<li>使用new函数进行初始化结构体指针对象</li>
+</ul>
+<pre><code class="language-go">var me5 *User = new(User)
+fmt.Printf(&quot;%T, %#v, %#v\n&quot;, me5, me5, *me5)
+</code></pre>
+<ul>
+<li>使用指针初始化</li>
+</ul>
+<pre><code class="language-go">var me6 *User
+fmt.Printf(&quot;%T\n&quot;, me6)  // *main.User
+fmt.Printf(&quot;%#v\n&quot;, me6)  // (*main.User)(nil)
+var me7 = &amp;User{ID: 2, Name: &quot;geek&quot;}
+fmt.Printf(&quot;%T\n&quot;, me7)  // *main.User
+</code></pre>
+<h2 id="5-属性的访问和修改">5、属性的访问和修改</h2>
+<p>通过结构体对象名.属性名的方式来访问和修改对象的属性值</p>
+<p>可以通过结构体指针对象的点操作直接对对象的属性值进行访问和修改</p>
+<pre><code class="language-go">// 语法：结构体.成员名
+fmt.Println((&amp;person).Name)  // andy
+fmt.Println(person.Name)  // andy
+person.Age = 20
+fmt.Println(person.Age)  // 20
+</code></pre>
+<p>在<code>golang</code>中，访问结构体成员需要使用点号操作符，点号操作符也被称为选择器<code>selector</code></p>
+<pre><code class="language-go">func main() {
+	p1 := Person{
+		Name: &quot;geek&quot;,
+		Age:  9000,
+	}
+	fmt.Println(p1.Name, p1.Age)
+	p1.Age += 1
+	fmt.Println(p1.Name, p1.Age)
+}
+</code></pre>
+<p>See you ~</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/golang" class="tag">
+                    golang
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/golang-ji-zhun-ce-shi">
+                  <h3 class="post-title">
+                    Golang基准测试
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

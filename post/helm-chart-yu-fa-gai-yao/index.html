@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Helm Chart语法概要 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Helm Chart语法概要</h2>
+            <div class="post-date">2021-11-05</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">1、概述</a></li>
+<li><a href="#2-%E8%B0%83%E8%AF%95">2、调试</a></li>
+<li><a href="#3-%E5%86%85%E7%BD%AE%E5%AF%B9%E8%B1%A1">3、内置对象</a></li>
+<li><a href="#4-values">4、Values</a></li>
+<li><a href="#5-%E7%AE%A1%E9%81%93%E4%B8%8E%E5%87%BD%E6%95%B0">5、管道与函数</a></li>
+<li><a href="#6-%E6%B5%81%E7%A8%8B%E6%8E%A7%E5%88%B6">6、流程控制</a>
+<ul>
+<li><a href="#61-if">6.1 if</a></li>
+<li><a href="#62-with">6.2 with</a></li>
+<li><a href="#63-range">6.3 range</a></li>
+</ul>
+</li>
+<li><a href="#7-%E5%8F%98%E9%87%8F">7、变量</a></li>
+<li><a href="#8-%E5%91%BD%E5%90%8D%E6%A8%A1%E6%9D%BF">8、命名模板</a></li>
+<li><a href="#9-%E5%BC%80%E5%8F%91chart%E7%9A%84%E6%B5%81%E7%A8%8B">9、开发Chart的流程</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20211105-01.png" alt=""></figure>
+<blockquote>
+<p>由于博客编译问题暂未修复，文中的{}实际上都是{{}}</p>
+</blockquote>
+<h2 id="1-概述">1、概述</h2>
+<p>前面分别写到了 <a href="https://www.ssgeek.com/post/jenkinspipeline-yu-fa-gai-yao">JenkinsPipeline语法概要</a> 和 <a href="https://www.ssgeek.com/post/dockerfile-yu-fa-gai-yao">Dockerfile语法概要</a>，最近又重新拾起了<code>Helm Chart</code>，刚好回忆一下其语法 ~</p>
+<p><code>Helm</code>是<code>k8s</code>中的一个包管理工具，可以用来部署<code>k8s</code>资源。在<code>Helm</code>中最核心的就是模板，即模板化的<code>k8s manifests</code>文件</p>
+<p>它本质上就是一个<code>Go</code>的<code>template</code>模板。<code>Helm</code>在<code>Go template</code>模板的基础上，还会增加很多东西。如一些自定义的元数据信息、扩展的库以及一些类似于编程形式的工作流，例如条件语句、管道等等。这些东西都会使得模板变得更加丰富</p>
+<p>有了模板，怎么把配置融入进去，用的就是<code>values.yaml</code>文件</p>
+<h2 id="2-调试">2、调试</h2>
+<p><code>Helm</code>也提供了<code>--dry-run --debug</code>调试参数，帮助验证模板正确性。在执行<code>helm install</code>时候带上这两个参数就可以把对应的<code>values</code>值和渲染的资源清单打印出来，而不会真正的去部署一个<code>release</code></p>
+<p>比如来调试创建的一个<code>chart</code>包：</p>
+<pre><code># helm install web --dry-run /root/mychart
+</code></pre>
+<h2 id="3-内置对象">3、内置对象</h2>
+<p>使用 <code>{.Release.Name}</code>将<code>release</code>的名称插入到模板中。这里的<code>Release</code>就是<code>Helm</code>的内置对象，下面是一些常用的内置对象</p>
+<table>
+<thead>
+<tr>
+<th>Release.Name</th>
+<th>release 名称</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Release.Name</td>
+<td>release 名字</td>
+</tr>
+<tr>
+<td>Release.Namespace</td>
+<td>release 命名空间</td>
+</tr>
+<tr>
+<td>Release.Service</td>
+<td>release 服务的名称</td>
+</tr>
+<tr>
+<td>Release.Revision</td>
+<td>release 修订版本号，从1开始累加</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-values">4、Values</h2>
+<p><code>Values</code>对象是为<code>Chart</code>模板提供值，这个对象的值有<code>4</code>个来源</p>
+<ul>
+<li>
+<p><code>chart</code>包中的<code>values.yaml</code>文件</p>
+</li>
+<li>
+<p>父<code>chart</code>包的<code>values.yaml</code>文件</p>
+</li>
+<li>
+<p>通过<code>helm install</code>或者<code>helm upgrade</code>的 <code>-f</code>或者 <code>--values</code>参数传入的自定义的<code>yaml</code>文件</p>
+</li>
+<li>
+<p>通过 <code>--set</code> 参数传入的值</p>
+</li>
+</ul>
+<p><code>chart</code>的<code>values.yaml</code>提供的值可以被用户提供的<code>values</code>文件覆盖，而该文件同样可以被 <code>--set</code>提供的参数所覆盖</p>
+<p>编辑<code>mychart/values.yaml</code>文件，将默认的值全部清空，然后添加一个副本数</p>
+<pre><code class="language-yaml"># cat values.yaml 
+replicas: 3
+image: &quot;nginx&quot;
+imageTag: &quot;1.17&quot;
+
+# cat templates/deployment.yaml 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: { .Release.Name }-deployment
+spec:
+  replicas: { .Values.replicas }
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - image: { .Values.image }:{ .Values.imageTag }
+        name: nginx
+</code></pre>
+<p>查看渲染结果：</p>
+<pre><code class="language-shell"># helm install --dry-run web ../mychart/
+</code></pre>
+<p><code>values</code>文件也可以包含结构化内容，例如</p>
+<pre><code class="language-yaml"># cat values.yaml 
+...
+label:
+  project: ms
+  app: nginx
+
+# cat templates/deployment.yaml 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: { .Release.Name }-deployment 
+spec:
+  replicas: { .Values.replicas } 
+  selector:
+    matchLabels:
+      project: { .Values.label.project }
+      app: { .Values.label.app }
+  template:
+    metadata:
+      labels:
+        project: { .Values.label.project }
+        app: { .Values.label.app }
+    spec:
+      containers:
+      - image: { .Values.image }:{ .Values.imageTag } 
+        name: nginx
+</code></pre>
+<p>查看渲染结果：</p>
+<pre><code># helm install --dry-run web ../mychart/
+</code></pre>
+<h2 id="5-管道与函数">5、管道与函数</h2>
+<p>前面讲的相关模块，其实就是将值传给模板引擎进行渲染，模板引擎还支持对拿到数据进行二次处理</p>
+<p>例如从<code>.Values</code>中读取的值变成字符串，可以使用<code>quote</code>函数实现</p>
+<pre><code class="language-yaml"># vi templates/deployment.yaml
+app: { quote .Values.label.app }
+# helm install --dry-run web ../mychart/ 
+        project: ms
+        app: &quot;nginx&quot;
+</code></pre>
+<p><code>quote .Values.label.app</code>将后面的值作为参数传递给<code>quote</code>函数</p>
+<p>模板函数调用语法为：<code>functionName arg1 arg2...</code></p>
+<p>另外还会经常使用一个<code>default</code>函数，该函数允许在模板中指定默认值，以防止该值被忽略掉</p>
+<p>例如忘记定义，执行<code>helm install</code>会因为缺少字段无法创建资源，这时就可以定义一个默认值</p>
+<pre><code class="language-yaml"># cat values.yaml 
+replicas: 2
+# cat templates/deployment.yaml 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+- name: { .Values.name | default &quot;nginx&quot; }
+</code></pre>
+<p>其他常用函数</p>
+<ul>
+<li>
+<p>缩进：<code>{ .Values.resources | indent 12 }</code></p>
+</li>
+<li>
+<p>大写：<code>{ upper .Values.resources }</code></p>
+</li>
+<li>
+<p>首字母大写：<code>{ title .Values.resources }</code></p>
+</li>
+</ul>
+<h2 id="6-流程控制">6、流程控制</h2>
+<p>流程控制是为模板提供了一种能力，满足更复杂的数据逻辑处理</p>
+<p><code>Helm</code>模板语言提供以下流程控制语句</p>
+<ul>
+<li><code>if/else</code> 条件块</li>
+<li><code>with</code> 指定范围</li>
+<li><code>range</code> 循环块</li>
+</ul>
+<h3 id="61-if">6.1 if</h3>
+<p><code>if/else</code>块是用于在模板中有条件地包含文本块的方法，条件块的基本结构如下</p>
+<pre><code class="language-yaml">{ if PIPELINE }
+  # Do something
+{ else if OTHER PIPELINE }
+  # Do something else
+{ else }
+  # Default case
+{ end }
+</code></pre>
+<p>示例</p>
+<pre><code class="language-yaml"># cat values.yaml 
+devops: k8
+
+# cat templates/deployment.yaml 
+...
+  template:
+    metadata:
+      labels:
+        app: nginx
+        { if eq .Values.devops &quot;k8s&quot; }
+        devops: 123
+        { else }
+        devops: 456
+        { end }
+</code></pre>
+<p>在上面条件语句使用了<code>eq</code>运算符判断是否相等，除此之外，还支持<code>ne</code>、 <code>lt</code>、 <code>gt</code>、 <code>and</code>、 <code>or</code>等运算符</p>
+<p>通过模板引擎来渲染一下，会得到如下结果</p>
+<pre><code class="language-yaml"># helm install --dry-run web ../mychart/ 
+...
+      labels:
+        app: nginx
+
+        devops: 456
+       
+</code></pre>
+<p>可以看到渲染出来会有多余的空行，这是因为当模板引擎运行时，会将控制指令删除，所有之前占的位置也就空白了，需要使用<code>{- if ...}</code>的方式消除此空行</p>
+<pre><code class="language-yaml"># cat templates/deploymemt.yaml
+...
+        env:
+        {- if eq .Values.env.hello &quot;world&quot; }
+          - name: hello
+            value: 123
+        {- end }
+</code></pre>
+<p>现在就没有多余的空格了，如果使用<code>-}</code>需谨慎，比如上面模板文件中</p>
+<pre><code class="language-yaml"># cat templates/deploymemt.yaml
+...
+       env:
+        {- if eq .Values.env.hello &quot;world&quot; -}
+           - hello: true
+        {- end }
+</code></pre>
+<p>这会渲染成：</p>
+<pre><code class="language-yaml">        env:- hello: true
+</code></pre>
+<p>因为<code>-}</code>它删除了双方的换行符</p>
+<p>条件判断就是判断条件是否为真，如果值为以下几种情况则为<code>false</code></p>
+<ul>
+<li>
+<p>一个布尔类型的 <code>假</code></p>
+</li>
+<li>
+<p>一个数字 <code>零</code></p>
+</li>
+<li>
+<p>一个 <code>空</code>的字符串</p>
+</li>
+<li>
+<p>一个 <code>nil</code>（空或 <code>null</code>）</p>
+</li>
+<li>
+<p>一个空的集合（ <code>map</code>、 <code>slice</code>、 <code>tuple</code>、 <code>dict</code>、 <code>array</code>）</p>
+</li>
+</ul>
+<p>除了上面的这些情况外，其他所有条件都为 <code>真</code></p>
+<p>例如，判断一个空的数组</p>
+<pre><code class="language-yaml"># cat values.yaml 
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# cat templates/deploymemt.yaml
+...
+    spec:
+      containers:
+      - image: nginx:1.16
+        name: nginx
+        {- if .Values.resources }
+        resources:
+{ toYaml .Values.resources | indent 10 }
+        {- end }
+</code></pre>
+<p>例如，判断一个布尔值</p>
+<pre><code class="language-yaml"># cat values.yaml 
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true 
+  host: example.ssgeek.com
+
+# cat templates/ingress.yaml 
+{- if .Values.ingress.enabled -}
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: { .Release.Name }-ingress
+spec:
+  rules:
+  - host: { .Values.ingress.host }
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: { .Release.Name }
+          servicePort: { .Values.service.port }
+{ end }
+</code></pre>
+<h3 id="62-with">6.2 with</h3>
+<p><code>with</code> ：控制变量作用域</p>
+<p>之前的 <code>{.Release.xxx}</code>或者 <code>{.Values.xxx}</code>，其中的 <code>.</code>就是表示对当前范围的引用， <code>.Values</code>就是告诉模板在当前范围中查找 <code>Values</code>对象的值。而 <code>with</code>语句就可以来控制变量的作用域范围，其语法和一个简单的 <code>if</code>语句比较类似</p>
+<pre><code class="language-yaml">{ with PIPELINE }
+  #  restricted scope
+{ end }
+</code></pre>
+<p><code>with</code>语句可以允许将当前范围 <code>.</code>设置为特定的对象，比如前面一直使用的 <code>.Values.label</code>，可以使用 <code>with</code>来将 <code>.</code>范围指向 <code>.Values.label</code></p>
+<pre><code class="language-yaml"># cat values.yaml 
+...
+replicas: 3
+label:
+  project: ms
+  app: nginx
+
+# cat templates/deployment.yaml 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: { .Release.Name }-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      {- with .Values.nodeSelector }
+      nodeSelector:
+        team: { .team }
+        gpu: { .gpu }
+      {- end }
+      containers:
+      - image: nginx:1.16
+        name: nginx
+</code></pre>
+<p>优化后</p>
+<pre><code class="language-yaml">
+      {- with .Values.nodeSelector }
+      nodeSelector:
+        {- toYaml . | nindent 8 }
+      {- end }
+</code></pre>
+<p>上面增加了一个<code>{- with .Values.label } xxx {- end }</code>的一个块，这样的话就可以在当前的块里面直接引用 <code>.team</code>和 <code>.gpu</code>了</p>
+<p><code>with</code>是一个循环构造。使用<code>Values.nodeSelector</code>中的值：将其转换为<code>Yaml</code></p>
+<p><code>toYaml</code>之后的点是循环中<code>.Values.nodeSelector</code>的当前值</p>
+<h3 id="63-range">6.3 range</h3>
+<p>在<code>Helm</code>模板语言中，使用 <code>range</code>关键字来进行循环操作</p>
+<p>在 <code>values.yaml</code>文件中添加上一个变量列表</p>
+<pre><code class="language-yaml"># cat values.yaml 
+test:
+  - 1
+  - 2
+  - 3
+</code></pre>
+<p>循环打印该列表</p>
+<pre><code class="language-yaml">apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: { .Release.Name }
+data:
+  test: |
+  {- range .Values.test }
+    { . }
+  {- end }
+</code></pre>
+<p>循环内部使用的是一个 <code>.</code>，这是因为当前的作用域就在当前循环内，这个 <code>.</code>引用的当前读取的元素</p>
+<h2 id="7-变量">7、变量</h2>
+<p>这是语言中基本的概念：<strong>变量</strong>，在模板中，使用变量的场合不多，但可以看到如何使用它来简化代码，并更好地利用<code>with</code>和<code>range</code>，举例如下</p>
+<p><strong>例子1：获取列表键值</strong></p>
+<pre><code class="language-yaml"># cat ../values.yaml
+env:
+  NAME: &quot;gateway&quot;
+  JAVA_OPTS: &quot;-Xmx1G&quot;
+  
+# cat deployment.yaml 
+...
+		env:
+		{- range $k, $v := .Values.env }
+           - name: { $k }
+             value: { $v | quote }
+        {- end }
+</code></pre>
+<p>结果如下</p>
+<pre><code class="language-yaml">    env:
+       - name: JAVA_OPTS
+         value: &quot;-Xmx1G&quot;
+       - name: NAME
+         value: &quot;gateway&quot;
+</code></pre>
+<p>上面在 <code>range</code>循环中使用 <code>$key</code>和 <code>$value</code>两个变量来接收后面列表循环的键和值</p>
+<p><strong>例子2：with中不能使用内置对象</strong></p>
+<p><code>with</code>语句块内不能再 <code>.Release.Name</code>对象，否则报错</p>
+<p>可以将该对象赋值给一个变量可以来解决这个问题</p>
+<pre><code class="language-yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: { .Release.Name }-deployment
+spec:
+  replicas: { .Values.replicas }
+  template:
+    metadata:
+      labels:
+        project: { .Values.label.project }
+        app: { quote .Values.label.app }
+      {- with .Values.label }
+        project: { .project }
+        app: { .app }
+        release: { .Release.Name }
+      {- end }
+</code></pre>
+<p>上面会出错</p>
+<pre><code class="language-yaml">      {- $releaseName := .Release.Name -}
+      {- with .Values.label }
+        project: { .project }
+        app: { .app }
+        release: { $releaseName }
+        # 或者可以使用$符号,引入全局命名空间
+        release: { $.Release.Name }
+      {- end }
+</code></pre>
+<p>可以看到在 <code>with</code>语句上面增加了一句 <code>{-$releaseName:=.Release.Name-}</code>，其中 <code>$releaseName</code>就是后面的对象的一个引用变量，它的形式就是 <code>$name</code>，赋值操作使用 <code>:=</code>，这样 <code>with</code>语句块内部的 <code>$releaseName</code>变量仍然指向的是 <code>.Release.Name</code></p>
+<h2 id="8-命名模板">8、命名模板</h2>
+<p>命名模板：使用<code>define</code>定义，<code>template</code>引入，在<code>templates</code>目录中默认下划线_开头的文件为<code>公共模板(_helpers.tpl)</code></p>
+<pre><code class="language-yaml"># cat _helpers.tpl
+{- define &quot;demo.fullname&quot; -}
+{- .Chart.Name -}-{ .Release.Name }
+{- end -}
+
+# cat deployment.yaml 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: { template &quot;demo.fullname&quot; . }
+...
+</code></pre>
+<p><code>template</code>指令是将一个模板包含在另一个模板中的方法。但是，<code>template</code>函数不能用于<code>Go</code>模板管道。为了解决该问题，增加<code>include</code>功能</p>
+<pre><code class="language-yaml"># cat _helpers.tpl
+{- define &quot;demo.labels&quot; -}
+app: { template &quot;demo.fullname&quot; . }
+chart: &quot;{ .Chart.Name }-{ .Chart.Version }&quot;
+release: &quot;{ .Release.Name }&quot;
+{- end -}
+
+# cat deployment.yaml 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: { include &quot;demo.fullname&quot; . }
+  labels:
+    {- include &quot;demo.labels&quot; . | nindent 4 }
+...
+</code></pre>
+<p>上面包含一个名为 <code>demo.labels</code> 的模板，然后将值 <code>.</code> 传递给模板，最后将该模板的输出传递给 <code>nindent</code> 函数</p>
+<h2 id="9-开发chart的流程">9、开发Chart的流程</h2>
+<p>先创建模板</p>
+<pre><code>helm create demo
+</code></pre>
+<p>修改<code>Chart.yaml</code>，<code>Values.yaml</code>，添加常用的变量</p>
+<p>在<code>templates</code>目录下创建部署镜像所需要的<code>yaml</code>文件，并变量引用<code>yaml</code>里经常变动的字段</p>
+<p>更多内容可以参考<a href="https://helm.sh/zh/docs/topics/charts/">官方文档</a></p>
+<p>See you ~</p>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/azure-devops-de-shi-yong-ru-men">
+                  <h3 class="post-title">
+                    Azure DevOps的使用入门
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

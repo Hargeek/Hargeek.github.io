@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>JenkinsShareLibrary实践之自定义通知器 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">JenkinsShareLibrary实践之自定义通知器</h2>
+            <div class="post-date">2020-02-22</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E9%9C%80%E6%B1%82%E5%BC%95%E5%85%A5">1、需求引入</a></li>
+<li><a href="#2-%E9%92%89%E9%92%89%E6%9C%BA%E5%99%A8%E4%BA%BA">2、钉钉机器人</a></li>
+<li><a href="#3-jenkins%E6%B6%88%E6%81%AF%E6%8E%A8%E9%80%81%E6%8F%92%E4%BB%B6">3、jenkins消息推送插件</a></li>
+<li><a href="#4-%E8%87%AA%E5%AE%9A%E4%B9%89%E9%80%9A%E7%9F%A5%E5%99%A8%E7%9A%84%E5%AE%9E%E7%8E%B0">4、自定义通知器的实现</a>
+<ul>
+<li><a href="#41-%E5%86%85%E5%AE%B9%E5%AE%9A%E4%B9%89">4.1、内容定义</a></li>
+<li><a href="#42-%E5%85%B1%E4%BA%AB%E5%BA%93%E5%88%9B%E5%BB%BA">4.2、共享库创建</a></li>
+<li><a href="#43-%E6%96%B9%E6%B3%95%E7%9A%84%E5%85%B7%E4%BD%93%E5%AE%9E%E7%8E%B0">4.3、方法的具体实现</a>
+<ul>
+<li><a href="#431-%E6%B6%88%E6%81%AF%E6%9D%A5%E6%BA%90">4.3.1、消息来源</a></li>
+<li><a href="#432-%E6%B6%88%E6%81%AF%E6%A8%A1%E6%9D%BF%E5%AE%9A%E4%B9%89">4.3.2、消息模板定义</a></li>
+<li><a href="#433-%E6%B6%88%E6%81%AF%E5%8F%91%E9%80%81%E6%96%B9%E6%B3%95">4.3.3、消息发送方法</a></li>
+<li><a href="#434-%E6%9C%80%E7%BB%88%E6%96%B9%E6%B3%95">4.3.4、最终方法</a></li>
+</ul>
+</li>
+<li><a href="#44-%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8">4.4、方法调用</a></li>
+<li><a href="#45-%E6%9C%80%E7%BB%88%E6%95%88%E6%9E%9C">4.5、最终效果</a></li>
+</ul>
+</li>
+<li><a href="#5-%E6%80%BB%E7%BB%93">5、总结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<style>
+table th:first-of-type {
+	width: 100px;
+}
+</style>
+<blockquote>
+<p>与任何编程环境一样，在Jenkins流水线中，集中化功能，共享公共代码和代码重用都是快速、有效地进行开发的基本技术，这些实践鼓励使用标准方法来调用功能，为更复杂的操作创建构建块并隐藏复杂性。他们还可以用于提供一致性以及鼓励约定优于配置以简化任务。</p>
+</blockquote>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20200222-01.png" alt=""></figure>
+<blockquote>
+<p>Jenkins允许用户完成所有这些操作的一个关键方法就是使用流水线共享库(pipeline share library)。共享流水线库是由存储在代码仓库中的代码组成的，该代码仓库由Jenkins自动下载并可供流水线使用。</p>
+</blockquote>
+<p>以上中文描述来自《Jenkins 2权威指南》。<br>
+关于jenkins pipeline share library的更多介绍，可以参考<a href="https://jenkins.io/doc/book/pipeline/shared-libraries/">官方文档</a></p>
+<h2 id="1-需求引入">1、需求引入</h2>
+<p>随着<code>devops</code>理念在公司越来越多的实践，<code>jenkins</code>等工具的应用场景越来越多，当我们在执行完成某个流水线任务后，常常需要关注的是这个任务为什么执行，执行成功与否等等。于是就需要在执行完流水线后进行一定程度的消息推送，在现今的工作流中消息推送无外乎分为两大类：邮件和企业沟通协作软件，相比之下，我们可能更多的会去关注和使用沟通软件来发送消息而不是通过邮件的方式。而常用的企业沟通协作软件有以下几类：腾讯系的企业微信、阿里系的钉钉、字节跳动的飞书等等，当然有能力的企业也会自己研发这类软件。</p>
+<p>本文示例以钉钉为例，通过流水线共享库实现自定义消息通知器。</p>
+<h2 id="2-钉钉机器人">2、钉钉机器人</h2>
+<p>钉钉的群机器人是钉钉群的高级扩展功能。群机器人可以将第三方服务的信息聚合到群聊中，实现自动化的信息同步。例如：通过聚合<code>GitHub</code>，<code>GitLab</code>等源码管理服务，实现源码更新同步；通过聚合<code>Trello</code>，<code>JIRA</code>等项目协调服务，实现项目信息同步。不仅如此，群机器人支持<code>Webhook</code>协议的自定义接入，支持更多可能性。</p>
+<p>自定义钉钉机器人支持以下类型消息类型数据格式的推送，更多定义方法可参考官方的<a href="https://ding-doc.dingtalk.com/doc#/serverapi2/qf2nxq">接口文档</a>：</p>
+<ul>
+<li>text类型</li>
+<li>markdown类型</li>
+<li>整体跳转ActionCard类型</li>
+<li>独立跳转ActionCard类型</li>
+<li>FeedCard类型</li>
+</ul>
+<p>钉钉机器人在<code>2019</code>年的下半年进行过升级，在新增机器人时，需要选择一种安全条件(自定义关键词、加签、<code>ip</code>地址或<code>ip</code>地址段)来保障自定义机器人的安全。可以理解为即使机器人的<code>token</code>泄漏，如果不知道设置的安全条件是什么，还是无法盗用的。</p>
+<h2 id="3-jenkins消息推送插件">3、jenkins消息推送插件</h2>
+<p>这里要提到的是在<code>jenkins</code>插件列表中有一个<a href="https://github.com/jenkinsci/dingding-notifications-plugin">钉钉插件</a>。</p>
+<p>简单对此插件做了下分析：截止目前此插件在<code>2020</code>年<code>1</code>月份有相应代码提交，并且发布了<code>2.0</code>版本，从<code>jenkins</code>的<a href="https://plugins.jenkins.io/dingding-notifications/">插件官网</a>中可以看到此版本的插件在在消息中支持了更多内容，效果如下，但是此插件目前还暂不支持流水线中使用<br>
+<img src="https://image.ssgeek.com/20200222-03.png" alt=""></p>
+<p>在此之前的上一版本提交记录已经是<code>2018</code>年了，此插件使用方法类似，推送的消息效果如下<br>
+<img src="https://image.ssgeek.com/20202222-04.png" alt=""></p>
+<p>此版本支持在流水线中使用，相应内容如下</p>
+<pre><code>dingTalk accessToken: &quot;xxx&quot;, 
+imageUrl: &quot;xxx&quot;, 
+jenkinsUrl: &quot;https://127.0.0.1:8080&quot;, 
+message: &quot;项目构建成功&quot;, 
+notifyPeople: &quot;155xxxx5533&quot;
+</code></pre>
+<p>如上所示，在流水线脚本中配置钉钉机器人<code>token</code>、图片路径、<code>jenkins</code>地址、消息内容、要提醒的人手机号码即可，可以发现，此消息还是有局限性，不够友好。</p>
+<p>因此在没有编写插件能力的情况下，我们可以通过更为灵活的自定义流水线共享库的形式，并且按照钉钉机器人的官方接口文档，自定义一个消息推送通知器。</p>
+<h2 id="4-自定义通知器的实现">4、自定义通知器的实现</h2>
+<h3 id="41-内容定义">4.1、内容定义</h3>
+<p>无论<code>jenkins</code>任务的构建触发原因是使用者手动构建或通过代码推送的自动触发，往往关注此消息的人群是开发者们。因此通过一段时间的需求调研以及综合各方的建议，最终将消息推送的内容中包含了以下信息：</p>
+<ul>
+<li>应用名称</li>
+<li>构建结果</li>
+<li>当前版本</li>
+<li>构建发起</li>
+<li>持续时间</li>
+<li>构建日志</li>
+<li>更新记录(包含用户提交的短日志，用户名称，提交时间)</li>
+</ul>
+<p>每次构建结果通知中包含了以上就基本完备。</p>
+<h3 id="42-共享库创建">4.2、共享库创建</h3>
+<p>本文不过多介绍共享库具体的创建与在pipeline流水线中的引用方法，整体来说，共享库的代码目录结构如下</p>
+<pre><code>(root)
++- src                     # Groovy source files
+|   +- org
+|       +- foo
+|           +- Bar.groovy  # for org.foo.Bar class
++- vars
+|   +- foo.groovy          # for global 'foo' variable
+|   +- foo.txt             # help for 'foo' variable
++- resources               # resource files (external libraries only)
+|   +- org
+|       +- foo
+|           +- bar.json    # static helper data for org.foo.Bar
+</code></pre>
+<p>官方描述：<br>
+<code>src</code>目录应该看起来像标准的<code>Java</code>源目录结构。当执行流水线时，该目录被添加到类路径下。</p>
+<p><code>vars</code>目录定义可从流水线访问的全局变量的脚本。 每个 <code>*.groovy</code>文件的基名应该是一个<code>Groovy (~ Java)</code>标识符, 通常是<code>camelCased</code>。 匹配<code>*.txt</code>, 如果存在, 可以包含文档, 通过系统的配置标记格式化从处理 (所以可能是<code>HTML</code>, <code>Markdown</code>等，虽然<code>txt</code>扩展是必需的)。</p>
+<p>这些目录中的<code>Groovy</code>源文件 在脚本化流水线中的<code>CPS transformation</code>一样。</p>
+<p><code>resources</code>目录允许从外部库中使用 <code>libraryResource</code>步骤来加载有关的非<code>Groovy</code>文件。 目前，内部库不支持该特性。</p>
+<p>根目录下的其他目录被保留下来以便于将来的增强。</p>
+<h3 id="43-方法的具体实现">4.3、方法的具体实现</h3>
+<p>定义共享库中<code>src/org/devops</code>目录为共享库方法的主目录，在这个目录下创建一个名为<code>dingmes.groovy</code>的文件作为钉钉消息推送方法的代码文件。</p>
+<p>构建一个消息通知器的主要思路：</p>
+<ul>
+<li>消息指标内容从哪来</li>
+<li>消息模板如何定义</li>
+<li>消息怎么发送，发到哪里</li>
+</ul>
+<h4 id="431-消息来源">4.3.1、消息来源</h4>
+<p>首先，消息内容从哪来，上面提到的需要在消息中体现的每个指标的可取的获取方式</p>
+<table>
+<thead>
+<tr>
+<th>指标名称</th>
+<th>指标来源定义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>应用名称</td>
+<td>定义为jenkins的任务名称，通过全局变量env.JOB_NAME获取或者在pipeline中自定义一个变量给出</td>
+</tr>
+<tr>
+<td>构建结果</td>
+<td>在pipeline中post字段指标判断并给出</td>
+</tr>
+<tr>
+<td>当前版本</td>
+<td>定义为jenkins的构建编号，通过全局变量env.BUILD_NUMBER或者在pipeline中自定义版本号</td>
+</tr>
+<tr>
+<td>构建发起</td>
+<td>通过全局变量env.BUILD_USER获取</td>
+</tr>
+<tr>
+<td>持续时间</td>
+<td>通过全局变量currentBuild.durationString获取，这个值更为友好</td>
+</tr>
+<tr>
+<td>构建日志</td>
+<td>日志太多，给个链接即可，通过全局变量env.BUILD_URL/console获取</td>
+</tr>
+<tr>
+<td>更新记录</td>
+<td>这个指标是指代码提交到版本库中的更新信息，而且包含提交时间，提交者名称，获取思路可以通过在检出代码后通过类似git log的命令过滤出或者根据全局变量currentBuild.changeSet获取</td>
+</tr>
+</tbody>
+</table>
+<p>分析：<br>
+本文中的共享库用于<code>jenkins+k8s</code>自动化<code>ci</code>测试环境，因此某些指标的定义方法为：<br>
+应用名称自定义，用变量给出，在pipeline前文定义全局变量，在这里传入变量即可<br>
+当前版本自定义，以代码分支+<code>commitid</code>作为<code>docker</code>镜像的<code>tag</code>，在pipeline前文中实现或亦通过共享库实现，在这里传入变量即可<br>
+更新记录根据全局变量获取，在这里通过代码实现</p>
+<p>较为复杂的是如何解读<code>currentBuild.changeSet</code>这个全局变量，通过jenkins上的全局变量列表文档查看如下<br>
+<img src="https://image.ssgeek.com/20200222-05.png" alt=""><br>
+点击其中的链接查看官方文档<br>
+<img src="https://image.ssgeek.com/20200222-06.png" alt=""><br>
+通过进一步查看官方文档得知，<code>currentBuild.changeSet</code>返回的是一个集合，这个集合中包含了提交日志，<code>commitid</code>，作者<code>id</code>，作者全称，时间戳等信息，具体对象相关属性如下</p>
+<pre><code>currentBuild.changeSets{
+    items[{
+        msg //提交注释
+        commitId //提交hash值
+        author{ //提交用户相关信息
+            id
+            fullName
+        }
+        timestamp
+        affectedFiles[{ //受影响的文件列表
+            editType{
+                name
+            } 
+            path: &quot;path&quot;
+        }]
+        affectedPaths[// 受影响的目录，是个Collection&lt;String&gt;
+            &quot;path-a&quot;,&quot;path-b&quot;
+        ]
+    }]
+}
+</code></pre>
+<p>因此，可以通过循环遍历得出我们需要的相关属性值，通过<code>groovy</code>脚本定义方法并返回相应字符串，其中为了更优化，需要对提交日志做一下长度限制，对时间戳进行格式化，这两个功能需要不断调试。其中<code>changeString</code>变量的赋值格式定义为<code>markdown</code>的无序列表，最终方法如下</p>
+<pre><code>def getChangeString() {
+    def changeString = &quot;&quot;
+    def MAX_MSG_LEN = 20
+    def changeLogSets = currentBuild.changeSets
+    for (int i = 0; i &lt; changeLogSets.size(); i++) {
+        def entries = changeLogSets[i].items
+        for (int j = 0; j &lt; entries.length; j++) {
+            def entry = entries[j]
+            truncatedMsg = entry.msg.take(MAX_MSG_LEN)
+            commitTime = new Date(entry.timestamp).format(&quot;yyyy-MM-dd HH:mm:ss&quot;)
+            changeString += &quot; - ${truncatedMsg} [${entry.author} ${commitTime}]\n&quot;
+        }
+    }
+    if (!changeString) {
+        changeString = &quot; - No new changes&quot;
+    }
+    return (changeString)
+}
+</code></pre>
+<h4 id="432-消息模板定义">4.3.2、消息模板定义</h4>
+<p>消息中的相关字段都获取到了，下一步需要做的就是定义一个消息模板，如果使用邮件发送通知，同样的也需要定义一个模板。</p>
+<p>这里使用更为友好的<code>markdown</code>格式来发送通知，钉钉机器人接口接收的消息是<code>json</code>格式，具体内容可以通过查看官方文档，为了避免换行出错，手动指定换行符，最终的<code>json</code>格式数据和<code>markdown</code>格式模板如下</p>
+<pre><code>{
+    &quot;msgtype&quot;:&quot;markdown&quot;,
+    &quot;markdown&quot;:{
+        &quot;title&quot;:&quot;项目构建信息&quot;,
+        &quot;text&quot;:&quot;### 构建信息\n&gt;- 应用名称: **${AppName}**\n- 构建结果: **${Status} ${CatchInfo}**\n- 当前版本: **${ImageTag}**\n- 构建发起: **${env.BUILD_USER}**\n- 持续时间: **${currentBuild.durationString}**\n- 构建日志: [点击查看详情](${env.BUILD_URL}console)\n#### 更新记录: \n${ChangeLog}&quot;
+    },
+    &quot;at&quot;:{
+        &quot;atMobiles&quot;:[
+            &quot;155xxxx5533&quot;
+        ],
+        &quot;isAtAll&quot;:false
+    }
+}
+</code></pre>
+<h4 id="433-消息发送方法">4.3.3、消息发送方法</h4>
+<p>在流水线中按照消息模板渲染好的消息发送给钉钉的接口地址，可以实现的方法包括但不限于以下几种：</p>
+<ul>
+<li>通过执行<code>shell</code>命令发送，例如<code>curl</code>命令指定参数即可，最为简单，但不够友好</li>
+<li>通过<code>pipeline</code>语法和插件实现，例如使用<a href="https%EF%BC%9A//plugins.jenkins.io/http_request">HTTP Request插件</a>，在<code>Jenkins pipeline</code>中发送<code>HTTP</code>请求给钉钉接口。</li>
+<li>通过调用其他脚本发送，例如<code>python</code>脚本，较复杂，不推荐。</li>
+</ul>
+<p>综上比较，选择一种友好且不复杂的方案，即通过<code>pipeline</code>语法和插件实现</p>
+<p>首先在插件安装中安装好<code>HTTP Request</code>插件，打开语法片段生成器查看对应语法<br>
+<img src="https://image.ssgeek.com/20200222-07.png" alt=""></p>
+<p>相应参数对应如下:<br>
+httpRequest步骤返回的response对象包含两个字段。</p>
+<ul>
+<li>content：响应内容。</li>
+<li>status：响应码。 以下是httpRequest步骤支持的参数。</li>
+<li>url：字符串类型，请求URL。</li>
+<li>acceptType：枚举类型，HTTP请求Header的“Accept”的值类型为NOT_SET、 TEXT_HTML、TEXT_PLAIN、APPLICATION_FORM、APPLICATION_JSON、 APPLICATION_JSON_UTF8、APPLICATION_TAR、APPLICATION_ZIP、 APPLICATION_OCTETSTREAM。</li>
+<li>authentication：字符串类型，Username with password凭证的ID，采用的是HTTP Basic认证方式。</li>
+<li>consoleLogResponseBody：布尔类型，是否将请求的响应body打印出来。</li>
+<li>contentType：枚举类型，HTTP请求Header的“Content-type”的值类型，与acceptType 支持的枚举一样。</li>
+<li>customHeaders：HttpRequestNameValuePair对象数组，HTTP请求Header部分的内 容，该对象有3个参数。 ◦ name：字符串类型，Header名称。 ◦ value：字符串类型，Header值。 ◦ maskValue：布尔类型，是否隐藏Header值。如果设置为true，则在打印时使用“*”代 替。 • httpMode：枚举类型，HTTP方法，有GET（默认）、HEAD、POST、PUT、 DELETE、OPTIONS、PATCH。</li>
+<li>httpProxy：字符串类型，HTTP代理地址</li>
+<li>ignoreSslErrors：布尔类型，是否忽略SSL错误。</li>
+<li>requestBody：字符串类型，请求的body内容。</li>
+<li>timeout：整型，超时时间，单位为秒。默认值为0，代表不设置超时时间。</li>
+<li>validResponseCodes：字符串类型，代表HTTP请求成功的状态码。它支持3种格式的 值。 ◦ 单状态值：比如200，当收到200响应状态码时，表示HTTP请求成功。 ◦ 多状态值：当响应状态码符合多个状态码中的一个时，代表请求成功。多个状态码 之间使用逗号（，）分隔。比如200，404，500。 ◦ 范围状态值：格式为“From：To”。比如200：302，代表收到200到302的响应状态码 都代表请求成功。</li>
+<li>validResponseContent：字符串类型，比如设置它的值为“showme.codes”，那么只有 当HTTP返回的内容中包含了“showme.codes”时，才代表请求成功。</li>
+<li>quiet：布尔类型，是否关闭所有的日志打印，默认值为false。</li>
+<li>responseHandle：枚举类型，获取HTTP响应内容的方式。其值可以为 ◦ NONE：不读取响应内容。 ◦ LEAVE_OPEN：当执行完请求后，并不会返回响应的内容，而是返回一个打开了的 inputStream，由你自己决定该如何读取响应内容。但是在使用完之后，记得调用inputStream的close（）方法关闭。 ◦ STRING（默认值）：将响应内容转换成一个字符串。</li>
+<li>outputFile：字符串类型，请求响应内容的输出路径。</li>
+</ul>
+<p>虽然参数有些多，但是只有<code>url</code>是必需的，其他参数都是可选的。这里我们传入请求内容以及<code>url</code>，并省去其他不必要的参数，如下</p>
+<pre><code>httpRequest acceptType: 'APPLICATION_JSON_UTF8', 
+        consoleLogResponseBody: false, 
+        contentType: 'APPLICATION_JSON_UTF8', 
+        httpMode: 'POST', 
+        ignoreSslErrors: true, 
+        requestBody: ReqBody, 
+        responseHandle: 'NONE', 
+        url: &quot;${DingTalkHook}&quot;,
+        quiet: true
+</code></pre>
+<h4 id="434-最终方法">4.3.4、最终方法</h4>
+<p>综上所述，在调用此共享库方法时传入应用名称变量<code>AppName</code>、应用版本(镜像tag)变量<code>ImageTag</code>、构建状态变量<code>Status</code>、以及在pipeline前文中实现的异常信息捕捉变量<code>CatchInfo</code>，并结合前面实现的方法内容，最终方法<code>dingmes.groovy</code>内容如下</p>
+<pre><code>/* dingmes.groovy
+   ##################################################
+   # Created by SSgeek                              #
+   #                                                #
+   # A Part of the Project jenkins-library          #
+   ##################################################
+*/
+
+package org.devops
+
+def getChangeString() {
+    def changeString = &quot;&quot;
+    def MAX_MSG_LEN = 20
+    def changeLogSets = currentBuild.changeSets
+    for (int i = 0; i &lt; changeLogSets.size(); i++) {
+        def entries = changeLogSets[i].items
+        for (int j = 0; j &lt; entries.length; j++) {
+            def entry = entries[j]
+            truncatedMsg = entry.msg.take(MAX_MSG_LEN)
+            commitTime = new Date(entry.timestamp).format(&quot;yyyy-MM-dd HH:mm:ss&quot;)
+            changeString += &quot; - ${truncatedMsg} [${entry.author} ${commitTime}]\n&quot;
+        }
+    }
+    if (!changeString) {
+        changeString = &quot; - No new changes&quot;
+    }
+    return (changeString)
+}
+
+def HttpReq(AppName,ImageTag=' ',Status,CatchInfo=' '){
+    wrap([$class: 'BuildUser']){
+        def DingTalkHook = &quot;https://oapi.dingtalk.com/robot/send?access_token=67449753547bfcb8e2ee6088fdebaf2cdc7228787201fca83406fc449ffaf92&quot;
+        def ChangeLog = getChangeString()
+        def ReqBody = &quot;&quot;&quot;{
+            &quot;msgtype&quot;: &quot;markdown&quot;,
+            &quot;markdown&quot;: {
+                &quot;title&quot;: &quot;项目构建信息&quot;,
+                &quot;text&quot;: &quot;### 构建信息\n&gt;- 应用名称: **${AppName}**\n- 构建结果: **${Status} ${CatchInfo}**\n- 当前版本: **${ImageTag}**\n- 构建发起: **${env.BUILD_USER}**\n- 持续时间: **${currentBuild.durationString}**\n- 构建日志: [点击查看详情](${env.BUILD_URL}console)\n#### 更新记录: \n${ChangeLog}&quot;
+            },
+            &quot;at&quot;: {
+                &quot;atMobiles&quot;: [
+                    &quot;155xxxx5533&quot;
+                ], 
+                &quot;isAtAll&quot;: false
+                }
+            }&quot;&quot;&quot;
+        // println(currentBuild.description)
+        // println(currentBuild.changeSets)
+        httpRequest acceptType: 'APPLICATION_JSON_UTF8', 
+                consoleLogResponseBody: false, 
+                contentType: 'APPLICATION_JSON_UTF8', 
+                httpMode: 'POST', 
+                ignoreSslErrors: true, 
+                requestBody: ReqBody, 
+                responseHandle: 'NONE', 
+                url: &quot;${DingTalkHook}&quot;,
+                quiet: true
+    }
+}
+</code></pre>
+<h3 id="44-方法调用">4.4、方法调用</h3>
+<p>此消息通知的方法通常在<code>pipeline</code>的<code>post</code>部分调用，如下所示</p>
+<pre><code>post{
+    success{
+        script{
+            tools.PrintMes(&quot;========pipeline executed successfully========&quot;,'green')
+            dingmes.HttpReq(AppName,ImageTag,&quot;构建成功 ✅&quot;)
+        }
+    }
+    failure{
+        script{
+            tools.PrintMes(&quot;========pipeline execution failed========&quot;,'red')
+            dingmes.HttpReq(AppName,ImageTag,&quot;构建失败 ❌&quot;,CatchInfo)
+        }
+    }
+    unstable{
+        script{
+            tools.PrintMes(&quot;========pipeline execution unstable========&quot;,'red')
+            dingmes.HttpReq(AppName,ImageTag,&quot;构建失败 ❌&quot;,&quot;不稳定异常&quot;)
+        }
+    }
+    aborted{
+        script{
+            tools.PrintMes(&quot;========pipeline execution aborted========&quot;,'blue')
+            dingmes.HttpReq(AppName,ImageTag,&quot;构建失败 ❌&quot;,&quot;暂停或中断&quot;)
+        }
+    }
+}
+</code></pre>
+<h3 id="45-最终效果">4.5、最终效果</h3>
+<p>测试代码提交，执行流水线，最终的消息通知效果如下图<br>
+<img src="https://image.ssgeek.com/20200222-08.png" alt=""></p>
+<h2 id="5-总结">5、总结</h2>
+<p>至此，本文记录通过自定义<code>jenkins pipeline</code>流水线共享库方法，实现了较为灵活的自定义钉钉机器人消息通知。如果是使用企信等其他软件，与此实现思路相近。</p>
+<p>参考：https://jenkins.io/doc/book/pipeline/shared-libraries/</p>
+<p>转载请注明出处，文章转自<a href="https://www.ssgeek.com/post/jenkinssharelibrary-shi-jian-zhi-zi-ding-yi-tong-zhi-qi/index.html">山山仙人博客</a></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/JgJeOdy01" class="tag">
+                    jenkins
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/squid-dai-li-ji-chang-jian-de-dai-li-shang-wang">
+                  <h3 class="post-title">
+                    squid代理及常见的代理上网
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>kubernetes | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <h2 class="current-tag">标签: kubernetes</h2>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/liang-da-grafana-shi-yong-cha-jian-kuai-su-jian-kong-kubernetes">
+                  <h2 class="post-title">两大grafana实用插件快速监控kubernetes</h2>
+                </a>
+                <div class="post-date">
+                  2020-05-25
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/kubernetes-pod-zi-yuan-diao-du-zhi-wu-dian-yu-rong-ren">
+                  <h2 class="post-title">kubernetes Pod资源调度之污点和容忍</h2>
+                </a>
+                <div class="post-date">
+                  2020-04-24
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/kubernetes-pod-zi-yuan-diao-du-zhi-you-xian-qiang-zhan-diao-du">
+                  <h2 class="post-title">kubernetes Pod资源调度之优先(抢占)调度</h2>
+                </a>
+                <div class="post-date">
+                  2020-04-23
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/kubernetes-pod-diao-du-zhi-qin-he-xing-diao-du">
+                  <h2 class="post-title">kubernetes Pod资源调度之亲和性调度</h2>
+                </a>
+                <div class="post-date">
+                  2020-04-22
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/kubernetes-pod-diao-du-zhi-quan-zi-dong-diao-du-he-ding-xiang-diao-du">
+                  <h2 class="post-title">Kubernetes Pod资源调度之全自动调度和定向调度</h2>
+                </a>
+                <div class="post-date">
+                  2020-04-19
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/kubernetes-pod-zi-yuan-diao-du-gai-shu">
+                  <h2 class="post-title">Kubernetes Pod资源调度概述</h2>
+                </a>
+                <div class="post-date">
+                  2020-04-15
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/kubernetes-zhi-ingress-zi-dong-hua-https">
+                  <h2 class="post-title">Kubernetes之Ingress自动化https</h2>
+                </a>
+                <div class="post-date">
+                  2020-03-05
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/jenkinssharelibrary-shi-jian-zhi-zi-ding-yi-tong-zhi-qi">
+                  <h2 class="post-title">JenkinsShareLibrary实践之自定义通知器</h2>
+                </a>
+                <div class="post-date">
+                  2020-02-22
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/squid-dai-li-ji-chang-jian-de-dai-li-shang-wang">
+                  <h2 class="post-title">squid代理及常见的代理上网</h2>
+                </a>
+                <div class="post-date">
+                  2020-02-13
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/prometheus-jian-kong-jenkins">
+                  <h2 class="post-title">Prometheus监控Jenkins</h2>
+                </a>
+                <div class="post-date">
+                  2020-02-07
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/zai-k8s-ji-qun-bu-shu-nexus">
+                  <h2 class="post-title">在k8s集群部署Nexus</h2>
+                </a>
+                <div class="post-date">
+                  2020-02-06
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/kubernetes-zhi-nan-dan-xing-shen-suo">
+                  <h2 class="post-title">kubernetes指南--弹性伸缩</h2>
+                </a>
+                <div class="post-date">
+                  2020-01-11
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/shi-yong-kubeadm-da-jian-gao-ke-yong-k8s-v1163-ji-qun">
+                  <h2 class="post-title">使用kubeadm搭建高可用k8s v1.16.3集群</h2>
+                </a>
+                <div class="post-date">
+                  2019-11-27
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/kubernetes-cun-chu-zhi-glusterfs">
+                  <h2 class="post-title">kubernetes存储之GlusterFS</h2>
+                </a>
+                <div class="post-date">
+                  2019-10-23
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/shi-yong-flannelcanal-shi-xian-k8s-de-networkpolicy">
+                  <h2 class="post-title">使用flannel+canal实现k8s的NetworkPolicy</h2>
+                </a>
+                <div class="post-date">
+                  2019-10-21
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/er-jin-zhi-da-jian-kubernetes-ji-qun-zui-xin-v1160-ban-ben">
+                  <h2 class="post-title">二进制搭建Kubernetes集群(最新v1.16.0版本)</h2>
+                </a>
+                <div class="post-date">
+                  2019-10-08
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/ri-zhi-ju-he-gong-ju-loki">
+                  <h2 class="post-title">日志聚合工具loki</h2>
+                </a>
+                <div class="post-date">
+                  2019-09-25
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/k8s-bao-guan-li-gong-ju-helm-jie-shao-he-an-zhuang">
+                  <h2 class="post-title">k8s包管理工具helm - 介绍和安装</h2>
+                </a>
+                <div class="post-date">
+                  2019-09-22
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/kubernetes-wang-luo-zhi-flannel-gong-zuo-yuan-li">
+                  <h2 class="post-title">Kubernetes网络之Flannel工作原理</h2>
+                </a>
+                <div class="post-date">
+                  2019-09-09
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+            <article class="post-item">
+              <div class="left">
+                <a href="https://www.ssgeek.com/post/kubernetes-zhi-pod-jian-kang-jian-cha">
+                  <h2 class="post-title">kubernetes之pod健康检查</h2>
+                </a>
+                <div class="post-date">
+                  2019-08-14
+                </div>
+                <div class="post-abstract">
+                  
+                </div>
+              </div>
+              
+            </article>
+          
+
+          <div class="pagination-container">
+  
+    <a href="https://www.ssgeek.com/tag/kubernetes/" class="prev"><i class="icon-arrow-ios-back-outline"></i> 上一页</a>
+  
+  
+    <a href="https://www.ssgeek.com/tag/kubernetes//page/3/" class="next">下一页 <i class="icon-arrow-ios-forward-outline"></i></a>
+  
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+  </body>
+</html>

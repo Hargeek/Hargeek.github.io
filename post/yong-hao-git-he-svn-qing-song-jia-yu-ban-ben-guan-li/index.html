@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>用好Git和SVN轻松驾驭版本管理 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">用好Git和SVN轻松驾驭版本管理</h2>
+            <div class="post-date">2019-02-25</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-git-vs-svn">1、Git vs SVN</a></li>
+<li><a href="#2-git-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5">2、Git 核心概念</a></li>
+<li><a href="#3-git-svn%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4">3、Git-SVN常用命令</a></li>
+<li><a href="#4-%E5%88%9D%E5%A7%8B%E5%8C%96">4、初始化</a></li>
+<li><a href="#5-%E9%85%8D%E7%BD%AE">5、配置</a></li>
+<li><a href="#6-%E5%A2%9E%E5%88%A0%E6%96%87%E4%BB%B6">6、增删文件</a></li>
+<li><a href="#7-%E5%88%86%E6%94%AF">7、分支</a></li>
+<li><a href="#8-%E6%8F%90%E4%BA%A4">8、提交</a></li>
+<li><a href="#9-%E6%8B%89%E5%8F%96">9、拉取</a></li>
+<li><a href="#10-%E6%92%A4%E9%94%80">10、撤销</a></li>
+<li><a href="#11-%E6%9F%A5%E8%AF%A2">11、查询</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-git-vs-svn">1、Git vs SVN</h2>
+<p>Git 和 SVN 孰优孰好，每个人有不同的体验。</p>
+<ul>
+<li>
+<p>Git是分布式的，SVN是集中式的<br>
+这是 Git 和 SVN 最大的区别。若能掌握这个概念，两者区别基本搞懂大半。因为 Git 是分布式的，所以 Git 支持离线工作，在本地可以进行很多操作，包括接下来将要重磅推出的分支功能。而 SVN 必须联网才能正常工作。</p>
+</li>
+<li>
+<p>Git复杂概念多，SVN简单易上手<br>
+所有同时掌握 Git 和 SVN 的开发者都必须承认，Git 的命令实在太多了，日常工作需要掌握add,commit,status,fetch,push,rebase等，若要熟练掌握，还必须掌握rebase和merge的区别，fetch和pull的区别等，除此之外，还有cherry-pick，submodule，stash等功能，仅是这些名词听着都很绕。<br>
+在易用性这方面，SVN对于新手来说会更有好一些。但是从另外一方面看，Git 命令多意味着功能多，若我们能掌握大部分 Git 的功能，体会到其中的奥妙，会发现再也回不去 SVN 的时代了。</p>
+</li>
+<li>
+<p>Git分支廉价，SVN分支昂贵<br>
+在版本管理里，分支是很常使用的功能。在发布版本前，需要发布分支，进行大需求开发，需要 feature 分支，大团队还会有开发分支，稳定分支等。在大团队开发过程中，常常存在创建分支，切换分支的求。<br>
+Git 分支是指针指向某次提交，而 SVN 分支是拷贝的目录。这个特性使 Git 的分支切换非常迅速，并且创建成本非常低。<br>
+而且 Git 有本地分支，SVN 无本地分支。在实际开发过程中，经常会遇到有些代码没写完，但是需紧急处理其他问题，若我们使用 Git，便可以创建本地分支存储没写完的代码，待问题处理完后，再回到本地分支继续完成代码。</p>
+</li>
+</ul>
+<h2 id="2-git-核心概念">2、Git 核心概念</h2>
+<p>Git 最核心的一个概念就是工作流。<br>
+工作区(Workspace)是电脑中实际的目录。<br>
+暂存区(Index)类似于缓存区域，临时保存你的改动。<br>
+仓库区(Repository)，分为本地仓库和远程仓库。<br>
+从 SVN 切换到 Git，最难理解并且最不能理解的是暂存区和本地仓库。熟练使用 Git 后，会发现这简直是神设计，由于这两者的存在，使许多工作变得易管理。<br>
+通常提交代码分为几步：</p>
+<ul>
+<li>1、git add从工作区提交到暂存区</li>
+<li>2、git commit从暂存区提交到本地仓库</li>
+<li>3、git push或git svn dcommit从本地仓库提交到远程仓库</li>
+</ul>
+<p>一般来说，记住以下命令，便可进行日常工作了（图片来源于网络）：<br>
+<img src="https://image.ssgeek.com/20190225-01.png" alt=""></p>
+<h2 id="3-git-svn常用命令">3、Git-SVN常用命令</h2>
+<p>若服务器使用的 SVN，但是本地想要体验 Git 的本地分支，离线操作等功能，可以使用 Git-SVN功能。<br>
+常用操作如下（图片来源于网络）：<br>
+<img src="https://image.ssgeek.com/20190225-02.png" alt=""></p>
+<p>[ Git-SVN ]</p>
+<pre><code># 下载一个 SVN 项目和它的整个代码历史，并初始化为 Git 代码库
+$ git svn clone -s [repository]
+# 查看当前版本库情况
+$ git svn info
+# 取回远程仓库所有分支的变化
+$ git svn fetch
+# 取回远程仓库当前分支的变化，并与本地分支变基合并
+$ git svn rebase 
+# 上传当前分支的本地仓库到远程仓库
+$ git svn dcommit
+# 拉取新分支，并提交到远程仓库
+$ svn copy [remote_branch] [new_remote_branch] -m [message]
+# 创建远程分支对应的本地分支
+$ git checkout -b [local_branch] [remote_branch]
+</code></pre>
+<h2 id="4-初始化">4、初始化</h2>
+<p>从本节开始，除特殊说明，以下命令均适用于 Git 与 Git-SVN。</p>
+<pre><code># 在当前目录新建一个Git代码库
+$ git init
+# 下载一个项目和它的整个代码历史 [Git only]
+$ git clone [url]
+</code></pre>
+<h2 id="5-配置">5、配置</h2>
+<pre><code># 列举所有配置
+$ git config -l
+# 为命令配置别名
+$ git config --global alias.co checkout
+$ git config --global alias.ci commit
+$ git config --global alias.st status
+$ git config --global alias.br branch
+# 设置提交代码时的用户信息
+$ git config [--global] user.name &quot;[name]&quot;
+$ git config [--global] user.email &quot;[email address]&quot;
+</code></pre>
+<h2 id="6-增删文件">6、增删文件</h2>
+<pre><code># 添加当前目录的所有文件到暂存区
+$ git add .
+# 添加指定文件到暂存区
+$ git add &lt;file1&gt; &lt;file2&gt; ...
+# 添加指定目录到暂存区，包括其子目录
+$ git add &lt;dir&gt;
+# 删除工作区文件，并且将这次删除放入暂存区
+$ git rm [file1] [file2] ...
+# 停止追踪指定文件，但该文件会保留在工作区
+$ git rm --cached [file]
+# 改名文件，并且将这个改名放入暂存区
+$ git mv [file-original] [file-renamed]
+</code></pre>
+<h2 id="7-分支">7、分支</h2>
+<pre><code># 列出所有本地分支
+$ git branch
+# 列出所有本地分支和远程分支
+$ git branch -a
+# 新建一个分支，但依然停留在当前分支
+$ git branch [branch-name]
+# 新建一个分支，并切换到该分支
+$ git checkout -b [new_branch] [remote-branch]
+# 切换到指定分支，并更新工作区
+$ git checkout [branch-name]
+# 合并指定分支到当前分支
+$ git merge [branch]
+# 选择一个 commit，合并进当前分支
+$ git cherry-pick [commit]
+# 删除本地分支，-D 参数强制删除分支
+$ git branch -d [branch-name]
+# 删除远程分支
+$ git push [remote] :[remote-branch]
+</code></pre>
+<h2 id="8-提交">8、提交</h2>
+<pre><code># 提交暂存区到仓库区
+$ git commit -m [message]
+# 提交工作区与暂存区的变化直接到仓库区
+$ git commit -a
+# 提交时显示所有 diff 信息
+$ git commit -v
+# 提交暂存区修改到仓库区，合并到上次修改，并修改上次的提交信息
+$ git commit --amend -m [message]
+# 上传本地指定分支到远程仓库
+$ git push [remote] [remote-branch]
+</code></pre>
+<h2 id="9-拉取">9、拉取</h2>
+<pre><code># 下载远程仓库的所有变动 (Git only)
+$ git fetch [remote]
+# 显示所有远程仓库 (Git only)
+$ git remote -v
+# 显示某个远程仓库的信息 (Git only)
+$ git remote show [remote]
+# 增加一个新的远程仓库，并命名 (Git only)
+$ git remote add [remote-name] [url]
+# 取回远程仓库的变化，并与本地分支合并，(Git only), 若使用 Git-SVN，请查看第三节
+$ git pull [remote] [branch]
+# 取回远程仓库的变化，并与本地分支变基合并，(Git only), 若使用 Git-SVN，请查看第三节
+$ git pull --rebase [remote] [branch]
+</code></pre>
+<h2 id="10-撤销">10、撤销</h2>
+<pre><code># 恢复暂存区的指定文件到工作区
+$ git checkout [file]
+# 恢复暂存区当前目录的所有文件到工作区
+$ git checkout .
+# 恢复工作区到指定 commit
+$ git checkout [commit]
+# 重置暂存区的指定文件，与上一次 commit 保持一致，但工作区不变
+$ git reset [file]
+# 重置暂存区与工作区，与上一次 commit 保持一致
+$ git reset --hard
+# 重置当前分支的指针为指定 commit，同时重置暂存区，但工作区不变
+$ git reset [commit]
+# 重置当前分支的HEAD为指定 commit，同时重置暂存区和工作区，与指定 commit 一致
+$ git reset --hard [commit]
+# 新建一个 commit，用于撤销指定 commit
+$ git revert [commit]
+# 将未提交的变化放在储藏区
+$ git stash
+# 将储藏区的内容恢复到当前工作区
+$ git stash pop
+</code></pre>
+<h2 id="11-查询">11、查询</h2>
+<pre><code># 查看工作区文件修改状态
+$ git status 
+# 查看工作区文件修改具体内容 
+$ git diff [file]
+# 查看暂存区文件修改内容
+$ git diff --cached [file] 
+# 查看版本库修改记录
+$ git log 
+# 查看某人提交记录
+$ git log --author=someone 
+# 查看某个文件的历史具体修改内容
+$ git log -p [file] 
+# 查看某次提交具体修改内容
+$ git show [commit]
+</code></pre>
+<p>来源：http://www.bubuko.com/infodetail-2844306.html</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/app" class="tag">
+                    实用程序
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/linux" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/25-ge-iptables-chang-yong-shi-li">
+                  <h3 class="post-title">
+                    25个iptables常用示例
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

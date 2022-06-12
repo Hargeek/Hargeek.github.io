@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>k8s Ingress nginx错误页面的深度定制 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">k8s Ingress nginx错误页面的深度定制</h2>
+            <div class="post-date">2020-12-17</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li><a href="#1-%E9%94%99%E8%AF%AF%E9%A1%B5%E9%9D%A2%E7%8A%B6%E6%80%81%E7%A0%81">1、错误页面状态码</a></li>
+<li><a href="#2-%E5%9C%A8k8s%E4%B8%AD%E6%A8%A1%E6%8B%9F%E9%94%99%E8%AF%AF%E9%A1%B5%E9%9D%A2">2、在k8s中模拟错误页面</a></li>
+<li><a href="#3-%E9%BB%98%E8%AE%A4%E5%90%8E%E7%AB%AF%E9%94%99%E8%AF%AF%E9%A1%B5%E9%9D%A2">3、默认后端错误页面</a>
+<ul>
+<li><a href="#31-%E9%83%A8%E7%BD%B2%E9%BB%98%E8%AE%A4%E5%90%8E%E7%AB%AF">3.1 部署默认后端</a></li>
+<li><a href="#32-%E9%85%8D%E7%BD%AE%E5%90%AF%E5%8A%A8%E5%8F%82%E6%95%B0">3.2 配置启动参数</a></li>
+<li><a href="#33-%E4%BF%AE%E6%94%B9configmap">3.3 修改configmap</a></li>
+<li><a href="#34-%E6%B5%8B%E8%AF%95">3.4 测试</a></li>
+</ul>
+</li>
+<li><a href="#4-%E8%87%AA%E5%AE%9A%E4%B9%89%E9%94%99%E8%AF%AF%E9%A1%B5%E9%9D%A2">4、自定义错误页面</a>
+<ul>
+<li><a href="#41-%E5%89%96%E6%9E%90%E8%AF%B7%E6%B1%82%E4%B8%8E%E5%85%B3%E9%94%AE">4.1 剖析请求与关键</a></li>
+<li><a href="#42-%E6%9E%84%E5%BB%BA%E8%87%AA%E5%AE%9A%E4%B9%89%E5%90%8E%E7%AB%AF">4.2 构建自定义后端</a></li>
+<li><a href="#43-%E9%83%A8%E7%BD%B2%E8%87%AA%E5%AE%9A%E4%B9%89%E5%90%8E%E7%AB%AF">4.3 部署自定义后端</a></li>
+<li><a href="#44-%E6%9C%80%E7%BB%88%E6%B5%8B%E8%AF%95">4.4 最终测试</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>错误页面是发生错误时显示的网页。 错误页面会警告用户发生的错误类型，并可能为用户提供解决问题的步骤的建议。 除了在未样式化的网页上提供错误信息的基本页面之外，还可以使用可以设计为具有额外功能和样式外观的自定义错误页面。 这些设置可以在服务器上更改。 许多服务器提供了可用于生成自定义错误页面的实用程序。</p>
+<p>引文参考：https://www.netinbag.com/cn/internet/what-are-error-pages.html</p>
+</blockquote>
+<h1 id="1-错误页面状态码">1、错误页面状态码</h1>
+<p>网站运行过程中难免出现问题，为用户抛出一个错误页面，常见的错误页面包含<code>403</code>、<code>404</code>、<code>500</code>、<code>502</code>、<code>503</code>、<code>504</code>状态码，这些常见的错误页面状态码的含义如下</p>
+<ul>
+<li>403 Forbidden</li>
+<li>404 Not Found</li>
+<li>500 Internal Server Eroor</li>
+<li>502 Bad Gateway</li>
+<li>503 Service Unavailable</li>
+<li>504 Gateway Timeout</li>
+</ul>
+<h1 id="2-在k8s中模拟错误页面">2、在k8s中模拟错误页面</h1>
+<p>本文中涉及到的的<code>k8s集群</code>版本、<code>Ingress nginx</code>版本如下</p>
+<pre><code class="language-shell"># kubectl version
+Client Version: version.Info{Major:&quot;1&quot;, Minor:&quot;15&quot;, GitVersion:&quot;v1.15.0&quot;, GitCommit:&quot;e8462b5b5dc2584fdcd18e6bcfe9f1e4d970a529&quot;, GitTreeState:&quot;clean&quot;, BuildDate:&quot;2019-06-19T16:40:16Z&quot;, GoVersion:&quot;go1.12.5&quot;, Compiler:&quot;gc&quot;, Platform:&quot;linux/amd64&quot;}
+Server Version: version.Info{Major:&quot;1&quot;, Minor:&quot;15&quot;, GitVersion:&quot;v1.15.0&quot;, GitCommit:&quot;e8462b5b5dc2584fdcd18e6bcfe9f1e4d970a529&quot;, GitTreeState:&quot;clean&quot;, BuildDate:&quot;2019-06-19T16:32:14Z&quot;, GoVersion:&quot;go1.12.5&quot;, Compiler:&quot;gc&quot;, Platform:&quot;linux/amd64&quot;}
+# POD_NAME=$(kubectl get pods -l app.kubernetes.io/name=ingress-nginx -n ingress-nginx -o jsonpath='{.items[0].metadata.name}')
+# kubectl exec -it $POD_NAME -n ingress-nginx -- /nginx-ingress-controller --version
+-------------------------------------------------------------------------------
+NGINX Ingress controller
+  Release:    0.25.0
+  Build:      git-1387f7b7e
+  Repository: https://github.com/kubernetes/ingress-nginx
+-------------------------------------------------------------------------------
+</code></pre>
+<p>对于错误页面状态码，为了方便，这里模拟出<code>404</code>和<code>503</code>两个错误状态码页面</p>
+<ul>
+<li>404页面</li>
+</ul>
+<p>解析一个不存在的域名到<code>Ingress controller</code>所在的节点，进行访问，页面如下</p>
+<img src="https://image.ssgeek.com/20201217-01.png" style="zoom:67%;" />
+<p>这里对<code>Ingress nginx</code>做了版本号的隐藏，返回了默认的<code>404 Not Found</code>(页面未找到)</p>
+<ul>
+<li>503页面</li>
+</ul>
+<p>在<code>k8s</code>中创建一个如下的<code>Ingress</code>资源</p>
+<pre><code class="language-yaml">apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: example-ingress
+spec:
+  rules:
+    - host: example.bar.com
+      http:
+        paths:
+          - backend:
+              serviceName: nginx-service
+              servicePort: 80
+</code></pre>
+<p>同样将对应的域名解析到<code>Ingress controller</code>所在的节点进行访问，由于该<code>Ingress</code>的后端并没有对应的<code>nginx-service</code>，因此会返回默认的<code>503</code>(服务暂时不可用)</p>
+<img src="https://image.ssgeek.com/20201217-02.png" style="zoom:67%;" />
+<h1 id="3-默认后端错误页面">3、默认后端错误页面</h1>
+<p>很多时候我们虽然隐藏了<code>Ingress nginx</code>的版本号，但直接返回状态码还是不够友好。一些网站都会有自定义的较友好、美观的错误页面或跳转到公益页面等。</p>
+<p>如何定制错误页面？在网址的域名<code>dns</code>被正确解析而不是未注册或被劫持的情况下，简单来说可以根据网络访问链路分为以下两种情况：</p>
+<ul>
+<li>域名通过<code>CNAME</code>解析到<code>cdn</code></li>
+</ul>
+<p>如果网站前面用到了类似阿里云提供的<code>CDN</code>加速、全站加速等服务，域名通过<code>CNAME</code>解析到<code>CDN</code>，<code>CDN</code>再配置关联的域名。这种情况下错误页面的定义都可以直接在<code>CDN</code>控制台进行配置。如下图所示，指定状态码对应的页面即可。</p>
+<img src="https://image.ssgeek.com/20201217-03.png" style="zoom:67%;" />
+<ul>
+<li>域名通过<code>A</code>记录解析到<code>LB</code>或者真实服务器</li>
+</ul>
+<p>如果网站域名通过<code>A</code>记录解析到<code>LB</code>或者真实服务器，而<code>LB</code>或者真实服务器不做任何处理，那么将返回上面所示的错误状态码页面。对于<code>k8s</code>中通过<code>Ingress nginx</code>暴露的服务来说，可以在<code>Ingress-controller</code>配置默认后端错误页面。</p>
+<p>可以参照官方的<a href="https://github.com/kubernetes/ingress-nginx/tree/nginx-0.25.0/docs/examples/customization/custom-errors">文档说明</a>，配置流程如下。</p>
+<h2 id="31-部署默认后端">3.1 部署默认后端</h2>
+<p><code>Ingress nginx</code>提供了默认的自定义后端供用户使用，<code>yaml</code>如下</p>
+<pre><code class="language-yaml">---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-errors
+  labels:
+    app.kubernetes.io/name: nginx-errors
+    app.kubernetes.io/part-of: ingress-nginx
+spec:
+  selector:
+    app.kubernetes.io/name: nginx-errors
+    app.kubernetes.io/part-of: ingress-nginx
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-errors
+  labels:
+    app.kubernetes.io/name: nginx-errors
+    app.kubernetes.io/part-of: ingress-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nginx-errors
+      app.kubernetes.io/part-of: ingress-nginx
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: nginx-errors
+        app.kubernetes.io/part-of: ingress-nginx
+    spec:
+      containers:
+      - name: nginx-error-server
+        image: quay.io/kubernetes-ingress-controller/custom-error-pages-amd64:0.3
+        ports:
+        - containerPort: 8080
+        # Setting the environment variable DEBUG we can see the headers sent 
+        # by the ingress controller to the backend in the client response.
+        # env:
+        # - name: DEBUG
+        #   value: &quot;true&quot;
+</code></pre>
+<p>保证镜像可用的情况下，直接创建对应资源即可</p>
+<pre><code class="language-shell"># kubectl create -f custom-default-backend.yaml
+service &quot;nginx-errors&quot; created
+deployment.apps &quot;nginx-errors&quot; created
+</code></pre>
+<p>检查创建的资源</p>
+<pre><code class="language-shell"># kubectl get deploy,svc
+NAME                           DESIRED   CURRENT   READY     AGE
+deployment.apps/nginx-errors   1         1         1         10s
+
+NAME                   TYPE        CLUSTER-IP  EXTERNAL-IP   PORT(S)   AGE
+service/nginx-errors   ClusterIP   10.0.0.12   &lt;none&gt;        80/TCP    10s
+</code></pre>
+<h2 id="32-配置启动参数">3.2 配置启动参数</h2>
+<p>修改<code>Ingress controller</code>控制器的启动参数，加入以下配置，通过<code>--default-backend</code>标志的值设置为新创建的错误后端的名称</p>
+<pre><code class="language-shell"># kubectl -n ingress-nginx edit ds nginx-ingress-controller
+...
+    spec:
+      containers:
+      - args:
+        - /nginx-ingress-controller
+        - --configmap=$(POD_NAMESPACE)/nginx-configuration
+        - --tcp-services-configmap=$(POD_NAMESPACE)/tcp-services
+        - --udp-services-configmap=$(POD_NAMESPACE)/udp-services
+        - --publish-service=$(POD_NAMESPACE)/ingress-nginx
+        - --annotations-prefix=nginx.ingress.kubernetes.io
+        - --default-backend-service=ingress-nginx/nginx-errors  # 添加此行
+...
+</code></pre>
+<h2 id="33-修改configmap">3.3 修改configmap</h2>
+<p>修改对应的<code>configmap</code>指定要关联到默认后端服务的服务状态码，意味着如果状态码是配置项中的值，那么返回给客户端浏览器的就是默认后端服务</p>
+<pre><code class="language-shell"># kubectl -n ingress-nginx edit configmap nginx-configuration
+apiVersion: v1
+data:
+  custom-http-errors: 403,404,500,502,503,504 # 添加此行
+</code></pre>
+<h2 id="34-测试">3.4 测试</h2>
+<p>通过终端命令访问上面<code>404</code>和<code>503</code>页面的两个域名</p>
+<pre><code class="language-shell">#  ingress-nginx curl example.bar.com                              
+5xx html                                                                                                                                                                        #  ingress-nginx curl example.foo.com                              
+&lt;span&gt;The page you're looking for could not be found.&lt;/span&gt;
+#  自定义Accept标头
+#  ingress-nginx curl -H 'Accept: application/json' example.foo.com
+{ &quot;message&quot;: &quot;The page you're looking for could not be found&quot; }
+</code></pre>
+<p>可以看到默认后端将<code>404</code>状态码返回了字符串，<code>503</code>返回了<code>5xx html</code>的字符串。缺点在于这样的情况如果用浏览器进行访问，仅仅是一个字符串文本甚至无法正常显示，因此需要重新定义这个默认后端服务，提供友好的界面返回。</p>
+<h1 id="4-自定义错误页面">4、自定义错误页面</h1>
+<h2 id="41-剖析请求与关键">4.1 剖析请求与关键</h2>
+<p>如下图所示，<code>Ingress Controller</code>控制器的工作原理，简单来说，将控制器理解为一个监听器，通过不断地监听 <code>kube-apiserver</code>，实时的感知后端 <code>Service</code>和<code>Pod</code>的变化，当得到这些信息变化后，<code>Ingress Controller</code>再结合<code>Ingress</code>的配置，更新反向代理负载均衡器，从而达到服务发现的作用。<code>Ingress-nginx</code>的最终目标是构造<code>nginx.conf</code>这样的配置文件，主要用途是在配置文件有任何变更后都需要重新加载 <code>nginx</code>。</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20201217-04.png" alt=""></figure>
+<p>通过上面创建<code>ingress</code>资源，以及配置控制器启动参数和<code>configmap</code>，进入到<code>nginx-ingress-controller</code>的<code>pod</code>中查看配置(文件内容很多，可以导出或过滤查看)。</p>
+<p>会看到将状态码关联了自定义的默认后端</p>
+<pre><code class="language-shell"># kubectl -n ingress-nginx exec -it nginx-ingress-controller-2rrsw bash
+www-data@k8s-qa-node-03:/etc/nginx$ grep &quot;error_page&quot; nginx.conf -C 10
+        
+        ssl_ecdh_curve auto;
+        
+        proxy_intercept_errors on;
+        
+        error_page 404 = @custom_upstream-default-backend_404;
+        error_page 500 = @custom_upstream-default-backend_500;
+        error_page 502 = @custom_upstream-default-backend_502;
+        error_page 503 = @custom_upstream-default-backend_503;
+        error_page 504 = @custom_upstream-default-backend_504;
+        
+        proxy_ssl_session_reuse on;
+        
+        upstream upstream_balancer {
+                server 0.0.0.1; # placeholder
+
+</code></pre>
+<p>过滤出上面创建的域名<code>example.bar.com</code>相关配置</p>
+<pre><code class="language-shell">	## start server example.bar.com
+	server {
+		server_name example.bar.com ;
+		
+		listen 80;
+		
+		listen [::]:80;
+		
+		set $proxy_upstream_name &quot;-&quot;;
+		set $pass_access_scheme $scheme;
+		set $pass_server_port $server_port;
+		set $best_http_host $http_host;
+		set $pass_port $pass_server_port;
+...
+		location @custom_upstream-default-backend_404 {
+			internal;
+			
+			proxy_intercept_errors off;
+			
+			proxy_set_header       X-Code             404;
+			proxy_set_header       X-Format           $http_accept;
+			proxy_set_header       X-Original-URI     $request_uri;
+			proxy_set_header       X-Namespace        $namespace;
+			proxy_set_header       X-Ingress-Name     $ingress_name;
+			proxy_set_header       X-Service-Name     $service_name;
+			proxy_set_header       X-Service-Port     $service_port;
+			proxy_set_header       X-Request-ID       $req_id;
+			proxy_set_header       Host               $best_http_host;
+			
+			set $proxy_upstream_name upstream-default-backend;
+			
+			rewrite                (.*) / break;
+			
+			proxy_pass            http://upstream_balancer;
+			log_by_lua_block {
+				
+				monitor.call()
+				
+			}
+		}
+		
+		location @custom_upstream-default-backend_500 {
+			internal;
+			
+			proxy_intercept_errors off;
+			
+			proxy_set_header       X-Code             500;
+			proxy_set_header       X-Format           $http_accept;
+			proxy_set_header       X-Original-URI     $request_uri;
+			proxy_set_header       X-Namespace        $namespace;
+			proxy_set_header       X-Ingress-Name     $ingress_name;
+			proxy_set_header       X-Service-Name     $service_name;
+			proxy_set_header       X-Service-Port     $service_port;
+			proxy_set_header       X-Request-ID       $req_id;
+			proxy_set_header       Host               $best_http_host;
+			
+			set $proxy_upstream_name upstream-default-backend;
+			
+			rewrite                (.*) / break;
+			
+			proxy_pass            http://upstream_balancer;
+			log_by_lua_block {
+				
+				monitor.call()
+				
+			}
+		}
+...
+</code></pre>
+<p>这个<code>server</code>中关于默认后端的配置内容是<strong>关键信息</strong>(踩坑发现，后面只有用到这里的相关配置才能达到最终目标，否则无法判断)。</p>
+<p>可以看到，在传递默认后端时，设置了多个请求头字段，其中<code>X-Code</code>即状态码正是所需要的，这里意味着将控制器返回的对应状态码，例如<code>500</code>定义在了<code>X-Code中</code>。如果自定义一个默认后端来取代官方的默认后端，就可以通过<code>X-Code</code>这个特定的头部来判断实现不同的状态码从而返回不同的自定义错误页面。</p>
+<p>关于<code>X-code</code>早期的版本可能会不生效，<a href="https://github.com/kubernetes/ingress-nginx/issues/2281">issue参考</a></p>
+<h2 id="42-构建自定义后端">4.2 构建自定义后端</h2>
+<p>自定义后端页面可以理解成就是简单的静态页面，这里可以通过熟悉的<code>nginx</code>来构建这样的自定义后端。即通过手动编译安装<code>nginx</code>，并打包好自定义错误页面、配置文件成一个<code>docker</code>镜像。</p>
+<p>镜像中<code>nginx.conf</code>的<strong>关键配置</strong></p>
+<ul>
+<li>
+<p>利用上面提到的<code>X-code</code>特定头部进行原始状态码的判断。</p>
+</li>
+<li>
+<p><code>nginx</code>不支持嵌套的<code>if</code>判断以及逻辑运算，因此通过设置<code>flag</code>变量标记的形式实现不同状态码的判断返回，如果列出的状态码都不匹配，将状态码设置为返回<code>404</code>。</p>
+</li>
+</ul>
+<pre><code class="language-shell">    server {
+        listen 80;
+...
+        root   /data/www/error;
+        error_page  403  /403.html;
+        error_page  404  /404.html;
+        error_page  500  /500.html;
+        error_page  502  /502.html;
+        error_page  503  /503.html;
+        error_page  504  /504.html;
+        location = / {
+            set $flag 404;
+            if ($http_x_code = &quot;403&quot;){set $flag 403;}
+            if ($http_x_code = &quot;404&quot;){set $flag 404;}
+            if ($http_x_code = &quot;500&quot;){set $flag 500;}
+            if ($http_x_code = &quot;502&quot;){set $flag 502;}
+            if ($http_x_code = &quot;503&quot;){set $flag 503;}
+            if ($http_x_code = &quot;504&quot;){set $flag 504;}
+            if ($flag = &quot;403&quot;){return 403;}
+            if ($flag = &quot;404&quot;){return 404;}
+            if ($flag = &quot;500&quot;){return 500;}
+            if ($flag = &quot;502&quot;){return 502;}
+            if ($flag = &quot;503&quot;){return 503;}
+            if ($flag = &quot;504&quot;){return 504;}
+        }
+        location = /403.html {
+            internal;
+        }
+        location = /404.html {
+            internal;
+        }
+...
+</code></pre>
+<p>代码根目录结构</p>
+<pre><code class="language-shell">
+[root@docker nginx_error]# tree error/
+error/
+├── 403.html
+├── 404.html
+├── 500.html
+├── 502.html
+├── 503.html
+└── 504.html
+</code></pre>
+<p>这里我已经将制作好的镜像上传到了<code>dockerhub</code>，可以通过以下命令拉取镜像</p>
+<pre><code class="language-shell">docker pull ssgeek/nginx:nginx_error_1.14.2_v1.0
+</code></pre>
+<h2 id="43-部署自定义后端">4.3 部署自定义后端</h2>
+<p>参照已有模板，重新部署一个新的默认后端</p>
+<pre><code class="language-yaml">---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ssgeek-errors
+  labels:
+    app.kubernetes.io/name: ssgeek-errors
+    app.kubernetes.io/part-of: ingress-nginx
+  namespace: ingress-nginx
+spec:
+  selector:
+    app.kubernetes.io/name: ssgeek-errors
+    app.kubernetes.io/part-of: ingress-nginx
+  ports:
+  - port: 80
+    targetPort: 80
+    name: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ssgeek-errors
+  labels:
+    app.kubernetes.io/name: ssgeek-errors
+    app.kubernetes.io/part-of: ingress-nginx
+  namespace: ingress-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ssgeek-errors
+      app.kubernetes.io/part-of: ingress-nginx
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ssgeek-errors
+        app.kubernetes.io/part-of: ingress-nginx
+    spec:
+      containers:
+      - name: ssgeek-errors
+        image: ssgeek/nginx:nginx_error_1.14.2_v1.0
+        ports:
+        - containerPort: 80
+        # Setting the environment variable DEBUG we can see the headers sent 
+        # by the ingress controller to the backend in the client response.
+        # env:
+        # - name: DEBUG
+        #   value: &quot;true&quot;
+</code></pre>
+<p>同样的，修改<code>Ingress controller</code>控制器的启动参数，修改关联的<code>service</code>名称</p>
+<pre><code class="language-shell"># kubectl -n ingress-nginx edit ds nginx-ingress-controller
+...
+    spec:
+      containers:
+      - args:
+        - /nginx-ingress-controller
+        - --configmap=$(POD_NAMESPACE)/nginx-configuration
+        - --tcp-services-configmap=$(POD_NAMESPACE)/tcp-services
+        - --udp-services-configmap=$(POD_NAMESPACE)/udp-services
+        - --publish-service=$(POD_NAMESPACE)/ingress-nginx
+        - --annotations-prefix=nginx.ingress.kubernetes.io
+        - --default-backend-service=ingress-nginx/ssgeek-errors  # 修改成自定义的默认后端服务
+...
+</code></pre>
+<h2 id="44-最终测试">4.4 最终测试</h2>
+<p>测试效果如下</p>
+<video id="video" width="800" height="450" controls="" preload="none" poster="https://image.ssgeek.com/20201217-05.png">
+      <source id="mp4" src="https://image.ssgeek.com/20201217-01.mp4" type="video/mp4">
+</video>
+<p>到这里，基于<code>k8s Ingress nginx</code>对错误页面的深度定制就完成了。</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/nginx" class="tag">
+                    nginx
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/rAjiCH60jX" class="tag">
+                    k8s
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/k8s-nei-wang-he-ban-gong-wang-luo-de-da-tong-shi-jian">
+                  <h3 class="post-title">
+                    k8s内网和办公网络的打通实践
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>浅谈Python鸭子类型 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">浅谈Python鸭子类型</h2>
+            <div class="post-date">2021-04-30</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E9%B8%AD%E5%AD%90%E7%B1%BB%E5%9E%8B">1、什么是“鸭子类型”</a></li>
+<li><a href="#2-%E9%B8%AD%E5%AD%90%E7%B1%BB%E5%9E%8B%E4%BB%8E%E4%BD%95%E8%80%8C%E6%9D%A5">2、“鸭子类型”从何而来</a>
+<ul>
+<li><a href="#21-%E5%A4%9A%E6%80%81">2.1 多态</a></li>
+<li><a href="#22-%E5%A4%9A%E6%80%81%E7%9A%84%E4%BD%BF%E7%94%A8">2.2 多态的使用</a></li>
+<li><a href="#23-%E9%B8%AD%E5%AD%90%E7%B1%BB%E5%9E%8B%E4%BA%A7%E7%94%9F">2.3 鸭子类型产生</a></li>
+</ul>
+</li>
+<li><a href="#3-%E5%B0%8F%E7%BB%93">3、小结</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210430-01.png" alt=""></figure>
+<h2 id="1-什么是鸭子类型">1、什么是“鸭子类型”</h2>
+<p><code>Python</code>崇尚“鸭子类型”</p>
+<p>对于<code>鸭子模型</code>常见的说法是：“当看到一只鸟走起来像鸭子、游泳起来像鸭子、叫起来也像鸭子，那么这只鸟就可以被称为鸭子。”</p>
+<p><strong>鸭子类型</strong>（英语：<strong>duck typing</strong>）在程序设计中是动态类型的一种风格。在这种风格中，一个对象有效的语义，不是由继承自特定的类或实现特定的接口，而是由“当前方法和属性的集合”决定</p>
+<p>在鸭子类型中，关注点在于对象的行为能做什么；而不是关注对象所属的类型。例如，在不使用鸭子类型的语言中，我们可以编写一个函数，它接受一个类型为&quot;鸭子&quot;的对象，并调用它的&quot;走&quot;和&quot;叫&quot;方法。在使用鸭子类型的语言中，这样的一个函数可以接受一个任意类型的对象，并调用它的&quot;走&quot;和&quot;叫&quot;方法。如果这些需要被调用的方法不存在，那么将引发一个运行时错误。任何拥有这样的正确的&quot;走&quot;和&quot;叫&quot;方法的对象都可被函数接受的这种行为引出了以上表述，这种决定类型的方式因此得名</p>
+<p>鸭子类型通常得益于&quot;不&quot;测试方法和函数中参数的类型，而是依赖文档、清晰的代码和测试来确保正确使用</p>
+<p>在常规类型中，我们能否在一个特定场景中使用某个对象取决于这个对象的类型，而在鸭子类型中，则取决于这个对象是否具有某种属性或者方法——即只要具备特定的属性或方法，能通过鸭子测试，就可以使用。</p>
+<blockquote>
+<p>内容参考自维基百科：https://zh.wikipedia.org/wiki/%E9%B8%AD%E5%AD%90%E7%B1%BB%E5%9E%8B</p>
+</blockquote>
+<h2 id="2-鸭子类型从何而来">2、“鸭子类型”从何而来</h2>
+<h3 id="21-多态">2.1 多态</h3>
+<p>先来看看“多态”</p>
+<p>大学时学习过<code>C</code>、<code>Java</code>基础这一类强类型语言，面向对象编程的三大特性之一有个概念叫做“多态”</p>
+<p>简单来说，定义时的类型和运行时的类型不一样就是多态</p>
+<p>更通俗的来说，多态是指一类事物有多种形态。比如动物有多种形态，人、狗、猫等等</p>
+<p>放到二进制的世界，例如文件，文件有多种形态：文本文件、可执行文件</p>
+<p>总而言之，多态即某类的再分类，再分的每一类就是父类的多种形态的一种</p>
+<p>例如下面代码示例：</p>
+<ul>
+<li>
+<p>程序在运行到<code>list</code>这一步是只把<code>Cat</code>，<code>Dog</code>，<code>Duck</code>当成变量</p>
+</li>
+<li>
+<p>只有在最后实例化调用类方法的时候才会明白是一个类，这就表示多态</p>
+</li>
+</ul>
+<pre><code class="language-python">class Cat(object):
+    def info(self):
+        print(&quot;我是一只猫&quot;)
+
+
+class Dog(object):
+    def info(self):
+        print(&quot;我是一只狗&quot;)
+
+
+class Duck(object):
+    def info(self):
+        print(&quot;我是一只鸭&quot;)
+
+list=[Cat,Dog,Duck]
+for animal in list:
+    animal().info()
+</code></pre>
+<h3 id="22-多态的使用">2.2 多态的使用</h3>
+<p>再来一个偏实际的应用示例代码</p>
+<pre><code class="language-python">from abc import ABCMeta,abstractmethod #(抽象方法)
+
+class Payment(metaclass=ABCMeta):   # metaclass 元类  metaclass = ABCMeta表示Payment类是一个规范类
+    def __init__(self,name,money):
+        self.money=money
+        self.name=name
+
+    @abstractmethod      # @abstractmethod表示下面一行中的pay方法是一个必须在子类中实现的方法
+    def pay(self,*args,**kwargs):
+        pass
+
+class AliPay(Payment):
+
+    def pay(self):
+        # 支付宝提供了一个网络上的联系渠道
+        print('%s通过支付宝消费了%s元'%(self.name,self.money))
+
+class WeChatPay(Payment):
+
+    def pay(self):
+        # 微信提供了一个网络上的联系渠道
+        print('%s通过微信消费了%s元'%(self.name,self.money))
+
+
+class Order(object):
+
+    def account(self,pay_obj):
+        pay_obj.pay()
+
+pay_obj = WeChatPay(&quot;wang&quot;,100)
+pay_obj2 = AliPay(&quot;zhang&quot;,200)
+
+order = Order()
+order.account(pay_obj)
+order.account(pay_obj2)
+</code></pre>
+<p>从上述代码可见，在调用<code>order</code>对象的<code>account()</code>方法时，程序并不关心为该方法传入的参数对象<code>pay_obj</code>是谁，只要求此参数对象<code>pay_obj</code>包含<code>pay()</code>方法即可，而调用者传入的参数对象类型<code>pay_obj</code>是子类对象还是其他类对象，对<code>Python</code>来说无所谓</p>
+<p>多态性就是相同的消息（函数方法触发）使得不同的类做出不同的响应，这就是典型的类编程中多态性的应用实例</p>
+<h3 id="23-鸭子类型产生">2.3 鸭子类型产生</h3>
+<p>在上面的例子中<code>order.account(pay_obj)</code>中<code>pay_obj</code>不需要类型声明，而<code>java</code>在使用时要定义好类型</p>
+<p>（<code>order.account(Payment pay_obj)</code>），所以你传入别的类型对象一定报错</p>
+<p>但是<code>python</code>因为是动态语言所以传入的对象只要拥有调用的方法即可视为<code>Payment</code>类型对象，这就是所谓的鸭子类型</p>
+<pre><code class="language-python">class Duck():
+    def walk(self):
+        print('I walk like a duck')
+    def swim(self):
+        print('i swim like a duck')
+
+class Person():
+    def walk(self):
+    　　print('this one walk like a duck') 
+    def swim(self):
+    　　print('this man swim like a duck')
+</code></pre>
+<p>可以很明显的看出，<code>Person</code>类拥有跟<code>Duck</code>类一样的方法，当有一个函数调用<code>Duck</code>类，并利用到了两个方法<code>walk()</code>和<code>swim()</code>。我们传入<code>Person</code>类也一样可以运行，函数并不会检查对象的类型是不是<code>Duck</code>，只要他拥有<code>walk()</code>和<code>swim()</code>方法，就可以正确的被调用</p>
+<h2 id="3-小结">3、小结</h2>
+<ul>
+<li>在鸭子类型中，关注的不是对象的类型本身，而是它是如何使用的</li>
+</ul>
+<p>例如，在不使用鸭子类型的语言中，我们可以编写一个函数，它接受一个类型为&quot;鸭子&quot;的对象，并调用它的&quot;走&quot;和&quot;叫&quot;方法</p>
+<ul>
+<li>在使用鸭子类型的语言中，这样的一个函数可以接受一个任意类型的对象，并调用它的&quot;走&quot;和&quot;叫&quot;方法</li>
+</ul>
+<p>如果这些需要被调用的方法不存在，那么将引发一个运行时错误</p>
+<p>任何拥有这样的正确的&quot;走&quot;和&quot;叫&quot;方法的对象都可被函数接受的这种行为引出了以上表述，这种决定类型的方式因此得名</p>
+<ul>
+<li>
+<p>鹅不是鸭子，但是鹅一旦拥有鸭子的一些方法，就可以被当成鸭子类型了</p>
+</li>
+<li>
+<p>鸭子类型的好处就在于能够避免一些类的重写，无需大量复制相同的代码</p>
+</li>
+<li>
+<p>鸭子类型使用的前提是需要良好的文档支持，不然会让代码变得很混乱，如果没有良好的文档及说明，有可能会导致你的“鸭子”不是我的“鹅”了</p>
+</li>
+</ul>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/vhKLQmmvn" class="tag">
+                    python
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/dockerfile-yu-fa-gai-yao">
+                  <h3 class="post-title">
+                    Dockerfile语法概要
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>drf的接口文档生成与管理 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">drf的接口文档生成与管理</h2>
+            <div class="post-date">2021-04-12</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3%E7%AE%80%E8%BF%B0">1、接口文档简述</a></li>
+<li><a href="#2-core-api%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3">2、Core API生成接口文档</a>
+<ul>
+<li><a href="#21-%E5%AE%89%E8%A3%85core-api%E5%BA%93">2.1 安装Core API库</a></li>
+<li><a href="#22-%E8%AE%BE%E7%BD%AE%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3%E8%AE%BF%E9%97%AE%E8%B7%AF%E5%BE%84">2.2 设置接口文档访问路径</a></li>
+<li><a href="#23-%E6%96%87%E6%A1%A3%E6%8F%8F%E8%BF%B0%E8%AF%B4%E6%98%8E%E7%9A%84%E5%AE%9A%E4%B9%89%E4%BD%8D%E7%BD%AE">2.3 文档描述说明的定义位置</a></li>
+<li><a href="#24-%E8%AE%BF%E9%97%AE%E6%9F%A5%E7%9C%8B">2.4 访问查看</a></li>
+<li><a href="#25-%E8%A1%A5%E5%85%85%E8%AF%B4%E6%98%8E">2.5 补充说明</a></li>
+</ul>
+</li>
+<li><a href="#3-swagger%E7%94%9F%E6%88%90%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3">3、Swagger生成接口文档</a>
+<ul>
+<li><a href="#31-swagger%E4%BB%8B%E7%BB%8D">3.1 Swagger介绍</a></li>
+<li><a href="#32-%E5%AE%89%E8%A3%85django-rest-swagger%E5%BA%93">3.2 安装django-rest-swagger库</a></li>
+<li><a href="#33-%E9%85%8D%E7%BD%AEapp%E5%8F%8Aswagger">3.3 配置app及swagger</a></li>
+<li><a href="#34-%E9%85%8D%E7%BD%AE%E7%9B%B8%E5%85%B3%E8%B7%AF%E7%94%B1">3.4 配置相关路由</a></li>
+<li><a href="#35-%E8%AE%BF%E9%97%AE%E6%9F%A5%E7%9C%8B">3.5 访问查看</a></li>
+<li><a href="#36-%E8%AF%B4%E6%98%8E">3.6 说明</a></li>
+</ul>
+</li>
+<li><a href="#4-drf-yasgswagger%E5%8D%87%E7%BA%A7%E7%89%88">4、drf-yasg(Swagger升级版)</a>
+<ul>
+<li><a href="#41-drf-yasg%E4%BB%8B%E7%BB%8D">4.1 drf-yasg介绍</a></li>
+<li><a href="#42-%E5%AE%89%E8%A3%85drf-yasg%E5%BA%93">4.2 安装drf-yasg库</a></li>
+<li><a href="#43-%E9%85%8D%E7%BD%AEapp">4.3 配置app</a></li>
+<li><a href="#44-%E9%85%8D%E7%BD%AE%E8%B7%AF%E7%94%B1url">4.4 配置路由url</a></li>
+<li><a href="#45-%E8%AE%BF%E9%97%AE%E6%9F%A5%E7%9C%8B">4.5 访问查看</a></li>
+<li><a href="#46-%E6%9B%B4%E5%A4%9A%E9%85%8D%E7%BD%AE%E5%8F%8A%E8%AF%B4%E6%98%8E">4.6 更多配置及说明</a>
+<ul>
+<li><a href="#461-get_schema_view%E7%9A%84%E9%85%8D%E7%BD%AE">4.6.1 get_schema_view的配置</a></li>
+<li><a href="#462-schemaview-%E7%9A%84%E9%85%8D%E7%BD%AE">4.6.2 SchemaView 的配置</a></li>
+<li><a href="#463-%E7%BC%93%E5%AD%98%E7%9A%84%E9%85%8D%E7%BD%AE">4.6.3 缓存的配置</a></li>
+<li><a href="#464-%E6%A0%A1%E9%AA%8C%E6%96%87%E6%A1%A3%E6%9C%89%E6%95%88%E6%80%A7">4.6.4 校验文档有效性</a></li>
+<li><a href="#465-%E4%BB%A3%E7%A0%81%E8%87%AA%E5%8A%A8%E7%94%9F%E6%88%90">4.6.5 代码自动生成</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20210412-05.png" alt=""></figure>
+<h2 id="1-接口文档简述">1、接口文档简述</h2>
+<p>在项目开发中，例如<code>web</code>项目的前后端分离开发，需要由前后端相关人员共同定义接口，编写接口文档。之后大家都根据这个接口文档进行开发，到项目结束前都要一直维护。一个好的接口文档能够帮助我们快速上手这类项目、便于阅读已有代码、对接接口自动化测试等等</p>
+<p>往往一个清晰的API接口文档编写起来比较费时费力，于是有很多接口文档管理工具供我们使用：<code>YApi</code>、<code>ShowDoc</code>、<code>DocWay</code>，以及可直接利用接口测试生成接口文档的工具<code>Postman</code>、<code>Apipost</code>......</p>
+<p>上面列出的工具或多或少都需要花费一定时间去手动维护，在<code>drf</code>后端项目中可以利用其自带的<code>Core API</code>、第三方库<code>Swagger</code>以及更好的<code>drf-yasg</code>自动生成接口文档</p>
+<h2 id="2-core-api生成接口文档">2、Core API生成接口文档</h2>
+<p>参考<a href="http://core-api.github.io/python-client/">Core API官网</a>以及<a href="https://www.django-rest-framework.org/coreapi/from-documenting-your-api/">drf官网</a>，最终生成的接口文档是以网页的方式呈现的，自动接口文档能生成的是继承自<code>APIView</code>及其子类的视图，具体实现流程如下</p>
+<h3 id="21-安装core-api库">2.1 安装Core API库</h3>
+<pre><code class="language-shell">pip3 install coreapi
+pip3 freeze &gt; requirements.txt
+</code></pre>
+<h3 id="22-设置接口文档访问路径">2.2 设置接口文档访问路径</h3>
+<p>在配置文件<code>settings.py</code>中配置接口文档</p>
+<pre><code class="language-python">REST_FRAMEWORK = {
+    ...
+    # core api接口文档
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.AutoSchema',
+}
+</code></pre>
+<p>在总路由中添加接口文档路径</p>
+<p>文档路由对应的视图配置为<code>rest_framework.documentation.include_docs_urls</code></p>
+<p>配置<code>url</code>主路由，其中参数<code>title</code>为接口文档网站的标题</p>
+<pre><code class="language-python">from rest_framework.documentation import include_docs_urls
+
+urlpatterns = [
+    ...
+    path('docs/', include_docs_urls(title='API document')),
+]
+</code></pre>
+<h3 id="23-文档描述说明的定义位置">2.3 文档描述说明的定义位置</h3>
+<ul>
+<li>单一方法的视图，可直接使用类视图的文档字符串</li>
+</ul>
+<pre><code class="language-python">class HostListView(generics.ListAPIView):
+    &quot;&quot;&quot;
+    返回所有主机信息.
+    &quot;&quot;&quot;
+</code></pre>
+<ul>
+<li>包含多个方法的视图，在类视图的文档字符串中，分开方法定义</li>
+</ul>
+<pre><code class="language-python">class HostListCreateView(generics.ListCreateAPIView):
+    &quot;&quot;&quot;
+    get:
+    返回所有主机信息.
+
+    post:
+    新建主机.
+    &quot;&quot;&quot;
+</code></pre>
+<ul>
+<li>对于视图集<code>ViewSet</code>，仍在类视图的文档字符串中分开定义，但是应使用<code>action</code>对应的名称进行区分</li>
+</ul>
+<pre><code class="language-python">class HostInfoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
+    &quot;&quot;&quot;
+    list:
+    返回主机列表数据
+
+    retrieve:
+    返回主机详情数据
+
+    latest:
+    返回最新的主机数据
+
+    read:
+    修改主机的访问记录
+    &quot;&quot;&quot;
+</code></pre>
+<h3 id="24-访问查看">2.4 访问查看</h3>
+<p>按照上述规范优化好后端接口的视图后，重启项目，访问接口文档</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210412-01.png" alt=""></figure>
+<h3 id="25-补充说明">2.5 补充说明</h3>
+<p>1、上面访问到的接口文档，可以按照右边的指引通过安装<code>coreapi-cli</code>，通过命令行操作访问接口文档</p>
+<p>2、对于视图集<code>ViewSet</code>中的<code>retrieve</code>名称，在接口文档中叫做<code>read</code></p>
+<p>3、接口文档中参数<code>Description</code>需要在模型类或序列化器类的字段中以<code>help_text</code>选项定义，例如</p>
+<p>在模型类中定义</p>
+<pre><code class="language-python">class EnvironmentView(models.Model):
+    ...
+    name = models.CharField(max_length=32, verbose_name='环境名称', help_text='环境名称')
+    ...
+</code></pre>
+<p>在序列化器中定义</p>
+<pre><code class="language-python">class EnvironmentModelSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Environment
+        fields = &quot;__all__&quot;
+        extra_kwargs = {
+            'name': {
+                'required': True,
+                'help_text': '环境名称'
+            }
+          ...
+        }
+</code></pre>
+<h2 id="3-swagger生成接口文档">3、Swagger生成接口文档</h2>
+<h3 id="31-swagger介绍">3.1 Swagger介绍</h3>
+<p><a href="https://swagger.io/">Swagger</a>是一个规范和完整的框架，用于生成、描述、调用和可视化<code>RESTful</code>风格的<code>Web</code>服务。总体目标是使客户端和文件系统源代码作为服务器以同样的速度来更新。</p>
+<p>当接口有变动时，对应的接口文档也会自动更新</p>
+<p><code>Swagger</code>优势</p>
+<ul>
+<li><code>Swagger</code>可生成一个具有互动性的<code>API</code>控制台，可快速学习和尝试<code>API</code></li>
+<li><code>Swagger</code>可生成客户端<code>SDK</code>代码，用于不同平台上<code>Java</code>、<code>Python</code>...的实现</li>
+<li><code>Swagger</code>文件可在许多不同的平台上从代码注释中自动生成</li>
+<li><code>Swagger</code>有一个强大的社区，里面有许多强悍的贡献者</li>
+</ul>
+<p>要提到的是，作为一个工具人，常用的<code>httpbin</code>模拟请求工具也是基于<code>swagger</code>的</p>
+<p>下面记录在<code>drf</code>中通过<code>swagger</code>生成接口文档的具体实现流程，参考<a href="https://django-rest-swagger.readthedocs.io/">drf swagger文档</a></p>
+<h3 id="32-安装django-rest-swagger库">3.2 安装django-rest-swagger库</h3>
+<pre><code class="language-shell">pip3 install django-rest-swagger
+pip3 freeze &gt; requirements.txt
+</code></pre>
+<h3 id="33-配置app及swagger">3.3 配置app及swagger</h3>
+<p>在配置文件<code>settings.py</code>中进行配置</p>
+<p>配置<code>app</code></p>
+<pre><code class="language-python">INSTALLED_APPS = [
+    ...
+    'rest_framework',
+    'rest_framework_swagger'
+]
+</code></pre>
+<p>配置<code>swagger</code></p>
+<pre><code class="language-python"># swagger 配置项
+SWAGGER_SETTINGS = {
+    # 基础样式
+    'SECURITY_DEFINITIONS': {
+        &quot;basic&quot;: {
+            'type': 'basic'
+        }
+    },
+    # 如果需要登录才能够查看接口文档, 登录的链接使用 restframework 自带的.
+    'LOGIN_URL': 'rest_framework:login',
+    'LOGOUT_URL': 'rest_framework:logout',
+    # 控制API列表的显示方式 None 所有操作均已折叠 list 列出所有操作 full 扩展所有操作
+    'DOC_EXPANSION': None,
+    # 是否显示请求标头
+    'SHOW_REQUEST_HEADERS': True,
+    # 切换使用Django Auth作为身份验证机制 将其设置为True将会在Swagger UI上显示一个登录/注销按钮，并将csrf_tokens发布到API
+    'USE_SESSION_AUTH': True,
+    # 接口文档中方法列表以首字母升序排列
+    'APIS_SORTER': 'alpha',
+    # 如果支持json提交, 则接口文档中包含json输入框
+    'JSON_EDITOR': True,
+    # 方法列表字母排序
+    'OPERATIONS_SORTER': 'alpha',
+    # 在线模式验证器的URL 修改为指向本地安装，或设置None为禁用
+    'VALIDATOR_URL': None,
+}
+</code></pre>
+<h3 id="34-配置相关路由">3.4 配置相关路由</h3>
+<p>由于上面开启了访问<code>swagger</code>需要登录，因此需要在路由中开启<code>drf</code>默认的登录入口，修改主路由</p>
+<pre><code class="language-python">from rest_framework.schemas import get_schema_view
+from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPIRenderer
+schema_view = get_schema_view(title='Users API', renderer_classes=[OpenAPIRenderer, SwaggerUIRenderer])
+
+urlpatterns = [
+    # drf认证
+    path(r'api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    # swagger接口文档
+    path('docs/', schema_view, name='docs'),
+    ...
+]
+</code></pre>
+<h3 id="35-访问查看">3.5 访问查看</h3>
+<p>完成后重启项目，如果在此之前有进行数据库同步并创建了用户，那么就可以直接访问接口文档的<code>url</code>，并跳转到<code>drf</code>的认证界面进行登录</p>
+<p><code>swagger</code>界面给人以清爽简约的感觉，通过展开接口还可以对接口（传参）进行测试</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20210412-02.png" alt=""></figure>
+<h3 id="36-说明">3.6 说明</h3>
+<p><code>Django REST Swagger</code>从<code>19</code>年开始就已弃用不再维护了，作者在官方网站上说明了更推荐使用<code>drf-yasg</code></p>
+<p>可以阅读https://github.com/marcgibbons/django-rest-swagger查看更多相关说明</p>
+<h2 id="4-drf-yasgswagger升级版">4、drf-yasg(Swagger升级版)</h2>
+<h3 id="41-drf-yasg介绍">4.1 drf-yasg介绍</h3>
+<p>参考<a href="https://drf-yasg.readthedocs.io/">drf-yasg官网</a>，<code>drf-yasg</code>是基于<code>Swagger</code>和<code>OpenAPI 2.0</code>规范的<code>API</code>文档自动化生成工具，能够生成比原生<code>swagger</code>更为友好的<code>API</code>文档界面</p>
+<p>目前的兼容性如下</p>
+<ul>
+<li><strong>Django Rest Framework</strong>: 3.10, 3.11, 3.12</li>
+<li><strong>Django</strong>: 2.2, 3.0, 3.1</li>
+<li><strong>Python</strong>: 3.6, 3.7, 3.8, 3.9</li>
+</ul>
+<h3 id="42-安装drf-yasg库">4.2 安装drf-yasg库</h3>
+<p><strong>在操作下面的步骤前请将第3节<code>swagger</code>相关内容全部注释或还原</strong></p>
+<pre><code class="language-shell">pip3 install drf-yasg
+pip3 freeze &gt; requirements.txt
+</code></pre>
+<h3 id="43-配置app">4.3 配置app</h3>
+<pre><code class="language-python">INSTALLED_APPS = [
+    ...
+    'rest_framework',
+    'drf_yasg'
+]
+</code></pre>
+<h3 id="44-配置路由url">4.4 配置路由url</h3>
+<pre><code class="language-python">from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+...
+
+schema_view = get_schema_view(
+    # 具体定义详见 [Swagger/OpenAPI 规范](https://swagger.io/specification/#infoObject)
+    openapi.Info(
+        title=&quot;Snippets API&quot;,
+        default_version='v1',
+        description=&quot;Test description&quot;,
+        terms_of_service=&quot;https://www.google.com/policies/terms/&quot;,
+        contact=openapi.Contact(email=&quot;contact@snippets.local&quot;),
+        license=openapi.License(name=&quot;BSD License&quot;),
+    ),
+    # public 表示文档完全公开, 无需针对用户鉴权
+    public=True,
+    # 可以传递 drf 的 BasePermission
+    permission_classes=(permissions.AllowAny,),
+)
+
+urlpatterns = [
+    # drf_yasg
+    re_path(r'^swagger(?P&lt;format&gt;\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-spec'),
+    re_path(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    re_path(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    ...
+]
+</code></pre>
+<p><code>drf-yasg</code>会暴露<code>4</code>种默认路径<code>endpoint</code>, 分别为:</p>
+<ul>
+<li><code>/swagger.json</code>, JSON 格式的 API 定义</li>
+<li><code>/swagger.yaml</code>, YAML 格式的 API 定义</li>
+<li><code>/swagger/</code>, 基于原生 swagger-ui 样式的前端页面</li>
+<li><code>/redoc/</code>, 基于 ReDoc 样式的前端页面</li>
+</ul>
+<h3 id="45-访问查看">4.5 访问查看</h3>
+<p>完成后重启项目进行访问</p>
+<p>swagger</p>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20210412-03.png" alt=""></figure>
+<p>redoc</p>
+<figure data-type="image" tabindex="5"><img src="https://image.ssgeek.com/20210412-04.png" alt=""></figure>
+<h3 id="46-更多配置及说明">4.6 更多配置及说明</h3>
+<h4 id="461-get_schema_view的配置">4.6.1 get_schema_view的配置</h4>
+<p>函数 <strong>get_schema_view</strong> 的作用是返回自动生成 API 文档的视图类, 该函数接受以下参数:</p>
+<ul>
+<li><strong>info</strong>: <code>Swagger API Info</code>对象, 具体定义详见 <a href="https://swagger.io/specification/#infoObject">Swagger/OpenAPI 规范</a>, 如果缺省, <code>drf-yasg</code>默认会用 <code>DEFAULT_INFO</code> 进行填充</li>
+<li><strong>url</strong>: 项目API的基础地址, 如果缺省, 则根据视图所在的位置进行推导</li>
+<li><strong>patterns</strong>: 自定义的<code>urlpatterns</code>, 该参数直接透传至<code>SchemaGenerator</code></li>
+<li><strong>urlconf</strong>: 描述从哪个文件获取路由配置, 缺省值是<code>urls</code>, 该参数直接透传至<code>SchemaGenerator</code></li>
+<li><strong>public</strong>: 描述API文档是否公开, 如果未 <code>False</code>, 则仅返回当前用户具有权限的接口<code>endpoints</code>的<code>API</code>文档</li>
+<li><strong>validators</strong>: 用于校验自动生成的<code>Schema</code>的校验器, 目前仅支持 <code>ssv</code> 和 <code>flex</code></li>
+<li><strong>generator_class</strong>: 自定义<code>OpenAPI schema</code>生成器类, 该类应该继承自 <code>OpenAPISchemaGenerator</code></li>
+<li><strong>authentication_classes</strong>: 用于<code>schema view</code>进行登录认证的类</li>
+<li><strong>permission_classes</strong>: 用于<code>schema view</code>进行权限校验的类</li>
+</ul>
+<h4 id="462-schemaview-的配置">4.6.2 SchemaView 的配置</h4>
+<p>通过函数<code>get_schema_view</code>可以获取对应的<code>SchemaView</code>, 调用该类的<code>with_ui</code>或 <code>without_ui</code>方法可生成对应的<code>视图函数</code>, 将其添加进<code>urlpatterns</code>即可访问到自动生成的 API 文档</p>
+<ul>
+<li><strong>SchemaView.with_ui(renderer, cache_timeout, cache_kwargs)</strong>: 返回使用指定<code>UI</code>渲染器的视图函数, 可选的<code>UI</code>渲染器有: <code>swagger</code>, <code>redoc</code>。</li>
+<li><strong>SchemaView.without_ui(cache_timeout, cache_kwargs)</strong>: 返回无<code>UI</code>的视图函数, 该函数可以返回<code>json/yaml</code>格式的<code>swagger</code>文档</li>
+</ul>
+<p>以上两个函数均支持通过 <code>cache_timeout</code> 或 <code>cache_kwargs</code> 配置缓存参数</p>
+<h4 id="463-缓存的配置">4.6.3 缓存的配置</h4>
+<p>由于<code>schema</code>通常在服务运行期间不会发生改变, 因此 <code>drf-yasg</code>使用<code>django</code>内置的 <code>cache_page</code> 实现开箱即用的缓存功能, 只需要配置对应的参数即可启用, 对应参数解释如下:</p>
+<ul>
+<li><strong>cache_timeout</strong>: 用于指定缓存的生存时间</li>
+<li><strong>cache_kwargs</strong>: 用于传递 <strong>cache_page</strong> 允许接受的非位置参数, 如 <code>cache</code>(指定 cache backend), <code>key_prefix</code>(缓存<code>key</code>的前缀) 等等, 详见<code>django</code>官方文档</li>
+</ul>
+<blockquote>
+<p>需要注意的是, 由于 <strong>drf-yasg</strong> 支持针对不同用户返回不一样的 API 文档(通过<strong>public</strong>、<strong>authentication_classes</strong>、<strong>permission_classes</strong>等参数配置), 因此对于不同用户(通过HTTP 请求头中的 <strong>Cookie</strong> 和 <strong>Authorization</strong> 进行区分), 会在内存中分别进行缓存。</p>
+</blockquote>
+<h4 id="464-校验文档有效性">4.6.4 校验文档有效性</h4>
+<p>为保证自动生成文档的有效性, 可以通过在<code>get_schema_view</code>中设置 <code>validators</code> 参数开启校验自动化生成文档是否符合<code>OpenAPI2.0</code>规范的功能</p>
+<h4 id="465-代码自动生成">4.6.5 代码自动生成</h4>
+<p>使用<code>Swagger/OpenAPI</code>规范生成文档的好处之一, 就是能通过<code>API</code>文档自动生成<strong>不同语言</strong>的 SDK，该功能由<a href="https://github.com/swagger-api/swagger-codegen">swagger-codegen</a>提供</p>
+<p>see you ~</p>
+<blockquote>
+<p>参考：</p>
+<p>http://blog.shabbywu.cn/posts/2020/04/15/python-auto-doc-for-drf.html</p>
+</blockquote>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/VEfPb2dUj" class="tag">
+                    django
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/vhKLQmmvn" class="tag">
+                    python
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/wo-de-sheng-chan-li-gong-ju-tui-jian-zhong-duan-01-pian">
+                  <h3 class="post-title">
+                    我的生产力工具推荐-终端01篇
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

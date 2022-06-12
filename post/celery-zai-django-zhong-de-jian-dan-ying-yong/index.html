@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Celery在Django中的简单应用 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Celery在Django中的简单应用</h2>
+            <div class="post-date">2020-08-03</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-celery-%E6%9E%B6%E6%9E%84">1、celery 架构</a></li>
+<li><a href="#2-celery-%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8">2、celery 的简单使用</a>
+<ul>
+<li><a href="#21-%E6%9C%80%E7%AE%80%E5%8D%95%E7%9A%84%E4%BD%BF%E7%94%A8">2.1 最简单的使用</a></li>
+<li><a href="#22-%E5%8C%85%E7%BB%93%E6%9E%84%E7%9A%84%E4%BD%BF%E7%94%A8">2.2 包结构的使用</a></li>
+<li><a href="#23-celery%E6%89%A7%E8%A1%8C%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1">2.3 celery执行定时任务</a></li>
+<li><a href="#24-celery-%E5%9C%A8django%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8">2.4 celery 在Django中的使用</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-celery-架构">1、celery 架构</h2>
+<p>Celery是一个简单、灵活且可靠的，处理大量消息的分布式系统，专注于实时处理的异步任务队列。同时也支持任务调度。需要注意的是，celery并不支持Windows，所以Windows相关的问题很可能在官方无法得到回应。</p>
+<p>Celery的架构由三部分组成，消息中间件（message broker）、任务执行单元（worker）和 任务执行结果存储（task result store）组成。</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20200803-01.png" alt=""></figure>
+<p>1）可以不依赖任何服务器，通过自身命令，启动服务(内部支持socket)<br>
+2）celery服务为为其他项目服务提供异步解决任务需求的<br>
+注：会有两个服务同时运行，一个是项目服务，一个是celery服务，项目服务将需要异步处理的任务交给celery服务，celery就会在需要时异步完成项目的需求。</p>
+<blockquote>
+<p>使用场景：</p>
+<p>​	异步执行：解决耗时任务,将耗时操作任务提交给Celery去异步执行，比如发送短信/邮件、消息推送、音视频处理等等。</p>
+<p>​	延迟执行：解决延迟任务。</p>
+<p>​	定时执行：解决周期(周期)任务,比如每天数据统计。</p>
+</blockquote>
+<h2 id="2-celery-的简单使用">2、celery 的简单使用</h2>
+<p>首先需要安装celery模块：<code>pip install celery</code></p>
+<h3 id="21-最简单的使用">2.1 最简单的使用</h3>
+<ol>
+<li>写一个py文件（celery_task.py）：</li>
+</ol>
+<pre><code class="language-python">from celery import Celery
+
+broker='redis://127.0.0.1:6379/1'  #broker任务队列
+backend='redis://127.0.0.1:6379/2'  # 结构存储，执行完的结果存在这
+app=Celery(__name__,broker=broker,backend=backend)
+
+#添加任务逻辑
+@app.task
+def add(x,y):
+    print(x,y)
+    return x+y
+</code></pre>
+<ol start="2">
+<li>启动worker</li>
+</ol>
+<pre><code class="language-python"># cmd或者Terminal中用命令来执行
+# 非windows
+celery worker -A celery_task -l info
+
+# windows：
+pip install eventlet
+celery worker -A celery_task -l info -P eventlet
+</code></pre>
+<ol start="3">
+<li>发送任务</li>
+</ol>
+<pre><code class="language-python">from celery_task import add
+
+ret=add.delay(5,4)  #向broker中添加一个任务
+print(ret)   # ret是celery返回的任务id号，可以使用该ID号取回任务处理的结果
+</code></pre>
+<ol start="4">
+<li>查看任务执行结果</li>
+</ol>
+<pre><code class="language-python">from celery_task import app
+from celery.result import AsyncResult
+
+id = '3e397fd7-e0c1-4c5c-999c-2655a96793bb' # 此处的ID即为发送任务时celery返回的任务id。
+
+if __name__ == '__main__':
+	async = AsyncResult(id=id, app=app)
+    '''
+    在Python3.7及以后的版本中async成为了保留关键字，建议使用3.7以下版本或者更换该变量名。
+    '''
+    if async.successful():
+        result = async.get()
+        print(result)
+    elif async.failed():
+        print('任务失败')
+    elif async.status == 'PENDING':
+        print('任务等待中被执行')
+    elif async.status == 'RETRY':
+        print('任务异常后正在重试')
+    elif async.status == 'STARTED':
+        print('任务已经开始被执行')
+</code></pre>
+<h3 id="22-包结构的使用">2.2 包结构的使用</h3>
+<ol>
+<li>新建一个包（celery_task）</li>
+</ol>
+<pre><code class="language-python"># 包结构
+-celery_task
+    -__init__.py
+    -celery.py  # 该py文件一点要叫celery.py
+    -tasks.py
+</code></pre>
+<ol start="2">
+<li>celery.py</li>
+</ol>
+<pre><code class="language-python">from celery import Celery
+
+broker='redis://127.0.0.1:6379/1'  
+backend='redis://127.0.0.1:6379/2' 
+
+app=Celery(__name__,broker=broker,backend=backend,include=['celery_task.tasks',])
+</code></pre>
+<ol start="3">
+<li>tasks.py</li>
+</ol>
+<pre><code class="language-python">from .celery import app
+@app.task
+def add(x,y):
+    print(x,y)
+    return x+y
+
+@app.task
+def mutile(x,y):
+    print(x,y)
+    return x*y
+</code></pre>
+<ol start="4">
+<li>启动worker</li>
+<li>发送任务</li>
+</ol>
+<pre><code class="language-python">from celery_task.tasks import add,mutile
+# 提交异步任务
+ret=add.delay(6,7)
+print(ret) 
+
+# 提交延迟任务
+from datetime import datetime, timedelta
+# 需要utc时间
+eta=datetime.utcnow() + timedelta(seconds=10) 
+ret=mutile.apply_async(args=(240, 50), eta=eta)  # 延迟10s执行mutile任务，args为其传值。
+print(ret)
+</code></pre>
+<ol start="6">
+<li>根据返回的id取处理结果</li>
+</ol>
+<h3 id="23-celery执行定时任务">2.3 celery执行定时任务</h3>
+<p>在celery_task 包的celery.py 中：</p>
+<pre><code class="language-python">from celery import Celery
+from datetime import timedelta
+from celery.schedules import crontab
+
+broker='redis://127.0.0.1:6379/1' 
+backend='redis://127.0.0.1:6379/2' 
+
+app=Celery(__name__,broker=broker,backend=backend,include=['celery_task.tasks',])
+
+# 执行定时任务
+# 时区
+app.conf.timezone = 'Asia/Shanghai'
+# 是否使用UTC 
+app.conf.enable_utc = False  #  不使用utc时间
+
+# 任务的定时配置
+app.conf.beat_schedule = {
+    'add-task': {
+        'task': 'celery_task.tasks.add',
+        # 'schedule': timedelta(seconds=3),  # 每隔3秒
+        'schedule': crontab(hour=8, day_of_week=1),  # 每周一早八点
+        'args': (300, 150), # 传参
+    }
+}
+</code></pre>
+<p>除了需要启动worker，由于是定时自动提交，还需要启动beat。</p>
+<pre><code class="language-python">-celery worker -A celery_task -l info -P eventlet
+-celery beat -A celery_task -l info
+</code></pre>
+<h3 id="24-celery-在django中的使用">2.4 celery 在Django中的使用</h3>
+<p>在Django项目的根目录新建一个celery_task包。其中celery.py示例：</p>
+<pre><code class="language-python">from celery import Celery
+
+# 加载django环境,否则无法使用Django的model或其他内容
+import os
+import django
+os.environ.setdefault(&quot;DJANGO_SETTINGS_MODULE&quot;, &quot;luffyapi.settings.dev&quot;) # &quot;luffyapi.settings.dev&quot;为项目配置文件，需要注意路径
+django.setup()
+
+broker='redis://127.0.0.1:6379/1'  
+backend='redis://127.0.0.1:6379/2' 
+
+app=Celery(__name__,broker=broker,backend=backend,include=['celery_task.tasks',])
+
+
+# 执行定时任务
+# 时区
+app.conf.timezone = 'Asia/Shanghai'
+# 是否使用UTC
+app.conf.enable_utc = False
+
+# 任务的定时配置
+from datetime import timedelta
+from celery.schedules import crontab
+app.conf.beat_schedule = {
+    'add-task': {
+        'task': 'celery_task.tasks.update',
+        'schedule': timedelta(seconds=30), # 定时30秒执行刷新任务，将数据库中的数据缓存到Redis中
+    }
+}
+
+</code></pre>
+<p>tasks.py：</p>
+<pre><code class="language-python">from .celery import app
+
+
+@app.task
+def update():
+    from home import serializer
+    from home import models
+    from django.conf import settings
+    from django.core.cache import cache
+    
+    queryset_banner = models.Banner.objects.filter(is_delete=False,is_show=True).order_by('display_order')[
+       :settings.BANNER_COUNTER]
+   serializer_banner=serializer.BannerModelSerilaizer(instance=queryset_banner,many=True)
+    cache.set('banner_list',serializer_banner.data)
+    
+    return True
+</code></pre>
+<p>其中celery在Django项目中的使用最重要的就是加载Django的环境，以便于celery在处理任务的时候可以使用Django的model及其他内容。其中tasks只要遵循官网的目录结果，可以在Django的每个APP下建立一个tasks.py，celery可以自动识别。</p>
+<pre><code>&quot;&quot;&quot;
+celery框架django项目工作流程
+1）加载django配置环境
+2）创建Celery框架对象app，配置broker和backend，得到的app就是worker
+3）给worker对应的app添加可处理的任务函数，用include配置给worker的app
+4）完成提供的任务的定时配置app.conf.beat_schedule
+5）启动celery服务，运行worker，执行任务
+6）启动beat服务，运行beat，添加任务
+
+重点：由于采用了django的反射机制，使用celery.py所在的celery_task包必须放置项目的根目录下
+&quot;&quot;&quot;
+</code></pre>
+<blockquote>
+<p>Author：Laoqi</p>
+</blockquote>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/VEfPb2dUj" class="tag">
+                    django
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/vhKLQmmvn" class="tag">
+                    python
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/drf-zhi-ren-zheng-quan-xian-pin-lu">
+                  <h3 class="post-title">
+                    drf之认证、权限、频率
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

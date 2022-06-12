@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Mac下iTerm2配置lrzsz功能 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Mac下iTerm2配置lrzsz功能</h2>
+            <div class="post-date">2019-05-13</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%AE%89%E8%A3%85iterm2">1、安装iTerm2</a></li>
+<li><a href="#2-%E4%B8%8B%E8%BD%BDiterm2-send-zmodemsh%E5%92%8Citerm2-recv-zmodemsh%E8%84%9A%E6%9C%AC%E6%96%87%E4%BB%B6">2、下载iterm2-send-zmodem.sh和iterm2-recv-zmodem.sh脚本文件</a></li>
+<li><a href="#3-%E5%AE%89%E8%A3%85lrzsz">3、安装lrzsz</a></li>
+<li><a href="#4-%E9%85%8D%E7%BD%AEiterm2">4、配置iterm2</a></li>
+<li><a href="#5-%E6%96%87%E4%BB%B6%E4%BC%A0%E8%BE%93%E6%B5%8B%E8%AF%95">5、文件传输测试</a></li>
+<li><a href="#6-rz%E5%91%BD%E4%BB%A4%E5%92%8Csz%E5%91%BD%E4%BB%A4%E5%8F%82%E6%95%B0">6、rz命令和sz命令参数</a></li>
+</ul>
+</li>
+</ul>
+<br>
+rz，sz是Linux/Unix同Windows进行ZModem文件传输的命令行工具。<br>
+优点就是不用再开一个sftp工具登录上去上传下载文件。<br>
+近期在mac上通过终端连接服务器，想通过rz和sz实现快速简单的文件上传下载功能</p>
+<h2 id="1-安装iterm2">1、安装iTerm2</h2>
+<p>iTerm2是Mac OS下的一款终端利器，相对于系统自带的终端软件具有很多更好的功能和扩展。官方地址为https://www.iterm2.com<br>
+安装iTerm2主要有下面两种方法：</p>
+<ul>
+<li>从官网<a href="https://www.iterm2.com/downloads.html">下载</a>安装包进行安装</li>
+</ul>
+<p>下载的是压缩文件，解压后是执行程序文件，你可以直接双击，或者直接将它拖到 Applications 目录下。</p>
+<ul>
+<li>使用homebrew进行安装</li>
+</ul>
+<p><a href="https://brew.sh/index_zh-cn.html">homebrew</a>是mac下的一个包管理器，虽然苹果官方没有相关说明，很多的软件包可以利用homebrew轻松的在命令行进行安装，homebrew的安装可参考官方网站或<a href="https://blog.csdn.net/ziyuzhiye/article/details/78931669">某博客</a>，安装后最好将软件源替换为<a href="https://blog.csdn.net/weixin_43902730/article/details/88261760">国内源</a>，例如阿里云或者清华大学源</p>
+<h2 id="2-下载iterm2-send-zmodemsh和iterm2-recv-zmodemsh脚本文件">2、下载iterm2-send-zmodem.sh和iterm2-recv-zmodem.sh脚本文件</h2>
+<p>脚本文件在iterm2的官方github仓库上，地址为：<br>
+https://github.com/mmastrac/iterm2-zmodem<br>
+脚本下载后需要放在mac的/usr/local/bin目录下，并且添加可执行权限</p>
+<pre><code>127:~ ssgeek$ cd /usr/local/bin/
+127:bin ssgeek$ wget -c https://raw.githubusercontent.com/mmastrac/iterm2-zmodem/master/iterm2-recv-zmodem.sh
+127:bin ssgeek$ wget -c https://raw.githubusercontent.com/mmastrac/iterm2-zmodem/master/iterm2-send-zmodem.sh
+127:bin ssgeek$ chmod +x iterm2-recv-zmodem.sh
+127:bin ssgeek$ chmod +x iterm2-send-zmodem.sh
+</code></pre>
+<h2 id="3-安装lrzsz">3、安装lrzsz</h2>
+<p>通过homebrew安装，执行brew install lrzsz安装即可</p>
+<h2 id="4-配置iterm2">4、配置iterm2</h2>
+<p>此步骤是关键步骤，打开iTerm2终端，依次点击&quot;Preference&quot;——&gt;&quot;Profiles&quot;——&gt;&quot;Default&quot;——&gt;&quot;Advanced&quot;——&gt;&quot;Edit&quot;<br>
+<img src="https://image.ssgeek.com/20190513-01.png" alt=""><br>
+添加两个触发器Triggers，意味着在iTerm2中执行某个命令或输出某个结果(归根到底还是脚本)时，会根据定义的触发器触发某个动作<br>
+触发器中需要定义到<code>Regular Expression</code>正则表达式、<code>Action</code>动作、<code>Parameters</code>参数这三项<br>
+正则表达式设置方法：<br>
+打开终端，分别输入rz命令查看输出</p>
+<pre><code>127:~ honganrong$ rz
+rz waiting to receive.**B0100000023be50
+</code></pre>
+<p>输入sz命令，查看输出</p>
+<pre><code>127:~ honganrong$ sz Desktop/a.txt
+**B00000000000000
+</code></pre>
+<p>将输出<code>rz waiting to receive.**B0100000023be50</code>和<code>**B00000000000000</code>加上转义符号后填写至<code>Regular Expression</code>下即可，也可进一步加上正则表达式简写后再填写，为了精确起见，保留原样即可<br>
+<code>Action</code>选择<code>Run Silent Coprocess...</code>,<code>Parameters</code>填写的就是之前下载的两个脚本，同时还需要勾选<code>Instant</code>选项，表示立即执行触发器<br>
+关于参数和正则表达式的对应关系可以这样理解：我们利用<code>rz</code>上传和<code>sz</code>下载文件一般都是通过终端登录到<code>Linux</code>服务器上之后执行的：在服务器上执行<code>rz</code>上传，那么对于Mac电脑来说，它就是需要从本地发送一个文件到服务器，即<code>send</code>；同样的，在服务器上执行<code>sz</code>下载，那么对于mac电脑来说，它就是需要从服务器接收一个文件到本地，即<code>receive</code>，简写为<code>recv</code>，配置好之后的最终效果如下：<br>
+<img src="https://image.ssgeek.com/20190513-02.png" alt=""></p>
+<h2 id="5-文件传输测试">5、文件传输测试</h2>
+<p>打开终端，通过终端登录到服务器，再分别执行rz和sz命令，会自动弹出一个界面选择要上传文件所在的位置或选择下载文件的保存位置，大功告成<br>
+sz下载文件<br>
+<img src="https://image.ssgeek.com/20190513-03.png" alt=""><br>
+rz上传文件<br>
+<img src="https://image.ssgeek.com/20190513-04.png" alt=""></p>
+<h2 id="6-rz命令和sz命令参数">6、rz命令和sz命令参数</h2>
+<p>sz命令<br>
+用途说明：sz命令是利用ZModem协议来从Linux服务器传送文件到本地，一次可以传送一个或多个文件。相对应的从本地上传文件到Linux服务器，可以使用rz命令。<br>
+常用参数：</p>
+<pre><code>-a 以文本方式传输（ascii）。
+-b 以二进制方式传输（binary）。
+-e 对控制字符转义（escape），这可以保证文件传输正确。
+如果能够确定所传输的文件是文本格式的，使用 sz -a files
+如果是二进制文件，使用 sz -be files
+</code></pre>
+<p>rz命令</p>
+<pre><code>-b 以二进制方式，默认为文本方式。（Binary (tell it like it is) file transfer override.）
+-e 对所有控制字符转义。（Force sender to escape all control characters; normally XON, XOFF, DLE, CR-@-CR, and Ctrl-X are escaped.）
+</code></pre>
+<p>如果要保证上传的文件内容在服务器端保存之后与原始文件一致，最好同时设置这两个标志，如下所示方式使用：</p>
+<pre><code>rz -be
+</code></pre>
+<p>此命令执行时，会弹出文件选择对话框，选择好需要上传的文件之后，点确定，就可以开始上传的过程了。上传的速度取决于当时网络的状况。<br>
+如果执行完毕显示“0错误”，文件上传就成功了，其他显示则表示文件上传出现问题了。</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/app" class="tag">
+                    实用程序
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/qi-niu-yun-tu-chuang-he-markdown-shi-yong">
+                  <h3 class="post-title">
+                    七牛云图床和Markdown使用
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

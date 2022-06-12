@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Django序列化器的简单使用 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Django序列化器的简单使用</h2>
+            <div class="post-date">2020-07-07</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%AE%9A%E4%B9%89serializer%E7%B1%BB">1、定义Serializer类</a></li>
+<li><a href="#2-%E5%88%9B%E5%BB%BAserializer%E5%AF%B9%E8%B1%A1">2、创建Serializer对象</a></li>
+<li><a href="#3-%E5%BA%8F%E5%88%97%E5%8C%96%E5%99%A8%E7%9A%84%E4%BD%BF%E7%94%A8">3、序列化器的使用</a>
+<ul>
+<li><a href="#31-%E5%BA%8F%E5%88%97%E5%8C%96">3.1 序列化</a></li>
+<li><a href="#32-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96">3.2 反序列化</a></li>
+<li><a href="#33-%E8%A1%A5%E5%85%85delete">3.3 补充delete</a></li>
+</ul>
+</li>
+<li><a href="#4-%E6%95%B0%E6%8D%AE%E9%AA%8C%E8%AF%81">4、数据验证</a>
+<ul>
+<li><a href="#41-is_valid-%E6%96%B9%E6%B3%95">4.1 is_valid() 方法</a></li>
+<li><a href="#42-validate_%E5%AD%97%E6%AE%B5%E5%90%8D">4.2 validate_字段名</a></li>
+<li><a href="#43-validate">4.3 validate</a>
+<ul>
+<li><a href="#44-validators">4.4 validators</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#5-%E6%A8%A1%E5%9E%8B%E7%B1%BB%E5%BA%8F%E5%88%97%E5%8C%96%E5%99%A8">5、模型类序列化器</a>
+<ul>
+<li><a href="#51-%E5%AE%9A%E4%B9%89">5.1 定义</a></li>
+<li><a href="#52-%E6%8C%87%E5%AE%9A%E5%AD%97%E6%AE%B5">5.2 指定字段</a></li>
+</ul>
+</li>
+<li><a href="#6-%E8%A1%A5%E5%85%85">6、补充</a>
+<ul>
+<li><a href="#manytrue%E7%9A%84%E5%AE%9E%E9%99%85%E7%94%A8%E9%80%94">many=True的实际用途</a></li>
+<li><a href="#serializer%E9%AB%98%E7%BA%A7%E7%94%A8%E6%B3%95">Serializer高级用法</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>序列化器<code>serializer</code>的介绍：</p>
+</blockquote>
+<ul>
+<li>序列化，序列化器会把模型对象转换成字典，经过<code>response</code> 之后变成<code>json</code> 字符串。</li>
+<li>反序列化，把客户端发送过来的数据，经过<code>request</code> 之后变成字典，序列化器可以把字典装换成模型。</li>
+<li>反序列化，完成数据的校验功能</li>
+</ul>
+<p>为方便理解后面序列化器中的字段，我们先在创建的APP中的<code>models.py</code> 建立一个数据库模型类。</p>
+<pre><code class="language-Python">class Book(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=32)
+    price = models.DecimalField(max_digits=5, decimal_places=2)
+    author = models.CharField(max_length=32)
+    publish = models.CharField(max_length=32)
+</code></pre>
+<h2 id="1-定义serializer类">1、定义Serializer类</h2>
+<p><code>drf</code> 中的序列化器使用类来定义，这个类必须继承<code>rest_framework.serializer.Serializer</code> 。在类中写需要序列化的字段，即需要序列化哪些字段就在类中写哪个字段。为使代码清晰、方便管理，我们可以新建一个<code>ser.py</code> 文件来存储序列化器的代码。简单定义代码如下所示：</p>
+<pre><code class="language-Python"># ser.py
+from rest_framework import serializers
+
+# 声明序列化器，所有的序列化器都要直接或间接的继承于Serializer
+class BookSerializer(serializers.Serializer):
+    id=serializers.CharField()
+    name=serializers.CharField()
+    # price=serializers.DecimalField()  
+    '''
+    可以将各个字段数据类型与数据库中的数据字段类型匹配，也可以将其装换称字符类型进行序列化传递到前段，在前段处理数据时再进行数据类型的变换
+    '''
+    price=serializers.CharField()
+    author=serializers.CharField()  
+    publish=serializers.CharField()
+</code></pre>
+<p>注意：<code>serializer</code> 不是只能为数据库模型类定义，也可以为非数据库模型类的数据定义。<code>serializer</code> 是独立于数据库之外的存在。</p>
+<p><strong>它的常用字段：</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>字段构造方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>BooleanField</strong></td>
+<td>BooleanField()</td>
+</tr>
+<tr>
+<td><strong>NullBooleanField</strong></td>
+<td>NullBooleanField()</td>
+</tr>
+<tr>
+<td><strong>CharField</strong></td>
+<td>CharField(max_length=None, min_length=None, allow_blank=False, trim_whitespace=True)</td>
+</tr>
+<tr>
+<td><strong>EmailField</strong></td>
+<td>EmailField(max_length=None, min_length=None, allow_blank=False)</td>
+</tr>
+<tr>
+<td><strong>RegexField</strong></td>
+<td>RegexField(regex, max_length=None, min_length=None, allow_blank=False)</td>
+</tr>
+<tr>
+<td><strong>SlugField</strong></td>
+<td>SlugField(max<em>length=50, min_length=None, allow_blank=False) 正则字段，验证正则模式 [a-zA-Z0-9</em>-]+</td>
+</tr>
+<tr>
+<td><strong>URLField</strong></td>
+<td>URLField(max_length=200, min_length=None, allow_blank=False)</td>
+</tr>
+<tr>
+<td><strong>UUIDField</strong></td>
+<td>UUIDField(format=’hex_verbose’) format: 1) <code>'hex_verbose'</code> 如<code>&quot;5ce0e9a5-5ffa-654b-cee0-1238041fb31a&quot;</code> 2） <code>'hex'</code> 如 <code>&quot;5ce0e9a55ffa654bcee01238041fb31a&quot;</code> 3）<code>'int'</code> - 如: <code>&quot;123456789012312313134124512351145145114&quot;</code> 4）<code>'urn'</code> 如: <code>&quot;urn:uuid:5ce0e9a5-5ffa-654b-cee0-1238041fb31a&quot;</code></td>
+</tr>
+<tr>
+<td><strong>IPAddressField</strong></td>
+<td>IPAddressField(protocol=’both’, unpack_ipv4=False, **options)</td>
+</tr>
+<tr>
+<td><strong>IntegerField</strong></td>
+<td>IntegerField(max_value=None, min_value=None)</td>
+</tr>
+<tr>
+<td><strong>FloatField</strong></td>
+<td>FloatField(max_value=None, min_value=None)</td>
+</tr>
+<tr>
+<td><strong>DecimalField</strong></td>
+<td>DecimalField(max_digits, decimal_places, coerce_to_string=None, max_value=None, min_value=None) max_digits: 最多位数 decimal_palces: 小数点位置</td>
+</tr>
+<tr>
+<td><strong>DateTimeField</strong></td>
+<td>DateTimeField(format=api_settings.DATETIME_FORMAT, input_formats=None)</td>
+</tr>
+<tr>
+<td><strong>DateField</strong></td>
+<td>DateField(format=api_settings.DATE_FORMAT, input_formats=None)</td>
+</tr>
+<tr>
+<td><strong>TimeField</strong></td>
+<td>TimeField(format=api_settings.TIME_FORMAT, input_formats=None)</td>
+</tr>
+<tr>
+<td><strong>DurationField</strong></td>
+<td>DurationField()</td>
+</tr>
+<tr>
+<td><strong>ChoiceField</strong></td>
+<td>ChoiceField(choices) choices与Django的用法相同</td>
+</tr>
+<tr>
+<td><strong>MultipleChoiceField</strong></td>
+<td>MultipleChoiceField(choices)</td>
+</tr>
+<tr>
+<td><strong>FileField</strong></td>
+<td>FileField(max_length=None, allow_empty_file=False, use_url=UPLOADED_FILES_USE_URL)</td>
+</tr>
+<tr>
+<td><strong>ImageField</strong></td>
+<td>ImageField(max_length=None, allow_empty_file=False, use_url=UPLOADED_FILES_USE_URL)</td>
+</tr>
+<tr>
+<td><strong>ListField</strong></td>
+<td>ListField(child=, min_length=None, max_length=None)</td>
+</tr>
+<tr>
+<td><strong>DictField</strong></td>
+<td>DictField(child=)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>选项参数：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数名称</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>max_length</strong></td>
+<td>最大长度</td>
+</tr>
+<tr>
+<td><strong>min_lenght</strong></td>
+<td>最小长度</td>
+</tr>
+<tr>
+<td><strong>allow_blank</strong></td>
+<td>是否允许为空</td>
+</tr>
+<tr>
+<td><strong>trim_whitespace</strong></td>
+<td>是否截断空白字符</td>
+</tr>
+<tr>
+<td><strong>max_value</strong></td>
+<td>最小值</td>
+</tr>
+<tr>
+<td><strong>min_value</strong></td>
+<td>最大值</td>
+</tr>
+</tbody>
+</table>
+<p><strong>通用参数：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数名称</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>read_only</strong></td>
+<td>表明该字段仅用于序列化输出，默认False</td>
+</tr>
+<tr>
+<td><strong>write_only</strong></td>
+<td>表明该字段仅用于反序列化输入，默认False</td>
+</tr>
+<tr>
+<td><strong>required</strong></td>
+<td>表明该字段在反序列化时必须输入，默认True</td>
+</tr>
+<tr>
+<td><strong>default</strong></td>
+<td>反序列化时使用的默认值</td>
+</tr>
+<tr>
+<td><strong>allow_null</strong></td>
+<td>表明该字段是否允许传入None，默认False</td>
+</tr>
+<tr>
+<td><strong>validators</strong></td>
+<td>该字段使用的验证器</td>
+</tr>
+<tr>
+<td><strong>error_messages</strong></td>
+<td>包含错误编号与错误信息的字典</td>
+</tr>
+<tr>
+<td><strong>label</strong></td>
+<td>用于HTML展示API页面时，显示的字段名称</td>
+</tr>
+<tr>
+<td><strong>help_text</strong></td>
+<td>用于HTML展示API页面时，显示的字段帮助提示信息</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-创建serializer对象">2、创建Serializer对象</h2>
+<p>在定义好序列化器类之后，我们就可以创建序列化对象了。</p>
+<p>序列化对象的够造方法为：</p>
+<pre><code class="language-Python">Serializer(instance=None, data=empty, **kwarg)
+</code></pre>
+<p>说明：</p>
+<ul>
+<li>用于序列化时，将模型类对象传入<strong>instance</strong>参数</li>
+<li>用于反序列化时，将要被反序列化的数据传入<strong>data</strong>参数</li>
+<li>除了instance和data参数外，在构造Serializer对象时，还可通过<strong>context</strong>参数额外添加数据，如除了instance和data参数外，在构造Serializer对象时，还可通过<strong>context</strong>参数额外添加数据，如</li>
+</ul>
+<pre><code class="language-Python">serializer = AccountSerializer(account, context={'request': request})
+</code></pre>
+<p>通过context参数附加的数据可以通过序列化对象的context属性获取。</p>
+<p><strong>注意：</strong></p>
+<ol>
+<li>使用序列化器的时候一定要注意，序列化器声明了以后，不会自动执行，需要我们在视图中进行调用才可以。</li>
+<li>序列化器无法直接接收数据，需要我们在视图中创建序列化器对象时把使用的数据传递过来。</li>
+<li>序列化器的字段声明类似于我们前面使用过的表单系统。</li>
+<li>开发restful api时，序列化器会帮我们把模型数据转换成字典。</li>
+<li>drf提供的视图会帮我们把字典转换成json,或者把客户端发送过来的数据转换字典。</li>
+</ol>
+<h2 id="3-序列化器的使用">3、序列化器的使用</h2>
+<p>序列化器的使用分为两个阶段：即在客户端请求（提交）数据时，使用序列化器可以完成对数据的反序列化。在服务端响应时，使用序列化器可以完成对数据的序列化。将模型类数据装换和其他数据装换成<code>json</code> 格式的数据。</p>
+<h3 id="31-序列化">3.1 序列化</h3>
+<p>假如客户端以<code>get</code> <code>put</code> （查询/修改  一条数据）的请求方式与服务端进行数据交互，其中<code>urls.py</code> 中的路由匹配为：</p>
+<pre><code class="language-Python">urlpatterns = [
+    url(r'^admin/', admin.site.urls),
+    re_path('books/(?P&lt;pk&gt;\d+)', views.BookView.as_view()),
+]
+</code></pre>
+<p>即当所有请求<code>url</code> 为<code>127.0.0.1:8080/books/1</code> 的形式时，会匹配到视图类<code>BookView</code> ，并将pk=1作为关键字参数传递给它。</p>
+<p>其中<code>views.py</code> 中有：</p>
+<pre><code class="language-Python">from rest_framework.views import APIView
+from books.models import Book
+from .ser import BookSerializer
+
+class BookView(APIView):
+    def get(self,request,pk):
+        book=Book.objects.filter(id=pk).first() #获取一个书的对象
+        book_ser=BookSerializer(book)  #将学生对象传入上面已经声明的Serializer类中，调用类的__init__方法，实例化一个serializer对象。
+        # book_ser.data   序列化对象.data-----&gt;就是序列化后的字典
+        return Response(book_ser.data)
+    
+    def put(self,request,pk):
+        response_msg={'status':100,'msg':'成功'}
+        # 找到这个对象
+        book = Book.objects.filter(id=pk).first()
+        # 得到一个序列化类的对象
+        # book_ser=BookSerializer(book,request.data) # 按照位置传递参数
+        book_ser=BookSerializer(instance=book,data=request.data)  # 按照关键字传递参数
+
+        # 要进行数据验证
+        if book_ser.is_valid():  # 返回True表示验证通过
+            book_ser.save()  
+            # 此处的save方法是序列化类提供的。
+            # 如果没有重写父类的update方法会报错 这是因为抽象接口限制子类必须要重写该方法（多态）
+            response_msg['data']=book_ser.data
+        else:
+            response_msg['status']=101
+            response_msg['msg']='数据校验失败'
+            response_msg['data']=book_ser.errors
+
+        return Response(response_msg)
+</code></pre>
+<p>此时客户端获取到的数据即为序列化后的书数据。</p>
+<p>在<code>ser.py</code> 对应的序列化类中重写的<code>update</code> 方法：</p>
+<pre><code class="language-Python">    def update(self, instance, validated_data):
+        #instance是book这个对象
+        #validated_data是校验后的数据
+        instance.name=validated_data.get('name')
+        instance.price=validated_data.get('price')
+        instance.author=validated_data.get('author')
+        instance.publish=validated_data.get('publish')
+        instance.save()  #book.save()   此处的save方法是django 的orm提供的
+        return instance
+</code></pre>
+<h3 id="32-反序列化">3.2 反序列化</h3>
+<p>假如客户端以<code>post</code>  <code>get</code> （创建一条 / 查询所有）请求方式与服务端进行数据交互，其中<code>urls.py</code> 的路由匹配为：</p>
+<pre><code class="language-Python">urlpatterns = [
+    url(r'^admin/', admin.site.urls),
+    re_path('books/(?P&lt;pk&gt;\d+)', views.BookView.as_view()),
+    path('books/', views.BooksView.as_view()),
+]
+</code></pre>
+<p>即当所有请求的<code>url</code> 为<code>127.0.0.1:8080/books/</code> 形式时会匹配到视图类<code>BooksView</code> 。</p>
+<p>其中<code>view.py</code> 中有：</p>
+<pre><code class="language-Python">class BooksView(APIView):
+    def get(self,request):
+        response_msg = {'status': 100, 'msg': '成功'}
+        books=Book.objects.all()
+        book_ser=BookSerializer(books,many=True)  #序列化多条,如果序列化一条，不需要写
+        response_msg['data']=book_ser.data
+        return Response(response_msg)
+    
+    def post(self,request):
+        response_msg = {'status': 100, 'msg': '成功'}
+        #修改才有instance，新增没有instance，只有data
+        book_ser = BookSerializer(data=request.data)
+        # book_ser = BookSerializer(request.data)  # 这个按位置传request.data会给instance，就报错了
+        # 校验字段
+        if book_ser.is_valid():
+            book_ser.save()  #没有重写create方法会报错 原因同上
+            response_msg['data']=book_ser.data
+        else:
+            response_msg['status']=102
+            response_msg['msg']='数据校验失败'
+            response_msg['data']=book_ser.errors
+        return Response(response_msg)
+</code></pre>
+<p>此时服务端保存的就是经过校验和反序列化的客户端发送来的序列化数据。</p>
+<p>在<code>ser.py</code> 对应的序列化类中重写的<code>create</code> 方法：</p>
+<pre><code class="language-Python">def create(self, validated_data):
+    instance=Book.objects.create(**validated_data)
+    return instance
+</code></pre>
+<h3 id="33-补充delete">3.3 补充delete</h3>
+<p>假如客户端以<code>post</code>  <code>get</code> （创建一条 / 查询所有）请求方式与服务端进行数据交互，其中<code>urls.py</code> 的路由匹配为：</p>
+<pre><code class="language-Python">urlpatterns = [
+    url(r'^admin/', admin.site.urls),
+    re_path('books/(?P&lt;pk&gt;\d+)', views.BookView.as_view()),
+]
+</code></pre>
+<p>其中<code>view.py</code> 中有：</p>
+<pre><code class="language-Python">class BookView(APIView):
+    def delete(self,request,pk):
+        Book.objects.filter(pk=pk).delete()
+        return Response({'status':100,'msg':'删除成功'})
+</code></pre>
+<h2 id="4-数据验证">4、数据验证</h2>
+<h3 id="41-is_valid-方法">4.1 is_valid() 方法</h3>
+<p>使用序列化器进行反序列化时，需要对数据进行验证后，才能获取验证成功的数据或保存成模型类对象。</p>
+<p>在获取反序列化的数据前，必须调用<code>is_valid()</code> 方法进行验证，验证成功返回True，否则返回False。</p>
+<p>验证失败，可以通过序列化器对象的<code>errors</code> 属性获取错误信息，返回字典，包含了字段和字段的错误。如果是非字段错误，可以通过修改<code>REST framework</code> 配置中的<code>NON_FIELD_ERRORS_KEY</code> 来控制错误字典中的键名。</p>
+<p>验证成功，可以通过序列化器对象的<code>validated_data</code>属性获取数据。</p>
+<p>在定义序列化器时，指明每个字段的序列化类型和选项参数，本身就是一种验证行为。</p>
+<p>如我们前面定义过的<code>BookSerializer</code> 。</p>
+<pre><code class="language-Python">class BookSerializer(serializers.Serializer):
+    id=serializers.CharField(read_only=True)
+    name=serializers.CharField(max_length=16,min_length=4)
+    # price=serializers.DecimalField()
+    price=serializers.CharField(write_only=True,required=True)
+    author=serializers.CharField(validators=[check_author])  # validators=[] 列表中写函数内存地址
+    publish=serializers.CharField()
+</code></pre>
+<p><code>is_valid()</code> 方法还可以在验证失败时抛出异常<code>serializers.ValidationError</code> ，可以通过传递<code>raise_exception=True</code> 参数开启，<code>REST framework</code> 接收到此异常，会向前端返回HTTP 400 Bad Request响应。</p>
+<h3 id="42-validate_字段名">4.2 validate_字段名</h3>
+<p>例如对<code>price</code> 字段进行验证，在<code>BookSerializer</code>中定义方法：</p>
+<pre><code class="language-Python">def validate_price(self, data):   # validate_字段名  接收一个参数
+    #如果价格小于10，就校验不通过
+    # print(type(data))
+    # print(data)
+    if float(data)&gt;10:
+        return data
+    else:
+        #校验失败，抛异常
+        raise ValidationError('价格太低')
+</code></pre>
+<h3 id="43-validate">4.3 validate</h3>
+<pre><code class="language-Python">    def validate(self, validate_data):   # 全局钩子
+        print(validate_data)
+        author=validate_data.get('author')
+        publish=validate_data.get('publish')
+        if author == publish:
+            raise ValidationError('作者名字跟出版社一样')
+        else:
+            return validate_data
+</code></pre>
+<h4 id="44-validators">4.4 validators</h4>
+<p>在字段中添加<code>validators</code> 选项参数，也可以补充验证行为，如</p>
+<pre><code class="language-Python">def check_author(data):
+    if data.startswith('sb'):
+        raise ValidationError('作者名字不能以sb开头')
+    else:
+        return data
+    
+    
+class BookSerializer(serializers.Serializer):
+       author=serializers.CharField(validators=[check_author])  # validators=[] 列表中写函数内存地址
+</code></pre>
+<h2 id="5-模型类序列化器">5、模型类序列化器</h2>
+<p>如果我们想要使用序列化器对应的是Django的模型类，DRF为我们提供了ModelSerializer模型类序列化器来帮助我们快速创建一个Serializer类。</p>
+<p>ModelSerializer与常规的Serializer相同，但提供了：</p>
+<ul>
+<li>基于模型类自动生成一系列字段</li>
+<li>基于模型类自动为Serializer生成validators，比如unique_together</li>
+<li>包含默认的create()和update()的实现</li>
+</ul>
+<h3 id="51-定义">5.1 定义</h3>
+<pre><code class="language-Python">class BookModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Book  # 对应上models.py中的模型
+        fields='__all__'
+</code></pre>
+<ul>
+<li>model 指明参照哪个模型类</li>
+<li>fields 指明为模型类的哪些字段生成</li>
+</ul>
+<h3 id="52-指定字段">5.2 指定字段</h3>
+<pre><code class="language-Python">class BookModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book  # 对应上models.py中的模型
+        fields = '__all__'
+        # fields=('name','price','id','author') # 只序列化指定的字段
+        # exclude=('name',) #跟fields不能都写，写谁，就表示排除谁
+        # read_only_fields=('price',)
+        # write_only_fields=('id',) #弃用了，使用extra_kwargs
+        extra_kwargs = {  # 类似于这种形式name=serializers.CharField(max_length=16,min_length=4)
+            'price': {'write_only': True},
+        }
+</code></pre>
+<p>我们可以使用<strong>extra_kwargs</strong>参数为ModelSerializer添加或修改原有的选项参数</p>
+<pre><code class="language-Python">class BookInfoSerializer(serializers.ModelSerializer):
+    &quot;&quot;&quot;图书数据序列化器&quot;&quot;&quot;
+    class Meta:
+        model = BookInfo
+        fields = ('id', 'btitle', 'bpub_date', 'bread', 'bcomment')
+        extra_kwargs = {
+            'bread': {'min_value': 0, 'required': True},
+            'bcomment': {'min_value': 0, 'required': True},
+        }
+
+# BookInfoSerializer():
+#    id = IntegerField(label='ID', read_only=True)
+#    btitle = CharField(label='名称', max_length=20)
+#    bpub_date = DateField(allow_null=True, label='发布日期', required=False)
+#    bread = IntegerField(label='阅读量', max_value=2147483647, min_value=0, required=True)
+#    bcomment = IntegerField(label='评论量', max_value=2147483647, min_value=0, required=True)
+
+</code></pre>
+<h2 id="6-补充">6、补充</h2>
+<h3 id="manytrue的实际用途">many=True的实际用途</h3>
+<pre><code class="language-python"># 序列化多条，需要传many=True
+# 
+book_ser=BookModelSerializer(books,many=True)
+book_one_ser=BookModelSerializer(book)
+print(type(book_ser))
+#&lt;class 'rest_framework.serializers.ListSerializer'&gt;
+print(type(book_one_ser))
+#&lt;class 'app01.ser.BookModelSerializer'&gt;
+
+# 对象的生成--》先调用类的__new__方法，生成空对象
+# 对象=类名(name=lqz)，触发类的__init__()
+# 类的__new__方法控制对象的生成
+
+
+def __new__(cls, *args, **kwargs):
+    if kwargs.pop('many', False):
+        return cls.many_init(*args, **kwargs)
+    # 没有传many=True,走下面，正常的对象实例化
+    return super().__new__(cls, *args, **kwargs)
+</code></pre>
+<h3 id="serializer高级用法">Serializer高级用法</h3>
+<pre><code class="language-python"># source的使用
+	1 可以改字段名字  xxx=serializers.CharField(source='title')
+    2 可以.跨表publish=serializers.CharField(source='publish.email')
+    3 可以执行方法pub_date=serializers.CharField(source='test') test是Book表模型中的方法
+    
+
+# SerializerMethodField(）的使用
+	1 它需要有个配套方法，方法名叫get_字段名，返回值就是要显示的东西
+    authors=serializers.SerializerMethodField() #它需要有个配套方法，方法名叫get_字段名，返回值就是要显示的东西
+    def get_authors(self,instance):
+        # book对象
+        authors=instance.authors.all()  # 取出所有作者
+        ll=[]
+        for author in authors:
+            ll.append({'name':author.name,'age':author.age})
+        return ll
+</code></pre>
+<blockquote>
+<p>Author：Laoqi</p>
+</blockquote>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/VEfPb2dUj" class="tag">
+                    django
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/vhKLQmmvn" class="tag">
+                    python
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/django-zhi-url-fan-xiang-jie-xi">
+                  <h3 class="post-title">
+                    Django之URL反向解析
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

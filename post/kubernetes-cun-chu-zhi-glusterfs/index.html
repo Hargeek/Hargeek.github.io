@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>kubernetes存储之GlusterFS | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">kubernetes存储之GlusterFS</h2>
+            <div class="post-date">2019-10-23</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-glusterfs%E6%A6%82%E8%BF%B0">1、glusterfs概述</a>
+<ul>
+<li><a href="#11-glusterfs%E7%AE%80%E4%BB%8B">1.1、glusterfs简介</a></li>
+<li><a href="#12-glusterfs%E7%89%B9%E7%82%B9">1.2、glusterfs特点</a></li>
+<li><a href="#13-glusterfs%E5%8D%B7%E7%9A%84%E6%A8%A1%E5%BC%8F">1.3、glusterfs卷的模式</a></li>
+</ul>
+</li>
+<li><a href="#2-heketi%E6%A6%82%E8%BF%B0">2、heketi概述</a></li>
+<li><a href="#3-%E9%83%A8%E7%BD%B2heketiglusterfs">3、部署heketi+glusterfs</a>
+<ul>
+<li><a href="#31-%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C">3.1、准备工作</a>
+<ul>
+<li><a href="#311-%E6%89%80%E6%9C%89%E8%8A%82%E7%82%B9%E5%AE%89%E8%A3%85glusterfs%E5%AE%A2%E6%88%B7%E7%AB%AF">3.1.1、所有节点安装glusterfs客户端</a></li>
+<li><a href="#312-%E8%8A%82%E7%82%B9%E6%89%93%E6%A0%87%E7%AD%BE">3.1.2、节点打标签</a></li>
+<li><a href="#313-%E6%89%80%E6%9C%89%E8%8A%82%E7%82%B9%E5%8A%A0%E8%BD%BD%E5%AF%B9%E5%BA%94%E6%A8%A1%E5%9D%97">3.1.3、所有节点加载对应模块</a></li>
+</ul>
+</li>
+<li><a href="#32-%E5%88%9B%E5%BB%BAglusterfs%E9%9B%86%E7%BE%A4">3.2、创建glusterfs集群</a>
+<ul>
+<li><a href="#321-%E4%B8%8B%E8%BD%BD%E7%9B%B8%E5%85%B3%E5%AE%89%E8%A3%85%E6%96%87%E4%BB%B6">3.2.1、下载相关安装文件</a></li>
+<li><a href="#322-%E5%88%9B%E5%BB%BA%E9%9B%86%E7%BE%A4">3.2.2、创建集群</a></li>
+<li><a href="#323-%E6%9F%A5%E7%9C%8Bgfs-pods">3.2.3、查看gfs pods</a></li>
+</ul>
+</li>
+<li><a href="#33-%E5%88%9B%E5%BB%BAheketi%E6%9C%8D%E5%8A%A1">3.3、创建heketi服务</a>
+<ul>
+<li><a href="#331-%E5%88%9B%E5%BB%BAheketi%E7%9A%84service-account%E5%AF%B9%E8%B1%A1">3.3.1、创建heketi的service account对象</a></li>
+<li><a href="#332-%E5%88%9B%E5%BB%BAheketi%E5%AF%B9%E5%BA%94%E7%9A%84%E6%9D%83%E9%99%90%E5%92%8Csecret">3.3.2、创建heketi对应的权限和secret</a></li>
+<li><a href="#333-%E5%88%9D%E5%A7%8B%E5%8C%96%E9%83%A8%E7%BD%B2heketi">3.3.3、初始化部署heketi</a></li>
+</ul>
+</li>
+<li><a href="#34-%E5%88%9B%E5%BB%BAgfs%E9%9B%86%E7%BE%A4">3.4、创建gfs集群</a>
+<ul>
+<li><a href="#341-%E5%A4%8D%E5%88%B6%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%96%87%E4%BB%B6">3.4.1、复制二进制文件</a></li>
+<li><a href="#342-%E9%85%8D%E7%BD%AEtopology-sample">3.4.2、配置topology-sample</a></li>
+<li><a href="#343-%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8Dheketi%E7%9A%84clusterip">3.4.3、获取当前heketi的ClusterIP</a></li>
+<li><a href="#344-%E4%BD%BF%E7%94%A8heketi%E5%88%9B%E5%BB%BAgfs%E9%9B%86%E7%BE%A4">3.4.4、使用heketi创建gfs集群</a></li>
+<li><a href="#345-%E6%8C%81%E4%B9%85%E5%8C%96heketi%E9%85%8D%E7%BD%AE">3.4.5、持久化heketi配置</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#4-%E5%88%9B%E5%BB%BAstorageclass">4、创建storageclass</a></li>
+<li><a href="#5-%E6%B5%8B%E8%AF%95%E9%80%9A%E8%BF%87gfs%E6%8F%90%E4%BE%9B%E5%8A%A8%E6%80%81%E5%AD%98%E5%82%A8">5、测试通过gfs提供动态存储</a></li>
+<li><a href="#6-%E5%88%86%E6%9E%90k8s%E9%80%9A%E8%BF%87heketi%E5%88%9B%E5%BB%BApv%E5%8F%8Apvc%E7%9A%84%E8%BF%87%E7%A8%8B">6、分析k8s通过heketi创建pv及pvc的过程</a></li>
+<li><a href="#7-%E6%B5%8B%E8%AF%95%E6%95%B0%E6%8D%AE">7、测试数据</a></li>
+<li><a href="#8-%E6%B5%8B%E8%AF%95deployment">8、测试deployment</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-glusterfs概述">1、glusterfs概述</h2>
+<h3 id="11-glusterfs简介">1.1、glusterfs简介</h3>
+<p>glusterfs是一个可扩展，分布式文件系统，集成来自多台服务器上的磁盘存储资源到单一全局命名空间，以提供共享文件存储。</p>
+<h3 id="12-glusterfs特点">1.2、glusterfs特点</h3>
+<ul>
+<li>可以扩展到几PB容量</li>
+<li>支持处理数千个客户端</li>
+<li>兼容POSIX接口</li>
+<li>使用通用硬件，普通服务器即可构建</li>
+<li>能够使用支持扩展属性的文件系统，例如ext4，XFS</li>
+<li>支持工业标准的协议，例如NFS，SMB</li>
+<li>提供很多高级功能，例如副本，配额，跨地域复制，快照以及bitrot检测</li>
+<li>支持根据不同工作负载进行调优</li>
+</ul>
+<h3 id="13-glusterfs卷的模式">1.3、glusterfs卷的模式</h3>
+<p><code>glusterfs</code>中的<code>volume</code>的模式有很多中，包括以下几种：</p>
+<ul>
+<li>分布卷（默认模式）：即DHT, 也叫 分布卷: 将文件以hash算法随机分布到 一台服务器节点中存储。</li>
+<li>复制模式：即AFR, 创建volume 时带 replica x 数量: 将文件复制到 replica x 个节点中。</li>
+<li>条带模式：即Striped, 创建volume 时带 stripe x 数量： 将文件切割成数据块，分别存储到 stripe x 个节点中 ( 类似raid 0 )。</li>
+<li>分布式条带模式：最少需要4台服务器才能创建。 创建volume 时 stripe 2 server = 4 个节点： 是DHT 与 Striped 的组合型。</li>
+<li>分布式复制模式：最少需要4台服务器才能创建。 创建volume 时 replica 2 server = 4 个节点：是DHT 与 AFR 的组合型。</li>
+<li>条带复制卷模式：最少需要4台服务器才能创建。 创建volume 时 stripe 2 replica 2 server = 4 个节点： 是 Striped 与 AFR 的组合型。</li>
+<li>三种模式混合： 至少需要8台 服务器才能创建。 stripe 2 replica 2 , 每4个节点 组成一个 组。</li>
+</ul>
+<h2 id="2-heketi概述">2、heketi概述</h2>
+<p><code>heketi</code>是一个提供<code>RESTful API</code>管理<code>gfs</code>卷的框架，能够在<code>kubernetes</code>、<code>openshift</code>、<code>openstack</code>等云平台上实现动态的存储资源供应，支持<code>gfs</code>多集群管理，便于管理员对<code>gfs</code>进行操作，在<code>kubernetes</code>集群中，<code>pod</code>将存储的请求发送至<code>heketi</code>，然后<code>heketi</code>控制<code>gfs</code>集群创建对应的存储卷。<br>
+<code>heketi</code>动态在集群内选择<code>bricks</code>构建指定的<code>volumes</code>，以确保副本会分散到集群不同的故障域内。<br>
+<code>heketi</code>还支持任意数量的<code>glusterfs</code>集群，以保证接入的云服务器不局限于单个<code>glusterfs</code>集群。</p>
+<h2 id="3-部署heketiglusterfs">3、部署heketi+glusterfs</h2>
+<p>环境：<code>kubeadm</code>安装的最新<code>k8s 1.16.2</code>版本，由1master+2node组成，网络插件选用的是<code>flannel</code>，默认<code>kubeadm</code>安装的<code>k8s</code>，会给<code>master</code>打上污点，本文为了实现<code>gfs</code>集群功能，先手动去掉了污点。<br>
+本文的<code>glusterfs</code>卷模式为复制卷模式。<br>
+另外，<code>glusterfs</code>在<code>kubernetes</code>集群中需要以特权运行，需要在<code>kube-apiserver</code>中添加<code>–allow-privileged=true</code>参数以开启此功能，默认此版本的<code>kubeadm</code>已开启。</p>
+<pre><code>[root@k8s-master-01 ~]# kubectl describe nodes k8s-master-01 |grep Taint
+Taints:             node-role.kubernetes.io/master:NoSchedule  
+[root@k8s-master-01 ~]# kubectl taint node k8s-master-01 node-role.kubernetes.io/master-
+node/k8s-master-01 untainted
+[root@k8s-master-01 ~]# kubectl describe nodes k8s-master-01 |grep Taint
+Taints:             &lt;none&gt;
+</code></pre>
+<h3 id="31-准备工作">3.1、准备工作</h3>
+<p>为了保证<code>pod</code>能够正常使用<code>gfs</code>作为后端存储，需要每台运行<code>pod</code>的节点上提前安装<code>gfs</code>的客户端工具，其他存储方式也类似。</p>
+<h4 id="311-所有节点安装glusterfs客户端">3.1.1、所有节点安装glusterfs客户端</h4>
+<pre><code>$ yum install -y glusterfs glusterfs-fuse -y
+</code></pre>
+<h4 id="312-节点打标签">3.1.2、节点打标签</h4>
+<p>需要安装<code>gfs</code>的<code>kubernetes</code>设置<code>Label</code>，因为<code>gfs</code>是通过<code>kubernetes</code>集群的<code>DaemonSet</code>方式安装的。<br>
+<code>DaemonSet</code>安装方式默认会在每个节点上都进行安装，除非安装前设置筛选要安装节点<code>Label</code>，带上此标签的节点才会安装。<br>
+安装脚本中设置<code>DaemonSet</code>中设置安装在贴有 <code>storagenode=glusterfs</code>的节点，所以这是事先将节点贴上对应<code>Label</code>。</p>
+<pre><code>[root@k8s-master-01 ~]# kubectl get nodes
+NAME            STATUS   ROLES    AGE     VERSION
+k8s-master-01   Ready    master   5d      v1.16.2
+k8s-node-01     Ready    &lt;none&gt;   4d23h   v1.16.2
+k8s-node-02     Ready    &lt;none&gt;   4d23h   v1.16.2
+[root@k8s-master-01 ~]# kubectl label node k8s-master-01 storagenode=glusterfs
+node/k8s-master-01 labeled
+[root@k8s-master-01 ~]# kubectl label node k8s-node-01 storagenode=glusterfs  
+node/k8s-node-01 labeled
+[root@k8s-master-01 ~]# kubectl label node k8s-node-02 storagenode=glusterfs
+node/k8s-node-02 labeled
+[root@k8s-master-01 ~]# kubectl get nodes --show-labels 
+NAME            STATUS   ROLES    AGE     VERSION   LABELS
+k8s-master-01   Ready    master   5d      v1.16.2   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=k8s-master-01,kubernetes.io/os=linux,node-role.kubernetes.io/master=,storagenode=glusterfs
+k8s-node-01     Ready    &lt;none&gt;   4d23h   v1.16.2   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=k8s-node-01,kubernetes.io/os=linux,storagenode=glusterfs
+k8s-node-02     Ready    &lt;none&gt;   4d23h   v1.16.2   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=k8s-node-02,kubernetes.io/os=linux,storagenode=glusterfs
+</code></pre>
+<h4 id="313-所有节点加载对应模块">3.1.3、所有节点加载对应模块</h4>
+<pre><code>$ modprobe dm_snapshot
+$ modprobe dm_mirror
+$ modprobe dm_thin_pool
+</code></pre>
+<p>查看是否加载</p>
+<pre><code>$ lsmod | grep dm_snapshot
+$ lsmod | grep dm_mirror
+$ lsmod | grep dm_thin_pool
+</code></pre>
+<h3 id="32-创建glusterfs集群">3.2、创建glusterfs集群</h3>
+<p>采用容器化方式部署<code>gfs</code>集群，同样也可以使用传统方式部署，在生产环境中，<code>gfs</code>集群最好是独立于集群之外进行部署，之后只需要创建对应的<code>endpoints</code>即可。这里采用<code>Daemonset</code>方式部署，同时保证已经打上标签的节点上都运行一个<code>gfs</code>服务，并且均有提供存储的磁盘。</p>
+<h4 id="321-下载相关安装文件">3.2.1、下载相关安装文件</h4>
+<pre><code>[root@k8s-master-01 glusterfs]# pwd
+/root/manifests/glusterfs
+[root@k8s-master-01 glusterfs]# wget https://github.com/heketi/heketi/releases/download/v7.0.0/heketi-client-v7.0.0.linux.amd64.tar.gz
+[root@k8s-master-01 glusterfs]# tar xf heketi-client-v7.0.0.linux.amd64.tar.gz
+[root@k8s-master-01 glusterfs]# cd heketi-client/share/heketi/kubernetes/
+[root@k8s-master-01 kubernetes]# pwd
+/root/manifests/glusterfs/heketi-client/share/heketi/kubernetes
+</code></pre>
+<p>在本集群中，下面用到的<code>daemonset</code>控制器及后面用到的<code>deployment</code>控制器的<code>api</code>版本均变为了<code>apps/v1</code>，所以需要手动修改下载的<code>json</code>文件再进行部署，资源编排文件中需要指定<code>selector</code>声明。避免出现以下报错：</p>
+<pre><code>[root@k8s-master-01 kubernetes]# kubectl apply -f glusterfs-daemonset.json 
+error: unable to recognize &quot;glusterfs-daemonset.json&quot;: no matches for kind &quot;DaemonSet&quot; in version &quot;extensions/v1beta1&quot;
+</code></pre>
+<p>修改<code>api</code>版本</p>
+<pre><code>&quot;apiVersion&quot;: &quot;extensions/v1beta1&quot;
+</code></pre>
+<p>为<code>apps/v1</code></p>
+<pre><code>&quot;apiVersion&quot;: &quot;apps/v1&quot;,
+</code></pre>
+<p>指定<code>selector</code>声明</p>
+<pre><code>[root@k8s-master-01 kubernetes]# kubectl apply -f glusterfs-daemonset.json 
+error: error validating &quot;glusterfs-daemonset.json&quot;: error validating data: ValidationError(DaemonSet.spec): missing required field &quot;selector&quot; in io.k8s.api.apps.v1.DaemonSetSpec; if you choose to ignore these errors, turn validation off with --validate=false
+</code></pre>
+<p>对应后面内容的<code>selecto</code>r，用<code>matchlabel</code>相关联</p>
+<pre><code>&quot;spec&quot;: {
+    &quot;selector&quot;: {
+        &quot;matchLabels&quot;: {
+            &quot;glusterfs-node&quot;: &quot;daemonset&quot;
+        }
+    },
+</code></pre>
+<h4 id="322-创建集群">3.2.2、创建集群</h4>
+<pre><code>[root@k8s-master-01 kubernetes]# kubectl apply -f glusterfs-daemonset.json 
+daemonset.apps/glusterfs created
+</code></pre>
+<p>注意：</p>
+<ul>
+<li>这里使用的是默认的挂载方式，可使用其他磁盘作为<code>gfs</code>的工作目录</li>
+<li>此处创建的<code>namespace</code>为<code>default</code>，可手动指定为其他<code>namespace</code></li>
+</ul>
+<h4 id="323-查看gfs-pods">3.2.3、查看gfs pods</h4>
+<pre><code>[root@k8s-master-01 kubernetes]# kubectl get pods 
+NAME              READY   STATUS    RESTARTS   AGE
+glusterfs-9tttf   1/1     Running   0          1m10s
+glusterfs-gnrnr   1/1     Running   0          1m10s
+glusterfs-v92j5   1/1     Running   0          1m10s
+</code></pre>
+<h3 id="33-创建heketi服务">3.3、创建heketi服务</h3>
+<h4 id="331-创建heketi的service-account对象">3.3.1、创建heketi的service account对象</h4>
+<pre><code>[root@k8s-master-01 kubernetes]# cat heketi-service-account.json 
+{
+  &quot;apiVersion&quot;: &quot;v1&quot;,
+  &quot;kind&quot;: &quot;ServiceAccount&quot;,
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;heketi-service-account&quot;
+  }
+}
+[root@k8s-master-01 kubernetes]# kubectl apply -f heketi-service-account.json 
+serviceaccount/heketi-service-account created
+[root@k8s-master-01 kubernetes]# kubectl get sa
+NAME                     SECRETS   AGE
+default                  1         71m
+heketi-service-account   1         5s
+</code></pre>
+<h4 id="332-创建heketi对应的权限和secret">3.3.2、创建heketi对应的权限和secret</h4>
+<pre><code>[root@k8s-master-01 kubernetes]# kubectl create clusterrolebinding heketi-gluster-admin --clusterrole=edit --serviceaccount=dafault:heketi-service-account
+clusterrolebinding.rbac.authorization.k8s.io/heketi-gluster-admin created
+[root@k8s-master-01 kubernetes]# kubectl create secret generic heketi-config-secret --from-file=./heketi.json 
+secret/heketi-config-secret created
+</code></pre>
+<h4 id="333-初始化部署heketi">3.3.3、初始化部署heketi</h4>
+<p>同样的，需要修改<code>api</code>版本以及增加<code>selector</code>声明部分。</p>
+<pre><code>[root@k8s-master-01 kubernetes]# vim heketi-bootstrap.json 
+...
+      &quot;kind&quot;: &quot;Deployment&quot;,
+      &quot;apiVersion&quot;: &quot;apps/v1&quot;
+...
+      &quot;spec&quot;: {
+        &quot;selector&quot;: {
+          &quot;matchLabels&quot;: {
+            &quot;name&quot;: &quot;deploy-heketi&quot; 
+          }
+        },
+...
+[root@k8s-master-01 kubernetes]# kubectl create -f heketi-bootstrap.json 
+service/deploy-heketi created
+deployment.apps/deploy-heketi created
+[root@k8s-master-01 kubernetes]# vim heketi-deployment.json
+...
+      &quot;kind&quot;: &quot;Deployment&quot;,
+      &quot;apiVersion&quot;: &quot;apps/v1&quot;,
+...
+      &quot;spec&quot;: {
+        &quot;selector&quot;: {
+          &quot;matchLabels&quot;: {
+            &quot;name&quot;: &quot;heketi&quot;
+          }
+        },
+        &quot;replicas&quot;: 1,
+...
+[root@k8s-master-01 kubernetes]# kubectl apply -f heketi-deployment.json
+secret/heketi-db-backup created
+service/heketi created
+deployment.apps/heketi created
+[root@k8s-master-01 kubernetes]# kubectl get pods 
+NAME                             READY   STATUS    RESTARTS   AGE
+deploy-heketi-6c687b4b84-p7mcr   1/1     Running   0          72s
+heketi-68795ccd8-9726s           0/1     ContainerCreating   0          50s
+glusterfs-9tttf                  1/1     Running   0          48m
+glusterfs-gnrnr                  1/1     Running   0          48m
+glusterfs-v92j5                  1/1     Running   0          48m
+</code></pre>
+<h3 id="34-创建gfs集群">3.4、创建gfs集群</h3>
+<h4 id="341-复制二进制文件">3.4.1、复制二进制文件</h4>
+<p>复制<code>heketi-cli</code>到<code>/usr/local/bin</code>目录下</p>
+<pre><code>[root@k8s-master-01 heketi-client]# pwd
+/root/manifests/glusterfs/heketi-client
+[root@k8s-master-01 heketi-client]# cp bin/heketi-cli /usr/local/bin/
+[root@k8s-master-01 heketi-client]# heketi-cli -v
+heketi-cli v7.0.0
+</code></pre>
+<h4 id="342-配置topology-sample">3.4.2、配置topology-sample</h4>
+<p>修改<code>topology-sample</code>，<code>manage</code>为<code>gfs</code>管理服务的节点<code>Node</code>主机名，<code>storage</code>为节点的<code>ip</code>地址，<code>device</code>为节点上的裸设备，也就是用于提供存储的磁盘最好使用裸设备，不进行分区。<br>
+因此，需要预先在每个<code>gfs</code>的节点上准备好新的磁盘，这里分别在三个节点都新添加了一块/dev/sdb磁盘设备，大小均为10G。</p>
+<pre><code>[root@k8s-master-01 ~]# lsblk
+NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda               8:0    0   50G  0 disk 
+├─sda1            8:1    0    2G  0 part /boot
+└─sda2            8:2    0   48G  0 part 
+  ├─centos-root 253:0    0   44G  0 lvm  /
+  └─centos-swap 253:1    0    4G  0 lvm  
+sdb               8:16   0   10G  0 disk 
+sr0              11:0    1 1024M  0 rom
+[root@k8s-node-01 ~]# lsblk
+NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda               8:0    0   50G  0 disk 
+├─sda1            8:1    0    2G  0 part /boot
+└─sda2            8:2    0   48G  0 part 
+  ├─centos-root 253:0    0   44G  0 lvm  /
+  └─centos-swap 253:1    0    4G  0 lvm  
+sdb               8:16   0   10G  0 disk 
+sr0              11:0    1 1024M  0 rom
+[root@k8s-node-02 ~]# lsblk
+NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda               8:0    0   50G  0 disk 
+├─sda1            8:1    0    2G  0 part /boot
+└─sda2            8:2    0   48G  0 part 
+  ├─centos-root 253:0    0   44G  0 lvm  /
+  └─centos-swap 253:1    0    4G  0 lvm  
+sdb               8:16   0   10G  0 disk 
+sr0              11:0    1 1024M  0 rom 
+</code></pre>
+<p>配置<code>topology-sample</code></p>
+<pre><code>{
+    &quot;clusters&quot;: [
+        {
+            &quot;nodes&quot;: [
+                {
+                    &quot;node&quot;: {
+                        &quot;hostnames&quot;: {
+                            &quot;manage&quot;: [
+                                &quot;k8s-master-01&quot;
+                            ],
+                            &quot;storage&quot;: [
+                                &quot;192.168.2.10&quot;
+                            ]
+                        },
+                        &quot;zone&quot;: 1
+                    },
+                    &quot;devices&quot;: [
+                        {
+                            &quot;name&quot;: &quot;/dev/sdb&quot;,
+                            &quot;destroydata&quot;: false
+                        }
+                    ]
+                },
+                {
+                    &quot;node&quot;: {
+                        &quot;hostnames&quot;: {
+                            &quot;manage&quot;: [
+                                &quot;k8s-node-01&quot;
+                            ],
+                            &quot;storage&quot;: [
+                                &quot;192.168.2.11&quot;
+                            ]
+                        },
+                        &quot;zone&quot;: 1
+                    },
+                    &quot;devices&quot;: [
+                        {
+                            &quot;name&quot;: &quot;/dev/sdb&quot;,
+                            &quot;destroydata&quot;: false
+                        }
+                    ]
+                },
+                {
+                    &quot;node&quot;: {
+                        &quot;hostnames&quot;: {
+                            &quot;manage&quot;: [
+                                &quot;k8s-node-02&quot;
+                            ],
+                            &quot;storage&quot;: [
+                                &quot;192.168.2.12&quot;
+                            ]
+                        },
+                        &quot;zone&quot;: 1
+                    },
+                    &quot;devices&quot;: [
+                        {
+                            &quot;name&quot;: &quot;/dev/sdb&quot;,
+                            &quot;destroydata&quot;: false
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+</code></pre>
+<h4 id="343-获取当前heketi的clusterip">3.4.3、获取当前heketi的ClusterIP</h4>
+<p>查看当前<code>heketi</code>的<code>ClusterIP</code>，并通过环境变量声明</p>
+<pre><code>[root@k8s-master-01 kubernetes]# kubectl get svc|grep heketi
+deploy-heketi   ClusterIP   10.1.241.99   &lt;none&gt;        8080/TCP   3m18s
+[root@k8s-master-01 kubernetes]# curl http://10.1.241.99:8080/hello
+Hello from Heketi
+[root@k8s-master-01 kubernetes]# export HEKETI_CLI_SERVER=http://10.1.241.99:8080
+[root@k8s-master-01 kubernetes]# echo $HEKETI_CLI_SERVER
+http://10.1.185.215:8080
+</code></pre>
+<h4 id="344-使用heketi创建gfs集群">3.4.4、使用heketi创建gfs集群</h4>
+<p>执行如下命令创建gfs集群会提示Invalid JWT token: Token missing iss claim</p>
+<pre><code>[root@k8s-master-01 kubernetes]# heketi-cli topology load --json=topology-sample.json 
+Error: Unable to get topology information: Invalid JWT token: Token missing iss claim
+</code></pre>
+<p>这是因为新版本的heketi在创建gfs集群时需要带上参数，声明用户名及密码，相应值在heketi.json文件中配置，即：</p>
+<pre><code>[root@k8s-master-01 kubernetes]# heketi-cli -s $HEKETI_CLI_SERVER --user admin --secret 'My Secret' topology load --json=topology-sample.json
+Creating cluster ... ID: 1c5ffbd86847e5fc1562ef70c033292e
+        Allowing file volumes on cluster.
+        Allowing block volumes on cluster.
+        Creating node k8s-master-01 ... ID: b6100a5af9b47d8c1f19be0b2b4d8276
+                Adding device /dev/sdb ... OK
+        Creating node k8s-node-01 ... ID: 04740cac8d42f56e354c94bdbb7b8e34
+                Adding device /dev/sdb ... OK
+        Creating node k8s-node-02 ... ID: 1b33ad0dba20eaf23b5e3a4845e7cdb4
+                Adding device /dev/sdb ... OK
+</code></pre>
+<p>执行了heketi-cli topology load之后，Heketi在服务器做的大致操作如下：</p>
+<ul>
+<li>进入任意glusterfs Pod内，执行gluster peer status 发现都已把对端加入到了可信存储池(TSP)中。</li>
+<li>在运行了gluster Pod的节点上，自动创建了一个VG，此VG正是由topology-sample.json 文件中的磁盘裸设备创建而来。</li>
+<li>一块磁盘设备创建出一个VG，以后创建的PVC，即从此VG里划分的LV。</li>
+<li>heketi-cli topology info 查看拓扑结构，显示出每个磁盘设备的ID，对应VG的ID，总空间、已用空间、空余空间等信息。<br>
+通过部分日志查看</li>
+</ul>
+<pre><code>[root@k8s-master-01 manifests]# kubectl logs -f deploy-heketi-6c687b4b84-l5b6j
+...
+[kubeexec] DEBUG 2019/10/23 02:17:44 heketi/pkg/remoteexec/log/commandlog.go:46:log.(*CommandLogger).Success: Ran command [pvs -o pv_name,pv_uuid,vg_name --reportformat=json /dev/sdb] on [pod:glusterfs-lrdz7 c:glusterfs ns:default (from host:k8s-node-01 selector:glusterfs-node)]: Stdout [  {
+      &quot;report&quot;: [
+          {
+              &quot;pv&quot;: [
+                  {&quot;pv_name&quot;:&quot;/dev/sdb&quot;, &quot;pv_uuid&quot;:&quot;1UkSIV-RYt1-QBNw-KyAR-Drm5-T9NG-UmO313&quot;, &quot;vg_name&quot;:&quot;vg_398329cc70361dfd4baa011d811de94a&quot;}
+              ]
+          }
+      ]
+  }
+]: Stderr [  WARNING: Device /dev/sdb not initialized in udev database even after waiting 10000000 microseconds.
+  WARNING: Device /dev/centos/root not initialized in udev database even after waiting 10000000 microseconds.
+  WARNING: Device /dev/sda1 not initialized in udev database even after waiting 10000000 microseconds.
+  WARNING: Device /dev/centos/swap not initialized in udev database even after waiting 10000000 microseconds.
+  WARNING: Device /dev/sda2 not initialized in udev database even after waiting 10000000 microseconds.
+  WARNING: Device /dev/sdb not initialized in udev database even after waiting 10000000 microseconds.
+]
+[kubeexec] DEBUG 2019/10/23 02:17:44 heketi/pkg/remoteexec/log/commandlog.go:34:log.(*CommandLogger).Before: Will run command [udevadm info --query=symlink --name=/dev/sdb] on [pod:glusterfs-lrdz7 c:glusterfs ns:default (from host:k8s-node-01 selector:glusterfs-node)]
+[kubeexec] DEBUG 2019/10/23 02:17:44 heketi/pkg/remoteexec/kube/exec.go:72:kube.ExecCommands: Current kube connection count: 0
+[kubeexec] DEBUG 2019/10/23 02:17:44 heketi/pkg/remoteexec/log/commandlog.go:46:log.(*CommandLogger).Success: Ran command [udevadm info --query=symlink --name=/dev/sdb] on [pod:glusterfs-lrdz7 c:glusterfs ns:default (from host:k8s-node-01 selector:glusterfs-node)]: Stdout [
+]: Stderr []
+[kubeexec] DEBUG 2019/10/23 02:17:44 heketi/pkg/remoteexec/log/commandlog.go:34:log.(*CommandLogger).Before: Will run command [vgdisplay -c vg_398329cc70361dfd4baa011d811de94a] on [pod:glusterfs-lrdz7 c:glusterfs ns:default (from host:k8s-node-01 selector:glusterfs-node)]
+[kubeexec] DEBUG 2019/10/23 02:17:44 heketi/pkg/remoteexec/kube/exec.go:72:kube.ExecCommands: Current kube connection count: 0
+[negroni] 2019-10-23T02:17:44Z | 200 |   93.868µs | 10.1.241.99:8080 | GET /queue/3d0b6edb0faa67e8efd752397f314a6f
+[kubeexec] DEBUG 2019/10/23 02:17:44 heketi/pkg/remoteexec/log/commandlog.go:46:log.(*CommandLogger).Success: Ran command [vgdisplay -c vg_398329cc70361dfd4baa011d811de94a] on [pod:glusterfs-lrdz7 c:glusterfs ns:default (from host:k8s-node-01 selector:glusterfs-node)]: Stdout [  vg_398329cc70361dfd4baa011d811de94a:r/w:772:-1:0:0:0:-1:0:1:1:10350592:4096:2527:0:2527:YCPG9X-b270-1jf2-VwKX-ycpZ-OI9u-7ZidOc
+]: Stderr []
+[cmdexec] DEBUG 2019/10/23 02:17:44 heketi/executors/cmdexec/device.go:273:cmdexec.(*CmdExecutor).getVgSizeFromNode: /dev/sdb in k8s-node-01 has TotalSize:10350592, FreeSize:10350592, UsedSize:0
+[heketi] INFO 2019/10/23 02:17:44 Added device /dev/sdb
+[asynchttp] INFO 2019/10/23 02:17:44 Completed job 3d0b6edb0faa67e8efd752397f314a6f in 3m2.694238221s
+[negroni] 2019-10-23T02:17:45Z | 204 |   105.23µs | 10.1.241.99:8080 | GET /queue/3d0b6edb0faa67e8efd752397f314a6f
+[cmdexec] INFO 2019/10/23 02:17:45 Check Glusterd service status in node k8s-node-01
+[kubeexec] DEBUG 2019/10/23 02:17:45 heketi/pkg/remoteexec/log/commandlog.go:34:log.(*CommandLogger).Before: Will run command [systemctl status glusterd] on [pod:glusterfs-lrdz7 c:glusterfs ns:default (from host:k8s-node-01 selector:glusterfs-node)]
+[kubeexec] DEBUG 2019/10/23 02:17:45 heketi/pkg/remoteexec/kube/exec.go:72:kube.ExecCommands: Current kube connection count: 0
+[kubeexec] DEBUG 2019/10/23 02:17:45 heketi/pkg/remoteexec/log/commandlog.go:41:log.(*CommandLogger).Success: Ran command [systemctl status glusterd] on [pod:glusterfs-lrdz7 c:glusterfs ns:default (from host:k8s-node-01 selector:glusterfs-node)]: Stdout filtered, Stderr filtered
+[heketi] INFO 2019/10/23 02:17:45 Adding node k8s-node-02
+[negroni] 2019-10-23T02:17:45Z | 202 |   146.998544ms | 10.1.241.99:8080 | POST /nodes
+[asynchttp] INFO 2019/10/23 02:17:45 Started job 8da70b6fd6fec1d61c4ba1cd0fe27fe5
+[cmdexec] INFO 2019/10/23 02:17:45 Probing: k8s-node-01 -&gt; 192.168.2.12
+[negroni] 2019-10-23T02:17:45Z | 200 |   74.577µs | 10.1.241.99:8080 | GET /queue/8da70b6fd6fec1d61c4ba1cd0fe27fe5
+[kubeexec] DEBUG 2019/10/23 02:17:45 heketi/pkg/remoteexec/log/commandlog.go:34:log.(*CommandLogger).Before: Will run command [gluster --mode=script --timeout=600 peer probe 192.168.2.12] on [pod:glusterfs-lrdz7 c:glusterfs ns:default (from host:k8s-node-01 selector:glusterfs-node)]
+[kubeexec] DEBUG 2019/10/23 02:17:45 heketi/pkg/remoteexec/kube/exec.go:72:kube.ExecCommands: Current kube connection count: 0
+[negroni] 2019-10-23T02:17:46Z | 200 |   79.893µs | 10.1.241.99:8080 | GET /queue/8da70b6fd6fec1d61c4ba1cd0fe27fe5
+[kubeexec] DEBUG 2019/10/23 02:17:46 heketi/pkg/remoteexec/log/commandlog.go:46:log.(*CommandLogger).Success: Ran command [gluster --mode=script --timeout=600 peer probe 192.168.2.12] on [pod:glusterfs-lrdz7 c:glusterfs ns:default (from host:k8s-node-01 selector:glusterfs-node)]: Stdout [peer probe: success. 
+]: Stderr []
+[cmdexec] INFO 2019/10/23 02:17:46 Setting snapshot limit
+[kubeexec] DEBUG 2019/10/23 02:17:46 heketi/pkg/remoteexec/log/commandlog.go:34:log.(*CommandLogger).Before: Will run command [gluster --mode=script --timeout=600 snapshot config snap-max-hard-limit 14] on [pod:glusterfs-lrdz7 c:glusterfs ns:default (from host:k8s-node-01 selector:glusterfs-node)]
+[kubeexec] DEBUG 2019/10/23 02:17:46 heketi/pkg/remoteexec/kube/exec.go:72:kube.ExecCommands: Current kube connection count: 0
+[kubeexec] DEBUG 2019/10/23 02:17:46 heketi/pkg/remoteexec/log/commandlog.go:46:log.(*CommandLogger).Success: Ran command [gluster --mode=script --timeout=600 snapshot config snap-max-hard-limit 14] on [pod:glusterfs-lrdz7 c:glusterfs ns:default (from host:k8s-node-01 selector:glusterfs-node)]: Stdout [snapshot config: snap-max-hard-limit for System set successfully
+]: Stderr []
+[heketi] INFO 2019/10/23 02:17:46 Added node 1b33ad0dba20eaf23b5e3a4845e7cdb4
+[asynchttp] INFO 2019/10/23 02:17:46 Completed job 8da70b6fd6fec1d61c4ba1cd0fe27fe5 in 488.404011ms
+[negroni] 2019-10-23T02:17:46Z | 303 |   80.712µs | 10.1.241.99:8080 | GET /queue/8da70b6fd6fec1d61c4ba1cd0fe27fe5
+[negroni] 2019-10-23T02:17:46Z | 200 |   242.595µs | 10.1.241.99:8080 | GET /nodes/1b33ad0dba20eaf23b5e3a4845e7cdb4
+[heketi] INFO 2019/10/23 02:17:46 Adding device /dev/sdb to node 1b33ad0dba20eaf23b5e3a4845e7cdb4
+[negroni] 2019-10-23T02:17:46Z | 202 |   696.018µs | 10.1.241.99:8080 | POST /devices
+[asynchttp] INFO 2019/10/23 02:17:46 Started job 21af2069b74762a5521a46e2b52e7d6a
+[negroni] 2019-10-23T02:17:46Z | 200 |   82.354µs | 10.1.241.99:8080 | GET /queue/21af2069b74762a5521a46e2b52e7d6a
+[kubeexec] DEBUG 2019/10/23 02:17:46 heketi/pkg/remoteexec/log/commandlog.go:34:log.(*CommandLogger).Before: Will run command [pvcreate -qq --metadatasize=128M --dataalignment=256K '/dev/sdb'] on [pod:glusterfs-l2lsv c:glusterfs ns:default (from host:k8s-node-02 selector:glusterfs-node)]
+[kubeexec] DEBUG 2019/10/23 02:17:46 heketi/pkg/remoteexec/kube/exec.go:72:kube.ExecCommands: Current kube connection count: 0
+...
+</code></pre>
+<h4 id="345-持久化heketi配置">3.4.5、持久化heketi配置</h4>
+<p>上面创建的heketi没有配置持久化的卷，如果heketi的pod重启，可能会丢失之前的配置信息，所以现在创建heketi持久化的卷来对heketi数据进行持久化，该持久化方式利用gfs提供的动态存储，也可以采用其他方式进行持久化。<br>
+在所有节点安装device-mapper*</p>
+<pre><code>yum install -y device-mapper*
+</code></pre>
+<p>将配置信息保存为文件，并创建持久化相关信息</p>
+<pre><code>[root@k8s-master-01 kubernetes]# heketi-cli -s $HEKETI_CLI_SERVER --user admin --secret 'My Secret' setup-openshift-heketi-storage Saving heketi-storage.json
+Saving heketi-storage.json
+[root@k8s-master-01 kubernetes]# kubectl apply -f heketi-storage.json 
+secret/heketi-storage-secret created
+endpoints/heketi-storage-endpoints created
+service/heketi-storage-endpoints created
+job.batch/heketi-storage-copy-job created
+</code></pre>
+<p>删除中间产物</p>
+<pre><code>[root@k8s-master-01 kubernetes]# kubectl delete all,svc,jobs,deployment,secret --selector=&quot;deploy-heketi&quot;
+pod &quot;deploy-heketi-6c687b4b84-l5b6j&quot; deleted
+service &quot;deploy-heketi&quot; deleted
+deployment.apps &quot;deploy-heketi&quot; deleted
+replicaset.apps &quot;deploy-heketi-6c687b4b84&quot; deleted
+job.batch &quot;heketi-storage-copy-job&quot; deleted
+secret &quot;heketi-storage-secret&quot; deleted
+</code></pre>
+<p>创建持久化的heketi</p>
+<pre><code>[root@k8s-master-01 kubernetes]# kubectl apply -f heketi-deployment.json 
+secret/heketi-db-backup created
+service/heketi created
+deployment.apps/heketi created
+[root@k8s-master-01 kubernetes]# kubectl get pods
+NAME                     READY   STATUS    RESTARTS   AGE
+glusterfs-cqw5d          1/1     Running   0          41m
+glusterfs-l2lsv          1/1     Running   0          41m
+glusterfs-lrdz7          1/1     Running   0          41m
+heketi-68795ccd8-m8x55   1/1     Running   0          32s
+</code></pre>
+<p>查看持久化后heketi的svc，并重新声明环境变量</p>
+<pre><code>[root@k8s-master-01 kubernetes]# kubectl get svc
+NAME                       TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)    AGE
+heketi                     ClusterIP   10.1.45.61   &lt;none&gt;        8080/TCP   2m9s
+heketi-storage-endpoints   ClusterIP   10.1.26.73   &lt;none&gt;        1/TCP      4m58s
+kubernetes                 ClusterIP   10.1.0.1     &lt;none&gt;        443/TCP    14h
+[root@k8s-master-01 kubernetes]# export HEKETI_CLI_SERVER=http://10.1.45.61:8080
+[root@k8s-master-01 kubernetes]# curl http://10.1.45.61:8080/hello
+Hello from Heketi
+</code></pre>
+<p>查看gfs集群信息，更多操作参照官方文档说明</p>
+<pre><code>[root@k8s-master-01 kubernetes]# heketi-cli -s $HEKETI_CLI_SERVER --user admin --secret 'My Secret' topology info
+
+Cluster Id: 1c5ffbd86847e5fc1562ef70c033292e
+
+    File:  true
+    Block: true
+
+    Volumes:
+
+        Name: heketidbstorage
+        Size: 2
+        Id: b25f4b627cf66279bfe19e8a01e9e85d
+        Cluster Id: 1c5ffbd86847e5fc1562ef70c033292e
+        Mount: 192.168.2.11:heketidbstorage
+        Mount Options: backup-volfile-servers=192.168.2.12,192.168.2.10
+        Durability Type: replicate
+        Replica: 3
+        Snapshot: Disabled
+
+                Bricks:
+                        Id: 3ab6c19b8fe0112575ba04d58573a404
+                        Path: /var/lib/heketi/mounts/vg_703e3662cbd8ffb24a6401bb3c3c41fa/brick_3ab6c19b8fe0112575ba04d58573a404/brick
+                        Size (GiB): 2
+                        Node: b6100a5af9b47d8c1f19be0b2b4d8276
+                        Device: 703e3662cbd8ffb24a6401bb3c3c41fa
+
+                        Id: d1fa386f2ec9954f4517431163f67dea
+                        Path: /var/lib/heketi/mounts/vg_398329cc70361dfd4baa011d811de94a/brick_d1fa386f2ec9954f4517431163f67dea/brick
+                        Size (GiB): 2
+                        Node: 04740cac8d42f56e354c94bdbb7b8e34
+                        Device: 398329cc70361dfd4baa011d811de94a
+
+                        Id: d2b0ae26fa3f0eafba407b637ca0d06b
+                        Path: /var/lib/heketi/mounts/vg_7c791bbb90f710123ba431a7cdde8d0b/brick_d2b0ae26fa3f0eafba407b637ca0d06b/brick
+                        Size (GiB): 2
+                        Node: 1b33ad0dba20eaf23b5e3a4845e7cdb4
+                        Device: 7c791bbb90f710123ba431a7cdde8d0b
+
+
+
+    Nodes:
+
+        Node Id: 04740cac8d42f56e354c94bdbb7b8e34
+        State: online
+        Cluster Id: 1c5ffbd86847e5fc1562ef70c033292e
+        Zone: 1
+        Management Hostnames: k8s-node-01
+        Storage Hostnames: 192.168.2.11
+        Devices:
+                Id:398329cc70361dfd4baa011d811de94a   Name:/dev/sdb            State:online    Size (GiB):9       Used (GiB):2       Free (GiB):7       
+                        Bricks:
+                                Id:d1fa386f2ec9954f4517431163f67dea   Size (GiB):2       Path: /var/lib/heketi/mounts/vg_398329cc70361dfd4baa011d811de94a/brick_d1fa386f2ec9954f4517431163f67dea/brick
+
+        Node Id: 1b33ad0dba20eaf23b5e3a4845e7cdb4
+        State: online
+        Cluster Id: 1c5ffbd86847e5fc1562ef70c033292e
+        Zone: 1
+        Management Hostnames: k8s-node-02
+        Storage Hostnames: 192.168.2.12
+        Devices:
+                Id:7c791bbb90f710123ba431a7cdde8d0b   Name:/dev/sdb            State:online    Size (GiB):9       Used (GiB):2       Free (GiB):7       
+                        Bricks:
+                                Id:d2b0ae26fa3f0eafba407b637ca0d06b   Size (GiB):2       Path: /var/lib/heketi/mounts/vg_7c791bbb90f710123ba431a7cdde8d0b/brick_d2b0ae26fa3f0eafba407b637ca0d06b/brick
+
+        Node Id: b6100a5af9b47d8c1f19be0b2b4d8276
+        State: online
+        Cluster Id: 1c5ffbd86847e5fc1562ef70c033292e
+        Zone: 1
+        Management Hostnames: k8s-master-01
+        Storage Hostnames: 192.168.2.10
+        Devices:
+                Id:703e3662cbd8ffb24a6401bb3c3c41fa   Name:/dev/sdb            State:online    Size (GiB):9       Used (GiB):2       Free (GiB):7       
+                        Bricks:
+                                Id:3ab6c19b8fe0112575ba04d58573a404   Size (GiB):2       Path: /var/lib/heketi/mounts/vg_703e3662cbd8ffb24a6401bb3c3c41fa/brick_3ab6c19b8fe0112575ba04d58573a404/brick
+</code></pre>
+<h2 id="4-创建storageclass">4、创建storageclass</h2>
+<pre><code>[root@k8s-master-01 kubernetes]# vim storageclass-gfs-heketi.yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gluster-heketi
+provisioner: kubernetes.io/glusterfs
+reclaimPolicy: Retain
+parameters:
+  resturl: &quot;http://10.1.45.61:8080&quot;
+  restauthenabled: &quot;true&quot;
+  restuser: &quot;admin&quot;
+  restuserkey: &quot;My Secret&quot;
+  gidMin: &quot;40000&quot;
+  gidMax: &quot;50000&quot;
+  volumetype: &quot;replicate:3&quot;
+allowVolumeExpansion: true
+[root@k8s-master-01 kubernetes]# kubectl apply -f storageclass-gfs-heketi.yaml
+storageclass.storage.k8s.io/gluster-heketi created
+</code></pre>
+<p>参数说明：</p>
+<ul>
+<li>reclaimPolicy：Retain 回收策略，默认是Delete，删除pvc后pv及后端创建的volume、brick(lvm)不会被删除。</li>
+<li>gidMin和gidMax，能够使用的最小和最大gid</li>
+<li>volumetype：卷类型及个数，这里使用的是复制卷，个数必须大于1</li>
+</ul>
+<h2 id="5-测试通过gfs提供动态存储">5、测试通过gfs提供动态存储</h2>
+<p>创建一个<code>pod</code>使用动态<code>pv</code>，在<code>StorageClassName</code>指定之前创建的<code>StorageClass的name</code>，即<code>gluster-heketi</code>：</p>
+<pre><code>[root@k8s-master-01 kubernetes]# vim pod-use-pvc.yaml 
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-use-pvc
+spec:
+  containers:
+  - name: pod-use-pvc
+    image: busybox
+    command:
+      - sleep
+      - &quot;3600&quot;
+    volumeMounts:
+    - name: gluster-volume
+      mountPath: &quot;/pv-data&quot;
+      readOnly: false
+  volumes:
+  - name: gluster-volume
+    persistentVolumeClaim:
+      claimName: pvc-gluster-heketi
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-gluster-heketi
+spec:
+  accessModes: [ &quot;ReadWriteOnce&quot; ]
+  storageClassName: &quot;gluster-heketi&quot;
+  resources:
+    requests:
+      storage: 1Gi
+</code></pre>
+<p>创建pod并查看创建的pv和pvc</p>
+<pre><code>[root@k8s-master-01 kubernetes]# kubectl apply -f pod-use-pvc.yaml 
+pod/pod-use-pvc created
+persistentvolumeclaim/pvc-gluster-heketi created
+[root@k8s-master-01 kubernetes]# kubectl get pv,pvc
+NAME                                                        CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                        STORAGECLASS     REASON   AGE
+persistentvolume/pvc-0fb9b246-4da4-491c-b6a2-4f38489ab11c   1Gi        RWO            Retain           Bound    default/pvc-gluster-heketi   gluster-heketi            57s
+
+NAME                                       STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS     AGE
+persistentvolumeclaim/pvc-gluster-heketi   Bound    pvc-0fb9b246-4da4-491c-b6a2-4f38489ab11c   1Gi        RWO            gluster-heketi   62s
+</code></pre>
+<h2 id="6-分析k8s通过heketi创建pv及pvc的过程">6、分析k8s通过heketi创建pv及pvc的过程</h2>
+<p>通过<code>pvc</code>及向<code>storageclass</code>申请创建对应的<code>pv</code>，具体可通过查看创建的<code>heketi pod</code>的日志<br>
+首先发现<code>heketi</code>接收到请求之后运行了一个<code>job</code>任务，创建了三个<code>bricks</code>，在三个<code>gfs</code>节点中创建对应的目录：</p>
+<pre><code>[heketi] INFO 2019/10/23 03:08:36 Allocating brick set #0
+[negroni] 2019-10-23T03:08:36Z | 202 |   56.193603ms | 10.1.45.61:8080 | POST /volumes
+[asynchttp] INFO 2019/10/23 03:08:36 Started job 3ec932315085609bc54ead6e3f6851e8
+[heketi] INFO 2019/10/23 03:08:36 Started async operation: Create Volume
+[heketi] INFO 2019/10/23 03:08:36 Trying Create Volume (attempt #1/5)
+[heketi] INFO 2019/10/23 03:08:36 Creating brick 289fe032c1f4f9f211480e24c5d74a44
+[heketi] INFO 2019/10/23 03:08:36 Creating brick a3172661ba1b849d67b500c93c3dd652
+[heketi] INFO 2019/10/23 03:08:36 Creating brick 917e27a9dbc5395ebf08dff8d3401b43
+[negroni] 2019-10-23T03:08:36Z | 200 |   72.083µs | 10.1.45.61:8080 | GET /queue/3ec932315085609bc54ead6e3f6851e8
+[kubeexec] DEBUG 2019/10/23 03:08:36 heketi/pkg/remoteexec/log/commandlog.go:34:log.(*CommandLogger).Before: Will run command [mkdir -p /var/lib/heketi/mounts/vg_703e3662cbd8ffb24a6401bb3c3c41fa/brick_a3172661ba1b849d67b500c93c3dd652] on [pod:glusterfs-cqw5d c:glusterfs ns:default (from host:k8s-master-01 selector:glusterfs-node)]
+[kubeexec] DEBUG 2019/10/23 03:08:36 heketi/pkg/remoteexec/kube/exec.go:72:kube.ExecCommands: Current kube connection count: 0
+[kubeexec] DEBUG 2019/10/23 03:08:36 heketi/pkg/remoteexec/log/commandlog.go:34:log.(*CommandLogger).Before: Will run command [mkdir -p /var/lib/heketi/mounts/vg_398329cc70361dfd4baa011d811de94a/brick_289fe032c1f4f9f211480e24c5d74a44] on [pod:glusterfs-lrdz7 c:glusterfs ns:default (from host:k8s-node-01 selector:glusterfs-node)]
+[kubeexec] DEBUG 2019/10/23 03:08:36 heketi/pkg/remoteexec/kube/exec.go:72:kube.ExecCommands: Current kube connection count: 1
+[kubeexec] DEBUG 2019/10/23 03:08:36 heketi/pkg/remoteexec/log/commandlog.go:34:log.(*CommandLogger).Before: Will run command [mkdir -p /var/lib/heketi/mounts/vg_7c791bbb90f710123ba431a7cdde8d0b/brick_917e27a9dbc5395ebf08dff8d3401b43] on [pod:glusterfs-l2lsv c:glusterfs ns:default (from host:k8s-node-02 selector:glusterfs-node)]
+[kubeexec] DEBUG 2019/10/23 03:08:36 heketi/pkg/remoteexec/kube/exec.go:72:kube.ExecCommands: Current kube connection count: 2
+</code></pre>
+<p>创建lv，添加自动挂载</p>
+<pre><code>[kubeexec] DEBUG 2019/10/23 03:08:37 heketi/pkg/remoteexec/kube/exec.go:72:kube.ExecCommands: Current kube connection count: 2
+[kubeexec] DEBUG 2019/10/23 03:08:37 heketi/pkg/remoteexec/log/commandlog.go:46:log.(*CommandLogger).Success: Ran command [mkfs.xfs -i size=512 -n size=8192 /dev/mapper/vg_703e3662cbd8ffb24a6401bb3c3c41fa-brick_a3172661ba1b849d67b500c93c3dd652] on [pod:glusterfs-cqw5d c:glusterfs ns:default (from host:k8s-master-01 selector:glusterfs-node)]: Stdout [meta-data=/dev/mapper/vg_703e3662cbd8ffb24a6401bb3c3c41fa-brick_a3172661ba1b849d67b500c93c3dd652 isize=512    agcount=8, agsize=32768 blks
+         =                       sectsz=512   attr=2, projid32bit=1
+         =                       crc=1        finobt=0, sparse=0
+data     =                       bsize=4096   blocks=262144, imaxpct=25
+         =                       sunit=64     swidth=64 blks
+naming   =version 2              bsize=8192   ascii-ci=0 ftype=1
+log      =internal log           bsize=4096   blocks=2560, version=2
+         =                       sectsz=512   sunit=64 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+]: Stderr []
+[kubeexec] DEBUG 2019/10/23 03:08:37 heketi/pkg/remoteexec/log/commandlog.go:34:log.(*CommandLogger).Before: Will run command [awk &quot;BEGIN {print \&quot;/dev/mapper/vg_703e3662cbd8ffb24a6401bb3c3c41fa-brick_a3172661ba1b849d67b500c93c3dd652 /var/lib/heketi/mounts/vg_703e3662cbd8ffb24a6401bb3c3c41fa/brick_a3172661ba1b849d67b500c93c3dd652 xfs rw,inode64,noatime,nouuid 1 2\&quot; &gt;&gt; \&quot;/var/lib/heketi/fstab\&quot;}&quot;] on [pod:glusterfs-cqw5d c:glusterfs ns:default (from host:k8s-master-01 selector:glusterfs-node)]
+</code></pre>
+<p>创建brick，设置权限</p>
+<pre><code>[kubeexec] DEBUG 2019/10/23 03:08:38 heketi/pkg/remoteexec/log/commandlog.go:34:log.(*CommandLogger).Before: Will run command [chmod 2775 /var/lib/heketi/mounts/vg_703e3662cbd8ffb24a6401bb3c3c41fa/brick_a3172661ba1b849d67b500c93c3dd652/brick] on [pod:glusterfs-cqw5d c:glusterfs ns:default (from host:k8s-master-01 selector:glusterfs-node)]
+[kubeexec] DEBUG 2019/10/23 03:08:38 heketi/pkg/remoteexec/kube/exec.go:72:kube.ExecCommands: Current kube connection count: 2
+[kubeexec] DEBUG 2019/10/23 03:08:38 heketi/pkg/remoteexec/log/commandlog.go:46:log.(*CommandLogger).Success: Ran command [chown :40000 /var/lib/heketi/mounts/vg_398329cc70361dfd4baa011d811de94a/brick_289fe032c1f4f9f211480e24c5d74a44/brick] on [pod:glusterfs-lrdz7 c:glusterfs ns:default (from host:k8s-node-01 selector:glusterfs-node)]: Stdout []: Stderr []
+[kubeexec] DEBUG 2019/10/23 03:08:38 heketi/pkg/remoteexec/log/commandlog.go:34:log.(*CommandLogger).Before: Will run command [chmod 2775 /var/lib/heketi/mounts/vg_398329cc70361dfd4baa011d811de94a/brick_289fe032c1f4f9f211480e24c5d74a44/brick] on [pod:glusterfs-lrdz7 c:glusterfs ns:default (from host:k8s-node-01 selector:glusterfs-node)]
+[kubeexec] DEBUG 2019/10/23 03:08:38 heketi/pkg/remoteexec/kube/exec.go:72:kube.ExecCommands: Current kube connection count: 2
+[negroni] 2019-10-23T03:08:38Z | 200 |   83.159µs | 10.1.45.61:8080 | GET /queue/3ec932315085609bc54ead6e3f6851e8
+[kubeexec] DEBUG 2019/10/23 03:08:38 heketi/pkg/remoteexec/log/commandlog.go:46:log.(*CommandLogger).Success: Ran command [chmod 2775 /var/lib/heketi/mounts/vg_7c791bbb90f710123ba431a7cdde8d0b/brick_917e27a9dbc5395ebf08dff8d3401b43/brick] on [pod:glusterfs-l2lsv c:glusterfs ns:default (from host:k8s-node-02 selector:glusterfs-node)]: Stdout []: Stderr []
+[kubeexec] DEBUG 2019/10/23 03:08:38 heketi/pkg/remoteexec/log/commandlog.go:46:log.(*CommandLogger).Success: Ran command [chmod 2775 /var/lib/heketi/mounts/vg_703e3662cbd8ffb24a6401bb3c3c41fa/brick_a3172661ba1b849d67b500c93c3dd652/brick] on [pod:glusterfs-cqw5d c:glusterfs ns:default (from host:k8s-master-01 selector:glusterfs-node)]: Stdout []: Stderr []
+[kubeexec] DEBUG 2019/10/23 03:08:38 heketi/pkg/remoteexec/log/commandlog.go:46:log.(*CommandLogger).Success: Ran command [chmod 2775 /var/lib/heketi/mounts/vg_398329cc70361dfd4baa011d811de94a/brick_289fe032c1f4f9f211480e24c5d74a44/brick] on [pod:glusterfs-lrdz7 c:glusterfs ns:default (from host:k8s-node-01 selector:glusterfs-node)]: Stdout []: Stderr []
+[cmdexec] INFO 2019/10/23 03:08:38 Creating volume vol_08e8447256de2598952dcb240e615d0f replica 3
+</code></pre>
+<p>创建对应的volume</p>
+<pre><code>[asynchttp] INFO 2019/10/23 03:08:41 Completed job 3ec932315085609bc54ead6e3f6851e8 in 5.007631648s
+[negroni] 2019-10-23T03:08:41Z | 303 |   78.335µs | 10.1.45.61:8080 | GET /queue/3ec932315085609bc54ead6e3f6851e8
+[negroni] 2019-10-23T03:08:41Z | 200 |   5.751689ms | 10.1.45.61:8080 | GET /volumes/08e8447256de2598952dcb240e615d0f
+[negroni] 2019-10-23T03:08:41Z | 200 |   139.05µs | 10.1.45.61:8080 | GET /clusters/1c5ffbd86847e5fc1562ef70c033292e
+[negroni] 2019-10-23T03:08:41Z | 200 |   660.249µs | 10.1.45.61:8080 | GET /nodes/04740cac8d42f56e354c94bdbb7b8e34
+[negroni] 2019-10-23T03:08:41Z | 200 |   270.334µs | 10.1.45.61:8080 | GET /nodes/1b33ad0dba20eaf23b5e3a4845e7cdb4
+[negroni] 2019-10-23T03:08:41Z | 200 |   345.528µs | 10.1.45.61:8080 | GET /nodes/b6100a5af9b47d8c1f19be0b2b4d8276
+[heketi] INFO 2019/10/23 03:09:39 Starting Node Health Status refresh
+[cmdexec] INFO 2019/10/23 03:09:39 Check Glusterd service status in node k8s-node-01
+[kubeexec] DEBUG 2019/10/23 03:09:39 heketi/pkg/remoteexec/log/commandlog.go:34:log.(*CommandLogger).Before: Will run command [systemctl status glusterd] on [pod:glusterfs-lrdz7 c:glusterfs ns:default (from host:k8s-node-01 selector:glusterfs-node)]
+[kubeexec] DEBUG 2019/10/23 03:09:39 heketi/pkg/remoteexec/kube/exec.go:72:kube.ExecCommands: Current kube connection count: 0
+[kubeexec] DEBUG 2019/10/23 03:09:39 heketi/pkg/remoteexec/log/commandlog.go:41:log.(*CommandLogger).Success: Ran command [systemctl status glusterd] on [pod:glusterfs-lrdz7 c:glusterfs ns:default (from host:k8s-node-01 selector:glusterfs-node)]: Stdout filtered, Stderr filtered
+[heketi] INFO 2019/10/23 03:09:39 Periodic health check status: node 04740cac8d42f56e354c94bdbb7b8e34 up=true
+[cmdexec] INFO 2019/10/23 03:09:39 Check Glusterd service status in node k8s-node-02
+[kubeexec] DEBUG 2019/10/23 03:09:39 heketi/pkg/remoteexec/log/commandlog.go:34:log.(*CommandLogger).Before: Will run command [systemctl status glusterd] on [pod:glusterfs-l2lsv c:glusterfs ns:default (from host:k8s-node-02 selector:glusterfs-node)]
+[kubeexec] DEBUG 2019/10/23 03:09:39 heketi/pkg/remoteexec/kube/exec.go:72:kube.ExecCommands: Current kube connection count: 0
+[kubeexec] DEBUG 2019/10/23 03:09:39 heketi/pkg/remoteexec/log/commandlog.go:41:log.(*CommandLogger).Success: Ran command [systemctl status glusterd] on [pod:glusterfs-l2lsv c:glusterfs ns:default (from host:k8s-node-02 selector:glusterfs-node)]: Stdout filtered, Stderr filtered
+[heketi] INFO 2019/10/23 03:09:39 Periodic health check status: node 1b33ad0dba20eaf23b5e3a4845e7cdb4 up=true
+[cmdexec] INFO 2019/10/23 03:09:39 Check Glusterd service status in node k8s-master-01
+[kubeexec] DEBUG 2019/10/23 03:09:39 heketi/pkg/remoteexec/log/commandlog.go:34:log.(*CommandLogger).Before: Will run command [systemctl status glusterd] on [pod:glusterfs-cqw5d c:glusterfs ns:default (from host:k8s-master-01 selector:glusterfs-node)]
+[kubeexec] DEBUG 2019/10/23 03:09:39 heketi/pkg/remoteexec/kube/exec.go:72:kube.ExecCommands: Current kube connection count: 0
+[kubeexec] DEBUG 2019/10/23 03:09:39 heketi/pkg/remoteexec/log/commandlog.go:41:log.(*CommandLogger).Success: Ran command [systemctl status glusterd] on [pod:glusterfs-cqw5d c:glusterfs ns:default (from host:k8s-master-01 selector:glusterfs-node)]: Stdout filtered, Stderr filtered
+[heketi] INFO 2019/10/23 03:09:39 Periodic health check status: node b6100a5af9b47d8c1f19be0b2b4d8276 up=true
+[heketi] INFO 2019/10/23 03:09:39 Cleaned 0 nodes from health cache
+</code></pre>
+<h2 id="7-测试数据">7、测试数据</h2>
+<p>测试使用该<code>pv</code>的<code>pod</code>之间能否共享数据，手动进入到<code>pod</code>并创建文件</p>
+<pre><code>[root@k8s-master-01 kubernetes]# kubectl get pods
+NAME                     READY   STATUS    RESTARTS   AGE
+glusterfs-cqw5d          1/1     Running   0          90m
+glusterfs-l2lsv          1/1     Running   0          90m
+glusterfs-lrdz7          1/1     Running   0          90m
+heketi-68795ccd8-m8x55   1/1     Running   0          49m
+pod-use-pvc              1/1     Running   0          20m
+[root@k8s-master-01 kubernetes]# kubectl exec -it pod-use-pvc /bin/sh
+/ # cd /pv-data/
+/pv-data # echo &quot;hello world&quot;&gt;a.txt
+/pv-data # cat a.txt 
+hello world
+</code></pre>
+<p>查看创建的卷</p>
+<pre><code>[root@k8s-master-01 kubernetes]# heketi-cli -s $HEKETI_CLI_SERVER --user admin --secret 'My Secret' volume list
+Id:08e8447256de2598952dcb240e615d0f    Cluster:1c5ffbd86847e5fc1562ef70c033292e    Name:vol_08e8447256de2598952dcb240e615d0f
+Id:b25f4b627cf66279bfe19e8a01e9e85d    Cluster:1c5ffbd86847e5fc1562ef70c033292e    Name:heketidbstorage
+</code></pre>
+<p>将设备挂载查看卷中的数据，vol_08e8447256de2598952dcb240e615d0f为卷名称</p>
+<pre><code>[root@k8s-master-01 kubernetes]# mount -t glusterfs 192.168.2.10:vol_08e8447256de2598952dcb240e615d0f /mnt
+[root@k8s-master-01 kubernetes]# ll /mnt/
+total 1
+-rw-r--r-- 1 root 40000 12 Oct 23 11:29 a.txt
+[root@k8s-master-01 kubernetes]# cat /mnt/a.txt 
+hello world
+</code></pre>
+<h2 id="8-测试deployment">8、测试deployment</h2>
+<p>测试通过<code>deployment</code>控制器部署能否正常使用<code>storageclass</code>，创建<code>nginx</code>的<code>deployment</code></p>
+<pre><code>[root@k8s-master-01 kubernetes]# vim nginx-deployment-gluster.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-gfs
+spec:
+  selector:
+    matchLabels:
+      name: nginx
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        name: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: nginx-gfs-html
+              mountPath: &quot;/usr/share/nginx/html&quot;
+            - name: nginx-gfs-conf
+              mountPath: &quot;/etc/nginx/conf.d&quot;
+      volumes:
+      - name: nginx-gfs-html
+        persistentVolumeClaim:
+          claimName: glusterfs-nginx-html
+      - name: nginx-gfs-conf
+        persistentVolumeClaim:
+          claimName: glusterfs-nginx-conf
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: glusterfs-nginx-html
+spec:
+  accessModes: [ &quot;ReadWriteMany&quot; ]
+  storageClassName: &quot;gluster-heketi&quot;
+  resources:
+    requests:
+      storage: 500Mi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: glusterfs-nginx-conf
+spec:
+  accessModes: [ &quot;ReadWriteMany&quot; ]
+  storageClassName: &quot;gluster-heketi&quot;
+  resources:
+    requests:
+      storage: 10Mi
+</code></pre>
+<p>查看相应资源</p>
+<pre><code>[root@k8s-master-01 kubernetes]# kubectl get pod,pv,pvc|grep nginx
+pod/nginx-gfs-7d66cccf76-mkc76   1/1     Running   0          2m45s
+pod/nginx-gfs-7d66cccf76-zc8n2   1/1     Running   0          2m45s
+persistentvolume/pvc-87481e3a-9b7e-43aa-a0b9-4028ce0a1abb   1Gi        RWX            Retain           Bound    default/glusterfs-nginx-conf   gluster-heketi            2m34s
+persistentvolume/pvc-f954a4ca-ea1c-458d-8490-a49a0a001ab5   1Gi        RWX            Retain           Bound    default/glusterfs-nginx-html   gluster-heketi            2m34s
+persistentvolumeclaim/glusterfs-nginx-conf   Bound    pvc-87481e3a-9b7e-43aa-a0b9-4028ce0a1abb   1Gi        RWX            gluster-heketi   2m45s
+persistentvolumeclaim/glusterfs-nginx-html   Bound    pvc-f954a4ca-ea1c-458d-8490-a49a0a001ab5   1Gi        RWX            gluster-heketi   2m45s
+</code></pre>
+<p>查看挂载情况</p>
+<pre><code>[root@k8s-master-01 kubernetes]# kubectl exec -it nginx-gfs-7d66cccf76-mkc76 -- df -Th
+Filesystem                                        Type            Size  Used Avail Use% Mounted on
+overlay                                           overlay          44G  3.2G   41G   8% /
+tmpfs                                             tmpfs            64M     0   64M   0% /dev
+tmpfs                                             tmpfs           2.0G     0  2.0G   0% /sys/fs/cgroup
+/dev/mapper/centos-root                           xfs              44G  3.2G   41G   8% /etc/hosts
+shm                                               tmpfs            64M     0   64M   0% /dev/shm
+192.168.2.10:vol_adf6fc08c8828fdda27c8aa5ce99b50c fuse.glusterfs 1014M   43M  972M   5% /etc/nginx/conf.d
+192.168.2.10:vol_454e14ae3184122ff9a14d77e02b10b9 fuse.glusterfs 1014M   43M  972M   5% /usr/share/nginx/html
+tmpfs                                             tmpfs           2.0G   12K  2.0G   1% /run/secrets/kubernetes.io/serviceaccount
+tmpfs                                             tmpfs           2.0G     0  2.0G   0% /proc/acpi
+tmpfs                                             tmpfs           2.0G     0  2.0G   0% /proc/scsi
+tmpfs                                             tmpfs           2.0G     0  2.0G   0% /sys/firmware
+</code></pre>
+<p>在宿主机挂载和创建文件</p>
+<pre><code>[root@k8s-master-01 kubernetes]# mount -t glusterfs 192.168.2.10:vol_454e14ae3184122ff9a14d77e02b10b9 /mnt/
+[root@k8s-master-01 kubernetes]# cd /mnt/
+[root@k8s-master-01 mnt]# echo &quot;hello world&quot;&gt;index.html
+[root@k8s-master-01 mnt]# kubectl exec -it nginx-gfs-7d66cccf76-mkc76 -- cat /usr/share/nginx/html/index.html
+hello world
+</code></pre>
+<p>扩容nginx副本，查看是否能正常挂载</p>
+<pre><code>[root@k8s-master-01 mnt]# kubectl scale deployment nginx-gfs --replicas=3
+deployment.apps/nginx-gfs scaled
+[root@k8s-master-01 mnt]# kubectl get pods
+NAME                         READY   STATUS    RESTARTS   AGE
+glusterfs-cqw5d              1/1     Running   0          129m
+glusterfs-l2lsv              1/1     Running   0          129m
+glusterfs-lrdz7              1/1     Running   0          129m
+heketi-68795ccd8-m8x55       1/1     Running   0          88m
+nginx-gfs-7d66cccf76-mkc76   1/1     Running   0          8m55s
+nginx-gfs-7d66cccf76-qzqnv   1/1     Running   0          23s
+nginx-gfs-7d66cccf76-zc8n2   1/1     Running   0          8m55s
+[root@k8s-master-01 mnt]# kubectl exec -it nginx-gfs-7d66cccf76-qzqnv -- cat /usr/share/nginx/html/index.html     
+hello world
+</code></pre>
+<p>至此，在<code>k8s</code>集群中部署<code>heketi+glusterfs</code>提供动态存储结束。</p>
+<p>参考来源：<br>
+https://github.com/heketi/heketi<br>
+https://github.com/gluster/gluster-kubernetes<br>
+https://www.cnblogs.com/jicki/p/5801712.html</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/app" class="tag">
+                    实用程序
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/shi-yong-flannelcanal-shi-xian-k8s-de-networkpolicy">
+                  <h3 class="post-title">
+                    使用flannel+canal实现k8s的NetworkPolicy
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

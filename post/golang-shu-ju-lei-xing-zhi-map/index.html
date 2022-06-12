@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Golang数据类型之Map | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Golang数据类型之Map</h2>
+            <div class="post-date">2021-07-16</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">1、概述</a></li>
+<li><a href="#2-%E5%A3%B0%E6%98%8E">2、声明</a></li>
+<li><a href="#3-%E5%88%9D%E5%A7%8B%E5%8C%96">3、初始化</a></li>
+<li><a href="#4-%E6%93%8D%E4%BD%9C">4、操作</a>
+<ul>
+<li><a href="#41-%E8%8E%B7%E5%8F%96%E5%85%83%E7%B4%A0%E7%9A%84%E6%95%B0%E9%87%8F">4.1 获取元素的数量</a></li>
+<li><a href="#42-%E8%AE%BF%E9%97%AE">4.2 访问</a></li>
+<li><a href="#43-%E5%88%A4%E6%96%ADkey%E6%98%AF%E5%90%A6%E5%AD%98%E5%9C%A8">4.3 判断<code>key</code>是否存在</a></li>
+<li><a href="#44-%E4%BF%AE%E6%94%B9%E5%92%8C%E5%A2%9E%E5%8A%A0">4.4 修改和增加</a></li>
+<li><a href="#45-%E5%88%A0%E9%99%A4">4.5 删除</a></li>
+<li><a href="#46-%E9%81%8D%E5%8E%86">4.6 遍历</a></li>
+<li><a href="#47-%E5%A4%9A%E7%BA%A7map">4.7 多级map</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/golang.png" alt=""></figure>
+<h2 id="1-概述">1、概述</h2>
+<p><code>map</code>（映射）是存储一系列无序的<code>key/value</code>对，通过<code>key</code>来对<code>value</code>进行操作（增、删、改、查）。<br>
+映射的<code>key</code>只能为可使用==运算符的值类型（字符串、数字、布尔、数组），<code>value</code>可以为任意类型</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20210716-01.png" alt=""></figure>
+<p><code>map</code>的设计也被称为<code>The dictionary problem</code>，它的任务是设计一种数据结构用来维护一个集合的数据，并且可以同时对集合进行增删查改的操作</p>
+<p><code>Go</code>里的<code>map</code>用于存放<code>key/value</code>对，在其它地方常称为<code>hash</code>、<code>dictionary</code>、关联数组，这几种称呼都是对同一种数据结构的不同称呼，它们都用于将<code>key</code>经过<code>hash</code>函数处理，然后映射到<code>value</code>，实现一一对应的关系</p>
+<p>映射是存储一系列无序的<code>key/value</code>对，通过<code>key</code>来对<code>value</code>进行操作（增、删、改、查）</p>
+<h2 id="2-声明">2、声明</h2>
+<p><code>map</code>的<code>key</code>至少可以有==、!=运算，值可以为整数、字符串、数组</p>
+<p><code>value</code>可以是任意类型</p>
+<p><code>map</code>声明需要指定组成元素<code>key</code>和<code>value</code>的类型，在声明后，会被初始化为<code>nil</code>，表示暂不存在的映射0</p>
+<pre><code class="language-go">var scores map[string]int  // nil映射，光声明map类型但是没有初始化
+fmt.Printf(&quot;%T %#v\n&quot;, scores, scores)
+fmt.Println(scores == nil)  // true
+</code></pre>
+<p><strong>关于<code>nil map</code>和空<code>map</code></strong></p>
+<p>空<code>map</code>是不做任何赋值的<code>map</code></p>
+<pre><code class="language-go">a := map[int]string
+</code></pre>
+<p><code>nil map</code>，它将不会做任何初始化，不会指向任何数据结构</p>
+<pre><code class="language-go">var a map[int]string
+</code></pre>
+<p>如何<code>map</code>没初始化，直接赋值会报空指针</p>
+<pre><code class="language-go">var a map[int]string
+var b []string
+fmt.Printf(&quot;%p, %p\n&quot;, a, b)
+// a[0] = &quot;a&quot;
+// b[0] = &quot;a&quot;
+
+a = map[int]string{0: &quot;a&quot;}
+b = []string{&quot;a&quot;}
+fmt.Printf(&quot;%p, %p\n&quot;, a, b)
+</code></pre>
+<p>所以，<code>map</code>类型实际上就是一个指针, 具体为<code>*hmap</code></p>
+<h2 id="3-初始化">3、初始化</h2>
+<p>a) 使用字面量初始化并赋值<code>map[ktype]vtype{k1:v1, k2:v2, …, kn:vn}</code><br>
+b) 使用字面量初始化空映射<code>map[ktype]vtype{ }</code><br>
+c) 使用<code>make</code>函数初始化<br>
+<code>make(map[ktype]vtype)</code>，通过<code>make</code>函数创建映射，指定容量</p>
+<pre><code class="language-go">//scores = map[string]int{}
+scores = map[string]int{&quot;a&quot;: 8, &quot;b&quot;: 9, &quot;c&quot;:10}
+fmt.Println(scores)
+//scores = make(map[string]int, 8)
+// 声明map的同时完成初始化
+b := map[int]bool{
+    1: true,
+    2: false,
+}
+</code></pre>
+<h2 id="4-操作">4、操作</h2>
+<h3 id="41-获取元素的数量">4.1 获取元素的数量</h3>
+<p>使用<code>len</code>函数获取映射元素的数量</p>
+<h3 id="42-访问">4.2 访问</h3>
+<p>当访问<code>key</code>存在与映射时则返回对应的值，否则返回值类型的零值</p>
+<h3 id="43-判断key是否存在">4.3 判断<code>key</code>是否存在</h3>
+<p>通过<code>key</code>访问元素时可接收两个值，第一个值为<code>value</code>，第二个值为<code>bool</code>类型表示元<br>
+素是否存在，若存在为<code>true</code>，否则为<code>false</code></p>
+<h3 id="44-修改和增加">4.4 修改和增加</h3>
+<p>使用<code>key</code>对映射赋值时当<code>key</code>存在则修改<code>key</code>对应的<code>value</code>，若<code>key</code>不存在则增加 <code>key</code>和<code>value</code></p>
+<h3 id="45-删除">4.5 删除</h3>
+<p>使用<code>delete</code>函数删除映射中已经存在的<code>key</code></p>
+<h3 id="46-遍历">4.6 遍历</h3>
+<p>可通过<code>for-range</code>对映射中个元素进行遍历，<code>range</code>返回两个元素分别为映射的<code>key</code>和<br>
+<code>value</code></p>
+<p>上述操作示例：</p>
+<pre><code class="language-go">// 增删改查
+// key
+fmt.Println(scores[&quot;a&quot;])  // 8
+fmt.Println(scores[&quot;d&quot;])  // 0  key不存在则为0，但这样不准确
+// v, ok := scores[&quot;c&quot;]
+// if ok {
+if v, ok := scores[&quot;c&quot;]; ok {
+  fmt.Println(v)
+  fmt.Println(ok)  // false  判断某个键是否存在
+}
+scores[&quot;b&quot;] = 10
+fmt.Println(scores)
+scores[&quot;d&quot;] = 20
+fmt.Println(scores)
+// 删除
+delete(scores, &quot;c&quot;)  // 按照key删除
+fmt.Println(scores)
+// 获取当前映射元素的数量
+fmt.Println(len(scores))
+// 遍历key、value
+for k, v := range scores {
+  fmt.Println(k, v)  // 遍历的顺序和添加的顺序是没有任何关系的
+}
+// 只遍历map中的key
+for k := range scores {
+  fmt.Println(k)  // 遍历的顺序和添加的顺序是没有任何关系的
+}
+// 只遍历map中的value
+for _, v := range scores {
+  fmt.Println(v)
+}
+</code></pre>
+<ul>
+<li>按照某个固定顺序遍历<code>map</code></li>
+</ul>
+<p>默认情况下，对<code>map</code>遍历后都是无序的，可以通过将<code>map</code>中的<code>key</code>存到切片中，然后对切片元素排序，最终实现对<code>map</code>的有序遍历</p>
+<pre><code class="language-go">package main
+
+import (
+	&quot;fmt&quot;
+	&quot;math/rand&quot;
+	&quot;sort&quot;
+	&quot;time&quot;
+)
+
+func main() {
+	rand.Seed(time.Now().UnixNano()) // 初始化随机数种子
+
+	var scoreMap = make(map[string]int, 200)
+
+	for i := 0; i &lt; 100; i++ {
+		key := fmt.Sprintf(&quot;stu%02d&quot;, i) // 生成stu开头的字符串
+		value := rand.Intn(100)          // 生成0~99的随机整数
+		scoreMap[key] = value
+	}
+	// 正常遍历，无序
+	//for k, v := range scoreMap{
+	//	fmt.Println(k, v)
+	//}
+	// 有序遍历，按照key从小到大的顺序遍历scoreMap
+	// 1、取出map中的所有key存入切片keys
+	var keys = make([]string, 0, 200)   // 定义切片
+	for key := range scoreMap {  // 把key添加到切片中
+		keys = append(keys, key)
+	}
+	// 2、对切片进行排序
+	sort.Strings(keys)
+	// 3、按照排序后的key遍历map
+	for _, key := range keys {
+		fmt.Println(key, scoreMap[key])
+	}
+}
+</code></pre>
+<h3 id="47-多级map">4.7 多级map</h3>
+<p>多级映射：定义映射的映射</p>
+<pre><code class="language-go">// 名字 =&gt; 映射[字符串]字符串{&quot;1&quot;, &quot;2&quot;, &quot;3&quot;}
+var users map[string]map[string]string
+users = map[string]map[string]string{&quot;北京&quot;: {&quot;1&quot;: &quot;朝阳&quot;, &quot;2&quot;: &quot;东城&quot;, &quot;3&quot;: &quot;西城&quot;}}
+fmt.Printf(&quot;%T, %#v\n&quot;, users, users)
+_, ok := users[&quot;上海&quot;]
+fmt.Println(ok)  // false
+users[&quot;上海&quot;] = map[string]string{&quot;1&quot;: &quot;浦东&quot;, &quot;2&quot;: &quot;徐汇&quot;, &quot;3&quot;: &quot;静安&quot;}
+fmt.Println(users)  // map[上海:map[1:浦东 2:徐汇 3:静安] 北京:map[1:朝阳 2:东城 3:西城]]
+users[&quot;上海&quot;][&quot;3&quot;] = &quot;虹桥&quot;
+fmt.Println(users)  // map[上海:map[1:浦东 2:徐汇 3:虹桥] 北京:map[1:朝阳 2:东城 3:西城]]
+delete(users[&quot;北京&quot;], &quot;1&quot;)
+fmt.Println(users)  // map[上海:map[1:浦东 2:徐汇 3:虹桥] 北京:map[2:东城 3:西城]]
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/golang" class="tag">
+                    golang
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/li-yong-github-action-shi-xian-github-dao-gitee-de-chi-xu-tong-bu">
+                  <h3 class="post-title">
+                    利用Github Action实现Github到Gitee的持续同步
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

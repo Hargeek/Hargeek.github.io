@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>CentOS7.2安装lepus数据库监控系统 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">CentOS7.2安装lepus数据库监控系统</h2>
+            <div class="post-date">2018-07-14</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E5%AE%89%E8%A3%85lamp%E7%8E%AF%E5%A2%83">1、安装lamp环境</a></li>
+<li><a href="#2-%E5%AE%89%E8%A3%85python%E5%9F%BA%E7%A1%80%E6%A8%A1%E5%9D%97">2、安装Python基础模块</a>
+<ul>
+<li><a href="#21-%E5%AE%89%E8%A3%85mysqldb-for-python">2.1、安装MySQLdb for python</a></li>
+<li><a href="#22-%E5%AE%89%E8%A3%85cx_oracle-for-python%E5%A6%82%E6%9E%9C%E9%9C%80%E8%A6%81%E7%9B%91%E6%8E%A7oracle%E5%88%99%E5%BF%85%E9%A1%BB%E5%AE%89%E8%A3%85">2.2、安装cx_oracle for python（如果需要监控Oracle则必须安装）</a></li>
+<li><a href="#23-%E5%AE%89%E8%A3%85pymongo-for-python%E5%A6%82%E6%9E%9C%E9%9C%80%E8%A6%81%E7%9B%91%E6%8E%A7mongodb%E5%88%99%E5%BF%85%E9%A1%BB%E5%AE%89%E8%A3%85">2.3、安装Pymongo for python（如果需要监控Mongodb则必须安装）</a></li>
+<li><a href="#24-%E5%AE%89%E8%A3%85redis-%E9%A9%B1%E5%8A%A8%E5%A6%82%E6%9E%9C%E9%9C%80%E8%A6%81%E7%9B%91%E6%8E%A7redis%E5%88%99%E5%BF%85%E9%A1%BB%E5%AE%89%E8%A3%85">2.4、安装Redis 驱动（如果需要监控Redis则必须安装）</a></li>
+<li><a href="#25-%E6%B5%8B%E8%AF%95%E5%90%84%E4%B8%AA%E9%A9%B1%E5%8A%A8%E6%98%AF%E5%90%A6%E6%AD%A3%E5%B8%B8%E8%BF%90%E8%A1%8C%E9%9D%9E%E5%BF%85%E9%A1%BB">2.5、测试各个驱动是否正常运行（非必须）</a></li>
+</ul>
+</li>
+<li><a href="#3-%E5%AE%89%E8%A3%85lepus%E9%87%87%E9%9B%86%E5%99%A8">3、安装Lepus采集器</a></li>
+<li><a href="#4-%E5%AE%89%E8%A3%85web%E7%AE%A1%E7%90%86%E5%8F%B0">4、安装WEB管理台</a></li>
+<li><a href="#5-%E6%B7%BB%E5%8A%A0%E7%9B%91%E6%8E%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AE%9E%E4%BE%8B">5、添加监控数据库实例</a></li>
+<li><a href="#6-%E6%B7%BB%E5%8A%A0%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9Fsnmp%E7%9B%91%E6%8E%A7%E5%AE%9E%E4%BE%8B">6、添加操作系统snmp监控实例</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<blockquote>
+<p>Lepus是一套开源的数据库监控平台，目前已经支持MySQL、Oracle、SQLServer、MongoDB、Redis等数据库的基本监控和告警（MySQL已经支持复制监控、慢查询分析和定向推送等高级功能）。Lepus无需在每台数据库服务器部署脚本或Agent，只需要在数据库创建授权帐号后，即可进行远程监控，适合监控数据库服务器较多的公司和监控云中数据库，这将为企业大大减化监控部署流程，同时Lepus系统内置了丰富的性能监控指标，让企业能够在数据库宕机前发现潜在性能问题进行处理，减少企业因为数据库问题导致的直接损失。</p>
+</blockquote>
+<h2 id="1-安装lamp环境">1、安装lamp环境</h2>
+<p>环境说明<br>
+系统版本  CentOS 7.2 x86_64<br>
+软件版本  lepus 3.7</p>
+<pre><code>[root@lepus ~]# yum install -y httpd php php-mysql mariadb-server
+</code></pre>
+<h2 id="2-安装python基础模块">2、安装Python基础模块</h2>
+<h3 id="21-安装mysqldb-for-python">2.1、安装MySQLdb for python</h3>
+<pre><code>[root@lepus ~]# mkdir -p /service/tools
+[root@lepus ~]# cd /service/tools
+[root@lepus tools]# unzip MySQLdb-python.zip
+[root@lepus MySQLdb1-master]# cd MySQLdb1-master/
+[root@lepus MySQLdb1-master]# yum install -y mariadb-devel
+[root@lepus MySQLdb1-master]# which mysql_config
+/usr/bin/mysql_config
+[root@lepus MySQLdb1-master]# vim site.cfg
+mysql_config = /usr/bin/mysql_config
+[root@lepus MySQLdb1-master]# python setup.py build		#出现以下报错
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20180714-01.png" alt=""></figure>
+<pre><code>[root@lepus MySQLdb1-master]# yum install -y python2-pip	#解决报错
+[root@lepus MySQLdb1-master]# python setup.py build		#出现以下报错
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20180714-02.png" alt=""></figure>
+<pre><code>[root@lepus MySQLdb1-master]# yum install -y python-devel 	#解决报错
+[root@lepus MySQLdb1-master]# python setup.py build
+[root@lepus MySQLdb1-master]# python setup.py install
+</code></pre>
+<h3 id="22-安装cx_oracle-for-python如果需要监控oracle则必须安装">2.2、安装cx_oracle for python（如果需要监控Oracle则必须安装）</h3>
+<p>[下载安装oracle instant client]<br>
+(http://www.oracle.com/technetwork/database/features/instant-client/index-097480.html)</p>
+<pre><code>[root@lepus tools]# rpm -ivh oracle-instantclient11.2-basic-11.2.0.3.0-1.x86_64.rpm
+[root@lepus tools]# rpm -ivh oracle-instantclient11.2-devel-11.2.0.3.0-1.x86_64.rpm
+[root@lepus tools]# rpm -ivh oracle-instantclient11.2-sqlplus-11.2.0.3.0-1.x86_64.rpm
+[root@lepus tools]# vim /root/.bash_profile
+ORACLE_HOME=&quot;/usr/lib/oracle/11.2/client64&quot;
+PATH=$PATH:$ORACLE_HOME/bin
+export PATH 
+LD_LIBRARY_PATH=$ORACLE_HOME/lib:/usr/lib:/usr/local/lib
+export LD_LIBRARY_PATH
+[root@lepus tools]# source ~/.bash_profile		#修改完成后重新加载bash_profile文件
+[root@lepus tools]# vim /etc/ld.so.conf
+/usr/lib/oracle/11.2/client64/lib
+[root@lepus tools]# ldconfig		#执行ldconfig生效
+安装cx_oracle
+[root@lepus tools]# tar xf cx_Oracle-5.2.1.tar.gz 
+[root@lepus tools]# cd cx_Oracle-5.2.1/
+[root@lepus cx_Oracle-5.2.1]# python setup.py build
+[root@lepus cx_Oracle-5.2.1]# python setup.py install
+</code></pre>
+<h3 id="23-安装pymongo-for-python如果需要监控mongodb则必须安装">2.3、安装Pymongo for python（如果需要监控Mongodb则必须安装）</h3>
+<pre><code>[root@lepus tools]# tar xf pymongo-2.7.tar.gz 
+[root@lepus tools]# cd pymongo-2.7/
+[root@lepus pymongo-2.7]# python setup.py install
+</code></pre>
+<h3 id="24-安装redis-驱动如果需要监控redis则必须安装">2.4、安装Redis 驱动（如果需要监控Redis则必须安装）</h3>
+<pre><code>[root@lepus tools]# tar xf redis-py-2.10.3.tar.gz 
+[root@lepus tools]# cd redis-2.10.3/
+[root@lepus redis-2.10.3]# python setup.py install
+</code></pre>
+<h3 id="25-测试各个驱动是否正常运行非必须">2.5、测试各个驱动是否正常运行（非必须）</h3>
+<p>在lepus的安装文件包python目录中，找到如下测试文件，测试上述驱动是否安装正确</p>
+<pre><code>[root@lepus tools]# unzip Lepus数据库企业监控系统3.7版本官方下载.zip
+[root@lepus tools]# cd lepus_v3.7/python/
+[root@lepus python]# python test_driver_mysql.py 
+MySQL python drivier is ok!
+[root@lepus python]# python test_driver_oracle.py 
+Oracle python drivier is ok!
+[root@lepus python]# python test_driver_mongodb.py 
+MongoDB python drivier is ok!
+[root@lepus python]# python test_driver_redis.py 
+Redis python drivier is ok!
+</code></pre>
+<h2 id="3-安装lepus采集器">3、安装Lepus采集器</h2>
+<pre><code>[root@lepus sql]# systemctl start mariadb.service 		#启动服务
+[root@lepus sql]# systemctl enable mariadb.service
+[root@lepus sql]# mysqladmin -uroot password '123456'	#设置数据库密码
+[root@lepus sql]# mysql -uroot -p123456
+MariaDB [(none)]&gt; create database lepus default character set utf8;		#创建数据库
+MariaDB [(none)]&gt; grant all on lepus.* to lepus@localhost identified by '123456';		#授权
+MariaDB [(none)]&gt; exit
+[root@lepus sql]# mysql -ulepus -p123456 lepus &lt;lepus_table.sql 		#导入数据库文件
+[root@lepus sql]# mysql -ulepus -p123456 lepus &lt;lepus_data.sql
+[root@lepus sql]# cd ../python/
+[root@lepus python]# chmod +x install.sh		#为安装脚本添加执行权限
+[root@lepus python]# ./install.sh				#安装
+[root@lepus python]# cd /usr/local/lepus/
+[root@lepus lepus]# vim etc/config.ini			#修改配置文件
+[monitor_server]
+host=&quot;127.0.0.1&quot;
+port=3306
+user=&quot;lepus&quot;
+passwd=&quot;123456&quot;
+dbname=&quot;lepus&quot;
+[root@lepus lepus]# lepus start				#启动
+</code></pre>
+<h2 id="4-安装web管理台">4、安装WEB管理台</h2>
+<pre><code>[root@lepus lepus]# cd /service/tools/lepus_v3.7/php/
+[root@lepus php]# cp -a . /var/www/html/			#拷贝web界面代码
+[root@lepus php]# systemctl start httpd.service 		#启动服务
+[root@lepus php]# systemctl enable httpd.service
+[root@lepus html]# vim application/config/database.php		#修改配置文件
+$db['default']['hostname'] = '127.0.0.1';
+$db['default']['port']     = '3306';
+$db['default']['username'] = 'lepus';
+$db['default']['password'] = '123456';
+$db['default']['database'] = 'lepus';
+$db['default']['dbdriver'] = 'mysql';
+</code></pre>
+<p>通过浏览器输入IP地址或域名打开监控界面，即可登录系统。.默认管理员账号密码admin/Lepusadmin登录后请修改管理员密码，增加普通账号。<br>
+<img src="https://image.ssgeek.com/20180714-03.png" alt=""></p>
+<h2 id="5-添加监控数据库实例">5、添加监控数据库实例</h2>
+<p>配置中心——&gt;mysql——&gt;新增</p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20180714-04.png" alt=""></figure>
+<pre><code>[root@lepus html]# tail -f /usr/local/lepus/logs/lepus.log		#查看日志，成功添加监控
+</code></pre>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20180714-05.png" alt=""></figure>
+<h2 id="6-添加操作系统snmp监控实例">6、添加操作系统snmp监控实例</h2>
+<pre><code>[root@lepus html]# yum install -y net-snmp		#安装net-snmp
+[root@lepus html]# vim /etc/snmp/snmpd.conf		#修改配置文件，增加一行
+view    systemview    included   .1
+[root@lepus html]# systemctl start snmpd.service 	#启动服务
+[root@lepus html]# systemctl enable snmpd.service 	
+[root@lepus html]# netstat -lntup|grep 161
+udp        0      0 0.0.0.0:161             0.0.0.0:*                           11888/snmpd
+</code></pre>
+<p>配置中心——&gt;操作系统——&gt;新增</p>
+<figure data-type="image" tabindex="5"><img src="https://image.ssgeek.com/20180714-06.png" alt=""></figure>
+<pre><code>[root@lepus html]# lepus stop #重启服务
+[root@lepus html]# lepus start
+</code></pre>
+<p><img src="https://image.ssgeek.com/20180714-07.png" alt=""><br>
+<img src="https://image.ssgeek.com/20180714-08.png" alt=""></p>
+<p>成功添加snmp主机操作系统监控</p>
+<p>至此，lepus安装及基本配置完成！<br>
+参考自<a href="http://www.dbarun.com/docs/lepus/">官方文档</a></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/B2ac1IMZx" class="tag">
+                    监控
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/M29o-BG-i" class="tag">
+                    mysql
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/chang-jian-de-linux-xi-tong-jian-kong-ming-ling">
+                  <h3 class="post-title">
+                    常见的Linux系统监控命令
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Jenkins+Maven+Gitlab+Nexus持续集成环境搭建 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Jenkins+Maven+Gitlab+Nexus持续集成环境搭建</h2>
+            <div class="post-date">2018-08-09</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E8%BD%AF%E4%BB%B6%E5%8F%8A%E6%9C%8D%E5%8A%A1%E4%BB%8B%E7%BB%8D">1、软件及服务介绍</a></li>
+<li><a href="#2-%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA">2、环境搭建</a>
+<ul>
+<li><a href="#21-%E5%AE%89%E8%A3%85jdk">2.1、安装jdk</a></li>
+<li><a href="#22-%E5%AE%89%E8%A3%85tomcat">2.2、安装tomcat</a></li>
+<li><a href="#23-%E5%AE%89%E8%A3%85jenkins">2.3、安装jenkins</a></li>
+<li><a href="#24-%E5%AE%89%E8%A3%85maven">2.4、安装maven</a></li>
+<li><a href="#25-jenkins%E9%85%8D%E7%BD%AE">2.5、jenkins配置</a></li>
+</ul>
+</li>
+<li><a href="#3-%E4%BD%BF%E7%94%A8jenkins%E6%9E%84%E5%BB%BA%E9%A1%B9%E7%9B%AE">3、使用jenkins构建项目</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-软件及服务介绍">1、软件及服务介绍</h2>
+<ul>
+<li>jenkins</li>
+</ul>
+<p>Jenkins是实现代码自动化流程上线的工具，Jenkins是一个独立的开源软件项目，是基于Java开发的一种持续集成工具，用于监控持续重复的工作，旨在提供一个开放易用的软件平台，使软件的持续集成变成可能。前身是Hudson是一个可扩展的持续集成引擎。可用于自动化各种任务，如构建，测试和部署软件。Jenkins可以通过本机系统包Docker安装，甚至可以通过安装Java Runtime Environment的任何机器独立运行</p>
+<ul>
+<li>Maven</li>
+</ul>
+<p>Maven是一个项目管理和综合工具。Maven提供了开发人员构建一个完整的生命周期框架。开发团队可以自动完成项目的基础工具建设，Maven使用标准的目录结构和默认构建生命周期。在多个开发团队环境时，Maven可以设置按标准在非常短的时间里完成配置工作。由于大部分项目的设置都很简单，并且可重复使用，Maven让开发人员的工作更轻松，同时创建报表，检查，构建和测试自动化设置。</p>
+<ul>
+<li>Gitlab</li>
+</ul>
+<p>GitLab 是一个用于仓库管理系统的开源项目，使用Git作为代码管理工具，并在此基础上搭建起来的web服务。可通过Web界面进行访问公开的或者私人项目。它拥有与Github类似的功能，能够浏览源代码，管理缺陷和注释。可以管理团队对仓库的访问，它非常易于浏览提交过的版本并提供一个文件历史库。团队成员可以利用内置的简单聊天程序(Wall)进行交流。它还提供一个代码片段收集功能可以轻松实现代码复用。</p>
+<ul>
+<li>Nexus</li>
+</ul>
+<p>maven的仓库只有两大类：1.本地仓库 2.远程仓库，在远程仓库中又分成了3种：中央仓库、私服、其它公共库。<br>
+私服是一种特殊的远程仓库，它是架设在局域网内的仓库服务，私服代理广域网上的远程仓库，供局域网内的Maven用户使用。当Maven需要下载构件的时候，它从私服请求，如果私服上不存在该构件，则从外部的远程仓库下载，缓存在私服上之后，再为Maven的下载请求提供服务。我们还可以把一些无法从外部仓库下载到的构件上传到私服上</p>
+<p>私服的特点：</p>
+<ul>
+<li>节省自己的外网带宽：减少重复请求造成的外网带宽消耗</li>
+<li>加速Maven构件：如果项目配置了很多外部远程仓库的时候，构建速度就会大大降低</li>
+<li>部署第三方构件：有些构件无法从外部仓库获得的时候，我们可以把这些构件部署到内部仓库(私服)中，供内部maven项目使用</li>
+<li>提高稳定性，增强控制：Internet不稳定的时候，maven构建也会变的不稳定，一些私服软件还提供了其他的功能</li>
+<li>降低中央仓库的负荷：maven中央仓库被请求的数量是巨大的，配置私服也可以大大降低中央仓库的压力<br>
+因此在实际的项目中通常使用私服来间接访问中央仓库，项目通常不直接访问中央仓库</li>
+</ul>
+<p>Nexus并不是必须的，本次部署使用maven中央仓库，不演示nexus，有需求的时候在搭建，这里的需求主要看开发人员的需求</p>
+<h2 id="2-环境搭建">2、环境搭建</h2>
+<p>环境说明</p>
+<ul>
+<li>系统版本</li>
+<li>CentOS 7.2 x86_64</li>
+<li>软件版本</li>
+<li>jdk-8u171-linux-x64</li>
+<li>apache-tomcat-8.0.52</li>
+<li>apache-maven-3.5.4</li>
+<li>jenkins-2.129</li>
+<li>Gitlab-ce-10.8.4（部署在其他机器）</li>
+</ul>
+<p><a href="http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html">jdk下载地址</a><br>
+<a href="https://tomcat.apache.org/download-80.cgi">tomcat下载地</a><br>
+<a href="http://maven.apache.org/download.cgi">maven下载地址</a><br>
+<a href="http://mirrors.jenkins-ci.org/war/2.129/">jenkins下载地址</a><br>
+<a href="https://mirrors.tuna.tsinghua.edu.cn/jenkins/war/2.129/">清华jenkins镜像源</a><br>
+gitlab的安装部署见前面的博文：<br>
+所有软件的安装包在部署前均下载到了本地</p>
+<pre><code>[root@jenkins ~]# mkdir /application
+[root@jenkins ~]# mkdir -p /service/tools
+[root@jenkins ~]# cd /service/tools		
+上传所需软件包
+[root@jenkins tools]# ls
+apache-maven-3.5.4-bin.tar.gz  apache-tomcat-8.0.52.tar.gz  jdk-8u171-linux-x64.tar.gz  jenkins.war
+</code></pre>
+<h3 id="21-安装jdk">2.1、安装jdk</h3>
+<pre><code>[root@jenkins tools]# tar xf jdk-8u171-linux-x64.tar.gz -C /application/
+[root@jenkins tools]# ln -s /application/jdk1.8.0_171 /application/jdk
+[root@jenkins tools]# vim /etc/profile
+export JAVA_HOME=/application/jdk
+export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+export PATH=$JAVA_HOME/bin:$PATH
+[root@jenkins tools]# source /etc/profile
+[root@jenkins tools]# java -version
+java version &quot;1.8.0_171&quot;
+Java(TM) SE Runtime Environment (build 1.8.0_171-b11)
+Java HotSpot(TM) 64-Bit Server VM (build 25.171-b11, mixed mode)
+</code></pre>
+<h3 id="22-安装tomcat">2.2、安装tomcat</h3>
+<pre><code>[root@jenkins tools]# tar xf apache-tomcat-8.0.52.tar.gz -C /application/
+[root@jenkins tools]# ln -s /application/apache-tomcat-8.0.52 /application/tomcat
+[root@jenkins tools]# ll /application/
+总用量 4
+drwxr-xr-x 9 root root  149 6月  28 21:03 apache-tomcat-8.0.52
+lrwxrwxrwx 1 root root   25 6月  28 20:57 jdk -&gt; /application/jdk1.8.0_171
+drwxr-xr-x 8   10  143 4096 3月  29 08:18 jdk1.8.0_171
+lrwxrwxrwx 1 root root   33 6月  28 21:03 tomcat -&gt; /application/apache-tomcat-8.0.52
+</code></pre>
+<h3 id="23-安装jenkins">2.3、安装jenkins</h3>
+<p>Jenkins的安装分为两种方式：rpm包安装和war包安装，war包依赖于tomcat</p>
+<pre><code>[root@jenkins tools]# mv jenkins.war /application/tomcat/webapps/
+[root@jenkins tools]# ls /application/tomcat/webapps/
+docs  examples  host-manager  jenkins.war  manager  ROOT
+[root@jenkins tools]# /application/tomcat/bin/startup.sh
+[root@jenkins tools]# netstat -lntup|grep java
+tcp6       0      0 :::8009                 :::*                    LISTEN      2356/java           
+tcp6       0      0 :::8080                 :::*                    LISTEN      2356/java           
+tcp6       0      0 127.0.0.1:8005          :::*                    LISTEN      2356/java           
+udp6       0      0 :::5353                 :::*                                2356/java           
+udp6       0      0 :::33848                :::*                                2356/java
+[root@jenkins tools]# ls /application/tomcat/webapps/		#启动完成后jenkins的war包被解压为jenkins文件
+docs  examples  host-manager  jenkins  jenkins.war  manager  ROOT
+</code></pre>
+<p>浏览器http://10.0.0.8:8080/jenkins<br>
+访问web界面继续安装<br>
+根据提示在日志或者/root/.jenkins/secrets/initialAdminPassword文件中找到密码输入解锁jenkins</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20180809-01.png" alt=""></figure>
+<p>如果出现以下错误提示，多数情况是由于网络原因，可以尝试修改jenkins配置文件</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20180809-02.png" alt=""></figure>
+<pre><code>[root@jenkins tools]# vim ~/.jenkins/hudson.model.UpdateCenter.xml
+将url地址https://updates.jenkins.io/update-center.json修改为清华镜像源的地址
+https://mirror.tuna.tsinghua.edu.cn/jenkins/updates/update-center.json，修改后重启tomcat并刷新浏览器
+[root@jenkins tools]# /application/tomcat/bin/shutdown.sh
+[root@jenkins tools]# /application/tomcat/bin/startup.sh
+</code></pre>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20180809-03.png" alt=""></figure>
+<p>点击安装推荐的插件，等待插件安装完成，如果插件安装失败，不断尝试点击重试直到所有插件安装完成，这种情况原因在于网络问题，如果这里的插件安装不成功选择跳过，在后续步骤中会遇到麻烦，需要手动去选择插件安装<br>
+插件安装完成设置管理员的账号密码等信息</p>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20180809-04.png" alt=""></figure>
+<p>登录jenkins，jenkins安装完成</p>
+<figure data-type="image" tabindex="5"><img src="https://image.ssgeek.com/20180809-05.png" alt=""></figure>
+<h3 id="24-安装maven">2.4、安装maven</h3>
+<pre><code>[root@jenkins tools]# tar xf apache-maven-3.5.4-bin.tar.gz -C /application/
+[root@jenkins tools]# ln -s /application/apache-maven-3.5.4 /application/maven
+[root@jenkins tools]# vim /etc/profile
+export MAVEN_HOME=/application/maven
+export PATH=${MAVEN_HOME}/bin:${PATH}
+[root@jenkins tools]# source /etc/profile
+[root@jenkins tools]# which mvn
+/application/maven/bin/mvn
+[root@jenkins tools]# mvn -version
+Apache Maven 3.5.4 (1edded0938998edf8bf061f1ceb3cfdeccf443fe; 2018-06-18T02:33:14+08:00)
+Maven home: /application/maven
+Java version: 1.8.0_171, vendor: Oracle Corporation, runtime: /application/jdk1.8.0_171/jre
+Default locale: zh_CN, platform encoding: UTF-8
+OS name: &quot;linux&quot;, version: &quot;3.10.0-327.el7.x86_64&quot;, arch: &quot;amd64&quot;, family: &quot;unix&quot;
+</code></pre>
+<p>如果使用自建的私服，修改/application/maven/conf/settings.xml配置文件添加mirrors的地址，如添加阿里云的maven仓库地址，这样在后面maven编译的时候就能提高速度</p>
+<pre><code>[root@jenkins tools]# vim /application/maven/conf/settings.xml
+&lt;mirror&gt;
+        &lt;id&gt;nexus-aliyun&lt;/id&gt;
+        &lt;mirrorOf&gt;*&lt;/mirrorOf&gt;
+        &lt;name&gt;Nexus aliyun&lt;/name&gt;
+        &lt;url&gt;http://maven.aliyun.com/nexus/content/groups/public&lt;/url&gt;
+&lt;/mirror&gt;
+</code></pre>
+<h3 id="25-jenkins配置">2.5、jenkins配置</h3>
+<p>系统管理——&gt;管理插件——&gt;可选插件——&gt;过滤<br>
+搜索maven插件Maven Integration plugin并等待成功安装，不能安装请重试，或者手动下载插件上传安装</p>
+<figure data-type="image" tabindex="6"><img src="https://image.ssgeek.com/20180809-06.png" alt=""></figure>
+<p>配置jenkins全局工具配置<br>
+系统管理——&gt;全局工具配置，配置jdk和maven，配置为自己安装的jdk和maven</p>
+<figure data-type="image" tabindex="7"><img src="https://image.ssgeek.com/20180809-07.png" alt=""></figure>
+<h2 id="3-使用jenkins构建项目">3、使用jenkins构建项目</h2>
+<p>演示以最简单的方式构建一个项目<br>
+例如从自建的gitlab上构建一个jeesns的项目，新建任务</p>
+<figure data-type="image" tabindex="8"><img src="https://image.ssgeek.com/20180809-08.png" alt=""></figure>
+<p>输入项目描述，设置构建参数</p>
+<figure data-type="image" tabindex="9"><img src="https://image.ssgeek.com/20180809-09.png" alt=""></figure>
+<p>源码管理选择git，需要填写url及选择密钥<br>
+Repository URL填写自建的gitlab上的项目地址即：</p>
+<figure data-type="image" tabindex="10"><img src="https://image.ssgeek.com/20180809-10.png" alt=""></figure>
+<p>填写之后如下所示，出现这个提示是由于jenkins所在机器没有与gitlab服务器认证，需要生成密钥并将公钥添加至gitlab上，生成密钥和gitlab上添加密钥可以参照前面部署gitlab的文章</p>
+<figure data-type="image" tabindex="11"><img src="https://image.ssgeek.com/20180809-11.png" alt=""></figure>
+<p>Credentials选项中点击add或者直接在主面板中找到凭据管理并添加凭据，将上面生成的私钥粘贴到这里</p>
+<figure data-type="image" tabindex="12"><img src="https://image.ssgeek.com/20180809-12.png" alt=""></figure>
+<p>回到项目参数配置源码管理界面，下拉选择相应的key，选择源码库浏览器为gitlab并填写http地址（gitlab上找到该地址）及项目名称</p>
+<figure data-type="image" tabindex="13"><img src="https://image.ssgeek.com/20180809-13.png" alt=""></figure>
+<p>对于此项目，整个项目构建并自动上线的步骤为：拉取gitlab上面的java项目代码——&gt;改配置文件——&gt;导入数据库——&gt;使用maven插件编译java项目——&gt; 执行脚本（推送新编译好的war包文件到tomcat服务器，这里使用jenkins本机服务器）<br>
+上述步骤要根据具体项目的实现构建步骤而定，当然很大一部分也是开发人员所决定的，对于这个项目的部署步骤可以参考官方项目地址https://gitee.com/zchuanzhao/jeesns</p>
+<p>因此，需要选择并输入在项目构建之前需要执行的脚本（命令），该项目要实现自动上线还需要做的是修改项目的配置文件中的数据库用户名及密码，导入数据库文件（导入前需要创库授权），脚本中的路径需要在jenkins相应路径中找到得出</p>
+<pre><code>sed -i 's#jdbc.user=root#jdbc.user=jeesns#g'  /root/.jenkins/workspace/jeesns/jeesns-web/src/main/resources/jeesns.properties
+sed -i 's#jdbc.password=root#jdbc.password=123456#g' /root/.jenkins/workspace/jeesns/jeesns-web/src/main/resources/jeesns.properties
+/usr/bin/mysql -ujeesns -p123456 jeesns &lt;/root/.jenkins/workspace/jeesns/jeesns-web/database/jeesns.sql
+</code></pre>
+<figure data-type="image" tabindex="14"><img src="https://image.ssgeek.com/20180809-14.png" alt=""></figure>
+<p>填写项目构建参数（与开发人员有关），基础参数为clean package<br>
+填写项目构建之后的脚本（命令）</p>
+<pre><code>cp /root/.jenkins/workspace/jeesns/jeesns-web/target/jeesns-web.war /application/tomcat/webapps
+</code></pre>
+<figure data-type="image" tabindex="15"><img src="https://image.ssgeek.com/20180809-15.png" alt=""></figure>
+<p>上述步骤及参数为jekins自动编译并上线一个项目的基础配置，根据项目环境需要可以进行进一步配置，现在要做的就是点击保存，并立即构建项目<br>
+查看控制台输出，等待构建完成</p>
+<figure data-type="image" tabindex="16"><img src="https://image.ssgeek.com/20180809-16.png" alt=""></figure>
+<p>构建完成后即可访问网站，项目自动上线</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/JgJeOdy01" class="tag">
+                    jenkins
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/4RJKyFhlgx" class="tag">
+                    持续集成
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/gitlab-bei-fen-qian-yi-hui-fu-he-sheng-ji">
+                  <h3 class="post-title">
+                    Gitlab备份、迁移、恢复和升级
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

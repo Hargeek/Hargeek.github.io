@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Centos7静默安装Oracle11g | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Centos7静默安装Oracle11g</h2>
+            <div class="post-date">2020-10-31</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li><a href="#1-%E7%8E%AF%E5%A2%83%E5%8F%8A%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C">1、环境及准备工作</a>
+<ul>
+<li><a href="#11-%E7%8E%AF%E5%A2%83%E5%8F%8A%E9%85%8D%E7%BD%AE%E8%B0%83%E6%95%B4">1.1 环境及配置调整</a></li>
+<li><a href="#12-%E5%B8%B8%E7%94%A8%E5%8F%82%E6%95%B0">1.2 常用参数</a></li>
+<li><a href="#13-%E5%85%B6%E4%BB%96%E5%87%86%E5%A4%87">1.3 其他准备</a></li>
+</ul>
+</li>
+<li><a href="#2-oracle%E5%AE%89%E8%A3%85">2、oracle安装</a>
+<ul>
+<li><a href="#21-%E5%9F%BA%E6%9C%AC%E9%85%8D%E7%BD%AE">2.1 基本配置</a></li>
+<li><a href="#22-%E8%A7%A3%E5%8E%8B%E5%AE%89%E8%A3%85%E5%8C%85">2.2 解压安装包</a></li>
+<li><a href="#23-%E6%AD%A3%E5%BC%8F%E5%AE%89%E8%A3%85">2.3 正式安装</a></li>
+<li><a href="#24-%E9%9D%99%E9%BB%98%E5%88%9B%E5%BB%BA%E6%95%B0%E6%8D%AE%E5%BA%93">2.4 静默创建数据库</a>
+<ul>
+<li><a href="#241-%E7%BC%96%E8%BE%91%E5%BA%94%E7%AD%94%E6%96%87%E4%BB%B6">2.4.1 编辑应答文件</a></li>
+<li><a href="#242-%E6%89%A7%E8%A1%8C%E9%9D%99%E9%BB%98%E5%BB%BA%E5%BA%93">2.4.2 执行静默建库</a></li>
+<li><a href="#243-%E6%A3%80%E6%9F%A5">2.4.3 检查</a></li>
+</ul>
+</li>
+<li><a href="#25-%E7%99%BB%E5%BD%95%E6%95%B0%E6%8D%AE%E5%BA%93%E5%90%AF%E5%8A%A8%E7%9B%91%E5%90%AC">2.5 登录数据库启动监听</a></li>
+<li><a href="#26-%E6%BF%80%E6%B4%BBscott%E7%94%A8%E6%88%B7%E5%8F%AF%E9%80%89">2.6 激活scott用户(可选)</a></li>
+</ul>
+</li>
+<li><a href="#3-%E8%AE%BE%E7%BD%AE%E5%BC%80%E6%9C%BA%E5%90%AF%E5%8A%A8">3、设置开机启动</a></li>
+</ul>
+</p>
+<h1 id="1-环境及准备工作">1、环境及准备工作</h1>
+<h2 id="11-环境及配置调整">1.1 环境及配置调整</h2>
+<p>操作系统版本、内核版本、系统<code>CPU</code>、<code>RAM</code>、硬盘配置如下</p>
+<pre><code class="language-shell">[root@localhost ~]# cat /etc/redhat-release
+CentOS Linux release 7.7.1908 (Core)
+[root@localhost ~]# uname -r
+3.10.0-1062.el7.x86_64
+[root@localhost ~]# cat /proc/cpuinfo| grep &quot;processor&quot;| wc -l
+8
+[root@localhost ~]# cat /proc/meminfo| grep MemTotal
+MemTotal:       131826144 kB
+[root@localhost ~]# cat /proc/meminfo| grep SwapTotal
+SwapTotal:       1835004 kB
+[root@localhost ~]# fdisk -l|grep Disk
+Disk /dev/vda: 21.5 GB, 21474836480 bytes, 41943040 sectors
+Disk label type: dos
+Disk identifier: 0x000e4fd0
+Disk /dev/vdb: 2199.0 GB, 2199023255552 bytes, 4294967296 sectors
+Disk /dev/mapper/centos-root: 18.5 GB, 18513657856 bytes, 36159488 sectors
+Disk /dev/mapper/centos-swap: 1879 MB, 1879048192 bytes, 3670016 sectors
+</code></pre>
+<p>如下表所示</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>操作系统</td>
+<td>CentOS Linux release 7.7.1908 (Core)</td>
+</tr>
+<tr>
+<td>内核版本</td>
+<td>3.10.0-1062.el7.x86_64</td>
+</tr>
+<tr>
+<td>CPU</td>
+<td>8C</td>
+</tr>
+<tr>
+<td>RAM</td>
+<td>128GB</td>
+</tr>
+<tr>
+<td>SWAP</td>
+<td>1GB</td>
+</tr>
+<tr>
+<td>磁盘</td>
+<td>/dev/vda  20G + /dev/vdb 2TB</td>
+</tr>
+</tbody>
+</table>
+<p>数据盘未做格式化分区（这里仅格式化并挂载到单独目录，不做分区）<br>
+根据内存大小需要对此操作系统重新分配合适的<code>swap</code>空间（这里增加到16G），关于<code>swap</code>分区大小可参考<a href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/storage_administration_guide/ch-swapspace">红帽官方</a>说明</p>
+<pre><code class="language-shell">[root@localhost ~]# mkfs.xfs /dev/vdb
+[root@localhost ~]# mkdir /data &amp;&amp; mount /dev/vdb /data
+[root@localhost ~]# df -h | grep &quot;data&quot;
+/dev/vdb                 2.0T   33M  2.0T   1% /data
+[root@localhost ~]# blkid |grep vdb|awk '{print $2}'|cut -d '=' -f 2
+&quot;11eda493-b248-4ce0-91fb-e28e1b8164a9&quot;
+[root@localhost ~]# echo &quot;UUID=11eda493-b248-4ce0-91fb-e28e1b8164a9 /data                   xfs     defaults        0 0&quot; &gt;&gt; /etc/fstab  # 开机自动挂载数据盘
+[root@localhost ~]# sed -ri '/^[^#]*swap/s@^@#@' /etc/fstab  # 关掉原来的swap开机自动挂载
+[root@localhost ~]# dd if=/dev/zero of=/data/swapfile bs=1G count=16
+[root@localhost ~]# mkswap /data/swapfile
+[root@localhost ~]# chmod 600 /data/swapfile
+[root@localhost ~]# swapon /data/swapfile
+[root@localhost ~]# echo &quot;/data/swapfile           swap                    swap    defaults        0 0&quot; &gt;&gt; /etc/fstab  # 开机自动挂载swap分区
+</code></pre>
+<h2 id="12-常用参数">1.2 常用参数</h2>
+<p>修改主机名、关闭<code>selinux</code>、时间同步等</p>
+<pre><code class="language-shell">[root@localhost ~]# hostnamectl set-hostname oracledb-01
+[root@localhost ~]# echo &quot;127.0.0.1   oracledb-01&quot; &gt;&gt; /etc/hosts
+[root@oracledb-01 ~]# sestatus
+SELinux status:                 disabled
+</code></pre>
+<h2 id="13-其他准备">1.3 其他准备</h2>
+<ul>
+<li>
+<p>安装依赖</p>
+<pre><code class="language-shell">[root@oracledb-01 ~]# yum -y install binutils compat-libcap1 compat-libstdc++-33 gcc gcc-c++ glibc glibc-devel ksh libaio libaio-devel libgcc libstdc++ libstdc++-dev libXi libXtst make sysstat unixODBC unixODBC-devel
+</code></pre>
+</li>
+<li>
+<p>下载<code>oracle</code>安装包</p>
+<p>从<a href="https://www.oracle.com/database/technologies/oracle-database-software-downloads.html">官网</a>下载<code>linux</code> 64位安装包，下载后两个文件如下</p>
+<pre><code class="language-shell">[root@oracledb-01 ~]# ls linux.x64_11gR2_database_2of2
+linux.x64_11gR2_database_1of2.zip  linux.x64_11gR2_database_2of2.zip
+</code></pre>
+</li>
+<li>
+<p>创建用户：安装<code>Oracle</code>数据库，需要以下本地操作系统组和用户</p>
+<ul>
+<li>Oracle inventory组(通常为 oinstall)</li>
+<li>OSDBA组 (通常为 dba)</li>
+<li>OSOPER组 (通常为 oper)</li>
+<li>Oracle软件所有者(通常为 oracle)</li>
+</ul>
+<pre><code class="language-shell">[root@oracledb-01 ~]# groupadd oinstall
+[root@oracledb-01 ~]# groupadd dba
+[root@oracledb-01 ~]# groupadd oper
+[root@oracledb-01 ~]# useradd -g oinstall -G dba oracle
+</code></pre>
+</li>
+<li>
+<p>修改oracle用户的密码</p>
+<pre><code class="language-shell">[root@oracledb-01 ~]# echo &quot;oracle&quot; | passwd --stdin oracle
+Changing password for user oracle.
+passwd: all authentication tokens updated successfully.
+</code></pre>
+</li>
+<li>
+<p>配置资源限制和内核参数</p>
+<p>在<code>/etc/sysctl.conf</code>添加如下参数，如果系统中某个参数高于下面的参数的值，保留较大的值，下面的数值只是官方要求的最小值，可以根据系统调整数值，以优化系统性能</p>
+<pre><code class="language-shell">fs.aio-max-nr = 1048576	# 同时可以拥有的的异步IO请求数目
+fs.file-max = 6815744		# 指定可以分配的文件句柄的最大数目
+kernel.shmall = 2097152	# 共享内存总量
+kernel.shmmax = 536870912	# 共享内存段的最大尺寸
+kernel.shmmni = 4096	# 系统范围内共享内存段的最大数量
+kernel.sem = 250 32000 100 128
+net.ipv4.ip_local_port_range = 9000 65500
+net.core.rmem_default = 262144	# 接收缓冲区大小
+net.core.rmem_max = 4194304	# 接收缓冲区最大值
+net.core.wmem_default = 262144	# 默认的发送缓冲区大小
+net.core.wmem_max = 1048576	# 发送缓冲区最大值
+</code></pre>
+<p>使内核参数生效</p>
+<pre><code class="language-shell">[root@oracledb-01 ~]# sysctl -p
+</code></pre>
+<p>编辑<code>/etc/security/limits.conf</code>（用户限制配置文件），添加如下参数</p>
+<pre><code class="language-shell">oracle              soft    nproc   2047
+oracle              hard    nproc   16384
+oracle              soft    nofile  1024
+oracle              hard    nofile  65536
+</code></pre>
+<p>编辑<code>/etc/pam.d/login</code>文件，将配置文件加入到登录验证模块</p>
+<pre><code class="language-shell">#Add for Install Oracle Database 11g
+session required  /lib64/security/pam_limits.so
+session required  pam_limits.so
+</code></pre>
+<p>编辑<code>/etc/profile</code>文件（环境变量文件）</p>
+<pre><code class="language-shell">[root@oracledb-01 ~]# vim /etc/profile
+if [ $USER = &quot;oracle&quot; ]; then
+   if [ $SHELL = &quot;/bin/ksh&quot; ]; then
+       ulimit -p 16384
+       ulimit -n 65536
+    else
+       ulimit -u 16384 -n 65536
+   fi
+fi
+[root@oracledb-01 ~]# source /etc/profile
+</code></pre>
+<p>禁用使用<code>Transparent HugePages</code>(启用<code>Transparent HugePages</code>，可能会导致造成内存在运行时的延迟分配，<code>Oracle</code><a href="https://docs.oracle.com/database/121/UNXAR/appi_vlm.htm#UNXAR428">官方</a>建议使用标准的<code>HugePages</code>)</p>
+<ul>
+<li>
+<p>查看是否启用 如果显示 <code>[always]</code>说明启用了</p>
+</li>
+<li>
+<p>禁用Transparent HugePages,在/etc/grub.conf添加如下内容</p>
+</li>
+</ul>
+<pre><code class="language-shell">[root@oracledb-01 ~]# cat /sys/kernel/mm/transparent_hugepage/enabled
+[always] madvise never
+[root@oracledb-01 ~]# echo never &gt; /sys/kernel/mm/transparent_hugepage/enabled
+</code></pre>
+<p>重新启动系统以使上述更改成为永久更改</p>
+</li>
+</ul>
+<h1 id="2-oracle安装">2、oracle安装</h1>
+<h2 id="21-基本配置">2.1 基本配置</h2>
+<ul>
+<li>
+<p>创建<code>oracle</code>安装目录</p>
+<pre><code class="language-shell">[root@oracledb-01 ~]# mkdir -p /data/app/
+[root@oracledb-01 ~]# chown -R oracle:oinstall /data/app/
+[root@oracledb-01 ~]# chmod -R 775 /data/app/
+</code></pre>
+</li>
+<li>
+<p>配置<code>oracle用户环境变量</code><br>
+在文件<code>/home/oracle/.bash_profile</code>里添加下面内容</p>
+<pre><code class="language-shell">umask 022
+export ORACLE_HOSTNAME=oracledb-01  # 修改成主机名
+export ORACLE_BASE=/data/app/oracle
+export ORACLE_HOME=$ORACLE_BASE/product/11.2.0/
+export ORACLE_SID=ORCL
+export ORACLE_UNQNAME=orcl
+export PATH=.:$ORACLE_HOME/bin:$ORACLE_HOME/OPatch:$ORACLE_HOME/jdk/bin:$PATH
+export LC_ALL=&quot;en_US&quot;
+export LANG=&quot;en_US&quot;
+export NLS_LANG=&quot;AMERICAN_AMERICA.ZHS16GBK&quot;
+export NLS_DATE_FORMAT=&quot;YYYY-MM-DD HH24:MI:SS&quot;
+</code></pre>
+<p>由于新增了环境变量，再次重启系统</p>
+</li>
+</ul>
+<h2 id="22-解压安装包">2.2 解压安装包</h2>
+<pre><code class="language-shell">[root@oracledb-01 ~]# cd linux.x64_11gR2_database_2of2/
+[root@oracledb-01 linux.x64_11gR2_database_2of2]# ls
+linux.x64_11gR2_database_1of2.zip  linux.x64_11gR2_database_2of2.zip
+[root@oracledb-01 linux.x64_11gR2_database_2of2]# unzip -q linux.x64_11gR2_database_1of2.zip -d /data
+[root@oracledb-01 linux.x64_11gR2_database_2of2]# unzip -q linux.x64_11gR2_database_2of2.zip -d /data
+[root@oracledb-01 linux.x64_11gR2_database_2of2]# mkdir -p /data/etc
+[root@oracledb-01 linux.x64_11gR2_database_2of2]# cp /data/database/response/* /data/etc/
+</code></pre>
+<h2 id="23-正式安装">2.3 正式安装</h2>
+<p>修改文件<code>/data/etc/db_install.rsp</code>中以下变量的值</p>
+<pre><code class="language-shell">oracle.install.option=INSTALL_DB_SWONLY
+DECLINE_SECURITY_UPDATES=true
+UNIX_GROUP_NAME=oinstall
+INVENTORY_LOCATION=/data/app/oracle/inventory
+SELECTED_LANGUAGES=en,zh_CN
+ORACLE_HOSTNAME=oracledb-01  # 修改成主机名
+ORACLE_HOME=/data/app/oracle/product/11.2.0
+ORACLE_BASE=/data/app/oracle
+oracle.install.db.InstallEdition=EE
+oracle.install.db.isCustomInstall=true
+oracle.install.db.DBA_GROUP=dba
+oracle.install.db.OPER_GROUP=dba
+</code></pre>
+<p>执行安装脚本</p>
+<pre><code class="language-shell">[root@oracledb-01 ~]# su - oracle
+[oracle@oracledb-01 ~]$ cd /data/database/
+[oracle@oracledb-01 database]$ ./runInstaller -silent -responseFile /data/etc/db_install.rsp -ignorePrereq
+</code></pre>
+<p>安装时可以根据安装提示查看日志</p>
+<pre><code class="language-shell">[root@oracledb-01 ~]# tail -f /data/app/oracle/inventory/logs/installActions2020-10-31_09-40-21PM.log
+</code></pre>
+<p>安装完成后会有如下提示</p>
+<pre><code class="language-shell">You can find the log of this install session at:
+ /data/app/oracle/inventory/logs/installActions2020-10-31_09-40-21PM.log
+The following configuration scripts need to be executed as the &quot;root&quot; user. 
+
+ #!/bin/sh
+ #Root scripts to run
+
+/data/app/oracle/inventory/orainstRoot.sh
+/data/app/oracle/product/11.2.0/root.sh
+To execute the configuration scripts:
+         1. Open a terminal window
+         2. Log in as &quot;root&quot;
+         3. Run the scripts
+         4. Return to this window and hit &quot;Enter&quot; key to continue
+
+Successfully Setup Software.
+</code></pre>
+<p>按照上述提示进行操作，使用<code>root</code>用户运行脚本</p>
+<pre><code class="language-shell">[oracle@oracledb-01 ~]$ su - root
+Password: 
+[root@oracledb-01 ~]# sh /data/app/oracle/inventory/orainstRoot.sh 
+Changing permissions of /data/app/oracle/inventory.
+Adding read,write permissions for group.
+Removing read,write,execute permissions for world.
+
+Changing groupname of /data/app/oracle/inventory to oinstall.
+The execution of the script is complete.
+[root@oracledb-01 ~]# sh /data/app/oracle/product/11.2.0/root.sh 
+Check /data/app/oracle/product/11.2.0/install/root_oracledb-01_2020-10-31_09-46-20.log for the output of root script
+</code></pre>
+<p>配置监听</p>
+<pre><code class="language-shell">[root@oracledb-01 ~]# su - oracle
+[oracle@oracledb-01 ~]$ netca /silent /responsefile /data/etc/netca.rsp
+
+Parsing command line arguments:
+    Parameter &quot;silent&quot; = true
+    Parameter &quot;responsefile&quot; = /data/etc/netca.rsp
+Done parsing command line arguments.
+Oracle Net Services Configuration:
+Profile configuration complete.
+Oracle Net Listener Startup:
+    Running Listener Control:
+      /data/app/oracle/product/11.2.0/bin/lsnrctl start LISTENER
+    Listener Control complete.
+    Listener started successfully.
+Listener configuration complete.
+Oracle Net Services configuration successful. The exit code is 0
+</code></pre>
+<p>查看监听端口</p>
+<pre><code class="language-shell">[oracle@oracledb-01 database]$ netstat -tnpl | grep 1521
+(Not all processes could be identified, non-owned process info
+ will not be shown, you would have to be root to see it all.)
+tcp6       0      0 :::1521                 :::*                    LISTEN      6064/tnslsnr
+</code></pre>
+<h2 id="24-静默创建数据库">2.4 静默创建数据库</h2>
+<h3 id="241-编辑应答文件">2.4.1 编辑应答文件</h3>
+<p>编辑应答文件<code>/data/etc/dbca.rsp</code></p>
+<pre><code class="language-shell">[GENERAL]
+RESPONSEFILE_VERSION = &quot;11.2.0&quot;
+OPERATION_TYPE = &quot;createDatabase&quot;
+[CREATEDATABASE]
+GDBNAME = &quot;orcl&quot;
+SID = &quot;orcl&quot;
+SYSPASSWORD = &quot;oracle&quot;
+SYSTEMPASSWORD = &quot;oracle&quot;
+SYSMANPASSWORD = &quot;oracle&quot;
+DBSNMPPASSWORD = &quot;oracle&quot;
+DATAFILEDESTINATION = /data/app/oracle/oradata
+RECOVERYAREADESTINATION=/data/app/oracle/fast_recovery_area
+CHARACTERSET = &quot;AL32UTF8&quot;  # 字符集，根据需求设置，建议前期确定好需要什么字符集，后期不建议更改
+TOTALMEMORY = &quot;102400&quot;  # 分配给Oracle的内存总量，根据服务器内存总量进行分配
+</code></pre>
+<h3 id="242-执行静默建库">2.4.2 执行静默建库</h3>
+<pre><code class="language-shell">su - oracle
+dbca -silent -responseFile /data/etc/dbca.rsp
+</code></pre>
+<p>执行时控制台输出如下</p>
+<pre><code class="language-shell">Copying database files
+1% complete
+3% complete
+11% complete
+18% complete
+26% complete
+37% complete
+Creating and starting Oracle instance
+40% complete
+45% complete
+50% complete
+55% complete
+56% complete
+60% complete
+62% complete
+Completing Database Creation
+66% complete
+70% complete
+73% complete
+85% complete
+96% complete
+100% complete
+Look at the log file &quot;/data/app/oracle/cfgtoollogs/dbca/orcl/orcl.log&quot; for further details.
+</code></pre>
+<h3 id="243-检查">2.4.3 检查</h3>
+<p>查看进程</p>
+<pre><code class="language-shell">[oracle@oracledb-01 ~]$ ps -ef | grep ora_ | grep -v grep
+oracle     8113      1  0 12:03 ?        00:00:00 ora_pmon_orcl
+oracle     8115      1  0 12:03 ?        00:00:00 ora_vktm_orcl
+oracle     8119      1  0 12:03 ?        00:00:00 ora_gen0_orcl
+oracle     8121      1  0 12:03 ?        00:00:00 ora_diag_orcl
+oracle     8123      1  0 12:03 ?        00:00:00 ora_dbrm_orcl
+oracle     8125      1  0 12:03 ?        00:00:00 ora_psp0_orcl
+oracle     8127      1  0 12:03 ?        00:00:00 ora_dia0_orcl
+oracle     8129      1  0 12:03 ?        00:00:00 ora_mman_orcl
+oracle     8131      1  0 12:03 ?        00:00:00 ora_dbw0_orcl
+oracle     8133      1  0 12:03 ?        00:00:00 ora_lgwr_orcl
+oracle     8135      1  0 12:03 ?        00:00:00 ora_ckpt_orcl
+oracle     8137      1  0 12:03 ?        00:00:00 ora_smon_orcl
+oracle     8139      1  0 12:03 ?        00:00:00 ora_reco_orcl
+oracle     8141      1  0 12:03 ?        00:00:00 ora_mmon_orcl
+oracle     8143      1  0 12:03 ?        00:00:00 ora_mmnl_orcl
+oracle     8145      1  0 12:03 ?        00:00:00 ora_d000_orcl
+oracle     8147      1  0 12:03 ?        00:00:00 ora_s000_orcl
+oracle     8161      1  0 12:03 ?        00:00:00 ora_qmnc_orcl
+oracle     8178      1  0 12:03 ?        00:00:00 ora_cjq0_orcl
+oracle     8188      1  0 12:03 ?        00:00:00 ora_q000_orcl
+oracle     8190      1  0 12:03 ?        00:00:00 ora_q001_orcl
+</code></pre>
+<p>查看监听状态</p>
+<pre><code class="language-shell">[oracle@oracledb-01 ~]$ lsnrctl status
+
+LSNRCTL for Linux: Version 11.2.0.1.0 - Production on 03-NOV-2020 12:06:10
+
+Copyright (c) 1991, 2009, Oracle.  All rights reserved.
+
+Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=IPC)(KEY=EXTPROC1521)))
+STATUS of the LISTENER
+------------------------
+Alias                     LISTENER
+Version                   TNSLSNR for Linux: Version 11.2.0.1.0 - Production
+Start Date                03-NOV-2020 11:37:14
+Uptime                    0 days 0 hr. 28 min. 56 sec
+Trace Level               off
+Security                  ON: Local OS Authentication
+SNMP                      OFF
+Listener Parameter File   /data/app/oracle/product/11.2.0/network/admin/listener.ora
+Listener Log File         /data/app/oracle/diag/tnslsnr/oracledb-01/listener/alert/log.xml
+Listening Endpoints Summary...
+  (DESCRIPTION=(ADDRESS=(PROTOCOL=ipc)(KEY=EXTPROC1521)))
+  (DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=oracledb-01)(PORT=1521)))
+Services Summary...
+Service &quot;orcl&quot; has 1 instance(s).
+  Instance &quot;orcl&quot;, status READY, has 1 handler(s) for this service...
+Service &quot;orclXDB&quot; has 1 instance(s).
+  Instance &quot;orcl&quot;, status READY, has 1 handler(s) for this service...
+The command completed successfully
+</code></pre>
+<h2 id="25-登录数据库启动监听">2.5 登录数据库启动监听</h2>
+<pre><code class="language-shell">[root@oracledb-01 ~]# su - oracle
+[oracle@oracledb-01 ~]$ sqlplus / as sysdba
+SQL&gt; startup
+ORA-01078: failure in processing system parameters
+LRM-00109: could not open parameter file '/data/app/oracle/product/11.2.0/dbs/initORCL.ora'
+</code></pre>
+<p>按照提示操作</p>
+<pre><code class="language-shell">[oracle@oracledb-01 ~]$ cp /data/app/oracle/admin/orcl/pfile/init.ora.103202012323 /data/app/oracle/product/11.2.0/dbs/initORCL.ora
+</code></pre>
+<p>再次启动监听</p>
+<pre><code class="language-sql">SQL&gt; shutdown immediate;
+SQL&gt; startup;
+ORACLE instance started.
+
+Total System Global Area  534462464 bytes
+Fixed Size                  2215064 bytes
+Variable Size             163578728 bytes
+Database Buffers          360710144 bytes
+Redo Buffers                7958528 bytes
+Database mounted.
+Database opened.
+</code></pre>
+<h2 id="26-激活scott用户可选">2.6 激活scott用户(可选)</h2>
+<pre><code class="language-shell">SQL&gt; alter user scott account unlock;
+SQL&gt; alter user scott identified by tiger;
+SQL&gt; select username,account_status from dba_users;
+</code></pre>
+<h1 id="3-设置开机启动">3、设置开机启动</h1>
+<p>修改<code>/data/app/oracle/product/11.2.0/bin/dbstart</code></p>
+<pre><code class="language-shell">ORACLE_HOME_LISTNER=$ORACLE_HOME
+</code></pre>
+<p>修改<code>/data/app/oracle/product/11.2.0/bin/dbshut</code></p>
+<pre><code class="language-shell">ORACLE_HOME_LISTNER=$ORACLE_HOME
+</code></pre>
+<p>修改<code>vi /etc/oratab</code></p>
+<pre><code class="language-shell">orcl:/data/app/oracle/product/11.2.0:Y
+</code></pre>
+<p>新建服务文件<code>/etc/rc.d/init.d/oracle</code></p>
+<pre><code class="language-shell">#! /bin/bash
+# oracle: Start/Stop Oracle Database 11g R2
+#
+# chkconfig: 345 90 10
+# description: The Oracle Database is an Object-Relational Database Management System.
+#
+# processname: oracle
+. /etc/rc.d/init.d/functions
+LOCKFILE=/var/lock/subsys/oracle
+ORACLE_HOME=/data/app/oracle/product/11.2.0
+ORACLE_USER=oracle
+case &quot;$1&quot; in
+'start')
+   if [ -f $LOCKFILE ]; then
+      echo $0 already running.
+      exit 1
+   fi
+   echo -n $&quot;Starting Oracle Database:&quot;
+   su - $ORACLE_USER -c &quot;$ORACLE_HOME/bin/lsnrctl start&quot;
+   su - $ORACLE_USER -c &quot;$ORACLE_HOME/bin/dbstart $ORACLE_HOME&quot;
+   su - $ORACLE_USER -c &quot;$ORACLE_HOME/bin/emctl start dbconsole&quot;
+   touch $LOCKFILE
+   ;;
+'stop')
+   if [ ! -f $LOCKFILE ]; then
+      echo $0 already stopping.
+      exit 1
+   fi
+   echo -n $&quot;Stopping Oracle Database:&quot;
+   su - $ORACLE_USER -c &quot;$ORACLE_HOME/bin/lsnrctl stop&quot;
+   su - $ORACLE_USER -c &quot;$ORACLE_HOME/bin/dbshut&quot;
+   su - $ORACLE_USER -c &quot;$ORACLE_HOME/bin/emctl stop dbconsole&quot;
+   rm -f $LOCKFILE
+   ;;
+'restart')
+   $0 stop
+   $0 start
+   ;;
+'status')
+   if [ -f $LOCKFILE ]; then
+      echo $0 started.
+      else
+      echo $0 stopped.
+   fi
+   ;;
+*)
+   echo &quot;Usage: $0 [start|stop|status]&quot;
+   exit 1
+esac
+exit 0
+</code></pre>
+<p>添加执行权限和开机启动</p>
+<pre><code class="language-shell">[root@oracledb-01 ~]# chmod +x /etc/init.d/oracle
+[root@oracledb-01 ~]# chkconfig oracle on
+[root@oracledb-01 ~]# chkconfig --list|grep oracle
+
+Note: This output shows SysV services only and does not include native
+      systemd services. SysV configuration data might be overridden by native
+      systemd configuration.
+
+      If you want to list systemd services use 'systemctl list-unit-files'.
+      To see services enabled on particular target use
+      'systemctl list-dependencies [target]'.
+
+oracle          0:off   1:off   2:on    3:on    4:on    5:on    6:off
+</code></pre>
+<p>修改启动相关文件的权限</p>
+<pre><code class="language-shell">[root@oracledb-01 ~]# cd /data/app/oracle/product/11.2.0/bin/
+[root@oracledb-01 bin]# chmod 6751 oracle
+[root@oracledb-01 bin]# cd /var/tmp
+[root@oracledb-01 tmp]# chown -R oracle:oinstall .oracle
+</code></pre>
+<p>关机重启测试</p>
+<pre><code class="language-shell">reboot
+</code></pre>
+<p>关机重启后登陆进入数据库后，再执行<code>startup</code>启动数据库。</p>
+<p>参考：</p>
+<blockquote>
+<p>https://blog.csdn.net/chenghuikai/article/details/85776622</p>
+<p>https://www.cnblogs.com/hftian/p/6944133.html</p>
+<p>https://www.cnblogs.com/xiaofeng666/p/13702197.html</p>
+</blockquote>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/UkQRrvDgO" class="tag">
+                    oracle
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/database" class="tag">
+                    数据库
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/drf-xu-lie-hua-qi-zhi-fan-xu-lie-hua-de-shu-ju-yan-zheng">
+                  <h3 class="post-title">
+                    drf序列化器之反序列化的数据验证
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

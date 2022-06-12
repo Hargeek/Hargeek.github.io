@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>利用GoAccess实时分析web服务日志 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">利用GoAccess实时分析web服务日志</h2>
+            <div class="post-date">2019-12-29</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-goaccess%E6%98%AF%E4%BB%80%E4%B9%88">1、GoAccess是什么</a></li>
+<li><a href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%94%A8goaccess">2、为什么要用GoAccess</a></li>
+<li><a href="#3-goaccess%E5%8A%9F%E8%83%BD">3、GoAccess功能</a></li>
+<li><a href="#4-goaccess%E7%89%B9%E7%82%B9">4、GoAccess特点</a></li>
+<li><a href="#5-%E5%AE%89%E8%A3%85goaccess">5、安装GoAccess</a>
+<ul>
+<li><a href="#51-%E6%BA%90%E7%A0%81%E5%AE%89%E8%A3%85">5.1、源码安装</a></li>
+<li><a href="#52-yum%E5%AE%89%E8%A3%85">5.2、yum安装</a></li>
+</ul>
+</li>
+<li><a href="#6-%E9%85%8D%E7%BD%AE">6、配置</a></li>
+<li><a href="#7-%E4%BD%BF%E7%94%A8">7、使用</a>
+<ul>
+<li><a href="#71-%E6%8E%A7%E5%88%B6%E5%8F%B0%E6%A8%A1%E5%BC%8F">7.1、控制台模式</a></li>
+<li><a href="#72-html%E6%A8%A1%E5%BC%8F">7.2、HTML模式</a></li>
+<li><a href="#73-%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8B%E6%A8%A1%E5%BC%8F">7.3、守护进程模式</a></li>
+<li><a href="#74-%E5%AE%9A%E6%97%B6%E6%9B%B4%E6%96%B0">7.4、定时更新</a></li>
+<li><a href="#75-%E5%A4%84%E7%90%86%E4%B8%8D%E6%96%AD%E5%A2%9E%E9%95%BF%E7%9A%84%E6%97%A5%E5%BF%97">7.5、处理不断增长的日志</a></li>
+<li><a href="#76-%E5%85%B6%E4%BB%96%E4%BD%BF%E7%94%A8">7.6、其他使用</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</p>
+<h2 id="1-goaccess是什么">1、GoAccess是什么</h2>
+<blockquote>
+<p>GoAccess 是一款开源的且具有交互视图界面的实时 Web 日志分析工具，通过你的 Web 浏览器或者 *nix 系统下的终端程序(terminal)即可访问。<br>
+能为系统管理员提供快速且有价值的 HTTP 统计，并以在线可视化服务器的方式呈现。</p>
+</blockquote>
+<h2 id="2-为什么要用goaccess">2、为什么要用GoAccess</h2>
+<blockquote>
+<p>GoAccess 被设计成快速的并基于终端的日志分析工具。其核心理念是不需要通过 Web 浏览器就能快速分析并实时查看 Web 服务器的统计数据(这对于需要使用 SSH 来对访问日志进行快速分析或者就是喜欢在终端环境下工作的人来说是超赞的)。<br>
+终端输出仅仅是默认的输出方式，GoAccess 还支持生成完整的实时 HTML 报告(这对分析、监控以及数据可视化都是极好的)，以及 JSON 和 CSV 格式的报告。</p>
+</blockquote>
+<h2 id="3-goaccess功能">3、GoAccess功能</h2>
+<p>GoAccess 解析指定的 Web 日志文件并将统计结果输出到 X 终端。功能如下：</p>
+<ul>
+<li><strong>通用统计</strong>: 此面板展示了几个主要指标，比如：有效和无效请求的数量，分析这些数据所花费的时间，独立访客的情况，请求的文件，静态文件(CSS, ICO, JPG 等)的完整URL，404错误，被解析的日志文件的大小以及消耗的带宽。</li>
+<li><strong>独立访客</strong>: 此面板按照日期展示了访问次数，独立访客数，以及累计消耗的带宽等指标。具有相同IP，相同访问时间，相同的 UserAgent 的 HTTP 请求将会被识别为独立访客。默认情况下包含了网络爬虫。也可以选择使用 --date-spec=hr 参数将按照日期分析修改为按照小时，例如：05/Jun/2016:16 。这对于希望在小时级别去跟踪每日流量非常有帮助。</li>
+<li><strong>请求的文件</strong>: 此面板展示服务器上被请求次数最多的文件。包含访问次数，独立访客数，百分比，累计消耗带宽，使用的协议，请求方式。</li>
+<li><strong>请求的静态文件</strong>: 列出请求频率最高的静态文件类型，例如：JPG, CSS, SWF, JS, GIF, 和 PNG, 以及和上一个面板一样的其他指标。 另外静态文件可以被添加到配置文件中。</li>
+<li><strong>404或者文件未找到</strong>: 展示内容与之前的面板类似，但是其数据包含了所有未找到的页面，以及俗称的 404 状态码。</li>
+<li><strong>主机</strong>: 此面板展示主机自身的详细信息。能够很好的发现不怀好意的爬虫以及识别出是谁吃掉了你的带宽。扩展面板将展示更多信息，比如主机的反向DNS解析结果，主机所在国家和城市。如果开启了 参数，选择想查看的 IP 地址并按回车，将会显示 UserAgent 列表。</li>
+<li><strong>操作系统</strong>: 此面板将显示主机使用的操作系统的信息。GoAccess 将尽可能尝试为每一款操作系统提供详细的信息。</li>
+<li><strong>浏览器</strong>: 此面板将显示来访主机使用的浏览器信息。GoAccess 将尽可能尝试为每一款浏览器提供详细的信息。</li>
+<li><strong>访问次数</strong>: 此面板按小时报告。因此将显示24个数据点，每一个均对应每一天的某一个小时。使用 --hour-spec=min 参数可以设定为按每十分钟报告，并将以 16:4 的格式显示时间。这对发现服务器的峰值访问时段很有帮助。</li>
+<li><strong>虚拟主机</strong>: 此面板将显示从访问日志中解析出来的不同的虚拟主机的情况。此面板仅在日志格式中启用了 %v 参数时显示。</li>
+<li><strong>来路URL</strong>: 如果问题主机通过其他的资源访问了你的站点，以及通过从其他主机上的链接或者跳转到你的站点，则这些来路URL将会被显示在此面板。可以在配置文件中通过 <code>--ignore-panel</code> 开启此功能。(默认关闭)</li>
+<li><strong>来路站点</strong>: 此面板将仅显示主机的部分，而不是完整的URL。</li>
+<li><strong>关键字</strong>: 报告支持用在谷歌搜索，谷歌缓存，谷歌翻译上使用关键字。目前仅支持通过 HTTP 使用谷歌搜索。 可以在配置文件中通过 <code>--ignore-panel</code> 开启此功能。(默认关闭)</li>
+<li><strong>地理位置</strong>: 根据 IP 地址判断地理位置。统计数据按照大洲和国家分组。需要地理位置模块的支持。</li>
+<li><strong>HTTP 状态码</strong>: 以数字表示的 HTTP 请求的状态编码。</li>
+<li><strong>远程用户(HTTP验证)</strong>: 通过 HTTP 验证来确定访问文档的权限。如果文档没有被密码保护起来，这部分将会显示为 “-”。此面板默认为开启，除非在日志格式变量中设置了参数%e。</li>
+</ul>
+<h2 id="4-goaccess特点">4、GoAccess特点</h2>
+<ul>
+<li><strong>完全实时</strong>: 所有面板以及指标均按照指定时间间隔更新，在终端(Terminal)下是200ms，HTML则是每秒。</li>
+<li><strong>支持几乎所有 Web 日志格式</strong>: GoAccess 允许任意自定义日志格式。 可预定义的格式包括： Apache, Nginx, Amazon S3, Elastic Load Balancing, CloudFront, 等等</li>
+<li><strong>跟踪应用响应时间</strong>: 跟踪处理请求的时间消耗。对于解决站点页面访问速度下降非常有用。</li>
+<li><strong>增长日志处理</strong>: 需要持续保持数据？GoAccess 有能力处理在磁盘上以 B+Tree 数据库存储并且不断增长的日志。</li>
+<li><strong>仅依赖一个模块</strong>: GoAccess 是用 C 语言编写的。 仅仅需要 ncurses 这一个模块即可运行。同时 GoAccess 甚至还拥有自己的兼容 RFC6455 协议的 Web Socket 服务器。</li>
+<li><strong>易于使用</strong>: 可以直接运行 GoAccess 去处理您的访问日志文件，仅需选取日志格式然后让 GoAccess 解析日志内容并将统计结果展示出来。</li>
+<li><strong>访客画像</strong>: 可以按照小时或者指定日期确定最慢请求的访问次数，访客数量，带宽以及其他相关度量值。</li>
+<li><strong>支持虚拟主机</strong>: 拥有多个虚拟主机？在控制面板中能够显示出哪一个虚拟主机消耗 Web 服务器上最多的资源。</li>
+<li><strong>配色风格可定制化</strong>: GoAccess 的配色风格十分易于定制化。无论是通过终端，还是仅仅通过简单修改 HTML 页面的层叠样式表。</li>
+</ul>
+<h2 id="5-安装goaccess">5、安装GoAccess</h2>
+<p>安装有两种方式：源码编译安装和<code>yum</code>安装<br>
+本机环境</p>
+<pre><code># cat /etc/redhat-release 
+CentOS Linux release 7.6.1810 (Core) 
+</code></pre>
+<h3 id="51-源码安装">5.1、源码安装</h3>
+<p>下载包并编译</p>
+<pre><code># wget -c https://tar.goaccess.io/goaccess-1.3.tar.gz
+# tar -xzvf goaccess-1.3.tar.gz
+# cd goaccess-1.3/
+# ./configure --prefix=/usr/local/goaccess --enable-utf8 --enable-geoip=legacy --with-openssl
+</code></pre>
+<p>根据错误提示依次解决依赖关系<br>
+报错一：</p>
+<pre><code>configure: error: 
+    *** Missing development files for the GeoIP library
+# yum install -y GeoIP-devel
+</code></pre>
+<p>报错二：</p>
+<pre><code>configure: error: *** Missing development libraries for ncursesw
+# yum install -y ncurses-devel
+</code></pre>
+<p>再次编译安装</p>
+<pre><code># ./configure --prefix=/usr/local/goaccess --enable-utf8 --enable-geoip=legacy --with-openssl
+...
+Your build configuration:
+
+  Prefix         : /usr/local/goaccess
+  Package        : goaccess
+  Version        : 1.3
+  Compiler flags :  -pthread
+  Linker flags   : -lnsl -lncursesw -lGeoIP -lcrypto -lssl -lpthread  
+  Dynamic buffer : no
+  Geolocation    : GeoIP Legacy
+  Storage method : In-memory Hash Database (Default)
+  TLS/SSL        : yes
+  Bugs           : goaccess@prosoftcorp.com
+# make &amp;&amp; make install
+...
+make[3]: Entering directory `/root/goaccess-1.3'
+ /usr/bin/mkdir -p '/usr/local/goaccess/bin'
+  /usr/bin/install -c goaccess '/usr/local/goaccess/bin'
+ /usr/bin/mkdir -p '/usr/local/goaccess/etc/goaccess'
+ /usr/bin/install -c -m 644 config/goaccess.conf config/browsers.list '/usr/local/goaccess/etc/goaccess'
+ /usr/bin/mkdir -p '/usr/local/goaccess/share/man/man1'
+ /usr/bin/install -c -m 644 goaccess.1 '/usr/local/goaccess/share/man/man1'
+make[3]: Leaving directory `/root/goaccess-1.3'
+make[2]: Leaving directory `/root/goaccess-1.3'
+make[1]: Leaving directory `/root/goaccess-1.3'
+</code></pre>
+<h3 id="52-yum安装">5.2、yum安装</h3>
+<p>通过<code>yum</code>安装可以自动的解决依赖问题</p>
+<pre><code># yum install goaccess -y
+</code></pre>
+<h2 id="6-配置">6、配置</h2>
+<ul>
+<li>配置环境变量</li>
+</ul>
+<pre><code># echo &quot;export PATH=/usr/local/goaccess/bin:$PATH&quot; &gt;&gt;/etc/profile
+# source /etc/profile
+# goaccess -V
+GoAccess - 1.3.
+For more details visit: http://goaccess.io
+Copyright (C) 2009-2016 by Gerardo Orellana
+
+Build configure arguments:
+  --enable-utf8
+  --enable-geoip=legacy
+  --with-openssl
+</code></pre>
+<ul>
+<li>自定义日志/日期格式</li>
+</ul>
+<p><code>GoAccess</code>可以解析虚拟的任意<code>Web</code>日志格式。<br>
+预定义的选项包括：通用日志格式，联合日志格式，包含虚拟主机，<code>W3C</code>格式以及亚马逊<code>CloudFront</code>(分布式下载)。<br>
+<code>GoAccess</code>允许任意的自定义格式字符串。</p>
+<p>有两种方法配置日志格式。最简单的方式是运行 <code>GoAccess</code>时使用<code>-c</code>显示一个配置窗口。但是这种方式不是永久有效的，因此你需要在配置文件中设定格式。</p>
+<p>配置文件位于：<code>%sysconfdir%/goaccess.conf</code> 或者<code>~/.goaccessrc</code><br>
+注意:<code>%sysconfdir%</code>可能是<code>/etc/</code>, <code>/usr/etc/</code>或者<code>/usr/local/etc/</code></p>
+<p><code>time-format</code>参数<code>time-format</code>后跟随一个空格符，指定日志的时间格式，包含普通字符与特殊格式说明符的任意组合。他们都由百分号(%)开始。参考 <code>man strftime</code>。 <code>%T</code>或者<code>%H:%M:%S</code>.<br>
+注意: 如果给定的时间戳以微秒计算，则必须在 <code>time-format</code>中使用参数<code>%f</code>。</p>
+<p>date-format 参数 date-format 后跟随一个空格符，指定日志的日期格式，包含普通字符与特殊格式说明符的任意组合。他们都由百分号 (%)开始。参考 <code>man strftime</code>。<br>
+注意: 如果给定的时间戳以微秒计算，则必须在 <code>time-format</code>中使用参数<code>%f</code>。</p>
+<p><code>log-format</code>参数<code>log-format</code>后跟随一个空格符或者制表分隔符(\t)，用于指定日志字符串格式。</p>
+<ul>
+<li>
+<p>特殊格式说明符</p>
+</li>
+<li>
+<p>%x 匹配 time-format 和 date-format 变量的日期和时间字段。用于使用时间戳来代替日期和时间两个独立变量的场景。</p>
+</li>
+<li>
+<p>%t 匹配 time-format 变量的时间字段。</p>
+</li>
+<li>
+<p>%d 匹配 date-format 变量的日期字段。</p>
+</li>
+<li>
+<p>%v 根据 canonical 名称设定的服务器名称(服务区或者虚拟主机)。</p>
+</li>
+<li>
+<p>%e 请求文档时由 HTTP 验证决定的用户 ID。</p>
+</li>
+<li>
+<p>%h 主机(客户端IP地址，IPv4 或者 IPv6)。</p>
+</li>
+<li>
+<p>%r 客户端请求的行数。这些请求使用分隔符(单引号，双引号)引用的部分可以被解析。否则，需要使用由特殊格式说明符(例如：%m, %U, %q 和 %H)组合格式去解析独立的字段。</p>
+</li>
+<li>
+<p>注意: 既可以使用 %r 获取完整的请求，也可以使用 %m, %U, %q and %H 去组合你的请求，但是不能同时使用。</p>
+</li>
+<li>
+<p>%m 请求的方法。</p>
+</li>
+<li>
+<p>%U 请求的 URL。</p>
+</li>
+<li>
+<p>注意: 如果查询字符串在 %U中，则无需使用 %q。但是，如果 URL 路径中没有包含任何查询字符串，则你可以使用 %q 查询字符串将附加在请求后面。</p>
+</li>
+<li>
+<p>%q 查询字符串。</p>
+</li>
+<li>
+<p>%H 请求协议。</p>
+</li>
+<li>
+<p>%s 服务器回传客户端的状态码。</p>
+</li>
+<li>
+<p>%b 回传客户端的对象的大小。</p>
+</li>
+<li>
+<p>%R HTTP 请求的 &quot;Referer&quot; 值。</p>
+</li>
+<li>
+<p>%u HTTP 请求的 &quot;UserAgent&quot; 值。</p>
+</li>
+<li>
+<p>%D 处理请求的时间消耗，使用微秒计算。</p>
+</li>
+<li>
+<p>%T 处理请求的时间消耗，使用带秒和毫秒计算。</p>
+</li>
+<li>
+<p>%L 处理请求的时间消耗，使用十进制数表示的毫秒计算。</p>
+</li>
+<li>
+<p>%^ 忽略此字段。</p>
+</li>
+<li>
+<p>%~ 继续解析日志字符串直到找到一个非空字符(!isspace)。</p>
+</li>
+<li>
+<p>~h 在 X-Forwarded-For (XFF) 字段中的主机(客户端 IP 地址，IPv4 或者 IPv6)。</p>
+</li>
+<li>
+<p>修改配置文件</p>
+</li>
+</ul>
+<pre><code># vim /usr/local/goaccess/etc/goaccess/goaccess.conf
+time-format %H:%M:%S
+date-format %d/%b/%Y
+log-format %h %^[%d:%t %^] &quot;%r&quot; %s %b &quot;%R&quot; &quot;%u&quot;
+</code></pre>
+<p>本文示例用来分析<code>nginx</code>的日志，为了分析的精准度，配置一下<code>nginx</code>的<code>log_format</code>为通用格式</p>
+<pre><code>    log_format  main '$remote_addr - $remote_user [$time_local] &quot;$request&quot; '
+                     '$status $body_bytes_sent &quot;$http_cookie&quot; &quot;$http_referer&quot; '
+                     '&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;';
+</code></pre>
+<h2 id="7-使用">7、使用</h2>
+<p>常用参数说明</p>
+<ul>
+<li>-a --agent-list 启用由主机用户代理的列表。为了更快的解析，不启用该项</li>
+<li>-d --with-output-resolver 在HTML/JSON输出中开启IP解析，会使用GeoIP来进行IP解析</li>
+<li>-f --log-file 需要分析的日志文件路径</li>
+<li>-p --config-file 配置文件路径</li>
+<li>-o --output 输出格式，支持html、json、csv</li>
+<li>-m --with-mouse 控制面板支持鼠标点击</li>
+<li>-q --no-query-string 忽略请求的参数部分</li>
+<li>--real-time-html 实时生成HTML报告</li>
+<li>--daemonize 守护进程模式，--real-time-html时使用</li>
+</ul>
+<h3 id="71-控制台模式">7.1、控制台模式</h3>
+<pre><code># pwd
+/var/log/nginx
+# goaccess -a -d -f nginx_access.log-20191216 -p /usr/local/goaccess/etc/goaccess/goaccess.conf
+</code></pre>
+<p>控制台操作方法按键</p>
+<ul>
+<li>F1   主帮助页面</li>
+<li>F5   重绘主窗口</li>
+<li>q    退出</li>
+<li>1-15 跳转到对应编号的模块位置</li>
+<li>o    打开当前模块的详细视图</li>
+<li>j    当前模块向下滚动</li>
+<li>k    当前模块向上滚动</li>
+<li>s    对模块排序</li>
+<li>/    在所有模块中搜索匹配</li>
+<li>n    查找下一个出现的位置</li>
+<li>g    移动到第一个模块顶部</li>
+<li>G    移动到最后一个模块底部</li>
+</ul>
+<p>效果如下<br>
+<img src="https://image.ssgeek.com/20191229-01.png" alt=""></p>
+<h3 id="72-html模式">7.2、HTML模式</h3>
+<pre><code># pwd
+/var/log/nginx
+# goaccess -a -d -f nginx_access.log-20191216 -p /usr/local/goaccess/etc/goaccess/goaccess.conf -o /usr/local/nginx/html/www.ssgeek.com/go-access.html
+Parsing... [9,692] [692/s]s]
+</code></pre>
+<p>此处生成的<code>html</code>直接定向到了站点目录下，因此分析并生成<code>html</code>文件后即可进行访问，不多说此处上大图！<br>
+<img src="https://image.ssgeek.com/20191229-02.jpg" alt=""></p>
+<h3 id="73-守护进程模式">7.3、守护进程模式</h3>
+<p>使用<code>daemonize</code>模式运行，生成实时<code>HTML</code>报告的过程与创建静态报告的过程非常相似，只需要在启动命令后添加<code>--real-time-html</code>和<code>--daemonize</code>参数即可</p>
+<pre><code># goaccess -a -d -f nginx_access.log-20191216 -p /usr/local/goaccess/etc/goaccess/goaccess.conf -o /usr/local/nginx/html/www.ssgeek.com/go-access.html --real-time-html --daemonize
+Daemonized GoAccess: 13308
+</code></pre>
+<p>默认监听的是7890端口，可以使用<code>--port</code>指定端口号启动后会提示<code>WebSocket</code>服务器已准备接收来自客户的连接</p>
+<pre><code># netstat -lntup|grep 7890
+tcp        0      0 0.0.0.0:7890            0.0.0.0:*               LISTEN      13333/goaccess
+</code></pre>
+<p>如果网站开启了<code>HTTPS</code>功能，就需要<code>GoAccess</code>启用<code>openssl</code>，在配置文件<code>goaccess.conf</code>中配置<code>ssl-cert</code>和<code>ssl-key</code>来支持<code>openssl</code>,还需要将<code>ws-url</code>指定为<code>https</code>的域名</p>
+<h3 id="74-定时更新">7.4、定时更新</h3>
+<p>也可以通过定时任务的方式实现定时更新<code>HTML</code>报表，每30分钟刷新一次</p>
+<pre><code># crontab -e
+*/30 * * * * goaccess -a -d -f nginx_access.log-20191216 -p /usr/local/goaccess/etc/goaccess/goaccess.conf -o /usr/local/nginx/html/www.ssgeek.com/go-access.html
+</code></pre>
+<h3 id="75-处理不断增长的日志">7.5、处理不断增长的日志</h3>
+<p>处理不断增长的日志指的是当日志按照某些规则进行切割，例如<code>nginx</code>日志每天切割一份的情况。这个时候<code>GoAccess</code>通过磁盘<code>B+树</code>数据库能够处理不断增长的日志。工作原理如下：</p>
+<ul>
+<li>首先数据集必须使用 --keep-db-files, 参数保存，然后相同的数据集可以使用参数 --load-from-disk 载入。</li>
+<li>收到新的数据(来自管道或者文件)后，将会被附加到原始数据集上。</li>
+<li>在任何时候都保存数据， 则必须使用 --keep-db-files 参数。</li>
+<li>如果在使用参数 --load-from-disk 时没有同时使用 --keep-db-files 参数，则数据库文件在程序关闭时将会被删除。</li>
+</ul>
+<p>示例：</p>
+<pre><code>// 上个月的访问日志
+goaccess access.log.1 --keep-db-files
+</code></pre>
+<p>然后，载入</p>
+<pre><code>// 添加这个月的新日志，并保存为新数据
+goaccess access.log --load-from-disk --keep-db-files
+</code></pre>
+<p>读取已经保存的数据(不解析新数据)</p>
+<pre><code>goaccess --load-from-disk --keep-db-files
+</code></pre>
+<h3 id="76-其他使用">7.6、其他使用</h3>
+<ul>
+<li>生成 JSON 报告</li>
+</ul>
+<pre><code># goaccess -a -d -f nginx_access.log-20191216 -p /usr/local/goaccess/etc/goaccess/goaccess.conf -o json &gt; report.json
+</code></pre>
+<ul>
+<li>生成 CSV 文件</li>
+</ul>
+<pre><code># goaccess -a -d -f nginx_access.log-20191216 -p /usr/local/goaccess/etc/goaccess/goaccess.conf -o csv &gt; report.csv
+</code></pre>
+<ul>
+<li>实施过滤和解析</li>
+</ul>
+<pre><code># tail -f nginx_access.log | goaccess -p /usr/local/goaccess/etc/goaccess/goaccess.conf -
+</code></pre>
+<ul>
+<li>分析多个文件</li>
+</ul>
+<pre><code># goaccess -p /usr/local/goaccess/etc/goaccess/goaccess.conf access.log.1 access.log.2
+</code></pre>
+<p>参考：<br>
+https://goaccess.cc/<br>
+https://github.com/allinurl/goaccess</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/A-5jep5QjU" class="tag">
+                    日志分析
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/app" class="tag">
+                    实用程序
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/pou-xi-he-jie-jue-python-zhong-wang-luo-nian-bao-de-zheng-que-zi-shi">
+                  <h3 class="post-title">
+                    剖析和解决Python中网络粘包的正确姿势
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

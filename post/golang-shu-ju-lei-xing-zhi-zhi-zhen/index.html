@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Golang数据类型之指针 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Golang数据类型之指针</h2>
+            <div class="post-date">2021-08-04</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%A6%82%E8%BF%B0">1、概述</a></li>
+<li><a href="#2-%E5%A3%B0%E6%98%8E">2、声明</a></li>
+<li><a href="#3-%E7%A9%BA%E6%8C%87%E9%92%88">3、空指针</a></li>
+<li><a href="#4-%E7%94%A8%E6%8C%87%E9%92%88%E4%BF%AE%E6%94%B9%E5%80%BC">4、用指针修改值</a></li>
+<li><a href="#5-%E6%8C%87%E9%92%88%E7%9A%84%E6%8C%87%E9%92%88">5、指针的指针</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/golang.png" alt=""></figure>
+<h2 id="1-概述">1、概述</h2>
+<p>每个变量在内存中都有对应的存储位置，也就是内存地址</p>
+<p>指针类型是指变量存储的是一个内存地址的变量类型，在<code>golang</code>中可以通过<code>&amp;</code>运算符获取变量的指针</p>
+<p>取变量指针的语法</p>
+<pre><code class="language-go">ptr := &amp;v    // v的类型为T
+// v:代表被取地址的变量，类型为T
+// ptr:用于接收地址的变量，ptr的类型就为*T，称做T的指针类型。*代表指针
+</code></pre>
+<h2 id="2-声明">2、声明</h2>
+<p>指针声明需要指定存储地址中对应数据的类型，并使用<code>*</code>作为类型前缀进行指针取值</p>
+<pre><code class="language-go">func main() {
+    //指针取值
+    a := 10
+    b := &amp;a // 取变量a的地址，将指针保存到b中
+    fmt.Printf(&quot;type of b:%T\n&quot;, b)
+    c := *b // 指针取值（根据指针去内存取值）
+    fmt.Printf(&quot;type of c:%T\n&quot;, c)
+    fmt.Printf(&quot;value of c:%v\n&quot;, c)
+}
+/*
+type of b:*int
+type of c:int
+value of c:10
+/*
+</code></pre>
+<p>用法归纳</p>
+<ul>
+<li>对变量进行取地址<code>（&amp;）</code>操作，可以获得这个变量的指针变量</li>
+<li>对指针变量进行取值<code>（*）</code>操作，可以获得指针变量指向的原变量的值</li>
+<li>指针变量的值是变量的内存地址</li>
+</ul>
+<h2 id="3-空指针">3、空指针</h2>
+<p>指针变量声明后会被初始化为<code>nil</code>，表示的是空指针</p>
+<pre><code class="language-go">func main() {
+    var p *string
+    fmt.Println(p)
+    fmt.Printf(&quot;p的值是%v\n&quot;, p)
+    if p != nil {
+        fmt.Println(&quot;非空&quot;)
+    } else {
+        fmt.Println(&quot;空值&quot;)
+    }
+}
+</code></pre>
+<p>还可以使用<code>new</code>函数进行初始化，<code>new</code>函数会根据数据类型申请内存空间并使用零值填充，并返回申请的空间地址</p>
+<pre><code class="language-go">var a *int = new(int)
+fmt.Println(&amp;a)
+fmt.Println(a) // 0xc000014330
+fmt.Println(*a) // 0
+// 变量的地址 指针的地址 指针的值
+</code></pre>
+<h2 id="4-用指针修改值">4、用指针修改值</h2>
+<p><code>exchange</code>函数依次进行的操作：</p>
+<ul>
+<li>
+<p>取<code>c</code>指针的值, 赋给临时变量<code>t</code></p>
+</li>
+<li>
+<p>取<code>d</code>指针的值, 赋给<code>c</code>指针指向的变量</p>
+</li>
+<li>
+<p>将<code>c</code>指针的值赋给<code>d</code>指针指向的变量</p>
+</li>
+</ul>
+<pre><code class="language-go">func exchange(c, d *int) {
+	t := *c
+	*c = *d
+	*d = t
+}
+func main() {
+	a, b := 6, 8      // 准备两个变量, 赋值6和8
+	exchange(&amp;a, &amp;b)  // 交换变量值
+	fmt.Println(a, b) // 输出变量值
+}
+/*
+8 6
+*/
+</code></pre>
+<h2 id="5-指针的指针">5、指针的指针</h2>
+<p>用来存储指针变量地址的变量叫做指针的指针</p>
+<pre><code class="language-go">func main() {
+   var a int
+   var ptr *int
+   var pptr **int
+   a = 3000
+   /* 指针 ptr 地址 */
+   ptr = &amp;a
+   /* 指向指针 ptr 地址 */
+   pptr = &amp;ptr
+   /* 获取 pptr 的值 */
+   fmt.Printf(&quot;变量 a = %d\n&quot;, a )
+   fmt.Printf(&quot;指针变量 *ptr = %d\n&quot;, *ptr )
+   fmt.Printf(&quot;指向指针的指针变量 **pptr = %d\n&quot;, **pptr)
+}
+/*
+变量 a = 3000
+指针变量 *ptr = 3000
+指向指针的指针变量 **pptr = 3000
+/*
+</code></pre>
+<p>多维指针</p>
+<pre><code class="language-go">func main() {
+		var a ****int
+    v := 10
+    p1 := &amp;v  // *int
+    p2 := &amp;p1 // **int
+    p3 := &amp;p2 // ***int
+    a = &amp;p3   //  ****int
+    fmt.Println(v, p1, p2, p3, a, ****a) // 10 0xc000114168 0xc00011e028 0xc00011e030 0xc00011e038 10
+}
+</code></pre>
+<p>See you ~</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/golang" class="tag">
+                    golang
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/dns-or-hosts">
+                  <h3 class="post-title">
+                    DNS or hosts ？
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

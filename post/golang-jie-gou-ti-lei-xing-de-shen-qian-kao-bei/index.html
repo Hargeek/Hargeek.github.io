@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Golang结构体类型的深浅拷贝 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Golang结构体类型的深浅拷贝</h2>
+            <div class="post-date">2021-07-23</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#1-%E6%B5%85%E6%8B%B7%E8%B4%9D">1、浅拷贝</a></li>
+<li><a href="#2-%E6%B7%B1%E6%8B%B7%E8%B4%9D">2、深拷贝</a></li>
+<li><a href="#3-%E7%BB%93%E6%9E%84%E4%BD%93%E7%9A%84%E6%B7%B1%E6%8B%B7%E8%B4%9D">3、结构体的深拷贝</a></li>
+<li><a href="#4-%E7%BB%93%E6%9E%84%E4%BD%93%E7%9A%84%E6%B5%85%E6%8B%B7%E8%B4%9D">4、结构体的浅拷贝</a></li>
+<li><a href="#5-%E7%BB%93%E6%9E%84%E4%BD%93%E5%80%BC%E7%B1%BB%E5%9E%8B%E7%9A%84%E6%B5%85%E6%8B%B7%E8%B4%9D">5、结构体值类型的浅拷贝</a></li>
+<li><a href="#6-%E7%BB%93%E6%9E%84%E4%BD%93%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B%E7%9A%84%E6%B5%85%E6%8B%B7%E8%B4%9D">6、结构体引用类型的浅拷贝</a></li>
+<li><a href="#7-%E7%BB%93%E6%9E%84%E4%BD%93%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B%E7%9A%84%E6%B7%B1%E6%8B%B7%E8%B4%9D">7、结构体引用类型的深拷贝</a></li>
+</ul>
+</li>
+</ul>
+</p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/golang.png" alt=""></figure>
+<blockquote>
+<p>在开发中会经常的把一个变量复制给另一个变量，有时候为了不让对象直接相互干扰，我们需要深度赋值对象</p>
+<p>那么这个过程，可能涉及到深浅拷贝</p>
+</blockquote>
+<h2 id="1-浅拷贝">1、浅拷贝</h2>
+<p>浅拷贝是指对地址的拷贝</p>
+<p>浅拷贝的是数据地址，只复制指向的对象的指针，此时新对象和老对象指向的内存地址是一样的，新对象值修改时老对象也会变化，释放内存地址时，同时释放内存地址</p>
+<p>引用类型的都是浅拷贝：<code>slice</code>、<code>map</code>、<code>function</code></p>
+<p>浅拷贝的特点：</p>
+<ul>
+<li>
+<p>拷贝的时候仅仅拷贝地址，地址指向的都是同一个值</p>
+</li>
+<li>
+<p>在<code>a</code>中修改，则<code>b</code>中也跟着变化</p>
+</li>
+<li>
+<p>内存销毁是一致的</p>
+</li>
+</ul>
+<h2 id="2-深拷贝">2、深拷贝</h2>
+<p>深拷贝是指将地址指向的值进行拷贝</p>
+<p>深拷贝的是数据本身，创造一个一样的新对象，新创建的对象与原对象不共享内存，新创建的对象在内存中开辟一个新的内存地址，新对象值修改时不会影响原对象值。既然内存地址不同，释放内存地址时，可分别释放</p>
+<p>值类似的都是深拷贝：<code>int</code>、<code>float</code>、<code>bool</code>、<code>array</code>、<code>struct</code></p>
+<p>深拷贝的特点：</p>
+<ul>
+<li>复制的时候会新创建一个对象</li>
+<li>指向完全不同的内存地址</li>
+<li>修改是互不影响的</li>
+</ul>
+<p>通过指针求值，将值拷贝实现，修改拷贝的值不影响原来的值</p>
+<pre><code class="language-go">type Author struct {
+	Name string
+	Aage int
+}
+
+type Title struct {
+	Main string
+	Sub  string
+}
+
+type Book2 struct {
+	Author *Author
+	Title  *Title
+}
+
+func (b *Book2) GetName() string {
+	return b.Author.GetName() + &quot;book&quot;
+}
+
+func TestMain8(t *testing.T) {
+	b1 := Book2{
+		Author: &amp;Author{
+			Name: &quot;old author&quot;,
+		},
+		Title: &amp;Title{},
+	}
+
+	b2 := &amp;Book2{
+		Author: &amp;Author{},
+		Title: &amp;Title{},
+	}
+	*b2.Author = *b1.Author
+	*b2.Title = *b1.Title
+
+	b2.Author.Name = &quot;new author&quot;
+	fmt.Println(b1.Author.Name)  // old author
+	fmt.Println(b2.Author.Name)  // new author
+}
+</code></pre>
+<h2 id="3-结构体的深拷贝">3、结构体的深拷贝</h2>
+<p>默认情况下，结构体类型中的字段是值类型，拷贝时都是深拷贝</p>
+<pre><code class="language-go">type Per struct {
+	Name     string
+	Age      int
+	HouseIds [2]int
+}
+
+func main()  {
+	p1 := Per{
+		Name:     &quot;ssgeek&quot;,
+		Age:      24,
+		HouseIds: [2]int{22, 33},
+	}
+	p2 := p1
+	fmt.Printf(&quot;%v %p \n&quot;, p1, &amp;p1)  // {ssgeek 24 [22 33]} 0xc000180030
+	fmt.Printf(&quot;%v %p \n&quot;, p2, &amp;p2)  // {ssgeek 24 [22 33]} 0xc000180060
+	p2.Age = 19
+	p2.Name = &quot;likui&quot;
+	p2.HouseIds[1] = 44
+	fmt.Printf(&quot;%v %p \n&quot;, p1, &amp;p1)  // {ssgeek 24 [22 33]} 0xc000098180
+	fmt.Printf(&quot;%v %p \n&quot;, p2, &amp;p2)  // {likui 19 [22 44]} 0xc0000981b0
+}
+</code></pre>
+<h2 id="4-结构体的浅拷贝">4、结构体的浅拷贝</h2>
+<p>使用指针进行浅拷贝，浅拷贝中，可以看到<code>p1</code>和<code>p2</code>的内存地址是相同的，修改其中一个对象的属性时，另一个也会产生变化</p>
+<pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+type Per struct {
+	Name     string
+	Age      int
+	HouseIds [2]int
+}
+
+func main()  {
+	p1 := Per{
+		Name:     &quot;ssgeek&quot;,
+		Age:      24,
+		HouseIds: [2]int{22, 33},
+	}
+	p2 := &amp;p1
+	fmt.Printf(&quot;%v %p \n&quot;, p1, &amp;p1)  // {ssgeek 24 [22 33]} 0xc000076180
+	fmt.Printf(&quot;%v %p \n&quot;, p2, p2)  // &amp;{ssgeek 24 [22 33]} 0xc000076180
+	p2.Age = 19
+	p2.Name = &quot;likui&quot;
+	p2.HouseIds[1] = 44
+	fmt.Printf(&quot;%v %p \n&quot;, p1, &amp;p1)  // {likui 19 [22 44]} 0xc000076180
+	fmt.Printf(&quot;%v %p \n&quot;, p2, p2)  // &amp;{likui 19 [22 44]} 0xc000076180
+}
+</code></pre>
+<h2 id="5-结构体值类型的浅拷贝">5、结构体值类型的浅拷贝</h2>
+<p>使用<code>new</code>函数实现值类型的浅拷贝</p>
+<p>值类型的默认是深拷贝，想要实现值类型的浅拷贝，一般是两种方法</p>
+<ul>
+<li>使用指针</li>
+<li>使用new函数（new函数返回的是指针）</li>
+</ul>
+<pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+type Per struct {
+	Name     string
+	Age      int
+	HouseIds [2]int
+}
+
+func main()  {
+	p1 := new(Per)
+	p1.HouseIds = [2]int{22, 33}
+	p1.Name = &quot;songjiang&quot;
+	p1.Age = 20
+
+	p2 := p1
+	fmt.Printf(&quot;%v %p \n&quot;, p1, p1)  // &amp;{songjiang 20 [22 33]} 0xc000076180
+	fmt.Printf(&quot;%v %p \n&quot;, p2, p2)  // &amp;{songjiang 20 [22 33]} 0xc000076180
+	p2.Age = 19
+	p2.Name = &quot;likui&quot;
+	p2.HouseIds[1] = 44
+	fmt.Printf(&quot;%v %p \n&quot;, p1, p1)  // &amp;{likui 19 [22 44]} 0xc000076180
+	fmt.Printf(&quot;%v %p \n&quot;, p2, p2)  // &amp;{likui 19 [22 44]} 0xc000076180
+}
+</code></pre>
+<h2 id="6-结构体引用类型的浅拷贝">6、结构体引用类型的浅拷贝</h2>
+<p>结构体默认是深拷贝，但如果结构体中包含map、slice等这些引用类型，默认也还是浅拷贝</p>
+<p>map是引用类型，引用类型浅拷贝是默认的情况</p>
+<pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+type Per struct {
+	Name     string
+	Age      int
+	HouseIds [2]int  // 数组，指定了长度
+	CarIds   []int  // 切片，没指定长度
+	Labels   map[string]string
+}
+
+func main() {
+	//p1 := new(Per)
+	p1 := Per{
+		Name:     &quot;ssgeek&quot;,
+		Age:      24,
+		HouseIds: [2]int{22, 33},  // 数组，指定了长度，深拷贝
+		CarIds: []int{911, 718},  // 切片，引用类型，浅拷贝
+		Labels:   map[string]string{&quot;k1&quot;: &quot;v1&quot;, &quot;k2&quot;: &quot;v2&quot;},
+		// 上述三个都是值类型，深拷贝，这个map是引用类型，浅拷贝
+	}
+	p2 := p1
+	fmt.Printf(&quot;%v %p \n&quot;, p1, &amp;p1) // {ssgeek 18 [22 33] map[k1:v1 k2:v2]} 0xc000076180
+	fmt.Printf(&quot;%v %p \n&quot;, p2, &amp;p2) // {ssgeek 18 [22 33] map[k1:v1 k2:v2]} 0xc0000761e0
+	p2.Age = 19
+	p2.Name = &quot;likui&quot;
+	p2.HouseIds[1] = 44
+	p2.CarIds[0] = 119
+	p2.Labels[&quot;k1&quot;] = &quot;m1&quot;
+	fmt.Printf(&quot;%v %p \n&quot;, p1, &amp;p1) // {ssgeek 24 [22 33] map[k1:m1 k2:v2]} 0xc000076180
+	fmt.Printf(&quot;%v %p \n&quot;, p2, &amp;p2) // {likui 19 [22 44] map[k1:m1 k2:v2]} 0xc0000761e0
+}
+
+</code></pre>
+<h2 id="7-结构体引用类型的深拷贝">7、结构体引用类型的深拷贝</h2>
+<p>结构体中含有引用类型的字段，那么这个字段就是浅拷贝，但是往往希望的是深拷贝，解决方案如下</p>
+<ul>
+<li>方法一：挨个把可导致浅拷贝的引用类型字段自行赋值</li>
+</ul>
+<p>赋值后，修改值就相互不影响了</p>
+<pre><code class="language-go">package main
+
+import &quot;fmt&quot;
+
+type Per struct {
+	Name     string
+	Age      int
+	HouseIds [2]int  // 数组，指定了长度
+	CarIds   []int  // 切片，没指定长度
+	Labels   map[string]string
+}
+
+func main() {
+	//p1 := new(Per)
+	p1 := Per{
+		Name:     &quot;ssgeek&quot;,
+		Age:      24,
+		HouseIds: [2]int{22, 33},  // 数组，指定了长度，深拷贝
+		CarIds: []int{911, 718},  // 切片，引用类型，浅拷贝
+		Labels:   map[string]string{&quot;k1&quot;: &quot;v1&quot;, &quot;k2&quot;: &quot;v2&quot;},
+		// 上述三个都是值类型，深拷贝，这个map是引用类型，浅拷贝
+	}
+	p2 := p1
+	// 切片赋值到新的切片
+	tmpCarIds := make([]int, 0)
+	for _, c := range p1.CarIds{
+		tmpCarIds = append(tmpCarIds, c)
+	}
+	// map赋值到新的map
+	tmpLabels := make(map[string]string)
+	for k, v := range p1.Labels{
+		tmpLabels[k] = v
+	}
+	p2.CarIds = tmpCarIds
+	p2.Labels = tmpLabels
+	fmt.Printf(&quot;%v %p \n&quot;, p1, &amp;p1) // {ssgeek 24 [22 33] [911 718] map[k1:v1 k2:v2]} 0xc00006c050
+	fmt.Printf(&quot;%v %p \n&quot;, p2, &amp;p2) // {ssgeek 24 [22 33] [911 718] map[k1:v1 k2:v2]} 0xc00006c0a0
+	p1.Age = 19
+	p1.Name = &quot;likui&quot;
+	p1.HouseIds[1] = 44
+	p1.CarIds[0] = 119
+	p1.Labels[&quot;k1&quot;] = &quot;m1&quot;
+	fmt.Printf(&quot;%v %p \n&quot;, p1, &amp;p1) // {likui 19 [22 44] [119 718] map[k1:m1 k2:v2]} 0xc00006c050
+	fmt.Printf(&quot;%v %p \n&quot;, p2, &amp;p2) // {ssgeek 24 [22 33] [911 718] map[k1:v1 k2:v2]} 0xc00006c0a0
+}
+</code></pre>
+<ul>
+<li>方法二：使用<code>json</code>或反射</li>
+</ul>
+<p>简单来说：<code>json</code>将引用类型的数据进行<code>dump</code>，<code>dump</code>后就和原来的引用类型没有关系了</p>
+<pre><code class="language-go">package main
+
+import (
+	&quot;encoding/json&quot;
+	&quot;fmt&quot;
+)
+
+type Per struct {
+	Name     string
+	Age      int
+	HouseIds [2]int // 数组，指定了长度
+	CarIds   []int  // 切片，没指定长度
+	Labels   map[string]string
+}
+
+func main() {
+	p1 := Per{
+		Name:     &quot;ssgeek&quot;,
+		Age:      24,
+		HouseIds: [2]int{22, 33},  // 数组，指定了长度，深拷贝
+		CarIds:   []int{911, 718}, // 切片，引用类型，浅拷贝
+		Labels:   map[string]string{&quot;k1&quot;: &quot;v1&quot;, &quot;k2&quot;: &quot;v2&quot;},
+		// 上述三个都是值类型，深拷贝，这个map是引用类型，浅拷贝
+	}
+	data, _ := json.Marshal(p1)
+	var p2 Per
+	json.Unmarshal(data, &amp;p2)
+	fmt.Printf(&quot;%v %p \n&quot;, p1, &amp;p1) // {ssgeek 24 [22 33] [911 718] map[k1:v1 k2:v2]} 0xc00006c050
+	fmt.Printf(&quot;%v %p \n&quot;, p2, &amp;p2) // {ssgeek 24 [22 33] [911 718] map[k1:v1 k2:v2]} 0xc00006c140
+	p1.Age = 19
+	p1.Name = &quot;likui&quot;
+	p1.HouseIds[1] = 44
+	p1.CarIds[0] = 119
+	p1.Labels[&quot;k1&quot;] = &quot;m1&quot;
+	fmt.Printf(&quot;%v %p \n&quot;, p1, &amp;p1) // {likui 19 [22 44] [119 718] map[k1:m1 k2:v2]} 0xc00006c050
+	fmt.Printf(&quot;%v %p \n&quot;, p2, &amp;p2) // {ssgeek 24 [22 33] [911 718] map[k1:v1 k2:v2]} 0xc00006c140
+}
+</code></pre>
+<ul>
+<li>方法三：使用其他三方库（这里还没深入）</li>
+</ul>
+<p>See you ~</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/golang" class="tag">
+                    golang
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/golang-han-shu-can-shu-de-zhi-chuan-di-he-yin-yong-chuan-di">
+                  <h3 class="post-title">
+                    Golang函数参数的值传递和引用传递
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>

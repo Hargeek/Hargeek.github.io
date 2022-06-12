@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>k8s内网和办公网络的打通实践 | 山山仙人博客</title>
+<meta name="description" content="">
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/5.7.2/css/all.css">
+<link rel="shortcut icon" href="https://www.ssgeek.com/favicon.ico?v=1655002295372">
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link rel="stylesheet" href="https://www.ssgeek.com/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/gitalk/1.6.2/gitalk.css" />
+  
+
+  
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.11/vue.js"></script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script data-ad-client="ca-pub-6775328896166270" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?4b826a92a3dc151a74693fa1942d3167";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.css" />
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-147397031-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-147397031-1');
+</script>
+
+
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://www.ssgeek.com">
+        <img src="https://www.ssgeek.com/images/avatar.png?v=1655002295372" class="site-logo">
+        <h1 class="site-title">山山仙人博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="https://www.ssgeek.com" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/about/" class="site-nav">
+            关于
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/gong-zhong-hao/" class="site-nav">
+            公众号
+          </a>
+        
+      
+        
+          <a href="https://www.ssgeek.com/post/you-qing-lian-jie/" class="site-nav">
+            友情链接
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/hargeek" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://twitter.com/anronghong" target="_blank">
+            <i class="fab fa-twitter"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://weibo.com/u/5717964658" target="_blank">
+            <i class="fab fa-weibo"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.zhihu.com/people/hong-an-rong-46/activities" target="_blank">
+            <i class="fab fa-zhihu"></i>
+          </a>
+        
+      
+        
+          <a class="social-link" href="https://www.facebook.com/profile.php?id=100041470532098" target="_blank">
+            <i class="fab fa-facebook"></i>
+          </a>
+        
+      
+    </div>
+    <div class="site-description">
+      
+    </div>
+    <div class="site-footer">
+      <a href="https://beian.miit.gov.cn" style="text-decoration:none;">鄂ICP备18007156号-1</a></br></br>Copyright © All Rights Reserved | <a class="rss" href="https://www.ssgeek.com/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">k8s内网和办公网络的打通实践</h2>
+            <div class="post-date">2020-12-12</div>
+            
+            <div class="post-content">
+              <p><ul class="markdownIt-TOC">
+<li><a href="#1-%E8%83%8C%E6%99%AF">1、背景</a></li>
+<li><a href="#2-%E7%8E%AF%E5%A2%83%E8%AF%B4%E6%98%8E">2、环境说明</a></li>
+<li><a href="#3-%E6%80%BB%E4%BD%93%E6%80%9D%E8%B7%AF">3、总体思路</a></li>
+<li><a href="#4-%E7%BD%91%E7%BB%9C%E6%89%93%E9%80%9A%E7%9A%84%E5%85%B7%E4%BD%93%E5%AE%9E%E7%8E%B0">4、网络打通的具体实现</a>
+<ul>
+<li><a href="#41-%E6%A3%80%E6%9F%A5%E7%8E%B0%E6%9C%89%E7%BD%91%E7%BB%9C%E8%BF%9E%E9%80%9A%E6%83%85%E5%86%B5">4.1 检查现有网络连通情况</a>
+<ul>
+<li><a href="#411-%E5%8A%9E%E5%85%AC%E7%BD%91%E7%BB%9C%E5%92%8Ck8s-node">4.1.1 办公网络和k8s node</a></li>
+<li><a href="#412-k8s-node%E5%92%8Cpod%E5%8F%8Asvc">4.1.2 k8s node和pod及svc</a></li>
+</ul>
+</li>
+<li><a href="#42-%E6%B7%BB%E5%8A%A0%E5%9C%B0%E5%9D%80">4.2 添加地址</a></li>
+<li><a href="#43-%E9%85%8D%E7%BD%AE%E9%9D%99%E6%80%81%E8%B7%AF%E7%94%B1">4.3 配置静态路由</a></li>
+<li><a href="#44-%E9%85%8D%E7%BD%AE%E7%AD%96%E7%95%A5">4.4 配置策略</a></li>
+<li><a href="#45-%E9%AA%8C%E8%AF%81%E9%85%8D%E7%BD%AE">4.5 验证配置</a>
+<ul>
+<li><a href="#451-web%E7%95%8C%E9%9D%A2%E6%A3%80%E6%9F%A5">4.5.1 web界面检查</a></li>
+<li><a href="#452-pc%E7%BD%91%E7%BB%9C%E6%A3%80%E6%9F%A5">4.5.2 pc网络检查</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#5-dns%E8%A7%A3%E6%9E%90%E6%89%93%E9%80%9A%E7%9A%84%E5%85%B7%E4%BD%93%E5%AE%9E%E7%8E%B0">5、dns解析打通的具体实现</a>
+<ul>
+<li><a href="#51-%E9%85%8D%E7%BD%AEdns%E6%9D%A1%E4%BB%B6%E8%BD%AC%E5%8F%91">5.1 配置dns条件转发</a></li>
+<li><a href="#52-%E9%AA%8C%E8%AF%81%E9%85%8D%E7%BD%AE">5.2 验证配置</a></li>
+</ul>
+</li>
+<li><a href="#6-%E5%B0%8F%E7%BB%93">6、小结</a></li>
+</ul>
+</p>
+<h1 id="1-背景">1、背景</h1>
+<p>近期工作中出现了一个问题：某个旧服务中用到了<code>redis</code>，但是在前期项目容器化改造部署阶段研发同事并没有说明需要用到<code>redis</code>，直至部署生产<code>prod</code>环境出现问题。<br>
+那么疑问来了，为什么在<code>qa</code>环境没有问题呢？经沟通排查发现，源码中也就是<code>qa</code>环境连接的是一个古老的虚拟机运行的<code>redis</code>，所以自然研发测试环境都没问题，至于为什么会连接到这个地址，不得而知！</p>
+<p>第一想法：关掉这个<code>redis</code>服务，让研发“被迫”主动告知；规范要求，在<code>k8s</code>集群内部部署该项目的<code>redis</code>服务集群，保证环境一致性，减少不必要麻烦。</p>
+<p>项目多数属于微服务应用模块，研发本地无法完整运行全部依赖，希望在本地运行某个服务后，能够注册到<code>qa</code>容器环境的依赖服务中进行调试。<br>
+例如在<code>k8s</code>中运行的<code>redis</code>、<code>rabbitmq</code>等服务，研发在当前环境下无法直接通过客户端工具连接进行访问，给研发测试进行联调带来了很大麻烦，且<code>k8s</code>内部通过<code>cni</code>插件创建<code>pod</code>和<code>service</code>的内部网络，这类服务无法通过<code>ingress</code>进行7层暴露，如果通过<code>NodePort</code>模式暴露给研发，不仅使用有限而且会导致端口管理困难从而工作量加大。因此打通开发和测试环境<code>k8s</code>集群内网和办公局域网络是有很大必要性的。</p>
+<h1 id="2-环境说明">2、环境说明</h1>
+<p>相关网络拓扑如下</p>
+<img src="https://image.ssgeek.com/20201211-01.png" style="zoom: 75%;" />
+<p><code>ip</code>地址情况如下</p>
+<ul>
+<li>办公子网：172.16.0.0/24</li>
+<li><code>DMZ</code>区域服务器子网：172.16.1.0/24、172.16.2.0/24</li>
+<li><code>k8s pod</code>子网：172.20.0.0/16</li>
+<li><code>k8s service</code>子网：10.68.0.0/16</li>
+</ul>
+<p>其他涉及到的相关服务及<code>ip</code>说明</p>
+<ul>
+<li>
+<p><code>k8s</code>网络插件：<code>flannel</code>，对应网络模式为<code>host-gw</code></p>
+</li>
+<li>
+<p><code>k8s kube-dns service ip</code>：10.68.0.2</p>
+</li>
+<li>
+<p>内网<code>dns</code>服务：ms(windows) server dns</p>
+</li>
+<li>
+<p>内网<code>dns ip</code>：172.16.2.3</p>
+</li>
+<li>
+<p><code>FortiGate ip</code>：172.16.2.254</p>
+</li>
+</ul>
+<h1 id="3-总体思路">3、总体思路</h1>
+<p><code>k8s</code>集群部署在测试机房，整个局域网链路、外网、防火墙由飞塔防火墙<code>FortiGate</code>设备统一控制，除<code>k8s</code>集群内部网络外，其他网络均已通过<code>FortiGate</code>打通，所以目前面临的问题就是网络打通和<code>dns</code>解析打通。</p>
+<ul>
+<li>
+<p>网络打通</p>
+<p>于是，在网关和路由器上添加静态路由，把属于<code>k8s</code>的<code>Pod</code>和<code>Service</code>的子网<code>IP</code>包全转给其中某个<code>k8s node</code>节点，这样访问<code>pod ip</code>和<code>service ip</code>这样的<code>IP</code>，网络包会到达某个集群物理节点，而集群内的物理节点或虚拟机，<code>k8s</code>网络<code>cni</code>插件都会与这些目的地址互通。</p>
+</li>
+<li>
+<p><code>dns</code>解析打通</p>
+<p>网络打通后，就可以在办公网络通过<code>pod</code>或<code>service</code>的<code>ip</code>进行连通了。但是每次更新服务，<code>ip</code>通常都会发生变化，我们想通过服务名称（域名）而不是<code>ip</code>进行通信，解决<code>dns</code>问题主要有以下两个方向</p>
+<ul>
+<li>网络已经打通了，那么就可以把<code>k8s</code>的<code>coredns</code>作为本地的<code>dns</code>服务器</li>
+<li>把所有通过办公网络请求<code>k8s</code>中的服务（域名）的记录从内网<code>dns</code>服务器转发到<code>k8s</code>的<code>coredns</code></li>
+</ul>
+<p>上述两种方式都可以实现<code>dns</code>的互联互通。综合考虑，为了保证两处<code>dns</code>服务的稳定性，只将经过<code>k8s</code>内部服务的<code>dns</code>请求通过<code>coredns</code>，且减少了<code>PC</code>客户端<code>dns</code>服务器地址的配置工作，选择方案二。</p>
+</li>
+</ul>
+<h1 id="4-网络打通的具体实现">4、网络打通的具体实现</h1>
+<h2 id="41-检查现有网络连通情况">4.1 检查现有网络连通情况</h2>
+<h3 id="411-办公网络和k8s-node">4.1.1 办公网络和k8s node</h3>
+<p>在本地<code>pc</code>电脑上操作</p>
+<pre><code class="language-shell">➜  ~ ping 172.16.1.106 -c 4
+PING 172.16.1.106 (172.16.1.106): 56 data bytes
+64 bytes from 172.16.1.106: icmp_seq=0 ttl=63 time=1.621 ms
+64 bytes from 172.16.1.106: icmp_seq=1 ttl=63 time=1.568 ms
+64 bytes from 172.16.1.106: icmp_seq=2 ttl=63 time=1.221 ms
+64 bytes from 172.16.1.106: icmp_seq=3 ttl=63 time=1.338 ms
+
+--- 172.16.1.106 ping statistics ---
+4 packets transmitted, 4 packets received, 0.0% packet loss
+round-trip min/avg/max/stddev = 1.221/1.437/1.621/0.164 ms
+</code></pre>
+<h3 id="412-k8s-node和pod及svc">4.1.2 k8s node和pod及svc</h3>
+<p>在<code>k8s</code>任意一台<code>node</code>上操作，通过<code>nslookup</code>同时检查网络和<code>dns</code>功能是否正常，这里以<code>172.16.1.106</code>这台<code>node</code>为例</p>
+<pre><code class="language-shell">[root@k8s-qa-node-02 ~]# nslookup -q=A kubernetes.default.svc.cluster.local 10.68.0.2
+Server:		10.68.0.2
+Address:	10.68.0.2#53
+
+Name:	kubernetes.default.svc.cluster.local
+Address: 10.68.0.1
+</code></pre>
+<p>查看<code>node</code>的路由</p>
+<pre><code class="language-shell">[root@k8s-qa-node-02 ~]# ip route
+default via 172.16.1.254 dev eth0 
+169.254.0.0/16 dev eth0 scope link metric 1002 
+172.16.1.0/24 dev eth0 proto kernel scope link src 172.16.1.106 
+172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 linkdown 
+172.20.0.0/24 via 172.16.1.100 dev eth0 
+172.20.1.0/24 via 172.16.1.101 dev eth0 
+172.20.2.0/24 via 172.16.1.110 dev eth0 
+172.20.3.0/24 dev cni0 proto kernel scope link src 172.20.3.1 
+172.20.4.0/24 via 172.16.1.107 dev eth0 
+172.20.5.0/24 via 172.16.1.108 dev eth0 
+172.20.6.0/24 via 172.16.1.109 dev eth0 
+# ...省略部分条目
+</code></pre>
+<h2 id="42-添加地址">4.2 添加地址</h2>
+<p>网络打通主要在网关和路由器设备上进行操作，这里仅以<code>FortiGate</code>为例进行记录。<br>
+为了配置流程清晰，通过终端命令行进行配置而不是<code>web</code>界面操作，首先通过<code>console</code>或者<code>ssh</code>连接上<code>FortiGate</code>的终端</p>
+<p>添加<code>k8s pod</code>和<code>k8s service</code>两个子网的地址</p>
+<pre><code class="language-shell">FortiGate # config firewall address
+
+FortiGate (address) # edit k8s_SERVICE_CIDR
+new entry 'k8s_SERVICE_CIDR' added
+FortiGate (clientnet) # set subnet 10.68.0.0 255.255.0.0
+FortiGate (clientnet) # next
+
+FortiGate (address) # edit k8s_POD_CIDR
+new entry 'k8s_POD_CIDR' added
+FortiGate (clientnet) # set subnet 172.20.0.0 255.255.0.0
+FortiGate (clientnet) # next
+
+FortiGate (address) # end
+FortiGate # 
+</code></pre>
+<h2 id="43-配置静态路由">4.3 配置静态路由</h2>
+<p>配置到达<code>k8s svc</code>子网的路由</p>
+<pre><code class="language-shell">FortiGate # config router static
+# 新增一条静态路由，id尽量大，不与已有的冲突
+FortiGate (static) # edit 10
+new entry '10' added
+# 配置目标地址和掩码
+FortiGate (2) # set dst 10.68.0.0 255.255.0.0
+# 配置网关（下一跳）
+FortiGate (2) # set gateway 172.16.1.106
+# 配置接口名
+FortiGate (2) # set device Test
+FortiGate (2) # next
+FortiGate (static) # end
+FortiGate # 
+</code></pre>
+<p>同理，配置到达<code>k8s pod</code>子网的路由</p>
+<pre><code class="language-shell">FortiGate # config router static 
+FortiGate (static) # edit 11
+FortiGate (2) # set dst 172.20.0.0/16 255.255.0.0
+FortiGate (2) # set gateway 172.16.1.106
+FortiGate (2) # set device Test
+FortiGate (2) # next
+FortiGate (static) # end
+FortiGate # 
+</code></pre>
+<p>检查配置的静态路由</p>
+<pre><code class="language-shell">FortiGate # get router info routing-table static
+# ...省略部分条目
+S       10.68.0.0/16 [10/0] via 172.16.1.106, Test
+S       172.20.0.0/16 [10/0] via 172.16.1.106, Test
+</code></pre>
+<h2 id="44-配置策略">4.4 配置策略</h2>
+<p>配置到达<code>k8s service</code>网络放行策略</p>
+<pre><code class="language-shell">FortiGate # config firewall policy
+# 新增一条网络策略，id尽量大，不与已有的冲突
+FortiGate (policy) # edit 100
+# 配置源接口
+FortiGate (100) # set srcintf internal
+# 配置目的接口
+FortiGate (100) # set dstintf Test
+# 配置源地址
+FortiGate (100) # set srcaddr 172.16.0.0/24
+# 配置目的地址
+FortiGate (100) # set dstaddr k8s_SERVICE_CIDR
+# 配置动作类型
+FortiGate (100) # set action accept
+# 配置动作时间
+FortiGate (100) # set schedule always
+# 配置服务（协议类型）
+FortiGate (100) # set service ALL_TCP
+# 配置是否开启日志
+FortiGate (100) # set logtraffic disable
+# 配置是否开启nat
+FortiGate (100) # set nat disable
+
+end
+</code></pre>
+<p>同理，配置到达<code>k8s pod</code>网络放行策略</p>
+<pre><code class="language-shell">FortiGate # config firewall policy
+FortiGate (policy) # edit 101
+FortiGate (100) # set srcintf internal
+FortiGate (100) # set dstintf Test
+FortiGate (100) # set srcaddr 172.16.0.0/24
+FortiGate (100) # set dstaddr k8s_POD_CIDR
+FortiGate (100) # set action accept
+FortiGate (100) # set schedule always
+FortiGate (100) # set service ALL_TCP
+FortiGate (100) # set logtraffic disable
+FortiGate (100) # set nat disable
+end
+</code></pre>
+<h2 id="45-验证配置">4.5 验证配置</h2>
+<h3 id="451-web界面检查">4.5.1 web界面检查</h3>
+<p>登录到<code>FortiGate</code>界面，查看配置的静态路由</p>
+<img src="https://image.ssgeek.com/20201211-02.png" style="zoom:67%;" />
+<p>网络策略</p>
+<img src="https://image.ssgeek.com/20201211-03.png" style="zoom:67%;" />
+<h3 id="452-pc网络检查">4.5.2 pc网络检查</h3>
+<p>在<code>pc</code>端检查<code>pod</code>网络是否可达并在上文中选取的网关<code>node</code>上抓包</p>
+<img src="https://image.ssgeek.com/20201211-04.png" style="zoom:67%;" />
+<h1 id="5-dns解析打通的具体实现">5、dns解析打通的具体实现</h1>
+<h2 id="51-配置dns条件转发">5.1 配置dns条件转发</h2>
+<p>上面已经将网络进行了打通，<code>dns</code>解析的打通在内网dns服务器上设置<code>dns</code>转发即可。</p>
+<p>打开<code>ms(windows) server</code>类型的<code>dns</code>管理器配置界面，新增条件转发器，如下所示，<code>dns</code>域填写<code>k8s</code>集群中兼容所有命名空间的搜索域。当然，为了安全，建议单独设置允许可达的命名空间下的服务，例如<code>default</code>，则填为<code>default.svc.cluster.local</code>。</p>
+<img src="https://image.ssgeek.com/20201211-05.png" style="zoom:67%;" />
+<h2 id="52-验证配置">5.2 验证配置</h2>
+<p>在本地终端上测试解析<code>k8s service</code>域名，成功解析</p>
+<pre><code class="language-shell">➜  ~ nslookup redis-abc-gns.default.svc.cluster.local
+Server:		172.16.2.3
+Address:	172.16.2.3#53
+
+Non-authoritative answer:
+Name:	redis-dkj-gns.default.svc.cluster.local
+Address: 172.20.4.222
+</code></pre>
+<h1 id="6-小结">6、小结</h1>
+<p>至此，就成功的将办公网络和<code>k8s</code>内网进行打通，研发以后就可以在开发机器上利用和<code>qa</code>环境一样配置的<code>svc name</code>连接对应依赖的<code>redis</code>等组件了。</p>
+<p>此方案主要利用局域网静态路由，在网关进行配置。透明且高效，且开发测试环境无须再部署其他组件。</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://www.ssgeek.com/tag/rAjiCH60jX" class="tag">
+                    k8s
+                  </a>
+                
+                  <a href="https://www.ssgeek.com/tag/kubernetes" class="tag">
+                    kubernetes
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://www.ssgeek.com/post/centos7-jing-mo-an-zhuang-oracle11g">
+                  <h3 class="post-title">
+                    Centos7静默安装Oracle11g
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/aos/2.3.4/aos.js"></script>
+
+<script type="application/javascript">
+
+AOS.init();
+
+hljs.initHighlightingOnLoad()
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '22c870a7f8551b566598',
+        clientSecret: '1acfdedd403cdf39c4a6ce932a4a991bb2b32e3a',
+        repo: 'hargeek.github.io',
+        owner: 'hargeek',
+        admin: ['hargeek'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+  </body>
+</html>
