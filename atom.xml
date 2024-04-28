@@ -2,13 +2,230 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://www.ssgeek.com</id>
     <title>山山仙人博客</title>
-    <updated>2024-01-16T14:34:20.632Z</updated>
+    <updated>2024-04-28T15:17:59.642Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://www.ssgeek.com"/>
     <link rel="self" href="https://www.ssgeek.com/atom.xml"/>
     <logo>https://www.ssgeek.com/images/avatar.png</logo>
     <icon>https://www.ssgeek.com/favicon.ico</icon>
     <rights>All rights reserved 2024, 山山仙人博客</rights>
+    <entry>
+        <title type="html"><![CDATA[Ack集群Pod独占EIP实践]]></title>
+        <id>https://www.ssgeek.com/post/ack-ji-qun-pod-du-zhan-eip-shi-jian</id>
+        <link href="https://www.ssgeek.com/post/ack-ji-qun-pod-du-zhan-eip-shi-jian">
+        </link>
+        <updated>2024-04-28T15:16:46.000Z</updated>
+        <content type="html"><![CDATA[<h2 id="1-背景">1. 背景</h2>
+<p>某线上应用部署在<code>ack</code>集群内，用于根据用户定义的<code>http</code>请求项配置，周期性检查<code>http</code>接口的请求响应状态，接口地址为内网或公网，当接口地址为公网时，频繁出现请求超时的报警错误。经过排查发现，在公网请求发生超时的时刻，集群<code>vpc NAT</code>带宽达到上限<code>200Mbps</code>，也就是<code>25MB/s</code></p>
+<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/20240429-01.jpg" alt=""></figure>
+<p>分析：由于集群占用<code>vpc</code>，<code>vpc</code>内所有<code>ip</code>（node和pod的ip）都属于<code>vpc</code>内各子网地址，这些地址出公网的请求共用<code>vpc</code>绑定的公网<code>NAT</code>，在某时刻子网<code>ip</code>请求公网使用的<code>EIP</code>是随机的，无法控制，会产生和其他<code>ip</code>同时请求公网使用同一个<code>EIP</code>的情况，由此发生了带宽内拥挤，超限的情况，因此上述超时报警其实是<strong>客户端带宽不够产生的误报</strong></p>
+<h2 id="2-解决方案">2. 解决方案</h2>
+<p>为了避免发生上述情况，解决办法是避免这些特定的pod请求公网时和其他ip发生公网带宽的争抢，走独立的公网出口，有以下两种方案：</p>
+<ul>
+<li>方案一</li>
+</ul>
+<p>将这些<code>pod</code>调度到特定的子网<code>node</code>，<code>node</code>的<code>ip</code>和<code>pod</code>的<code>ip</code>会使用特定的子网，这个特定的子网由于在特定的<code>vSwitch</code>虚拟交换机下，因此可以为这个子网单独指定路由条目，也就是将请求公网地址的请求的下一跳路由到特定的公网<code>NAT</code>，特定的公网<code>NAT</code>使用特定的<code>EIP</code>且不和其他子网共用</p>
+<ul>
+<li>方案二</li>
+</ul>
+<p><code>ack</code>集群的网络使用的是阿里云<code>Terway</code>，在此前提下，阿里云提供了<a href="https://help.aliyun.com/zh/ack/ack-managed-and-ack-dedicated/user-guide/associate-an-eip-with-a-pod-1#95a64c02c0f05">为Terway网络中的Pod挂载独立的公网EIP</a>的解决方案，具体可以查看文档说明，简单来说就是<strong>阿里云提供了集群内的控制器，实现了通过k8s原生的声明式配置，调用EIP产品相关api动态为pod绑定EIP的功能</strong></p>
+<h2 id="3-方案选取和实现">3. 方案选取和实现</h2>
+<p>方案一，改动较大，需要将<code>pod</code>调度到特定的<code>node</code>上，且需要人工维护路由条目，维护性较差；<br>
+方案二，更为直接，在安装控制器插件后，通过给<code>pod</code>添加特定注解实现目的，主要分为两种方式：</p>
+<ul>
+<li>一种是根据声明式配置动态随机购买EIP</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example
+  labels:
+    app: example
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: example
+  template:
+    metadata:
+      labels:
+        app: example
+      annotations:
+        k8s.aliyun.com/pod-with-eip: &quot;true&quot;  # 自动创建并绑定EIP
+        k8s.aliyun.com/eip-bandwidth: &quot;200&quot;  # EIP峰值带宽
+        k8s.aliyun.com/eip-internet-charge-type: &quot;PayByTraffic&quot; # EIP的计量方式
+        k8s.aliyun.com/eip-instance-charge-type: &quot;PostPaid&quot;  # EIP的计费方式
+        k8s.aliyun.com/eip-name: &quot;app-eip&quot;  # EIP名称
+        k8s.aliyun.com/eip-description: &quot;app-eip&quot;  # EIP描述
+</code></pre>
+<ul>
+<li>一种是先购买EIP，pod注解中声明EIP的id</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example
+  labels:
+    app: example
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: example
+  template:
+    metadata:
+      labels:
+        app: example
+      annotations:
+        k8s.aliyun.com/pod-eip-instanceid: eip-2zeXXXXXx  # EIP ID
+</code></pre>
+<h3 id="31-配置ram策略并安装插件">3.1 配置RAM策略并安装插件</h3>
+<p>按照文档操作，配置挂载EIP所需的RAM权限<br>
+安装插件<code>ack-extend-network-controller</code>，安装时启用插件<code>pod eip</code>的能力，一键安装即可</p>
+<figure data-type="image" tabindex="2"><img src="https://image.ssgeek.com/20240429-02.jpg" alt=""></figure>
+<h3 id="32-购买eip">3.2 购买EIP</h3>
+<p>由于业务目前只有<code>1</code>个<code>pod</code>，为了后续排查方便，选择通过先购买<code>EIP</code>再根据<code>EIP id</code>绑定的方式<br>
+购买<code>EIP</code>，按量付费，带宽上限为<code>200Mbps</code></p>
+<figure data-type="image" tabindex="3"><img src="https://image.ssgeek.com/20240429-03.jpg" alt=""></figure>
+<h3 id="33-为pod添加注解">3.3 为pod添加注解</h3>
+<p>在<code>deployment</code>的<code>yaml</code>中为<code>pod</code>添加注解，根据<code>EIP id</code>绑定这个<code>EIP</code>即可</p>
+<pre><code class="language-yaml">spec:
+  template:
+    metadata:
+      annotations:
+        k8s.aliyun.com/pod-eip-instanceid: eip-xxx
+</code></pre>
+<p>绑定后效果</p>
+<ul>
+<li>集群cr</li>
+</ul>
+<p>控制器会自动创建一个和<code>pod</code>名称相同的<code>PodEIP</code>的<code>cr</code>，从这个<code>cr</code>的<code>status</code>中可以看到和上面购买的<code>EIP</code>相关的信息</p>
+<pre><code class="language-yaml">~ kubectl get pods -o wide|grep app
+app-79dcf755fb-ks2ld                                       1/1     Running             0                47h     10.245.36.4      ack-010245035222packets-spot       &lt;none&gt;           1/1
+~ kubectl get podeips app-79dcf755fb-ks2ld -o yaml
+apiVersion: alibabacloud.com/v1beta1
+kind: PodEIP
+metadata:
+  creationTimestamp: &quot;2024-04-01T07:55:46Z&quot;
+  finalizers:
+  - podeip-controller.alibabacloud.com/finalizer
+  generation: 1
+  name: app-79dcf755fb-ks2ld
+  namespace: dev
+  resourceVersion: &quot;2389078403&quot;
+  uid: 292773d3-80b4-4c88-b0ef-17f011a1530e
+spec:
+  allocationID: eip-xxxxx
+  allocationType:
+    releaseStrategy: Follow
+    type: Static
+status:
+  eipAddress: 101.xxx.xxx.5
+  internetChargeType: PayByTraffic
+  isp: BGP
+  name: app独享
+  networkInterfaceID: eni-2zexxxxxxxqvrrpxxx
+  podLastSeen: &quot;2024-04-01T07:39:39Z&quot;
+  privateIPAddress: 10.xxx.36.4
+  resourceGroupID: rg-xxxxx5afyhf3xky
+  status: InUse
+</code></pre>
+<ul>
+<li>EIP绑定情况，与从集群查看cr得到的状态一致</li>
+</ul>
+<figure data-type="image" tabindex="4"><img src="https://image.ssgeek.com/20240429-04.jpg" alt=""></figure>
+<h3 id="34-其他说明">3.4 其他说明</h3>
+<p>以上实现了<code>pod</code>绑定特定<code>EIP</code>的功能，在此条件下，<code>pod</code>请求公网时会固定为此<code>eip</code>出公网，为了保障配置的稳定，经过测试，上面提到此业务<code>pod</code>只有一个副本，且通过<code>deployment</code>管理，属于无状态应用，只做上面为<code>pod</code>添加注解的方式会有以下问题</p>
+<h4 id="341-如何控制当pod状态变为ready后才绑定eip">3.4.1 如何控制当pod状态变为ready后才绑定EIP？</h4>
+<p>控制器会在<code>Pod IP</code>分配后，为<code>Pod</code>配置<code>EIP</code>地址，<code>Pod Ready</code>状态可能早于<code>EIP</code>绑定成功时间。解决办法是为<code>pod</code>添加就绪前的检测</p>
+<ul>
+<li>一种方式是为Pod配置Readiness gates</li>
+</ul>
+<pre><code class="language-yaml">kind: Pod
+...
+spec:
+  readinessGates:
+  - conditionType: &quot;k8s.aliyun.com/eip&quot;
+...
+status:
+  conditions:
+  - lastProbeTime: &quot;2022-12-12T03:45:48Z&quot;
+    lastTransitionTime: &quot;2022-12-12T03:45:48Z&quot;
+    reason: Associate eip succeed
+    status: &quot;True&quot;type: k8s.aliyun.com/eip
+...
+</code></pre>
+<ul>
+<li>一种方式是为Pod配置init container，在init container中检查EIP是否已经分配成功</li>
+</ul>
+<pre><code class="language-yaml">apiVersion: v1
+kind: Pod
+metadata:
+  name: example
+  annotations:
+    k8s.aliyun.com/pod-with-eip: &quot;true&quot;
+spec:
+  containers:
+  - name: example
+    image: busybox:1.28
+    command: ['sh', '-c', 'echo The app is running! &amp;&amp; sleep 3600']
+  initContainers:
+  - name: init
+    image: busybox:1.28
+    command: ['timeout', '-t' ,'60', 'sh','-c', &quot;until grep -E '^k8s.aliyun.com\\/allocated-eipAddress=\\S?[0-9]+\\S?' /etc/podinfo/annotations; do echo waiting for annotations; sleep 2; done&quot;]
+    volumeMounts:
+      - name: podinfo
+        mountPath: /etc/podinfo
+  volumes:
+    - name: podinfo
+      downwardAPI:
+        items:
+          - path: &quot;labels&quot;
+            fieldRef:
+              fieldPath: metadata.labels
+          - path: &quot;annotations&quot;
+            fieldRef:
+              fieldPath: metadata.annotations
+</code></pre>
+<h4 id="342-如何控制pod更新时eip始终只绑定了一个pod">3.4.2 如何控制pod更新时，EIP始终只绑定了一个pod？</h4>
+<p><code>pod</code>如果发生了滚动更新，且<code>pod</code>在配置有探针的情况下，可以保障始终只有一个<code>pod</code>接收流量，但是无法保证<code>EIP</code>的正常绑定，因为发布过程中有两个<code>pod</code>同时绑定了这个<code>EIP</code>，新<code>pod</code>启动后，老的<code>pod</code>下线调用了解绑<code>EIP</code>的动作，<code>EIP</code>绑定是需要调用接口到<code>vpc</code>去绑定，只有绑定了这个<code>EIP pod</code>的后续探针才会<code>ready</code>。在新<code>pod</code>滚动更新的过程中，会重新绑定<code>EIP</code>，但是旧<code>pod</code>的回收，又会卸载绑定这个<code>EIP</code></p>
+<p>这里<code>EIP</code>当做了创建<code>pod</code>所需的基础资源，实际上<code>EIP</code>并不是<code>pod</code>运行所必须的，解决办法：</p>
+<ul>
+<li>
+<p>A. 修改控制器实现支持在<code>pod</code>滚动更新结束后才将新的<code>pod ip</code>与<code>EIP</code>绑定（下述C可以避免此问题）</p>
+</li>
+<li>
+<p>B. 将<code>pod</code>的滚动更新模式修改为销毁重建<code>Recreate</code>，这样会损失一定流量</p>
+</li>
+<li>
+<p>C. 控制器支持有状态应用的pod在一定时间内发生更新后仍然使用之前的<code>EIP</code>，因此把<code>pod</code>由<code>deployment</code>改为<code>statefulset</code>，并声明<code>pod</code>在更新过程中仍然使用之前的<code>EIP</code>即可（固定<code>EIP</code>可以保证<code>Pod</code>重建后依然使用之前的<code>EIP</code>地址。该策略可与自动分配<code>EIP</code>能力结合，用于有状态应用的固定<code>EIP</code>）</p>
+</li>
+</ul>
+<pre><code class="language-yaml">      annotations:
+        k8s.aliyun.com/pod-with-eip: &quot;true&quot;
+        k8s.aliyun.com/pod-eip-release-strategy: &quot;10m&quot;
+</code></pre>
+<p>结合现状，业务<code>pod</code>如果支持多副本模式，可以切换到<code>statefulset</code>并创建<code>2</code>个副本，有状态应用的滚动更新本身就是副本销毁和重新创建，在多副本的情况下不会有流量丢失。目前只有一个（暂不支持多副本模式），且可以接受在升级的过程中丢失一定的流量，在不改变原有的无状态应用属性的情况下，选择的解决办法为B</p>
+<p>最终配置如下:</p>
+<pre><code class="language-yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+spec:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        k8s.aliyun.com/pod-eip-instanceid: eip-XXXXXXXlus72fax
+    spec:
+      readinessGates:
+      - conditionType: &quot;k8s.aliyun.com/eip&quot;
+</code></pre>
+<h4 id="343-pod绑定eip后pod本身监听的端口是否也就通过eip暴露">3.4.3 pod绑定EIP后pod本身监听的端口是否也就通过EIP暴露？</h4>
+<p><code>pod</code>由于没有通过<code>NAT</code>请求公网，是<code>EIP</code>和<code>Pod IP</code>（ecs 弹性辅助网卡）直接绑定，因此默认情况下，通过<code>pod ip</code>（vpc内网）:端口可以直接访问到<code>pod</code>暴露的接口，通过eip（公网）:端口也可以访问到，但是由于<code>EIP</code>绑定的是<code>ecs</code>的弹性辅助网卡，因此和<code>ecs</code>共用了一个安全组，<code>ecs</code>是集群<code>node</code>，只开放了集群子网间互通，因此这个问题已经规避</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[我的2022-2023]]></title>
         <id>https://www.ssgeek.com/post/wo-de-2022-2023</id>
@@ -5280,368 +5497,6 @@ func main()  {
 }
 </code></pre>
 <p>See you ~</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Golang接口类型-上篇]]></title>
-        <id>https://www.ssgeek.com/post/golang-jie-kou-lei-xing-shang-pian</id>
-        <link href="https://www.ssgeek.com/post/golang-jie-kou-lei-xing-shang-pian">
-        </link>
-        <updated>2021-10-21T16:10:39.000Z</updated>
-        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
-<li>
-<ul>
-<li><a href="#1-%E6%A6%82%E8%BF%B0">1、概述</a></li>
-<li><a href="#2-%E6%8E%A5%E5%8F%A3%E7%9A%84%E9%9A%90%E5%BC%8F%E5%AE%9E%E7%8E%B0">2、接口的隐式实现</a></li>
-<li><a href="#3-%E6%8E%A5%E5%8F%A3%E5%AE%9A%E4%B9%89%E5%92%8C%E5%A3%B0%E6%98%8E">3、接口定义和声明</a></li>
-<li><a href="#4-%E6%8E%A5%E5%8F%A3%E7%B1%BB%E5%9E%8B%E8%B5%8B%E5%80%BC">4、接口类型赋值</a></li>
-<li><a href="#5-%E6%8E%A5%E5%8F%A3%E7%B1%BB%E5%9E%8B%E5%AF%B9%E8%B1%A1">5、接口类型对象</a></li>
-<li><a href="#6-%E6%8E%A5%E5%8F%A3%E5%BA%94%E7%94%A8%E4%B8%BE%E4%BE%8B">6、接口应用举例</a></li>
-</ul>
-</li>
-</ul>
-</p>
-<figure data-type="image" tabindex="1"><img src="https://image.ssgeek.com/golang.png" alt=""></figure>
-<h2 id="1-概述">1、概述</h2>
-<p>接口是计算机系统中多个组件共享的边界，不同的组件能够在边界上交换信息。接口的本质是引入一个新的中间层，调用方可以通过接口与具体实现分离，解除上下游的耦合，上层的模块不再需要依赖下层的具体模块，只需要依赖一个约定好的接口</p>
-<p>简单来说，<code>Go</code>语言中的接口就是一组方法的签名。接口是<code>Go</code>语言整个类型系统的基石，其他语言的接口是不同组件之间的契约的存在，对契约的实现是强制性的，必须显式声明实现了该接口，这类接口称之为“侵入式接口”。而<code>Go</code>语言的接口是隐式存在，只要实现了该接口的所有函数则代表已经实现了该接口，并不需要显式的接口声明</p>
-<p><strong>接口的比喻</strong><br>
-​一个常见的例子，电脑上只有一个<code>USB</code>接口。这个<code>USB</code>接口可以接<code>MP3</code>、数码相机、摄像头、鼠标、键盘等。所有的上述硬件都可以公用这个接口，有很好的扩展性，该<code>USB</code>接口定义了一种规范，只要实现了该规范，就可以将不同的设备接入电脑，而设备的改变并不会对电脑本身有什么影响（低耦合）</p>
-<p>接口表示调用者和设计者的一种约定，在多人合作开发同一个项目时，事先定义好相互调用的接口可以大大提高开发的效率。接口是用类来实现的，实现接口的类必须严格按照接口的声明来实现接口提供的所有功能。有了接口，就可以在不影响现有接口声明的情况下，修改接口的内部实现，从而使兼容性问题最小化</p>
-<h2 id="2-接口的隐式实现">2、接口的隐式实现</h2>
-<p>在<code>Java</code>中实现接口需要显式地声明接口并实现所有方法，而在<code>Go</code>中实现接口的所有方法就隐式地实现了接口<br>
-定义接口需要使用<code>interface</code>关键字，在接口中只能定义方法签名，不能包含成员变量，例如</p>
-<pre><code class="language-go">type error interface {
-	Error() string
-}
-</code></pre>
-<p>如果一个类型需要实现<code>error</code>接口，那么它只需要实现<code>Error() string</code>方法，下面的<code>RPCError</code>结构体就是 <code>error</code>接口的一个实现</p>
-<pre><code class="language-go">type RPCError struct {
-	Code    int64
-	Message string
-}
-
-func (e *RPCError) Error() string {
-	return fmt.Sprintf(&quot;%s, code=%d&quot;, e.Message, e.Code)
-}
-</code></pre>
-<p>会发现上述代码根本就没有<code>error</code>接口的影子，这正是因为<code>Go</code>语言中接口的实现都是隐式的</p>
-<h2 id="3-接口定义和声明">3、接口定义和声明</h2>
-<p>接口是自定义类型，是对其他类型行为的抽象（定义一个接口类型，把其他类型的值赋值给自定义的接口）</p>
-<p>接口定义使用<code>interface</code>标识，声明了一系列的函数签名（函数名、函数参数、函数返回值）在定义接口时可以指定接口名称，在后续声明接口变量时使用</p>
-<p>声明接口变量只需要定义变量类型为接口名，此时变量被初始化为<code>nil</code></p>
-<pre><code class="language-go">package main
-
-import &quot;fmt&quot;
-
-type Sender interface {
-	Send(to string, msg string) error
-	SendAll(tos []string, msg string) error
-}
-
-func main()  {
-	var sender Sender
-	fmt.Printf(&quot;%T %v\n&quot;, sender, sender)  // &lt;nil&gt; &lt;nil&gt;
-}
-</code></pre>
-<h2 id="4-接口类型赋值">4、接口类型赋值</h2>
-<p>为接口类型方法赋值，一般是定义一个结构体，需要保证结构体方法（方法名、参数）均与接口中定义相同</p>
-<pre><code class="language-go">package main
-
-import &quot;fmt&quot;
-
-type Sender interface {
-	Send(to string, msg string) error
-	SendAll(tos []string, msg string) error
-}
-
-type EmailSender struct {
-}
-
-func (s EmailSender) Send(to, msg string) error {
-	fmt.Println(&quot;发送邮件给:&quot;, to, &quot;,消息内容是:&quot;, msg)
-	return nil
-}
-
-func (s EmailSender) SendAll(tos []string, msg string) error {
-	for _, to := range tos {
-		s.Send(to, msg)
-	}
-	return nil
-}
-
-func main() {
-	var sender Sender = EmailSender{}
-	fmt.Printf(&quot;%T %v\n&quot;, sender, sender) // &lt;nil&gt; &lt;nil&gt;
-	sender.Send(&quot;geek&quot;, &quot;早上好&quot;)
-	sender.SendAll([]string{&quot;aa&quot;,&quot;bb&quot;}, &quot;中午好&quot;)
-}
-</code></pre>
-<p>使用接口的好处，概念上可能不好理解，来一个实际例子</p>
-<pre><code class="language-go">package main
-
-import &quot;fmt&quot;
-
-type Sender interface {
-	Send(to string, msg string) error
-	SendAll(tos []string, msg string) error
-}
-
-type EmailSender struct {
-}
-
-func (s EmailSender) Send(to, msg string) error {
-	fmt.Println(&quot;发送邮件给:&quot;, to, &quot;,消息内容是:&quot;, msg)
-	return nil
-}
-
-func (s EmailSender) SendAll(tos []string, msg string) error {
-	for _, to := range tos {
-		s.Send(to, msg)
-	}
-	return nil
-}
-
-type SmsSender struct {
-}
-
-func (s SmsSender) Send(to, msg string) error {
-	fmt.Println(&quot;发送短信给:&quot;, to, &quot;, 消息内容是:&quot;, msg)
-	return nil
-}
-
-func (s SmsSender) SendAll(tos []string, msg string) error {
-	for _, to := range tos {
-		s.Send(to, msg)
-	}
-	return nil
-}
-
-//func do(sender EmailSender) {
-func do(sender Sender) {
-	sender.Send(&quot;领导&quot;, &quot;工作日志&quot;)
-}
-
-func main() {
-	var sender Sender = EmailSender{}
-	fmt.Printf(&quot;%T %v\n&quot;, sender, sender) // &lt;nil&gt; &lt;nil&gt;
-	sender.Send(&quot;geek&quot;, &quot;早上好&quot;)
-	sender.SendAll([]string{&quot;aa&quot;,&quot;bb&quot;}, &quot;中午好&quot;)
-	do(sender)
-	sender = SmsSender{}
-	do(sender)
-}
-</code></pre>
-<p>按照上面的示例，最后定义变量<code>sender</code>为接口类型<code>Sender</code>，调用接口方法时，只需要指定接口类型对应的结构体是什么，因为在定义接口时，已经声明了此接口实现了<code>Send</code>、<code>SendAll</code>两个方法</p>
-<pre><code class="language-go">var sender Sender = EmailSender{}
-// 或
-var sender Sender = SmsSender{}
-// 单独定义go函数调用
-func do(sender Sender) {
-	sender.Send(&quot;领导&quot;, &quot;工作日志&quot;)
-}
-</code></pre>
-<p>如果没有接口，那么最终调用时，还需要对应上其具体的结构体类型，写法为</p>
-<pre><code class="language-go">var sender EmailSender = EmailSender{}
-// 或
-var sender SmsSender = SmsSender{}
-// 单独定义go函数调用
-func do(sender EmailSender) {
-// func do(sender SmsSender) {
-	sender.Send(&quot;领导&quot;, &quot;工作日志&quot;)
-}
-</code></pre>
-<p>很明显，前者使用接口定义变量，在传参时也使用接口类型定义，在使用上更为简单，仅仅只需要调整初始化的结构体类型即可</p>
-<h2 id="5-接口类型对象">5、接口类型对象</h2>
-<p>当自定义类型实现了接口类型中声明的所有函数时，则该类型的对象可以赋值给接口变量，并使用接口变量调用实现的接口</p>
-<ul>
-<li>
-<p>方法接收者全为值类型<br>
-如上面的例子</p>
-</li>
-<li>
-<p>方法接收者全为指针类型</p>
-</li>
-</ul>
-<pre><code class="language-go">package main
-
-import &quot;fmt&quot;
-
-type Sender interface {
-	Send(to string, msg string) error
-	SendAll(tos []string, msg string) error
-}
-
-type SmsSender struct {
-}
-
-func (s *SmsSender) Send(to, msg string) error {
-	fmt.Println(&quot;发送短信给:&quot;, to, &quot;, 消息内容是:&quot;, msg)
-	return nil
-}
-
-func (s *SmsSender) SendAll(tos []string, msg string) error {
-	for _, to := range tos {
-		s.Send(to, msg)
-	}
-	return nil
-}
-
-func do(sender Sender) {
-	sender.Send(&quot;领导&quot;, &quot;工作日志&quot;)
-}
-
-func main() {
-	var sender Sender = &amp;SmsSender{}  // 指针类型
-	do(sender)
-}
-</code></pre>
-<ul>
-<li>方法接收者既有值类型又有指针类型</li>
-</ul>
-<p><code>WechatSender</code>的<code>send</code>和<code>sendAll</code>，<code>send</code>有指针和值，<code>sendAll</code>只有指针，因此初始化的时候只能用指针，不能用值</p>
-<pre><code class="language-go">package main
-
-import &quot;fmt&quot;
-
-type Sender interface {
-	Send(to string, msg string) error
-	SendAll(tos []string, msg string) error
-}
-
-type WechatSender struct {
-}
-
-// Send 接收者为值对象
-func (s WechatSender) Send(to, msg string) error {
-	fmt.Println(&quot;发送微信给:&quot;, to, &quot;, 消息内容是:&quot;, msg)
-	return nil
-}
-
-// SendAll 接收者为指针对象
-func (s *WechatSender) SendAll(tos []string, msg string) error {
-	for _, to := range tos {
-		s.Send(to, msg)
-	}
-	return nil
-}
-
-//func do(sender EmailSender) {
-func do(sender Sender) {
-	sender.Send(&quot;领导&quot;, &quot;工作日志&quot;)
-}
-
-func main() {
-	var sender Sender = &amp;WechatSender{}
-	do(sender)
-}
-</code></pre>
-<p>当接口(A)包含另外一个接口(B)中声明的所有函数时(A接口函数是B接口函数的父集，B是A的子集)，接口(A)的对象也可以赋值给其子集的接口(B)变量</p>
-<pre><code class="language-go">package main
-
-import &quot;fmt&quot;
-
-type SignalSender interface {
-	Send(to, msg string) error
-}
-
-type Sender interface {
-	Send(to string, msg string) error
-	SendAll(tos []string, msg string) error
-}
-
-...
-
-func main() {
-	var ssender SignalSender = sender  // 以接口的变量初始化另外一个接口
-	ssender.Send(&quot;aa&quot;, &quot;你好&quot;)
-}
-</code></pre>
-<p>若两个接口声明同样的函数签名，则这两个接口完全等价<br>
-当类型和父集接口赋值给接口变量时，只能调用接口变量定义接口中声明的函数（方法）</p>
-<h2 id="6-接口应用举例">6、接口应用举例</h2>
-<p>实际的生产例子，可以加深对接口的理解。例如多个数据源推送和查询数据</p>
-<pre><code class="language-go">package main
-
-import (
-	&quot;fmt&quot;
-	&quot;log&quot;
-)
-
-/*
-1、多个数据源
-2、query方法查询数据
-3、pushdata方法写入数据
- */
-
-type DataSource interface {
-	PushData(data string)
-	QueryData(name string) string
-}
-
-type redis struct {
-	Name string
-	Addr string
-}
-
-func (r *redis) PushData (data string) {
-	log.Printf(&quot;pushdata,name:%s,data:%s\n&quot;, r.Name,data)
-}
-func (r *redis) QueryData (name string) string {
-	log.Printf(&quot;querydata,name:%s,data:%s\n&quot;, r.Name,name)
-	return name + &quot;redis&quot;
-}
-
-type kafka struct {
-	Name string
-	Addr string
-}
-
-func (k *kafka) PushData (data string) {
-	log.Printf(&quot;pushdata,name:%s,data:%s\n&quot;, k.Name,data)
-}
-func (k *kafka) QueryData (name string) string {
-	log.Printf(&quot;querydata,name:%s,data:%s\n&quot;, k.Name,name)
-	return name + &quot;kafka&quot;
-}
-
-var Dm = make(map[string]DataSource)
-
-func main()  {
-	r:=redis{
-		Name: &quot;redis&quot;,
-		Addr: &quot;127.0.0.1&quot;,
-	}
-	k:=kafka{
-		Name:&quot;kafka&quot;,
-		Addr:&quot;192.169.0.1&quot;,
-	}
-	// 注册数据源到承载的容器中
-	Dm[&quot;redis&quot;] = &amp;r
-	Dm[&quot;kafka&quot;] = &amp;k
-	// 推送数据
-	for i:=0;i&lt;5;i++{
-		key:=fmt.Sprintf(&quot;key_%d&quot;, i)
-		for _,ds:=range Dm{
-			ds.PushData(key)
-		}
-	}
-	// 查询数据
-	for i:=0;i&lt;5;i++{
-		key:=fmt.Sprintf(&quot;key_%d&quot;, i)
-		//r:=Dm[&quot;redis&quot;]
-		//r.QueryData(key)
-		for _,ds:=range Dm{
-			res:=ds.QueryData(key)
-			log.Printf(&quot;query_from_ds,res:%s&quot;, res)
-		}
-	}
-}
-</code></pre>
-<p>See you ~</p>
-<blockquote>
-<p>参考：https://draveness.me/golang/docs/part2-foundation/ch04-basic/golang-interface/</p>
-</blockquote>
 ]]></content>
     </entry>
 </feed>
